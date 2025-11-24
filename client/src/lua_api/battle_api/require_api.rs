@@ -18,7 +18,8 @@ pub fn inject_require_api(lua_api: &mut BattleLuaApi) {
         let path = {
             // try to resolve from library packages
             let vms = api_ctx.resources.vm_manager.vms();
-            let ns = vms[api_ctx.vm_index].preferred_namespace();
+            let vm = &vms[api_ctx.vm_index];
+            let ns = vm.preferred_namespace();
 
             let package_id = path.into();
 

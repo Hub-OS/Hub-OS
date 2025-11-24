@@ -150,13 +150,14 @@ impl GlyphAtlas {
             let frame = frames.frame(0).cloned().unwrap_or_default();
 
             // attempt inserting frame for lowercase ascii
-            if let Some(char) = glyph_string.chars().next() {
-                if char.is_ascii_uppercase() && glyph_string.is_ascii() {
-                    let lowercase_glyph_string = char.to_ascii_lowercase().to_string().into();
+            if let Some(char) = glyph_string.chars().next()
+                && char.is_ascii_uppercase()
+                && glyph_string.is_ascii()
+            {
+                let lowercase_glyph_string = char.to_ascii_lowercase().to_string().into();
 
-                    map.entry((Cow::Owned(font.clone()), lowercase_glyph_string))
-                        .or_insert_with(|| frame.clone());
-                }
+                map.entry((Cow::Owned(font.clone()), lowercase_glyph_string))
+                    .or_insert_with(|| frame.clone());
             }
 
             if !fonts.contains(&font) {

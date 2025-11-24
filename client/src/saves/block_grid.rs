@@ -209,7 +209,7 @@ impl BlockGrid {
     pub fn augments<'a>(
         &self,
         game_io: &'a GameIO,
-    ) -> impl Iterator<Item = (&'a AugmentPackage, usize)> + 'a {
+    ) -> impl Iterator<Item = (&'a AugmentPackage, usize)> + use<'a> {
         let globals = game_io.resource::<Globals>().unwrap();
         let augment_packages = &globals.augment_packages;
 

@@ -23,7 +23,7 @@ use packets::structures::{
     SpriteDefinition, SpriteId, TextboxOptions,
 };
 use packets::{
-    address_parsing, ClientAssetType, ClientPacket, Reliability, ServerPacket, SERVER_TICK_RATE,
+    ClientAssetType, ClientPacket, Reliability, SERVER_TICK_RATE, ServerPacket, address_parsing,
 };
 use std::collections::{HashMap, VecDeque};
 
@@ -981,10 +981,8 @@ impl OverworldOnlineScene {
                 } else {
                     let message = String::from("Open link in browser?");
                     let interface = TextboxQuestion::new(game_io, message, move |yes| {
-                        if yes {
-                            if let Err(err) = webbrowser::open(&address) {
-                                log::error!("{err:?}");
-                            }
+                        if yes && let Err(err) = webbrowser::open(&address) {
+                            log::error!("{err:?}");
                         }
                     });
 

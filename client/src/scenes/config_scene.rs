@@ -622,19 +622,16 @@ impl ConfigScene {
                     names.sort();
                     names.dedup();
 
-                    let device_name =
-                        UiConfigDynamicCycle::cycle_slice(&names, cycle_right, |name| {
-                            if let Some(name) = name {
-                                name == previous_value
-                            } else {
-                                previous_value.is_empty()
-                            }
-                        })
-                        .cloned()
-                        .unwrap_or_default()
-                        .unwrap_or_default();
-
-                    device_name
+                    UiConfigDynamicCycle::cycle_slice(&names, cycle_right, |name| {
+                        if let Some(name) = name {
+                            name == previous_value
+                        } else {
+                            previous_value.is_empty()
+                        }
+                    })
+                    .cloned()
+                    .unwrap_or_default()
+                    .unwrap_or_default()
                 },
                 |game_io, mut config, value| {
                     let globals = game_io.resource_mut::<Globals>().unwrap();
@@ -723,14 +720,11 @@ impl ConfigScene {
                 |game_io, previous_value, cycle_right| {
                     let controllers = game_io.input().controllers();
 
-                    let id =
-                        UiConfigDynamicCycle::cycle_slice(controllers, cycle_right, |controller| {
-                            controller.id() == *previous_value
-                        })
-                        .map(|controller| controller.id())
-                        .unwrap_or_default();
-
-                    id
+                    UiConfigDynamicCycle::cycle_slice(controllers, cycle_right, |controller| {
+                        controller.id() == *previous_value
+                    })
+                    .map(|controller| controller.id())
+                    .unwrap_or_default()
                 },
                 |_, mut config, value| {
                     config.controller_index = *value;

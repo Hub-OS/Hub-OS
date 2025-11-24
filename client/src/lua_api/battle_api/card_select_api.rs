@@ -88,10 +88,10 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
                 .map_err(|_| entity_not_found())?;
 
             if let Some(item) = hand.staged_items.pop() {
-                if let StagedItemData::Form((index, ..)) = item.data {
-                    if let Some(callback) = &player.forms[index].deselect_callback {
-                        callback.clone().call(game_io, resources, simulation, ());
-                    }
+                if let StagedItemData::Form((index, ..)) = item.data
+                    && let Some(callback) = &player.forms[index].deselect_callback
+                {
+                    callback.clone().call(game_io, resources, simulation, ());
                 }
 
                 if let Some(callback) = item.undo_callback.clone() {

@@ -444,12 +444,12 @@ impl BattleScene {
                         self.resources.external_events.dropped_player(index);
                     }
 
-                    if let Some(input) = self.simulation.inputs.get(index) {
-                        if !input.matches(&data) {
-                            // resolve the time of the input if it differs from our simulation
-                            resimulation_time =
-                                Some(self.synced_time + controller.buffer.len() as FrameTime);
-                        }
+                    if let Some(input) = self.simulation.inputs.get(index)
+                        && !input.matches(&data)
+                    {
+                        // resolve the time of the input if it differs from our simulation
+                        resimulation_time =
+                            Some(self.synced_time + controller.buffer.len() as FrameTime);
                     }
 
                     if !data.signals.is_empty() {
@@ -464,12 +464,12 @@ impl BattleScene {
                     let local_controller = &self.player_controllers[local_index];
                     let sent = self.synced_time as usize + local_controller.buffer.len();
 
-                    if let Some(controller) = self.player_controllers.get_mut(index) {
-                        if let Some(&count) = received.get(local_index) {
-                            // treating sent - received as rtt in frames
-                            // half of rtt + 1 will be our new lead tolerance
-                            controller.lead_tolerance = sent.saturating_sub(count).div_ceil(2) + 1;
-                        }
+                    if let Some(controller) = self.player_controllers.get_mut(index)
+                        && let Some(&count) = received.get(local_index)
+                    {
+                        // treating sent - received as rtt in frames
+                        // half of rtt + 1 will be our new lead tolerance
+                        controller.lead_tolerance = sent.saturating_sub(count).div_ceil(2) + 1;
                     }
                 }
             }
@@ -477,7 +477,9 @@ impl BattleScene {
             data => {
                 let name: &'static str = (&data).into();
 
-                log::error!("Expecting Input, Heartbeat, or Disconnect during battle, received: {name} from {index}");
+                log::error!(
+                    "Expecting Input, Heartbeat, or Disconnect during battle, received: {name} from {index}"
+                );
             }
         }
 
@@ -640,10 +642,10 @@ impl BattleScene {
                 }
             }
 
-            if let Some(controller) = self.player_controllers.get(index) {
-                if let Some(data) = controller.buffer.get(input_index) {
-                    player_input.load_data(data.clone());
-                }
+            if let Some(controller) = self.player_controllers.get(index)
+                && let Some(data) = controller.buffer.get(input_index)
+            {
+                player_input.load_data(data.clone());
             }
         }
 
@@ -692,15 +694,15 @@ impl BattleScene {
             return;
         }
 
-        if let Some(recording) = &mut self.recording {
-            if let Some(recorded_flow) = &mut recording.simulation_flow {
-                recorded_flow.rollbacks.push_back(RecordedRollback {
-                    flow_step: recorded_flow.current_step,
-                    resimulate_time: start_time,
-                });
+        if let Some(recording) = &mut self.recording
+            && let Some(recorded_flow) = &mut recording.simulation_flow
+        {
+            recorded_flow.rollbacks.push_back(RecordedRollback {
+                flow_step: recorded_flow.current_step,
+                resimulate_time: start_time,
+            });
 
-                self.record_buffer_limits();
-            }
+            self.record_buffer_limits();
         }
 
         // rollback

@@ -15,7 +15,7 @@ use framework::math::Vec2;
 use framework::prelude::{GameIO, NextScene, Rect, RenderPass, Scene};
 use packets::address_parsing::{uri_decode, uri_encode};
 use packets::structures::{FileHash, PackageCategory, PackageId, Uuid};
-use packets::{deserialize, serialize, MulticastPacket, Reliability, SyncDataPacket};
+use packets::{MulticastPacket, Reliability, SyncDataPacket, deserialize, serialize};
 use std::net::SocketAddr;
 use std::time::{Duration, Instant};
 
@@ -611,10 +611,10 @@ impl SyncDataScene {
                         // use the older identity file
                         let local_created_time = file_creation_time(std::fs::metadata(&path));
 
-                        if local_created_time.is_none_or(|time| created_time < time) {
-                            if let Err(err) = std::fs::write(path, data) {
-                                log::error!("Failed to save identity for {decoded_name}: {err:?}");
-                            }
+                        if local_created_time.is_none_or(|time| created_time < time)
+                            && let Err(err) = std::fs::write(path, data)
+                        {
+                            log::error!("Failed to save identity for {decoded_name}: {err:?}");
                         }
 
                         // request more identity

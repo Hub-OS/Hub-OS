@@ -142,10 +142,10 @@ impl ServerAssetManager {
                 }
             };
 
-            if let Ok(metadata) = entry.metadata() {
-                if metadata.is_dir() {
-                    continue;
-                }
+            if let Ok(metadata) = entry.metadata()
+                && metadata.is_dir()
+            {
+                continue;
             }
 
             let file_name = entry.file_name();

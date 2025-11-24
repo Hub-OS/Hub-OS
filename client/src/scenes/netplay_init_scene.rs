@@ -5,7 +5,7 @@ use crate::packages::PackageNamespace;
 use crate::render::*;
 use crate::resources::*;
 use crate::saves::Card;
-use crate::transitions::{flash_color, HoldColorScene};
+use crate::transitions::{HoldColorScene, flash_color};
 use framework::prelude::*;
 use futures::Future;
 use packets::structures::{FileHash, PackageCategory, PackageId, RemotePlayerInfo};
@@ -496,10 +496,8 @@ impl NetplayInitScene {
                 .iter()
                 .find(|conn| conn.player_setup.index == remote_index);
 
-            if let Some(connection) = connection {
-                if let Some(send) = connection.send.as_ref() {
-                    send(packet);
-                }
+            if let Some(send) = connection.and_then(|c| c.send.as_ref()) {
+                send(packet);
             }
         }
     }
@@ -847,10 +845,10 @@ impl NetplayInitScene {
                     });
 
                     // make sure the statistics callback gets called
-                    if let Some(props) = self.battle_props.take() {
-                        if let Some(callback) = props.statistics_callback {
-                            callback(None);
-                        }
+                    if let Some(props) = self.battle_props.take()
+                        && let Some(callback) = props.statistics_callback
+                    {
+                        callback(None);
                     }
 
                     // move on
@@ -933,8 +931,8 @@ async fn punch_holes(
     senders_and_receivers: &[(NetplayPacketSender, NetplayPacketReceiver)],
     fallback_sender_receiver: &(NetplayPacketSender, NetplayPacketReceiver),
 ) -> bool {
-    use futures::future::FutureExt;
     use futures::StreamExt;
+    use futures::future::FutureExt;
 
     for (send, _) in senders_and_receivers {
         send(NetplayPacket {

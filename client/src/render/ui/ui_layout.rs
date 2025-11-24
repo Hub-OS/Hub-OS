@@ -698,21 +698,21 @@ impl UiLayout {
 
         let mut offset_y = self.bounds.y;
 
-        if game_io.input().accepting_text() {
-            if let Some(index) = self.focused_index {
-                let element = &self.tree[index];
+        if game_io.input().accepting_text()
+            && let Some(index) = self.focused_index
+        {
+            let element = &self.tree[index];
 
-                if let Some(padding) = element.ime_padding {
-                    let mut bounds = element.bounds;
-                    bounds.y += offset_y;
+            if let Some(padding) = element.ime_padding {
+                let mut bounds = element.bounds;
+                bounds.y += offset_y;
 
-                    // try to move the bounds into the available space
-                    let ime_height = Self::corrected_ime_height(game_io);
-                    let available_space = RESOLUTION_F.y - ime_height - padding;
+                // try to move the bounds into the available space
+                let ime_height = Self::corrected_ime_height(game_io);
+                let available_space = RESOLUTION_F.y - ime_height - padding;
 
-                    if bounds.bottom() > available_space {
-                        offset_y += available_space - bounds.bottom();
-                    }
+                if bounds.bottom() > available_space {
+                    offset_y += available_space - bounds.bottom();
                 }
             }
         }

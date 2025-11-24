@@ -725,10 +725,10 @@ fn move_bulk_to_pack(scene: &mut DeckEditorScene, game_io: &GameIO) -> Result<()
         }
     }
 
-    if let Some(index) = pack_index {
-        if let Some(slot) = scene.pack_dock.card_slots[index].as_mut() {
-            slot.count += duplicate_count;
-        }
+    if let Some(index) = pack_index
+        && let Some(slot) = scene.pack_dock.card_slots[index].as_mut()
+    {
+        slot.count += duplicate_count;
     }
 
     transfer_to_pack_cleanup(scene, pack_index);
@@ -903,20 +903,21 @@ fn inter_dock_swap(
         return Err(());
     };
 
-    if let Some(stored_index) = &mut stored_index {
-        if pack_card_count == 1 && *stored_index > pack_index {
-            let merged_item = scene.pack_dock.card_slots[*stored_index - 1].as_ref();
-            let merged_card_count = merged_item.unwrap().count;
+    if let Some(stored_index) = &mut stored_index
+        && pack_card_count == 1
+        && *stored_index > pack_index
+    {
+        let merged_item = scene.pack_dock.card_slots[*stored_index - 1].as_ref();
+        let merged_card_count = merged_item.unwrap().count;
 
-            if merged_card_count == 1 {
-                // move the card transferred to the pack into the pack slot
-                scene.pack_dock.card_slots.insert(pack_index, None);
-                scene.pack_dock.card_slots.swap(*stored_index, pack_index);
-                scene.pack_dock.card_slots.pop();
-                *stored_index = pack_index;
-            } else {
-                *stored_index -= 1;
-            }
+        if merged_card_count == 1 {
+            // move the card transferred to the pack into the pack slot
+            scene.pack_dock.card_slots.insert(pack_index, None);
+            scene.pack_dock.card_slots.swap(*stored_index, pack_index);
+            scene.pack_dock.card_slots.pop();
+            *stored_index = pack_index;
+        } else {
+            *stored_index -= 1;
         }
     }
 

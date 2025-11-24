@@ -383,10 +383,10 @@ impl Textbox {
             }
         }
 
-        if self.animator.current_state() == Some("IDLE") {
-            if let Some((animator, _, _)) = self.avatar_queue.front_mut() {
-                animator.update();
-            }
+        if self.animator.current_state() == Some("IDLE")
+            && let Some((animator, _, _)) = self.avatar_queue.front_mut()
+        {
+            animator.update();
         }
 
         if self.interface_queue.is_empty() {
@@ -633,15 +633,15 @@ impl Textbox {
             return;
         }
 
-        if !self.hide_avatar {
-            if let Some((animator, sprite, _)) = self.avatar_queue.front_mut() {
-                // render avatar
-                let point = self.animator.point_or_zero("AVATAR") - self.animator.origin();
-                sprite.set_position(self.sprite.position() + point);
+        if !self.hide_avatar
+            && let Some((animator, sprite, _)) = self.avatar_queue.front_mut()
+        {
+            // render avatar
+            let point = self.animator.point_or_zero("AVATAR") - self.animator.origin();
+            sprite.set_position(self.sprite.position() + point);
 
-                animator.apply(sprite);
-                sprite_queue.draw_sprite(sprite);
-            }
+            animator.apply(sprite);
+            sprite_queue.draw_sprite(sprite);
         }
 
         if let Some((interface, custom_style)) = self.interface_queue.front_mut() {

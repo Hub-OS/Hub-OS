@@ -235,10 +235,10 @@ impl CardSelectButton {
                 }
             }
 
-            if let Some(button) = PlayerOverridables::special_button_mut_for(player) {
-                if let Some(callback) = button.selection_change_callback.clone() {
-                    simulation.pending_callbacks.push(callback);
-                }
+            if let Some(button) = PlayerOverridables::special_button_mut_for(player)
+                && let Some(callback) = button.selection_change_callback.clone()
+            {
+                simulation.pending_callbacks.push(callback);
             }
         }
 

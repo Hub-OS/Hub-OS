@@ -199,10 +199,10 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
 
         sprite_node.set_texture(api_ctx.game_io, path);
 
-        if let Ok(animator_index) = table.raw_get::<_, GenerationalIndex>("#anim") {
-            if let Some(animator) = simulation.animators.get_mut(animator_index) {
-                animator.apply(sprite_node);
-            }
+        if let Ok(animator_index) = table.raw_get::<_, GenerationalIndex>("#anim")
+            && let Some(animator) = simulation.animators.get_mut(animator_index)
+        {
+            animator.apply(sprite_node);
         }
 
         lua.pack_multi(())

@@ -318,15 +318,15 @@ impl CardRecipeAnimation {
                     {
                         // render the new card if we're drawing at the first input in the recipe
                         // otherwise render nothing
-                        if range.start == i {
-                            if let Some(package) = card_packages.package_or_fallback(
+                        if range.start == i
+                            && let Some(package) = card_packages.package_or_fallback(
                                 card.namespace.unwrap_or(namespace),
                                 package_id,
-                            ) {
-                                let card = &package.card_properties;
-                                text_style.color = relevant_color;
-                                text_style.draw(game_io, sprite_queue, &card.short_name);
-                            }
+                            )
+                        {
+                            let card = &package.card_properties;
+                            text_style.color = relevant_color;
+                            text_style.draw(game_io, sprite_queue, &card.short_name);
                         }
                     } else {
                         // draw cards not part of any recipe

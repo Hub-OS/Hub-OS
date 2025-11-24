@@ -274,10 +274,10 @@ impl Tile {
     pub fn update_state(&mut self) {
         self.state_lifetime += 1;
 
-        if let Some(max_lifetime) = self.max_state_lifetime {
-            if self.state_lifetime > max_lifetime {
-                self.set_state_index(TileState::NORMAL, None);
-            }
+        if let Some(max_lifetime) = self.max_state_lifetime
+            && self.state_lifetime > max_lifetime
+        {
+            self.set_state_index(TileState::NORMAL, None);
         }
     }
 

@@ -223,14 +223,14 @@ impl PackagePreview {
         self.sprites.push(background);
 
         // scale preview
-        if !matches!(&self.listing.preview_data, PackagePreviewData::Card { .. }) {
-            if let Some(sprite) = &mut self.image_sprite {
-                // ratio preserving scale
-                // todo: create helper method in Sprite?
-                let size = sprite.frame().size();
-                let scale = (image_bounds / size).size().min_element();
-                sprite.set_scale(Vec2::new(scale, scale));
-            }
+        if !matches!(&self.listing.preview_data, PackagePreviewData::Card { .. })
+            && let Some(sprite) = &mut self.image_sprite
+        {
+            // ratio preserving scale
+            // todo: create helper method in Sprite?
+            let size = sprite.frame().size();
+            let scale = (image_bounds / size).size().min_element();
+            sprite.set_scale(Vec2::new(scale, scale));
         }
 
         match &self.listing.preview_data {

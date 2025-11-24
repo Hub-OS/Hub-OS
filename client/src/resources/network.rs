@@ -4,9 +4,9 @@ use framework::math::Instant;
 use framework::prelude::async_sleep;
 use futures::StreamExt;
 use packets::{
-    deserialize, ClientPacket, MulticastPacket, MulticastPacketWrapper, NetplayPacket,
-    NetplayPacketData, PacketChannels, Reliability, ServerPacket, SyncDataPacket, MULTICAST_ADDR,
-    MULTICAST_PORT, MULTICAST_V4, SERVER_TICK_RATE, SERVER_TICK_RATE_F,
+    ClientPacket, MULTICAST_ADDR, MULTICAST_PORT, MULTICAST_V4, MulticastPacket,
+    MulticastPacketWrapper, NetplayPacket, NetplayPacketData, PacketChannels, Reliability,
+    SERVER_TICK_RATE, SERVER_TICK_RATE_F, ServerPacket, SyncDataPacket, deserialize,
 };
 use std::collections::HashMap;
 use std::future::Future;
@@ -136,7 +136,7 @@ impl Network {
     pub fn subscribe_to_netplay(
         &self,
         address: String,
-    ) -> impl Future<Output = Option<(NetplayPacketSender, NetplayPacketReceiver)>> {
+    ) -> impl Future<Output = Option<(NetplayPacketSender, NetplayPacketReceiver)>> + use<> {
         let event_sender = self.sender.clone();
 
         async move {
@@ -161,7 +161,7 @@ impl Network {
     pub fn subscribe_to_server(
         &self,
         address: String,
-    ) -> impl Future<Output = Option<(ClientPacketSender, ServerPacketReceiver)>> {
+    ) -> impl Future<Output = Option<(ClientPacketSender, ServerPacketReceiver)>> + use<> {
         let event_sender = self.sender.clone();
 
         async move {
@@ -184,7 +184,7 @@ impl Network {
     pub fn subscribe_to_sync_data(
         &self,
         address: String,
-    ) -> impl Future<Output = Option<(SyncDataPacketSender, SyncDataPacketReceiver)>> {
+    ) -> impl Future<Output = Option<(SyncDataPacketSender, SyncDataPacketReceiver)>> + use<> {
         let event_sender = self.sender.clone();
 
         async move {

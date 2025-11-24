@@ -7,7 +7,7 @@ use crate::render::ui::{
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, FrameTime, SpriteColorQueue};
 use crate::resources::*;
 use crate::saves::{GlobalSave, InstalledSwitchDrive};
-use enum_map::{enum_map, Enum, EnumMap};
+use enum_map::{Enum, EnumMap, enum_map};
 use framework::prelude::*;
 use packets::structures::SwitchDriveSlot;
 use std::borrow::Cow;
@@ -354,10 +354,10 @@ impl ManageSwitchDriveScene {
                         .is_some();
 
                     // move drive into package_ids list
-                    if package_exists {
-                        if let Err(index) = self.package_ids.binary_search(&drive.package_id) {
-                            self.package_ids.insert(index, drive.package_id);
-                        }
+                    if package_exists
+                        && let Err(index) = self.package_ids.binary_search(&drive.package_id)
+                    {
+                        self.package_ids.insert(index, drive.package_id);
                     }
                 }
 

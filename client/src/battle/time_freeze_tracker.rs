@@ -7,7 +7,7 @@ use crate::ease::inverse_lerp;
 use crate::render::ui::{FontName, TextStyle};
 use crate::render::{FrameTime, SpriteColorQueue};
 use crate::resources::{
-    AssetManager, Globals, ResourcePaths, BATTLE_INFO_SHADOW_COLOR, RESOLUTION_F,
+    AssetManager, BATTLE_INFO_SHADOW_COLOR, Globals, RESOLUTION_F, ResourcePaths,
 };
 use crate::structures::GenerationalIndex;
 use framework::prelude::{Color, GameIO, Vec2};
@@ -401,11 +401,11 @@ impl TimeFreezeTracker {
         }
 
         // handle any pending freezes, such as decross animation, or time freeze actions after an animation
-        if !simulation.time_freeze_tracker.time_is_frozen() {
-            if let Some(callback) = simulation.time_freeze_tracker.advance_queue() {
-                simulation.pending_callbacks.push(callback);
-                simulation.call_pending_callbacks(game_io, resources);
-            }
+        if !simulation.time_freeze_tracker.time_is_frozen()
+            && let Some(callback) = simulation.time_freeze_tracker.advance_queue()
+        {
+            simulation.pending_callbacks.push(callback);
+            simulation.call_pending_callbacks(game_io, resources);
         }
 
         if simulation.time_freeze_tracker.should_defrost {

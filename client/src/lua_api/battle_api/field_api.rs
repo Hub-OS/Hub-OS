@@ -1,6 +1,6 @@
 use super::errors::entity_not_found;
 use super::tile_api::create_tile_table;
-use super::{create_entity_table, BattleLuaApi, FIELD_TABLE};
+use super::{BattleLuaApi, FIELD_TABLE, create_entity_table};
 use crate::battle::{Character, Entity, Obstacle, Player, Spell};
 use crate::bindable::{EntityId, Team};
 use crate::lua_api::FIELD_COMPAT_TABLE;
@@ -147,10 +147,10 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
         let field = &mut api_ctx.simulation.field;
 
         for y in 0..field.rows() as i32 {
-            if let Some(tile) = field.tile_at_mut((x, y)) {
-                if tile.original_team() == team {
-                    tile.set_team_reclaim_timer(0);
-                }
+            if let Some(tile) = field.tile_at_mut((x, y))
+                && tile.original_team() == team
+            {
+                tile.set_team_reclaim_timer(0);
             }
         }
 

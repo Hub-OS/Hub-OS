@@ -39,10 +39,10 @@ impl Scene for HoldColorScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
-        if self.start_instant.elapsed() >= self.duration {
-            if let Some(callback) = self.next_scene_callback.take() {
-                self.next_scene = callback(game_io);
-            }
+        if self.start_instant.elapsed() >= self.duration
+            && let Some(callback) = self.next_scene_callback.take()
+        {
+            self.next_scene = callback(game_io);
         }
     }
 

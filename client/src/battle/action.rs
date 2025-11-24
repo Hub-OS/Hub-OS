@@ -705,14 +705,13 @@ impl Action {
             if let Ok(action_queue) = simulation
                 .entities
                 .query_one_mut::<&mut ActionQueue>(action.entity.into())
+                && action_queue.active == Some(index)
             {
-                if action_queue.active == Some(index) {
-                    action.complete_sync(
-                        &mut simulation.entities,
-                        &mut simulation.pending_callbacks,
-                        &mut simulation.field,
-                    );
-                }
+                action.complete_sync(
+                    &mut simulation.entities,
+                    &mut simulation.pending_callbacks,
+                    &mut simulation.field,
+                );
             }
 
             // end callback
@@ -830,10 +829,10 @@ impl Action {
         // unset action_index to allow other actions to be used
         action_queue.active = None;
 
-        if action_queue.pending.is_empty() {
-            if let Some(callback) = idle_callback {
-                pending_callbacks.push(callback.0.clone());
-            }
+        if action_queue.pending.is_empty()
+            && let Some(callback) = idle_callback
+        {
+            pending_callbacks.push(callback.0.clone());
         }
 
         self.set_auto_reservation_preference(entities, field, true);

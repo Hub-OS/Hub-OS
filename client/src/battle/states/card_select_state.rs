@@ -337,11 +337,11 @@ impl State for CardSelectState {
 
         let special_button = PlayerOverridables::special_button_for(player);
 
-        if let Some(button) = special_button {
-            if let Some(sprite_tree) = simulation.sprite_trees.get_mut(button.sprite_tree_index) {
-                sprite_tree.draw(sprite_queue);
-                sprite_queue.set_color_mode(SpriteColorMode::Multiply);
-            }
+        if let Some(button) = special_button
+            && let Some(sprite_tree) = simulation.sprite_trees.get_mut(button.sprite_tree_index)
+        {
+            sprite_tree.draw(sprite_queue);
+            sprite_queue.set_color_mode(SpriteColorMode::Multiply);
         }
 
         // drawing selection
@@ -576,10 +576,10 @@ impl CardSelectState {
 
             // clear selection
             while let Some(popped) = hand.staged_items.pop() {
-                if let StagedItemData::Form((index, ..)) = popped.data {
-                    if let Some(callback) = &player.forms[index].deselect_callback {
-                        simulation.pending_callbacks.push(callback.clone());
-                    }
+                if let StagedItemData::Form((index, ..)) = popped.data
+                    && let Some(callback) = &player.forms[index].deselect_callback
+                {
+                    simulation.pending_callbacks.push(callback.clone());
                 }
 
                 if let Some(callback) = popped.undo_callback {
@@ -700,46 +700,46 @@ impl CardSelectState {
             .map(|(index, _)| index);
 
         // select form
-        if input.was_just_pressed(Input::Confirm) {
-            if let Some(index) = selection.hovered_form {
-                let prev_index = hand.staged_items.stored_form_index();
+        if input.was_just_pressed(Input::Confirm)
+            && let Some(index) = selection.hovered_form
+        {
+            let prev_index = hand.staged_items.stored_form_index();
 
-                // deselect the previous form
-                if let Some((prev_index, undo_callback)) = hand.staged_items.drop_form_selection() {
-                    if let Some(callback) = &player.forms[prev_index].deselect_callback {
+            // deselect the previous form
+            if let Some((prev_index, undo_callback)) = hand.staged_items.drop_form_selection() {
+                if let Some(callback) = &player.forms[prev_index].deselect_callback {
+                    simulation.pending_callbacks.push(callback.clone());
+                }
+
+                if let Some(callback) = undo_callback {
+                    simulation.pending_callbacks.push(callback);
+                }
+            }
+
+            if prev_index != selection.hovered_form {
+                // select new form
+                hand.staged_items.stage_form(index, None, None);
+
+                let form = &player.forms[index];
+
+                if form.transition_on_select {
+                    // select_callback will be called in the middle of the select animation
+                    selection.form_select_time = Some(self.time);
+                } else {
+                    if form.close_on_select {
+                        selection.form_open_time = None;
+                    }
+
+                    if let Some(callback) = &form.select_callback {
+                        // select immediately
                         simulation.pending_callbacks.push(callback.clone());
                     }
-
-                    if let Some(callback) = undo_callback {
-                        simulation.pending_callbacks.push(callback);
-                    }
                 }
+            }
 
-                if prev_index != selection.hovered_form {
-                    // select new form
-                    hand.staged_items.stage_form(index, None, None);
-
-                    let form = &player.forms[index];
-
-                    if form.transition_on_select {
-                        // select_callback will be called in the middle of the select animation
-                        selection.form_select_time = Some(self.time);
-                    } else {
-                        if form.close_on_select {
-                            selection.form_open_time = None;
-                        }
-
-                        if let Some(callback) = &form.select_callback {
-                            // select immediately
-                            simulation.pending_callbacks.push(callback.clone());
-                        }
-                    }
-                }
-
-                // sfx
-                if selection.local {
-                    pending_sfx.push(&globals.sfx.cursor_select);
-                }
+            // sfx
+            if selection.local {
+                pending_sfx.push(&globals.sfx.cursor_select);
             }
         }
 

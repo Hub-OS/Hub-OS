@@ -306,20 +306,20 @@ impl Menu for Shop {
             audio.play_sound(&globals.sfx.cursor_move);
         }
 
-        if self.ui_input_tracker.pulsed(Input::Confirm) {
-            if let Some(item) = self.items.get(selected_index) {
-                (self.on_select)(item.id());
-                audio.play_sound(&globals.sfx.cursor_select);
-                return;
-            }
+        if self.ui_input_tracker.pulsed(Input::Confirm)
+            && let Some(item) = self.items.get(selected_index)
+        {
+            (self.on_select)(item.id());
+            audio.play_sound(&globals.sfx.cursor_select);
+            return;
         }
 
-        if self.ui_input_tracker.pulsed(Input::Info) {
-            if let Some(item) = self.items.get(selected_index) {
-                (self.on_description_request)(item.id());
-                audio.play_sound(&globals.sfx.cursor_move);
-                return;
-            }
+        if self.ui_input_tracker.pulsed(Input::Info)
+            && let Some(item) = self.items.get(selected_index)
+        {
+            (self.on_description_request)(item.id());
+            audio.play_sound(&globals.sfx.cursor_move);
+            return;
         }
 
         if self.ui_input_tracker.pulsed(Input::Cancel) {

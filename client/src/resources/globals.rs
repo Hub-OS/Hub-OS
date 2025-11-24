@@ -679,7 +679,7 @@ impl Globals {
 
     pub fn request_latest_hashes(
         &self,
-    ) -> impl futures::Future<Output = Vec<(PackageCategory, PackageId, FileHash)>> {
+    ) -> impl futures::Future<Output = Vec<(PackageCategory, PackageId, FileHash)>> + use<> {
         let package_ids: Vec<_> = self
             .packages(PackageNamespace::Local)
             .filter(|info| info.category != PackageCategory::Character)

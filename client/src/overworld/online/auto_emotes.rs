@@ -88,11 +88,10 @@ impl AutoEmotes {
         } else if let Ok(&player_position) = area
             .entities
             .query_one_mut::<&Vec3>(area.player_data.entity)
+            && self.last_position != player_position
         {
-            if self.last_position != player_position {
-                self.last_move_time = self.time;
-                self.last_position = player_position;
-            }
+            self.last_move_time = self.time;
+            self.last_position = player_position;
         }
 
         // set emote with a packet once a second

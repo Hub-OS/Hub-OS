@@ -10,12 +10,12 @@ use crate::render::{
     SpriteShaderEffect,
 };
 use crate::resources::{
-    AssetManager, Globals, ResourcePaths, BATTLE_UI_MARGIN, CARD_SELECT_CARD_COLS as CARD_COLS,
-    RESOLUTION_F,
+    AssetManager, BATTLE_UI_MARGIN, CARD_SELECT_CARD_COLS as CARD_COLS, Globals, RESOLUTION_F,
+    ResourcePaths,
 };
 use crate::saves::Card;
 use crate::structures::{GenerationalIndex, Tree};
-use enum_map::{enum_map, Enum};
+use enum_map::{Enum, enum_map};
 use framework::prelude::*;
 
 #[derive(Enum, Clone, Copy, PartialEq, Eq)]
@@ -410,7 +410,7 @@ impl CardSelectUi {
         &self,
         player: &'a Player,
         hand: &'a PlayerHand,
-    ) -> impl Iterator<Item = (usize, PackageNamespace, &'a Card, Vec2)> {
+    ) -> impl Iterator<Item = (usize, PackageNamespace, &'a Card, Vec2)> + use<'a> {
         let start = self.card_start_point();
 
         // draw icons

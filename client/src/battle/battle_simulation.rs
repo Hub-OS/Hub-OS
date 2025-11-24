@@ -9,8 +9,8 @@ use crate::resources::*;
 use crate::scenes::BattleEvent;
 use crate::structures::{DenseSlotMap, SlotMap};
 use framework::prelude::*;
-use packets::structures::{BattleStatistics, BattleSurvivor};
 use packets::NetplaySignal;
+use packets::structures::{BattleStatistics, BattleSurvivor};
 use rand::SeedableRng;
 use rand_xoshiro::Xoshiro256PlusPlus;
 use std::cell::RefCell;
@@ -371,10 +371,10 @@ impl BattleSimulation {
                 continue;
             }
 
-            if let Some(living) = self.entities.query_one::<&Living>(id).unwrap().get() {
-                if living.status_director.is_inactionable(status_registry) {
-                    continue;
-                }
+            if let Some(living) = self.entities.query_one::<&Living>(id).unwrap().get()
+                && living.status_director.is_inactionable(status_registry)
+            {
+                continue;
             }
 
             let animator = &mut self.animators[entity.animator_index];
@@ -396,10 +396,10 @@ impl BattleSimulation {
                 continue;
             }
 
-            if let Ok(living) = self.entities.query_one_mut::<&Living>(action.entity.into()) {
-                if living.status_director.is_inactionable(status_registry) {
-                    continue;
-                }
+            if let Ok(living) = self.entities.query_one_mut::<&Living>(action.entity.into())
+                && living.status_director.is_inactionable(status_registry)
+            {
+                continue;
             }
 
             for attachment in &mut action.attachments {
@@ -467,10 +467,10 @@ impl BattleSimulation {
                 }
             }
 
-            if self.progress >= BattleProgress::BattleStarted {
-                if let Some(callback) = battle_start_callback {
-                    self.pending_callbacks.push(callback.0.clone());
-                }
+            if self.progress >= BattleProgress::BattleStarted
+                && let Some(callback) = battle_start_callback
+            {
+                self.pending_callbacks.push(callback.0.clone());
             }
 
             if let Some(tile) = self.field.tile_at_mut((entity.x, entity.y)) {

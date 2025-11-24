@@ -119,11 +119,11 @@ impl PackageScene {
         let mut children: Vec<Box<dyn UiNode>> = Vec::new();
         push_text(&mut children, &listing.long_name);
 
-        if let PackagePreviewData::Card { codes, .. } = &listing.preview_data {
-            if !codes.is_empty() {
-                push_blank(&mut children);
-                push_text(&mut children, &format!("Codes: {}", codes.join(" ")));
-            }
+        if let PackagePreviewData::Card { codes, .. } = &listing.preview_data
+            && !codes.is_empty()
+        {
+            push_blank(&mut children);
+            push_text(&mut children, &format!("Codes: {}", codes.join(" ")));
         }
 
         if !listing.description.is_empty() {

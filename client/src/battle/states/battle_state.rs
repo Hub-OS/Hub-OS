@@ -699,22 +699,20 @@ impl BattleState {
                     false,
                 );
 
-                if let Some((attacker_id, tile_pos)) = attacker {
-                    if simulation.defense.damage_blocked {
-                        // blocked by a defense rule such as barrier, mark as ignored as if we collided
-                        if let Some(tile) = simulation.field.tile_at_mut(tile_pos) {
-                            tile.ignore_attacker(attacker_id);
-                        }
-                    }
+                if let Some((attacker_id, tile_pos)) = attacker
+                    && simulation.defense.damage_blocked
+                    && let Some(tile) = simulation.field.tile_at_mut(tile_pos)
+                {
+                    // blocked by a defense rule such as barrier, mark as ignored as if we collided
+                    tile.ignore_attacker(attacker_id);
                 }
 
                 // test tangibility
-                if intangible {
-                    if let Ok(living) = simulation.entities.query_one_mut::<&mut Living>(id) {
-                        if !living.intangibility.try_pierce(&hit_props) {
-                            continue;
-                        }
-                    }
+                if intangible
+                    && let Ok(living) = simulation.entities.query_one_mut::<&mut Living>(id)
+                    && !living.intangibility.try_pierce(&hit_props)
+                {
+                    continue;
                 }
 
                 if let Some((attacker_id, tile_pos)) = attacker {
@@ -1088,13 +1086,13 @@ impl BattleState {
 
                     // new status callbacks
                     for (hit_flag, reapplied) in status_director.take_new_statuses() {
-                        if status_registry.inactionable_flags() & hit_flag != 0 {
-                            if let Some(movement) = &mut movement {
-                                // pause movement when we become inactionable
-                                // we don't want to pause movements after the first frame
-                                // allows drag + wind to move this entity
-                                movement.paused = true;
-                            }
+                        if status_registry.inactionable_flags() & hit_flag != 0
+                            && let Some(movement) = &mut movement
+                        {
+                            // pause movement when we become inactionable
+                            // we don't want to pause movements after the first frame
+                            // allows drag + wind to move this entity
+                            movement.paused = true;
                         }
 
                         if let Some(callback) = status_registry.status_constructor(hit_flag) {
@@ -1132,10 +1130,10 @@ impl BattleState {
                     callbacks.push(callback.0.clone());
                 }
 
-                if let Some(player) = player {
-                    if let Some(callback) = player.active_form_update_callback() {
-                        callbacks.push(callback.clone());
-                    }
+                if let Some(player) = player
+                    && let Some(callback) = player.active_form_update_callback()
+                {
+                    callbacks.push(callback.clone());
                 }
 
                 if let Some(components) = components {
@@ -1267,15 +1265,15 @@ impl BattleState {
             }
 
             if movement.is_complete() {
-                if movement.success {
-                    if let Some(current_tile) = simulation.field.tile_at_mut((entity.x, entity.y)) {
-                        let tile_state = &simulation.tile_states[current_tile.state_index()];
-                        let tile_callback = tile_state.entity_stop_callback.clone();
-                        let params = (entity_id, movement.source.0, movement.source.1);
-                        let callback = tile_callback.bind(params);
+                if movement.success
+                    && let Some(current_tile) = simulation.field.tile_at_mut((entity.x, entity.y))
+                {
+                    let tile_state = &simulation.tile_states[current_tile.state_index()];
+                    let tile_callback = tile_state.entity_stop_callback.clone();
+                    let params = (entity_id, movement.source.0, movement.source.1);
+                    let callback = tile_callback.bind(params);
 
-                        simulation.pending_callbacks.push(callback);
-                    }
+                    simulation.pending_callbacks.push(callback);
                 }
 
                 if let Ok(movement) = simulation.entities.remove_one::<Movement>(id) {

@@ -1089,10 +1089,10 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
             }
 
             // fix next_card_mutation as indices were shifted
-            if let Some(next_index) = &mut character.next_card_mutation {
-                if *next_index == reversed_index + 1 {
-                    *next_index = reversed_index;
-                }
+            if let Some(next_index) = &mut character.next_card_mutation
+                && *next_index == reversed_index + 1
+            {
+                *next_index = reversed_index;
             }
 
             Ok(())
@@ -2966,7 +2966,7 @@ fn read_deck_card_table(
                 from: lua_value.type_name(),
                 to: "DeckCard",
                 message: None,
-            })
+            });
         }
     };
 

@@ -588,12 +588,12 @@ impl Player {
 
         // update from results
 
-        if let Some(fully_charged) = card_used {
-            if state_time > 0 {
-                player.card_charged = fully_charged;
-                character.card_use_requested = true;
-                player.cancel_charge();
-            }
+        if let Some(fully_charged) = card_used
+            && state_time > 0
+        {
+            player.card_charged = fully_charged;
+            character.card_use_requested = true;
+            player.cancel_charge();
         }
 
         if character.card_use_requested {

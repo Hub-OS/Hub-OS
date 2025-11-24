@@ -43,11 +43,11 @@ impl PlayerInputBuffer {
     pub fn push_last(&mut self, input: NetplayBufferItem) {
         self.len += 1;
 
-        if let Some((item, count)) = self.buffer.back_mut() {
-            if *item == input {
-                *count += 1;
-                return;
-            }
+        if let Some((item, count)) = self.buffer.back_mut()
+            && *item == input
+        {
+            *count += 1;
+            return;
         }
 
         self.buffer.push_back((input, 1));

@@ -165,19 +165,18 @@ impl<'a> InputUtil<'a> {
     ) -> bool {
         let config = &self.config;
 
-        if let Some(keys) = config.key_bindings.get(&input) {
-            if keys.iter().any(|key| key_callback(*key)) {
-                return true;
-            }
+        if let Some(keys) = config.key_bindings.get(&input)
+            && keys.iter().any(|key| key_callback(*key))
+        {
+            return true;
         }
 
-        if let Some(buttons) = config.controller_bindings.get(&input) {
-            if buttons
+        if let Some(buttons) = config.controller_bindings.get(&input)
+            && buttons
                 .iter()
                 .any(|button| button_callback(config.controller_index, *button))
-            {
-                return true;
-            }
+        {
+            return true;
         }
 
         false

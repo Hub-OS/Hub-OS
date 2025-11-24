@@ -261,10 +261,10 @@ impl BattleRecording {
             let globals = game_io.resource::<Globals>().unwrap();
             let assets = &globals.assets;
 
-            if !assets.contains_virtual_zip(&hash) {
-                if let Some(bytes) = self.package_map.get(&(category, hash)) {
-                    assets.load_virtual_zip(game_io, hash, bytes.clone());
-                }
+            if !assets.contains_virtual_zip(&hash)
+                && let Some(bytes) = self.package_map.get(&(category, hash))
+            {
+                assets.load_virtual_zip(game_io, hash, bytes.clone());
             }
 
             // load package through virtual zip

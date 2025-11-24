@@ -256,10 +256,10 @@ impl ScrollTracker {
             self.selected_index += len;
         }
 
-        if let Some(remembered_index) = &mut self.remembered_index {
-            if index <= *remembered_index {
-                *remembered_index += len;
-            }
+        if let Some(remembered_index) = &mut self.remembered_index
+            && index <= *remembered_index
+        {
+            *remembered_index += len;
         }
 
         if index <= self.top_index {
@@ -278,10 +278,10 @@ impl ScrollTracker {
             self.selected_index -= 1;
         }
 
-        if let Some(remembered_index) = &mut self.remembered_index {
-            if index < *remembered_index {
-                *remembered_index -= 1;
-            }
+        if let Some(remembered_index) = &mut self.remembered_index
+            && index < *remembered_index
+        {
+            *remembered_index -= 1;
         }
 
         if index < self.top_index {
@@ -411,10 +411,10 @@ impl ScrollTracker {
         self.internal_draw_cursor(sprite_queue, true, self.selected_index);
 
         // draw remembered_index
-        if let Some(index) = self.remembered_index {
-            if self.view_range().contains(&index) {
-                self.internal_draw_cursor(sprite_queue, false, index);
-            }
+        if let Some(index) = self.remembered_index
+            && self.view_range().contains(&index)
+        {
+            self.internal_draw_cursor(sprite_queue, false, index);
         }
     }
 

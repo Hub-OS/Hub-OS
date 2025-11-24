@@ -4,8 +4,8 @@ use itertools::Itertools;
 use rodio::Source;
 use rustysynth::{MidiFile, MidiFileSequencer, Synthesizer, SynthesizerSettings};
 use std::io::Cursor;
-use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
 use std::time::Duration;
 
 fn meta_value_as_usize(value: &symphonia::core::meta::Value) -> usize {
@@ -288,7 +288,7 @@ pub struct SoundBufferSampler {
 }
 
 impl SoundBufferSampler {
-    pub fn end_loop_callback(&self) -> impl Fn() {
+    pub fn end_loop_callback(&self) -> impl Fn() + use<> {
         let stop_looping = self.stop_looping.clone();
 
         move || {
@@ -326,13 +326,13 @@ impl Iterator for SoundBufferSampler {
         let sample = self.buffer.data.get(self.index).cloned();
         self.index += 1;
 
-        if let Some(range) = self.loop_range.clone() {
-            if self.index >= range.end {
-                if self.stop_looping.load(std::sync::atomic::Ordering::Relaxed) {
-                    self.loop_range = None;
-                } else {
-                    self.index = range.start;
-                }
+        if let Some(range) = self.loop_range.clone()
+            && self.index >= range.end
+        {
+            if self.stop_looping.load(std::sync::atomic::Ordering::Relaxed) {
+                self.loop_range = None;
+            } else {
+                self.index = range.start;
             }
         }
 

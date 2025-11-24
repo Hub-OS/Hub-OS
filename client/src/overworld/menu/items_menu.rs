@@ -2,8 +2,8 @@ use super::Menu;
 use crate::overworld::OverworldArea;
 use crate::packages::PackageNamespace;
 use crate::render::ui::{
-    build_9patch, ElementSprite, FontName, NinePatch, PlayerHealthUi, SceneTitle, ScrollTracker,
-    SubSceneFrame, Text, TextStyle, Textbox, UiInputTracker,
+    ElementSprite, FontName, NinePatch, PlayerHealthUi, SceneTitle, ScrollTracker, SubSceneFrame,
+    Text, TextStyle, Textbox, UiInputTracker, build_9patch,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, SpriteColorQueue};
 use crate::resources::{
@@ -163,12 +163,12 @@ impl ItemsMenu {
         }
 
         // if there were previously 0 items, initialize the description text
-        if self.registered_count == 0 {
-            if let Some((_, item_definition, _)) = Self::consumables_iter(area).next() {
-                self.description_text
-                    .text
-                    .clone_from(&item_definition.description);
-            }
+        if self.registered_count == 0
+            && let Some((_, item_definition, _)) = Self::consumables_iter(area).next()
+        {
+            self.description_text
+                .text
+                .clone_from(&item_definition.description);
         }
 
         self.registered_count = registered_count;
