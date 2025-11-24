@@ -175,22 +175,22 @@ impl PluginInterface for PluginWrapper {
     }
 
     fn handle_textbox_response(&mut self, net: &mut Net, player_id: ActorId, response: u8) {
-        if let Some(client) = net.get_client_mut(player_id) {
-            if let Some(i) = client.widget_tracker.pop_textbox() {
-                self.wrap_call(i, net, |plugin_interface, net| {
-                    plugin_interface.handle_textbox_response(net, player_id, response)
-                });
-            }
+        if let Some(client) = net.get_client_mut(player_id)
+            && let Some(i) = client.widget_tracker.pop_textbox()
+        {
+            self.wrap_call(i, net, |plugin_interface, net| {
+                plugin_interface.handle_textbox_response(net, player_id, response)
+            });
         }
     }
 
     fn handle_prompt_response(&mut self, net: &mut Net, player_id: ActorId, response: String) {
-        if let Some(client) = net.get_client_mut(player_id) {
-            if let Some(i) = client.widget_tracker.pop_textbox() {
-                self.wrap_call(i, net, |plugin_interface, net| {
-                    plugin_interface.handle_prompt_response(net, player_id, response.clone())
-                });
-            }
+        if let Some(client) = net.get_client_mut(player_id)
+            && let Some(i) = client.widget_tracker.pop_textbox()
+        {
+            self.wrap_call(i, net, |plugin_interface, net| {
+                plugin_interface.handle_prompt_response(net, player_id, response.clone())
+            });
         }
     }
 
@@ -207,32 +207,32 @@ impl PluginInterface for PluginWrapper {
     }
 
     fn handle_board_close(&mut self, net: &mut Net, player_id: ActorId) {
-        if let Some(client) = net.get_client_mut(player_id) {
-            if let Some(i) = client.widget_tracker.close_board() {
-                self.wrap_call(i, net, |plugin_interface, net| {
-                    plugin_interface.handle_board_close(net, player_id)
-                });
-            }
+        if let Some(client) = net.get_client_mut(player_id)
+            && let Some(i) = client.widget_tracker.close_board()
+        {
+            self.wrap_call(i, net, |plugin_interface, net| {
+                plugin_interface.handle_board_close(net, player_id)
+            });
         }
     }
 
     fn handle_post_request(&mut self, net: &mut Net, player_id: ActorId) {
-        if let Some(client) = net.get_client_mut(player_id) {
-            if let Some(i) = client.widget_tracker.current_board() {
-                self.wrap_call(*i, net, |plugin_interface, net| {
-                    plugin_interface.handle_post_request(net, player_id)
-                });
-            }
+        if let Some(client) = net.get_client_mut(player_id)
+            && let Some(i) = client.widget_tracker.current_board()
+        {
+            self.wrap_call(*i, net, |plugin_interface, net| {
+                plugin_interface.handle_post_request(net, player_id)
+            });
         }
     }
 
     fn handle_post_selection(&mut self, net: &mut Net, player_id: ActorId, post_id: &str) {
-        if let Some(client) = net.get_client_mut(player_id) {
-            if let Some(i) = client.widget_tracker.current_board() {
-                self.wrap_call(*i, net, |plugin_interface, net| {
-                    plugin_interface.handle_post_selection(net, player_id, post_id)
-                });
-            }
+        if let Some(client) = net.get_client_mut(player_id)
+            && let Some(i) = client.widget_tracker.current_board()
+        {
+            self.wrap_call(*i, net, |plugin_interface, net| {
+                plugin_interface.handle_post_selection(net, player_id, post_id)
+            });
         }
     }
 
@@ -261,22 +261,22 @@ impl PluginInterface for PluginWrapper {
     }
 
     fn handle_shop_close(&mut self, net: &mut Net, player_id: ActorId) {
-        if let Some(client) = net.get_client_mut(player_id) {
-            if let Some(i) = client.widget_tracker.close_shop() {
-                self.wrap_call(i, net, |plugin_interface, net| {
-                    plugin_interface.handle_shop_close(net, player_id);
-                });
-            }
+        if let Some(client) = net.get_client_mut(player_id)
+            && let Some(i) = client.widget_tracker.close_shop()
+        {
+            self.wrap_call(i, net, |plugin_interface, net| {
+                plugin_interface.handle_shop_close(net, player_id);
+            });
         }
     }
 
     fn handle_shop_purchase(&mut self, net: &mut Net, player_id: ActorId, item_id: &str) {
-        if let Some(client) = net.get_client_mut(player_id) {
-            if let Some(i) = client.widget_tracker.current_shop() {
-                self.wrap_call(*i, net, |plugin_interface, net| {
-                    plugin_interface.handle_shop_purchase(net, player_id, item_id)
-                });
-            }
+        if let Some(client) = net.get_client_mut(player_id)
+            && let Some(i) = client.widget_tracker.current_shop()
+        {
+            self.wrap_call(*i, net, |plugin_interface, net| {
+                plugin_interface.handle_shop_purchase(net, player_id, item_id)
+            });
         }
     }
 
@@ -286,12 +286,12 @@ impl PluginInterface for PluginWrapper {
         player_id: ActorId,
         item_id: &str,
     ) {
-        if let Some(client) = net.get_client_mut(player_id) {
-            if let Some(i) = client.widget_tracker.current_shop() {
-                self.wrap_call(*i, net, |plugin_interface, net| {
-                    plugin_interface.handle_shop_description_request(net, player_id, item_id)
-                });
-            }
+        if let Some(client) = net.get_client_mut(player_id)
+            && let Some(i) = client.widget_tracker.current_shop()
+        {
+            self.wrap_call(*i, net, |plugin_interface, net| {
+                plugin_interface.handle_shop_description_request(net, player_id, item_id)
+            });
         }
     }
 
@@ -308,15 +308,15 @@ impl PluginInterface for PluginWrapper {
         _: BattleId,
         message: &str,
     ) {
-        if let Some(client) = net.get_client_mut(player_id) {
-            if let Some(info) = client.battle_tracker.front() {
-                let i = info.plugin_index;
-                let battle_id = info.battle_id;
+        if let Some(client) = net.get_client_mut(player_id)
+            && let Some(info) = client.battle_tracker.front()
+        {
+            let i = info.plugin_index;
+            let battle_id = info.battle_id;
 
-                self.wrap_call(i, net, |plugin_interface, net| {
-                    plugin_interface.handle_battle_message(net, player_id, battle_id, message)
-                });
-            }
+            self.wrap_call(i, net, |plugin_interface, net| {
+                plugin_interface.handle_battle_message(net, player_id, battle_id, message)
+            });
         }
     }
 
@@ -326,16 +326,16 @@ impl PluginInterface for PluginWrapper {
         player_id: ActorId,
         battle_stats: &BattleStatistics,
     ) {
-        if let Some(client) = net.get_client_mut(player_id) {
-            if let Some(info) = client.battle_tracker.pop_front() {
-                net.end_battle_for_player(info.battle_id, player_id);
+        if let Some(client) = net.get_client_mut(player_id)
+            && let Some(info) = client.battle_tracker.pop_front()
+        {
+            net.end_battle_for_player(info.battle_id, player_id);
 
-                let i = info.plugin_index;
+            let i = info.plugin_index;
 
-                self.wrap_call(i, net, |plugin_interface, net| {
-                    plugin_interface.handle_battle_results(net, player_id, battle_stats)
-                });
-            }
+            self.wrap_call(i, net, |plugin_interface, net| {
+                plugin_interface.handle_battle_results(net, player_id, battle_stats)
+            });
         }
     }
 

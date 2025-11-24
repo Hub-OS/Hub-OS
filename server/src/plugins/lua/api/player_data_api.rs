@@ -1,5 +1,5 @@
-use super::lua_errors::create_player_error;
 use super::LuaApi;
+use super::lua_errors::create_player_error;
 use crate::net::ItemDefinition;
 use packets::structures::{ActorId, BlockColor, Emotion, PackageId};
 use std::borrow::Cow;
@@ -152,7 +152,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             let item_iter = player_data
                 .inventory
                 .items()
-                .filter(|(_, &count)| count > 0)
+                .filter(|&(_, &count)| count > 0)
                 .enumerate()
                 .map(|(i, (id, _))| (i + 1, id.as_str()));
 

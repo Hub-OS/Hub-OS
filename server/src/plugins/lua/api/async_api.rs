@@ -38,40 +38,40 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         let mut value = None;
 
-        if let Some(promise) = promise_manager.get_promise_mut(id) {
-            if let Some(promise_value) = promise.get_value() {
-                value = match promise_value {
-                    PromiseValue::HttpResponse(response_data) => {
-                        let table = lua.create_table()?;
+        if let Some(promise) = promise_manager.get_promise_mut(id)
+            && let Some(promise_value) = promise.get_value()
+        {
+            value = match promise_value {
+                PromiseValue::HttpResponse(response_data) => {
+                    let table = lua.create_table()?;
 
-                        table.set("status", response_data.status)?;
+                    table.set("status", response_data.status)?;
 
-                        let headers_table = lua.create_table()?;
+                    let headers_table = lua.create_table()?;
 
-                        for (key, value) in &response_data.headers {
-                            headers_table.set(key.as_str(), value.as_str())?;
-                        }
-
-                        table.set("headers", headers_table)?;
-
-                        let body = lua.create_string(&response_data.body)?;
-                        table.set("body", body)?;
-
-                        Some(mlua::Value::Table(table))
+                    for (key, value) in &response_data.headers {
+                        headers_table.set(key.as_str(), value.as_str())?;
                     }
-                    PromiseValue::Bytes(bytes) => {
-                        let lua_string = lua.create_string(&bytes)?;
 
-                        Some(mlua::Value::String(lua_string))
-                    }
-                    PromiseValue::Success(success) => Some(mlua::Value::Boolean(success)),
-                    PromiseValue::ServerPolled {} => {
-                        let table = lua.create_table()?;
+                    table.set("headers", headers_table)?;
 
-                        Some(mlua::Value::Table(table))
-                    }
-                    PromiseValue::None => None,
+                    let body = lua.create_string(&response_data.body)?;
+                    table.set("body", body)?;
+
+                    Some(mlua::Value::Table(table))
                 }
+                PromiseValue::Bytes(bytes) => {
+                    let lua_string = lua.create_string(&bytes)?;
+
+                    Some(mlua::Value::String(lua_string))
+                }
+                PromiseValue::Success(success) => Some(mlua::Value::Boolean(success)),
+                PromiseValue::ServerPolled {} => {
+                    let table = lua.create_table()?;
+
+                    Some(mlua::Value::Table(table))
+                }
+                PromiseValue::None => None,
             }
         }
 

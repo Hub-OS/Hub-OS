@@ -1,7 +1,7 @@
 use packets::structures::ActorId;
 use packets::{
-    serialize, ChannelSender, ConnectionBuilder, NetplayPacket, PacketChannels, PacketReceiver,
-    PacketSender, Reliability, ServerCommPacket, ServerPacket,
+    ChannelSender, ConnectionBuilder, NetplayPacket, PacketChannels, PacketReceiver, PacketSender,
+    Reliability, ServerCommPacket, ServerPacket, serialize,
 };
 use slotmap::SlotMap;
 use std::collections::{HashMap, HashSet};
@@ -9,8 +9,8 @@ use std::net::{SocketAddr, UdpSocket};
 use std::rc::Rc;
 use std::sync::Arc;
 
-use super::boot::Boot;
 use super::ServerConfig;
+use super::boot::Boot;
 
 struct Connection {
     pub socket_address: SocketAddr,
@@ -191,13 +191,12 @@ impl PacketOrchestrator {
         };
 
         for address in &peers {
-            if let Some(address_list) = self.netplay_route_map.get_mut(address) {
-                if let Some(index) = address_list
+            if let Some(address_list) = self.netplay_route_map.get_mut(address)
+                && let Some(index) = address_list
                     .iter()
                     .position(|address| *address == socket_address)
-                {
-                    address_list.swap_remove(index);
-                }
+            {
+                address_list.swap_remove(index);
             }
         }
 
@@ -227,11 +226,11 @@ impl PacketOrchestrator {
     }
 
     pub fn forward_netplay_packet(&self, socket_address: SocketAddr, packet: NetplayPacket) {
-        if let Some(index) = self.connection_map.get(&socket_address) {
-            if self.connections[*index].netplay_index != packet.index {
-                // client is attempting to impersonate another player, reject the packet
-                return;
-            }
+        if let Some(index) = self.connection_map.get(&socket_address)
+            && self.connections[*index].netplay_index != packet.index
+        {
+            // client is attempting to impersonate another player, reject the packet
+            return;
         }
 
         let reliability = packet.default_reliability();

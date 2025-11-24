@@ -80,13 +80,13 @@ impl Asset {
 
         let mut last_modified = 0;
 
-        if let Ok(file_meta) = fs::metadata(path) {
-            if let Ok(time) = file_meta.modified() {
-                last_modified = time
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap_or_default()
-                    .as_secs();
-            }
+        if let Ok(file_meta) = fs::metadata(path)
+            && let Ok(time) = file_meta.modified()
+        {
+            last_modified = time
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_secs();
         }
 
         let mut asset = Asset {

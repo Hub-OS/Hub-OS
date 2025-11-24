@@ -2,11 +2,11 @@ use super::plugin_wrapper::PluginWrapper;
 use super::{Net, PacketOrchestrator, ServerConfig};
 use crate::jobs::{JobPromise, PromiseValue};
 use crate::plugins::PluginInterface;
-use crate::threads::{create_listening_thread, ListenerMessage, ThreadMessage};
+use crate::threads::{ListenerMessage, ThreadMessage, create_listening_thread};
 use flume::{Receiver, Sender};
 use packets::structures::ActorId;
 use packets::{
-    ClientAssetType, ClientPacket, Reliability, ServerCommPacket, ServerPacket, SERVER_TICK_RATE,
+    ClientAssetType, ClientPacket, Reliability, SERVER_TICK_RATE, ServerCommPacket, ServerPacket,
 };
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -326,15 +326,16 @@ impl Server {
                     z,
                     direction,
                 } => {
-                    if let Some(client) = net.get_client_mut(player_id) {
-                        if client.ready && creation_time > client.area_join_time {
-                            if !client.actor.position_matches(x, y, z) {
-                                self.plugin_wrapper
-                                    .handle_player_move(net, player_id, x, y, z);
-                            }
-
-                            net.update_player_position(player_id, x, y, z, direction);
+                    if let Some(client) = net.get_client_mut(player_id)
+                        && client.ready
+                        && creation_time > client.area_join_time
+                    {
+                        if !client.actor.position_matches(x, y, z) {
+                            self.plugin_wrapper
+                                .handle_player_move(net, player_id, x, y, z);
                         }
+
+                        net.update_player_position(player_id, x, y, z, direction);
                     }
                 }
                 ClientPacket::Ready { time } => {
@@ -437,11 +438,11 @@ impl Server {
                     y,
                     z,
                 } => {
-                    if let Some(client) = net.get_client_mut(player_id) {
-                        if client.actor.position_matches(x, y, z) {
-                            client.actor.current_animation = Some(animation);
-                            client.actor.loop_animation = loop_animation;
-                        }
+                    if let Some(client) = net.get_client_mut(player_id)
+                        && client.actor.position_matches(x, y, z)
+                    {
+                        client.actor.current_animation = Some(animation);
+                        client.actor.loop_animation = loop_animation;
                     }
                 }
                 ClientPacket::ObjectInteraction {
@@ -565,14 +566,14 @@ impl Server {
                         log::warn!("Received EncounterStart while already in a battle?");
                     }
 
-                    if let Some(client) = net.get_client(player_id) {
-                        if let Some(info) = client.battle_tracker.front() {
-                            packet_orchestrator.configure_netplay_destinations(
-                                socket_address,
-                                info.player_index,
-                                info.remote_addresses.clone(),
-                            );
-                        }
+                    if let Some(client) = net.get_client(player_id)
+                        && let Some(info) = client.battle_tracker.front()
+                    {
+                        packet_orchestrator.configure_netplay_destinations(
+                            socket_address,
+                            info.player_index,
+                            info.remote_addresses.clone(),
+                        );
                     }
                 }
                 ClientPacket::BattleMessage { message } => {
