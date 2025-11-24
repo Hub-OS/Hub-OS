@@ -3,10 +3,10 @@ use std::fs::File;
 use std::io::{Cursor, Read, Write};
 use std::path::Path;
 use walkdir::WalkDir;
+use zip::ZipWriter;
 use zip::read::ZipFile;
 use zip::result::ZipResult;
 use zip::write::FileOptions as ZipFileOptions;
-use zip::ZipWriter;
 
 pub fn clean_path(path_str: &str) -> String {
     let path = path_clean::clean(path_str)
@@ -59,10 +59,10 @@ pub fn extract_to(bytes: &[u8], base_path: &str) {
     extract(bytes, |path, mut virtual_file| {
         let path = format!("{base_path}{path}");
 
-        if let Some(parent_path) = parent(&path) {
-            if let Err(err) = std::fs::create_dir_all(parent_path) {
-                log::error!("Failed to create directory {parent_path:?}: {err}");
-            }
+        if let Some(parent_path) = parent(&path)
+            && let Err(err) = std::fs::create_dir_all(parent_path)
+        {
+            log::error!("Failed to create directory {parent_path:?}: {err}");
         }
 
         let res = std::fs::File::create(&path)
