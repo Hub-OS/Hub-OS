@@ -2,7 +2,7 @@ use super::animation_api::create_animation_table;
 use super::errors::{
     action_aready_processed, action_entity_mismatch, action_not_found, aux_prop_already_bound,
     entity_not_found, invalid_memory_value, invalid_sync_node, mismatched_entity,
-    package_not_loaded, sprite_not_found, too_many_forms,
+    package_not_loaded, sprite_not_found, too_many_forms, unmarked_dependency,
 };
 use super::field_api::get_field_compat_table;
 use super::player_form_api::create_player_form_table;
@@ -1005,7 +1005,13 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
         let api_ctx = &mut *api_ctx.borrow_mut();
 
         let vms = api_ctx.resources.vm_manager.vms();
-        let namespace = vms[api_ctx.vm_index].preferred_namespace();
+        let vm = &vms[api_ctx.vm_index];
+
+        if !vm.permitted_dependencies.contains(&package_id) {
+            return Err(unmarked_dependency());
+        }
+
+        let namespace = vm.preferred_namespace();
         let id = Character::load(
             api_ctx.game_io,
             api_ctx.resources,

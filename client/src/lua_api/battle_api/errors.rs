@@ -93,3 +93,7 @@ pub fn server_communication_closed() -> rollback_mlua::Error {
 pub fn invalid_memory_value() -> rollback_mlua::Error {
     rollback_mlua::Error::RuntimeError(String::from("entity can only remember numbers and strings"))
 }
+
+pub fn unmarked_dependency() -> rollback_mlua::Error {
+    rollback_mlua::Error::RuntimeError(String::from("package is not in dependency tree"))
+}

@@ -5,6 +5,7 @@ pub struct RollbackVM {
     pub namespaces: Vec<PackageNamespace>,
     pub path: String,
     pub lua: rollback_mlua::Lua,
+    pub permitted_dependencies: Vec<PackageId>,
 }
 
 impl RollbackVM {

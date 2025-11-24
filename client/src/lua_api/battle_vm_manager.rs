@@ -1,11 +1,11 @@
-use super::{inject_internal_scripts, GAME_FOLDER_REGISTRY_KEY, VM_INDEX_REGISTRY_KEY};
+use super::{GAME_FOLDER_REGISTRY_KEY, VM_INDEX_REGISTRY_KEY, inject_internal_scripts};
 use crate::battle::{
     BattleCallback, BattleScriptContext, BattleSimulation, RollbackVM, SharedBattleResources,
 };
 use crate::bindable::EntityId;
 use crate::packages::{PackageInfo, PackageNamespace};
 use crate::resources::{
-    AssetManager, Globals, ResourcePaths, BATTLE_VM_MEMORY, INPUT_BUFFER_LIMIT,
+    AssetManager, BATTLE_VM_MEMORY, Globals, INPUT_BUFFER_LIMIT, ResourcePaths,
 };
 use framework::prelude::GameIO;
 use packets::structures::PackageId;
@@ -123,6 +123,15 @@ impl BattleVmManager {
                 vec![namespace, package_info.namespace]
             },
             path: package_info.script_path.clone(),
+            permitted_dependencies: globals
+                .package_dependency_iter([(
+                    package_info.category,
+                    package_info.namespace,
+                    package_info.id.clone(),
+                )])
+                .iter()
+                .map(|(info, _)| info.id.clone())
+                .collect(),
         };
 
         // track vm
@@ -228,7 +237,10 @@ impl BattleVmManager {
         );
 
         // border
-        println!("| {:-<NAMESPACE_WIDTH$} | {:-<package_id_width$} | {:-<MEMORY_WIDTH$} | {:-<MEMORY_WIDTH$} |", "", "", "", "");
+        println!(
+            "| {:-<NAMESPACE_WIDTH$} | {:-<package_id_width$} | {:-<MEMORY_WIDTH$} | {:-<MEMORY_WIDTH$} |",
+            "", "", "", ""
+        );
 
         // list
         for vm in vms_sorted {

@@ -2,7 +2,7 @@ use super::animation_api::create_animation_table;
 use super::entity_api::create_entity_table;
 use super::errors::{
     action_not_found, action_step_not_found, attachment_not_found, entity_not_found,
-    sprite_not_found,
+    sprite_not_found, unmarked_dependency,
 };
 use super::sprite_api::create_sprite_table;
 use super::tile_api::create_tile_table;
@@ -41,7 +41,12 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
             let api_ctx = api_ctx.borrow();
 
             let vms = api_ctx.resources.vm_manager.vms();
-            let namespace = vms[api_ctx.vm_index].preferred_namespace();
+            let vm = &vms[api_ctx.vm_index];
+            let namespace = vm.preferred_namespace();
+
+            if !vm.permitted_dependencies.contains(&package_id) {
+                return Err(unmarked_dependency());
+            }
 
             let globals = api_ctx.game_io.resource::<Globals>().unwrap();
             let card_packages = &globals.card_packages;

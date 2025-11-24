@@ -22,11 +22,23 @@ pub fn inject_require_api(lua_api: &mut BattleLuaApi) {
             let ns = vm.preferred_namespace();
 
             let package_id = path.into();
+            let mut library_package = None;
 
             if let Some(package) = globals
                 .library_packages
                 .package_or_fallback(ns, &package_id)
             {
+                if vm.permitted_dependencies.contains(&package_id) {
+                    library_package = Some(package);
+                } else {
+                    log::warn!(
+                        "Found package {package_id} required by {} outside of dependency tree",
+                        vm.package_id
+                    )
+                }
+            }
+
+            if let Some(package) = library_package {
                 package.package_info.script_path.clone()
             } else {
                 // resolve from file
