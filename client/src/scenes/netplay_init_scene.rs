@@ -8,7 +8,7 @@ use crate::saves::Card;
 use crate::transitions::{flash_color, HoldColorScene};
 use framework::prelude::*;
 use futures::Future;
-use packets::structures::{FileHash, PackageCategory, RemotePlayerInfo};
+use packets::structures::{FileHash, PackageCategory, PackageId, RemotePlayerInfo};
 use packets::{NetplayBufferItem, NetplayPacket, NetplayPacketData, NetplaySignal};
 use std::collections::{HashMap, HashSet};
 use std::pin::Pin;
@@ -645,6 +645,87 @@ impl NetplayInitScene {
             .all(f)
     }
 
+    fn finalize_peer_dependency_trees(&self, game_io: &mut GameIO) {
+        log::info!("Finalizing peer dependency trees");
+
+        let mut work_list: Vec<PackageId> = Default::default();
+        let mut reverse_dependency_map: HashMap<PackageId, Vec<(PackageCategory, PackageId)>> =
+            Default::default();
+
+        for connection in self.player_connections.iter() {
+            let index = connection.player_setup.index;
+
+            if index == self.local_index {
+                continue;
+            }
+
+            let player_ns = PackageNamespace::Netplay(index as u8);
+
+            // build worklist
+            let globals = game_io.resource::<Globals>().unwrap();
+            work_list.extend(globals.packages(player_ns).map(|info| info.id.clone()));
+
+            if work_list.is_empty() {
+                // avoid unnecessary work
+                continue;
+            }
+
+            // resolve dependency map
+            let triplet_iter = connection.player_setup.direct_dependency_triplets(game_io);
+
+            for (info, _) in globals.package_dependency_iter(triplet_iter) {
+                if info.parent_package.is_some() || info.namespace == player_ns {
+                    continue;
+                }
+
+                for (_, id) in &info.requirements {
+                    let dependents = reverse_dependency_map.entry(id.clone()).or_default();
+                    dependents.push((info.category, info.id.clone()));
+                }
+            }
+
+            // reload anything depending on these mods in the private namespace
+            let globals = game_io.resource_mut::<Globals>().unwrap();
+
+            while let Some(id) = work_list.pop() {
+                let Some(dependents) = reverse_dependency_map.remove(&id) else {
+                    continue;
+                };
+
+                for (category, id) in &dependents {
+                    log::info!("Reloading {id} in {player_ns:?}");
+
+                    let Some(old_info) = globals.package_or_fallback_info(*category, player_ns, id)
+                    else {
+                        continue;
+                    };
+
+                    if old_info.namespace == player_ns {
+                        // already loaded
+                        continue;
+                    }
+
+                    let base_path = old_info.base_path.clone();
+                    let Some(new_info) = globals.load_package(*category, player_ns, &base_path)
+                    else {
+                        continue;
+                    };
+
+                    let child_packages: Vec<_> = new_info.child_packages().collect();
+
+                    globals
+                        .character_packages
+                        .load_child_packages(player_ns, child_packages);
+                }
+
+                work_list.extend(dependents.into_iter().map(|(_, id)| id));
+            }
+
+            work_list.clear();
+            reverse_dependency_map.clear();
+        }
+    }
+
     fn handle_stage(&mut self, game_io: &mut GameIO) {
         match self.stage {
             ConnectionStage::ResolvingAddresses | ConnectionStage::Complete => {}
@@ -688,6 +769,8 @@ impl NetplayInitScene {
             }
             ConnectionStage::HeadingToBattle => {
                 if !game_io.is_in_transition() {
+                    self.finalize_peer_dependency_trees(game_io);
+
                     let globals = game_io.resource::<Globals>().unwrap();
 
                     // clean up zips
