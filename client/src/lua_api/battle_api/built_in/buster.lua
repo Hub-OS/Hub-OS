@@ -59,6 +59,7 @@ function Buster.new(user, charged, damage)
 
         if spell_erased_frame > 0 and elapsed_frames - spell_erased_frame >= cooldown then
             action:end_action()
+            return
         end
 
         if can_move then
