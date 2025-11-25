@@ -2,9 +2,9 @@ use super::PackageScene;
 use crate::bindable::SpriteColorMode;
 use crate::packages::PackageNamespace;
 use crate::render::ui::{
-    build_9patch, ContextMenu, FontName, IntoUiLayoutNode, LengthPercentageAuto, PackageListing,
+    ContextMenu, FontName, IntoUiLayoutNode, LengthPercentageAuto, PackageListing,
     PackagePreviewData, SceneTitle, ScrollableList, SubSceneFrame, Textbox, TextboxPrompt,
-    UiButton, UiInputTracker, UiLayout, UiNode, UiStyle,
+    UiButton, UiInputTracker, UiLayout, UiNode, UiStyle, build_9patch,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, Input, InputUtil, ResourcePaths};
@@ -198,24 +198,6 @@ impl PackagesScene {
     fn request_local(&mut self, game_io: &GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
         let category_filter = self.category_filter.package_category();
-
-        fn case_insensitive_contains(a: &str, b: &str) -> bool {
-            let mut i = 0;
-
-            for c in a.chars() {
-                if a.len() - i < b.len() {
-                    break;
-                }
-
-                if a[i..i + b.len()].eq_ignore_ascii_case(b) {
-                    return true;
-                }
-
-                i += c.len();
-            }
-
-            false
-        }
 
         let mut new_listings: Vec<_> = globals
             .packages(PackageNamespace::Local)
@@ -538,5 +520,52 @@ impl Scene for PackagesScene {
         self.textbox.draw(game_io, &mut sprite_queue);
 
         render_pass.consume_queue(sprite_queue);
+    }
+}
+
+fn case_insensitive_contains(a: &str, b: &str) -> bool {
+    let mut i = 0;
+
+    let mut char_iter = a.chars();
+
+    while let Some(c) = char_iter.clone().next() {
+        if a.len() - i < b.len() {
+            break;
+        }
+
+        if char_iter
+            .clone()
+            .zip(b.chars())
+            .all(|(char_a, char_b)| char_a.eq_ignore_ascii_case(&char_b))
+        {
+            return true;
+        }
+
+        char_iter.next();
+
+        i += c.len();
+    }
+
+    false
+}
+
+#[cfg(test)]
+mod test {
+
+    #[test]
+    fn case_insensitive_contains() {
+        let contains = super::case_insensitive_contains;
+
+        assert!(contains("A", ""), "empty query");
+        assert!(contains("A", "a"), "same length, diff capitalization");
+        assert!(contains("A", "A"), "same length, same capitalization");
+        assert!(!contains("A", "b"), "same length, bad query");
+        assert!(contains("dcba", "a"), "short query, end of string");
+        assert!(!contains("dcba", "x"), "short query, not in string");
+        assert!(contains("dcAb", "ab"), "long query, end of string");
+        assert!(!contains("a", "aa"), "longer query");
+        assert!(!contains("A", "bb"), "longer query, not in string");
+        assert!(!contains("JudgeMn", "erase"), "non-ascii, not in string");
+        assert!(contains("JudgeMnEraseMn", "erase"), "non-ascii");
     }
 }
