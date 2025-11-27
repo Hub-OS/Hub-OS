@@ -774,6 +774,7 @@ impl BattleState {
             Living::process_hits(game_io, resources, simulation, entity_id);
         }
 
+        Living::cancel_actions_for_drag(game_io, resources, simulation);
         Living::queue_next_drag(game_io, resources, simulation);
 
         Living::aux_prop_cleanup(simulation, |aux_prop| aux_prop.effect().hit_related());
