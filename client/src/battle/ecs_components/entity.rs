@@ -124,6 +124,10 @@ impl Entity {
 
         let action = &simulation.actions[index];
 
+        if !action.executed {
+            return entity_callback.call(game_io, resources, simulation, position);
+        }
+
         let Some(action_callback) = action.can_move_to_callback.clone() else {
             return entity_callback.call(game_io, resources, simulation, position);
         };
