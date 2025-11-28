@@ -108,27 +108,36 @@ function status_init(status)
     end
   end
 
-  -- defense rule to add Break weakness
-  local defense_rule = DefenseRule.new(DefensePriority.Last, DefenseOrder.CollisionOnly)
-
-  defense_rule.filter_func = function(hit_props)
-    if hit_props.element == Element.Break or hit_props.secondary_element == Element.Break or hit_props.flags & Hit.PierceGuard ~= 0 then
-      hit_props.damage = hit_props.damage * 2
+  -- aux props for weaknesses
+  local aux_prop_callback = function()
+    if status:remaining_time() > 0 then
       status:set_remaining_time(0)
       spawn_alert(entity)
     end
-
-    return hit_props
   end
 
-  entity:add_defense_rule(defense_rule)
+  local break_aux_prop =
+      AuxProp.new()
+      :require_hit_element(Element.Break)
+      :increase_hit_damage("DAMAGE")
+      :with_callback(aux_prop_callback)
+
+  local pierce_aux_prop =
+      AuxProp.new()
+      :require_hit_flags(Hit.PierceGuard)
+      :increase_hit_damage("DAMAGE")
+      :with_callback(aux_prop_callback)
+
+  entity:add_aux_prop(break_aux_prop)
+  entity:add_aux_prop(pierce_aux_prop)
 
   -- clean up
   status.on_delete_func = function()
-    entity:remove_defense_rule(defense_rule)
     entity_sprite:remove_node(freeze_sprite)
     component:eject()
     entity:remove_aux_prop(flinch_immunity)
     entity:remove_aux_prop(cancel_aux_prop)
+    entity:remove_aux_prop(break_aux_prop)
+    entity:remove_aux_prop(pierce_aux_prop)
   end
 end
