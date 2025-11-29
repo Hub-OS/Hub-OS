@@ -104,20 +104,26 @@ impl Animator {
                         self.states.insert(Uncased::from(state_name), frame_list);
                     }
 
-                    let state_name = if word == "anim" {
-                        line[word.len()..].trim().to_ascii_uppercase()
-                    } else {
-                        let attributes = Animator::read_attributes(word, line, i);
+                    let mut remaining_line = line[word.len()..].trim_start();
 
-                        attributes
-                            .get("state")
-                            .map(|value| value.to_ascii_uppercase())
-                            .unwrap_or_default()
+                    let state_name = if remaining_line.starts_with('"') {
+                        let fallback = remaining_line;
+
+                        Self::read_quoted(&mut remaining_line).unwrap_or(fallback)
+                    } else if remaining_line
+                        .strip_prefix("state")
+                        .is_some_and(|t| t.trim_start().starts_with("="))
+                    {
+                        let attributes = Animator::read_attributes(remaining_line, i);
+
+                        attributes.get("state").copied().unwrap_or_default()
+                    } else {
+                        remaining_line
                     };
 
                     let frame_list = FrameList::default();
 
-                    work_state = Some((state_name, frame_list));
+                    work_state = Some((state_name.to_ascii_uppercase(), frame_list));
                 }
                 "blank" => {
                     if let Some((_, frame_list)) = &mut work_state {
@@ -125,7 +131,7 @@ impl Animator {
                             frame_list.add_frame(frame);
                         }
 
-                        let attributes = Animator::read_attributes(word, line, i);
+                        let attributes = Animator::read_attributes(&line[word.len()..], i);
 
                         frame = Some(AnimationFrame {
                             duration: Animator::parse_duration_or_default(&attributes),
@@ -142,7 +148,7 @@ impl Animator {
                             frame_list.add_frame(frame);
                         }
 
-                        let attributes = Animator::read_attributes(word, line, i);
+                        let attributes = Animator::read_attributes(&line[word.len()..], i);
 
                         let duration = Animator::parse_duration_or_default(&attributes);
 
@@ -186,19 +192,29 @@ impl Animator {
                 }
                 "point" => {
                     if let Some(frame) = &mut frame {
-                        let attributes = Animator::read_attributes(word, line, i);
+                        let mut remaining_line = line[word.len()..].trim_start();
+                        let mut label = "";
 
-                        let label = attributes
-                            .get("label")
-                            .map(|label| label.to_ascii_uppercase())
-                            .unwrap_or_default();
+                        if remaining_line.starts_with('"')
+                            && let Some(value) = Self::read_quoted(&mut remaining_line)
+                        {
+                            label = value;
+                        }
+
+                        let attributes = Animator::read_attributes(remaining_line, i);
+
+                        if let Some(value) = attributes.get("label") {
+                            label = value;
+                        }
 
                         let point = Vec2::new(
                             parse_or_default(attributes.get("x").cloned()),
                             parse_or_default(attributes.get("y").cloned()),
                         );
 
-                        frame.points.insert(label.into(), point);
+                        frame
+                            .points
+                            .insert(label.to_ascii_uppercase().into(), point);
                     } else {
                         log::warn!("Line {}: no frame has been defined yet", i + 1);
                     }
@@ -250,13 +266,8 @@ impl Animator {
         frames.max(0)
     }
 
-    fn read_attributes<'a>(
-        word: &str,
-        line: &'a str,
-        line_index: usize,
-    ) -> IndexMap<&'a str, &'a str> {
+    fn read_attributes(mut view: &str, line_index: usize) -> IndexMap<&str, &str> {
         let mut attributes = IndexMap::new();
-        let mut view = &line[word.len()..];
 
         loop {
             // skip whitespace
@@ -700,6 +711,13 @@ mod test {
 
         animation state="B"
         frame originx="64"
+        point label="P1"
+
+        animation "C"
+        blank
+        point "P2"
+
+        anim D
     "#;
 
     #[test]
@@ -712,7 +730,7 @@ mod test {
             .map(|(name, _)| name)
             .collect::<Vec<_>>();
 
-        assert_eq!(state_names, ["A", "B"]);
+        assert_eq!(state_names, ["A", "B", "C", "D"]);
     }
 
     #[test]
@@ -724,5 +742,20 @@ mod test {
 
         animator.set_state("b");
         assert_eq!(animator.origin().x, 64.0);
+    }
+
+    #[test]
+    fn point_labels() {
+        let mut animator = Animator::new();
+        animator.load_from_str(ANIMATION_STR);
+
+        let point_labels = animator
+            .iter_states()
+            .flat_map(|(_, state)| state.frames())
+            .flat_map(|frame| frame.points.keys())
+            .map(|s| s.as_str())
+            .collect::<Vec<_>>();
+
+        assert_eq!(point_labels, ["P1", "P2"]);
     }
 }
