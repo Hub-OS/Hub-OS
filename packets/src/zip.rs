@@ -9,7 +9,7 @@ use zip::result::ZipResult;
 use zip::write::FileOptions as ZipFileOptions;
 
 pub fn clean_path(path_str: &str) -> String {
-    let path = path_clean::clean(path_str)
+    let path = path_clean::clean(path_str.replace('\\', "/"))
         .to_str()
         .unwrap_or_default()
         .replace('\\', "/");

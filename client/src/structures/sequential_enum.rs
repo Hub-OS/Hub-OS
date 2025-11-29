@@ -3,6 +3,8 @@
 ///
 /// Usage Example:
 /// ```rust
+/// use hub_os::sequential_enum;
+///
 /// sequential_enum! {
 ///     pub MyEnum: i8 {
 ///         A,
