@@ -130,18 +130,15 @@ impl Restrictions {
             let globals = game_io.resource::<Globals>().unwrap();
             let augment_packages = &globals.augment_packages;
 
-            let valid_color = augment_packages
+            augment_packages
                 .package_or_fallback(PackageNamespace::Local, id)
-                .is_some_and(|package| {
+                .map(|package| {
                     let mut color_iter = package.block_colors.iter();
-                    color_iter.any(|&listed_color| listed_color == color)
-                });
+                    let is_valid_color = color_iter.any(|&listed_color| listed_color == color);
 
-            if valid_color {
-                9
-            } else {
-                0
-            }
+                    if is_valid_color { package.limit } else { 0 }
+                })
+                .unwrap_or_default()
         } else {
             // use self.owned_blocks
             self.owned_blocks
