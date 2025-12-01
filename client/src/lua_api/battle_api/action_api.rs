@@ -272,6 +272,22 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
+    lua_api.add_dynamic_function(ACTION_TABLE, "on_end", move |api_ctx, lua, params| {
+        let (table, callback): (rollback_mlua::Table, rollback_mlua::Function) =
+            lua.unpack_multi(params)?;
+
+        let id: GenerationalIndex = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let actions = &mut api_ctx.simulation.actions;
+        let action = actions.get_mut(id).ok_or_else(action_not_found)?;
+
+        let callback = BattleCallback::new_lua_callback(lua, api_ctx.vm_index, callback)?;
+        action.end_callbacks.push(callback);
+
+        lua.pack_multi(())
+    });
+
     lua_api.add_dynamic_function(ACTION_TABLE, "end_action", move |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
