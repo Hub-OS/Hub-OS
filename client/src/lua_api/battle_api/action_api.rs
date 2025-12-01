@@ -2,7 +2,7 @@ use super::animation_api::create_animation_table;
 use super::entity_api::create_entity_table;
 use super::errors::{
     action_not_found, action_step_not_found, attachment_not_found, entity_not_found,
-    sprite_not_found, unmarked_dependency,
+    sprite_not_found, unmarked_dependency, warn_deprecated,
 };
 use super::sprite_api::create_sprite_table;
 use super::tile_api::create_tile_table;
@@ -231,6 +231,29 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(
         ACTION_TABLE,
         "add_anim_action",
+        move |api_ctx, lua, params| {
+            warn_deprecated(lua, ":add_anim_action() (use :on_anim_frame() instead)");
+
+            let (table, frame, callback): (rollback_mlua::Table, usize, rollback_mlua::Function) =
+                lua.unpack_multi(params)?;
+
+            let id: GenerationalIndex = table.raw_get("#id")?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let actions = &mut api_ctx.simulation.actions;
+            let action = actions.get_mut(id).ok_or_else(action_not_found)?;
+
+            let callback = BattleCallback::new_lua_callback(lua, api_ctx.vm_index, callback)?;
+
+            action.frame_callbacks.push((frame.max(1) - 1, callback));
+
+            lua.pack_multi(())
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        ACTION_TABLE,
+        "on_anim_frame",
         move |api_ctx, lua, params| {
             let (table, frame, callback): (rollback_mlua::Table, usize, rollback_mlua::Function) =
                 lua.unpack_multi(params)?;

@@ -97,3 +97,12 @@ pub fn invalid_memory_value() -> rollback_mlua::Error {
 pub fn unmarked_dependency() -> rollback_mlua::Error {
     rollback_mlua::Error::RuntimeError(String::from("package is not in dependency tree"))
 }
+
+pub fn warn_deprecated(lua: &rollback_mlua::Lua, name: &str) {
+    let source_name = lua
+        .inspect_stack(1)
+        .map(|debug| debug.source().source.unwrap_or_default().to_string())
+        .unwrap_or_default();
+
+    log::warn!("deprecated use of {name} in {source_name:?}");
+}

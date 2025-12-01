@@ -1,4 +1,4 @@
-use super::errors::entity_not_found;
+use super::errors::{entity_not_found, warn_deprecated};
 use super::tile_api::create_tile_table;
 use super::{BattleLuaApi, FIELD_TABLE, create_entity_table};
 use crate::battle::{Character, Entity, Obstacle, Player, Spell};
@@ -251,12 +251,7 @@ pub fn get_field_compat_table(
         return Ok(table);
     }
 
-    let source_name = lua
-        .inspect_stack(1)
-        .map(|debug| debug.source().source.unwrap_or_default().to_string())
-        .unwrap_or_default();
-
-    log::warn!("deprecated use of :field() in {source_name:?}");
+    warn_deprecated(lua, ":field()");
 
     let table = lua.create_table()?;
     let metatable = lua.create_table()?;
