@@ -25,8 +25,8 @@ function status_init(status)
   local entity_animation = entity:animation()
 
   if entity_animation:has_state("CHARACTER_HIT") then
-    entity:cancel_actions()
     entity:cancel_movement()
+    entity:cancel_actions()
 
     entity_animation:set_state("CHARACTER_HIT", { { 1, 1 } })
     entity_animation:on_complete(function()
