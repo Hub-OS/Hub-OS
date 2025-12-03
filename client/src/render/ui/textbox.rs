@@ -568,7 +568,7 @@ impl Textbox {
 
         self.create_pages();
 
-        if self.effect_processor.char_delay == 0 {
+        if self.effect_processor.char_delay == 0 || !self.text_animation_enabled {
             self.skip_animation(game_io);
         } else {
             self.update_avatar(game_io);
