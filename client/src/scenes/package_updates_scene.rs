@@ -1,9 +1,9 @@
 use crate::bindable::SpriteColorMode;
 use crate::packages::{PackageNamespace, RepoPackageUpdater, UpdateStatus};
 use crate::render::ui::{
-    build_9patch, FontName, LengthPercentageAuto, PackageListing, SceneTitle, ScrollableList,
-    SubSceneFrame, Textbox, TextboxDoorstop, TextboxDoorstopKey, TextboxMessage, UiButton,
-    UiInputTracker, UiLayout, UiLayoutNode, UiNode, UiStyle,
+    FontName, LengthPercentageAuto, PackageListing, SceneTitle, ScrollableList, SubSceneFrame,
+    Textbox, TextboxDoorstop, TextboxDoorstopKey, TextboxMessage, UiButton, UiInputTracker,
+    UiLayout, UiLayoutNode, UiNode, UiStyle, build_9patch,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, Input, InputUtil, ResourcePaths};
@@ -32,6 +32,7 @@ pub struct PackageUpdatesScene {
     cursor_animator: Animator,
     package_updater: RepoPackageUpdater,
     prev_status: UpdateStatus,
+    prev_updated: usize,
     requires_update: Vec<(PackageCategory, PackageId, FileHash)>,
     event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
@@ -88,6 +89,7 @@ impl PackageUpdatesScene {
             cursor_animator,
             package_updater: RepoPackageUpdater::new().with_ignore_installed_dependencies(true),
             prev_status: UpdateStatus::Idle,
+            prev_updated: usize::MAX,
             requires_update,
             event_sender,
             event_receiver,
@@ -221,18 +223,18 @@ impl PackageUpdatesScene {
                         .with_transition(crate::transitions::new_sub_scene(game_io));
                 }
                 Event::Update => {
+                    let ids = std::mem::take(&mut self.requires_update)
+                        .into_iter()
+                        .map(|(_, id, _)| id);
+
                     let (doorstop, doorstop_key) = TextboxDoorstop::new();
                     self.doorstop_key = Some(doorstop_key);
                     self.textbox.push_interface(doorstop.with_translated(
                         game_io,
-                        "packages-updating",
+                        "packages-resolving-dependencies",
                         vec![],
                     ));
                     self.textbox.open();
-
-                    let ids = std::mem::take(&mut self.requires_update)
-                        .into_iter()
-                        .map(|(_, id, _)| id);
 
                     self.package_updater.begin(game_io, ids);
                 }
@@ -247,6 +249,26 @@ impl PackageUpdatesScene {
     fn handle_updater(&mut self, game_io: &mut GameIO) {
         self.package_updater.update(game_io);
         let status = self.package_updater.status();
+
+        let updated = self.package_updater.total_updated();
+
+        if status == UpdateStatus::DownloadingPackage && updated != self.prev_updated {
+            self.prev_updated = updated;
+
+            // disable text animation to keep progress readable
+            self.textbox.set_text_animation_enabled(false);
+
+            let (doorstop, doorstop_key) = TextboxDoorstop::new();
+            self.doorstop_key = Some(doorstop_key);
+            self.textbox.push_interface(doorstop.with_translated(
+                game_io,
+                "packages-update-progress",
+                vec![
+                    ("current", updated.into()),
+                    ("total", self.package_updater.total_updates().into()),
+                ],
+            ));
+        }
 
         if status == self.prev_status {
             return;
@@ -264,12 +286,18 @@ impl PackageUpdatesScene {
 
         self.doorstop_key.take();
 
+        // set prev_updated to a value that won't match the initial updated value of a new run
+        self.prev_updated = usize::MAX;
+
         // clear cached assets
         let globals = game_io.resource::<Globals>().unwrap();
         globals.assets.clear_local_mod_assets();
 
         // update player avatar
         self.textbox.use_navigation_avatar(game_io);
+
+        // enable text animation
+        self.textbox.set_text_animation_enabled(true);
 
         // notify player
         let event_sender = self.event_sender.clone();

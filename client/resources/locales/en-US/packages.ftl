@@ -5,7 +5,8 @@ packages-updates-success = Updates completed!
 packages-updates-error = Updating failed.
 
 packages-pending-update-scene-title = Pending Updates
-packages-updating = Updating...
+packages-resolving-dependencies = Resolving dependencies...
+packages-update-progress = Updating: {$current}/{$total}
 packages-button-view = View
 packages-button-update-all = Update All
 

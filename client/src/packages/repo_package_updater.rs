@@ -50,6 +50,10 @@ impl RepoPackageUpdater {
         self
     }
 
+    pub fn total_updates(&self) -> usize {
+        self.install_required.len()
+    }
+
     pub fn total_updated(&self) -> usize {
         self.install_position
     }
