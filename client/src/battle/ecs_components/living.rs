@@ -203,13 +203,13 @@ impl Living {
 
             match aux_prop.effect() {
                 AuxEffect::StatusImmunity(hit_flags) => {
-                    living.status_director.add_immunity(*hit_flags)
+                    living.status_director.add_immunity(*hit_flags);
                 }
                 AuxEffect::ApplyStatus(hit_flag, duration) => {
-                    living.status_director.apply_status(*hit_flag, *duration)
+                    living.status_director.apply_status(*hit_flag, *duration);
                 }
                 AuxEffect::RemoveStatus(hit_flag) => {
-                    living.status_director.remove_statuses(*hit_flag)
+                    living.status_director.remove_statuses(*hit_flag);
                 }
                 _ => log::error!("Engine error: Unexpected AuxEffect!"),
             }

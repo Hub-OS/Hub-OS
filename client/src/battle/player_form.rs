@@ -1,6 +1,8 @@
 use super::{
     Artifact, BattleCallback, BattleSimulation, Entity, Living, Player, PlayerOverridables,
 };
+use crate::battle::{Action, Movement};
+use crate::bindable::HitFlag;
 use crate::resources::Globals;
 use crate::{battle::PlayerHand, bindable::EntityId};
 use framework::prelude::{Texture, Vec2};
@@ -74,11 +76,11 @@ impl PlayerForm {
 
         simulation.time_freeze_tracker.queue_animation(
             30,
-            BattleCallback::new(move |game_io, _, simulation, _| {
+            BattleCallback::new(move |game_io, resources, simulation, _| {
                 let entities = &mut simulation.entities;
 
                 let Ok((entity, living, player)) =
-                    entities.query_one_mut::<(&Entity, &Living, &mut Player)>(id.into())
+                    entities.query_one_mut::<(&Entity, &mut Living, &mut Player)>(id.into())
                 else {
                     return;
                 };
@@ -102,9 +104,16 @@ impl PlayerForm {
                     simulation.pending_callbacks.push(callback);
                 }
 
-                // spawn shine fx
+                // resolve shine fx position
                 let mut shine_position = entity.full_position();
                 shine_position.offset += Vec2::new(0.0, -entity.height * 0.5);
+
+                // flinch
+                living.status_director.apply_status(HitFlag::FLINCH, 1);
+
+                // cancel movement and actions even if super armor is active
+                Movement::cancel(simulation, id);
+                Action::cancel_all(game_io, resources, simulation, id);
 
                 // play revert sfx
                 let sfx = &game_io.resource::<Globals>().unwrap().sfx;
