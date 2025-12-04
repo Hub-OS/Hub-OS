@@ -6,7 +6,7 @@ local Buster = {}
 function Buster.new(user, charged, damage)
     local action = Action.new(user, "CHARACTER_SHOOT")
     action:set_lockout(ActionLockout.new_sequence())
-    action:create_step();
+    action:create_step()
 
     local context = user:context()
     local rapid_level = user:rapid_level()
@@ -94,7 +94,7 @@ function Buster.new(user, charged, damage)
     end
 
     action:add_anim_action(2, function()
-        Resources.play_audio(Resources.game_folder() .. "resources/sfx/pew.ogg");
+        Resources.play_audio(Resources.game_folder() .. "resources/sfx/pew.ogg")
 
         spell:set_hit_props(HitProps.new(
             damage,
