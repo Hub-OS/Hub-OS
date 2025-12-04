@@ -189,6 +189,7 @@ impl<T: Package> PackageManager<T> {
         Some(PackageInfo {
             id: PackageId::new_blank(),
             hash: FileHash::ZERO,
+            shareable: true,
             category: self.package_category,
             namespace,
             base_path: base_path.clone(),
@@ -233,6 +234,11 @@ impl<T: Package> PackageManager<T> {
                 package_info.base_path
             );
             return None;
+        }
+
+        if package_info.shareable {
+            // file can't be downloaded or shared by client, no need to resolve hash
+            return Some(FileHash::ZERO);
         }
 
         let data = match packets::zip::compress(&package_info.base_path) {

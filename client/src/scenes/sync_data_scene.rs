@@ -233,7 +233,7 @@ impl SyncDataScene {
         let globals = game_io.resource::<Globals>().unwrap();
         let list = globals
             .packages(PackageNamespace::Local)
-            .filter(|info| info.hash != FileHash::ZERO)
+            .filter(|info| info.shareable && info.hash != FileHash::ZERO)
             .map(|info| (info.category, info.id.clone()))
             .collect();
         self.send(game_io, SyncDataPacket::PackageList { list });

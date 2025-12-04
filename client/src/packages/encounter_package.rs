@@ -81,6 +81,10 @@ impl Package for EncounterPackage {
         package.recording_path = meta.recording_path.map(|path| base_path.clone() + &path);
         package.recording_overrides = meta.recording_overrides;
 
+        if package.recording_path.is_some() {
+            package.package_info.shareable = false;
+        }
+
         package
     }
 }

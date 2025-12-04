@@ -9,10 +9,11 @@ pub struct ChildPackageInfo {
     pub path: String,
 }
 
-#[derive(Default, Clone)]
+#[derive(Clone)]
 pub struct PackageInfo {
     pub id: PackageId,
     pub hash: FileHash,
+    pub shareable: bool,
     pub category: PackageCategory,
     pub namespace: PackageNamespace,
     pub base_path: String,
@@ -21,6 +22,24 @@ pub struct PackageInfo {
     pub parent_package: Option<(PackageCategory, PackageId)>, // stores id, namespace should be the same
     pub child_id_path_pairs: Vec<(PackageId, String)>, // stores id and entry path, namespace should be the same
     pub requirements: Vec<(PackageCategory, PackageId)>, // stores id, namespace should be the same or fallback
+}
+
+impl Default for PackageInfo {
+    fn default() -> Self {
+        Self {
+            id: Default::default(),
+            hash: Default::default(),
+            shareable: true,
+            category: Default::default(),
+            namespace: Default::default(),
+            base_path: Default::default(),
+            script_path: Default::default(),
+            toml_path: Default::default(),
+            parent_package: Default::default(),
+            child_id_path_pairs: Default::default(),
+            requirements: Default::default(),
+        }
+    }
 }
 
 impl PackageInfo {
