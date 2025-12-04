@@ -3,7 +3,7 @@ use crate::resources::Globals;
 use crate::saves::InstalledBlock;
 use crate::structures::{GenerationalIndex, SlotMap};
 use framework::prelude::GameIO;
-use packets::structures::PackageId;
+use packets::structures::{PackageCategory, PackageId};
 use std::ops::Range;
 
 pub struct BlockGrid {
@@ -245,7 +245,25 @@ impl BlockGrid {
 
             if (!package.is_flat && touches_line) || self.has_conflicts(block, package) {
                 // append byproducts if we're invalid
-                byproducts.extend(&package.byproducts);
+
+                // filter out byproducts that aren't in the dependency list
+                let package_requirements = &package.package_info.requirements;
+                let new_byproduct_iter = package.byproducts.iter().filter(|&id| {
+                    let is_dependency = package_requirements.iter().any(|(r_category, r_id)| {
+                        *r_category == PackageCategory::Augment && id == r_id
+                    });
+
+                    if !is_dependency {
+                        log::error!(
+                            "Ignoring byproduct {id} missing from dependencies in {}",
+                            block.package_id
+                        );
+                    }
+
+                    is_dependency
+                });
+
+                byproducts.extend(new_byproduct_iter);
             }
         }
 
