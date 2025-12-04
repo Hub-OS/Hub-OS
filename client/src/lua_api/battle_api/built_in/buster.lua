@@ -93,7 +93,7 @@ function Buster.new(user, charged, damage)
         end
     end
 
-    action:add_anim_action(2, function()
+    action:on_anim_frame(2, function()
         Resources.play_audio(Resources.game_folder() .. "resources/sfx/pew.ogg")
 
         spell:set_hit_props(HitProps.new(
@@ -178,7 +178,7 @@ function Buster.new(user, charged, damage)
     end)
 
     -- flare attachment
-    action:add_anim_action(3, function()
+    action:on_anim_frame(3, function()
         local flare_attachment = buster_attachment:create_attachment("ENDPOINT")
         local flare_sprite = flare_attachment:sprite()
         flare_sprite:set_texture(Resources.game_folder() .. "resources/scenes/battle/buster_flare.png")
