@@ -22,13 +22,13 @@ pub struct NetplayBufferItem {
     pub signals: Vec<NetplaySignal>,
 }
 
-#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub struct NetplayPacket {
     pub index: usize,
     pub data: NetplayPacketData,
 }
 
-#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize, IntoStaticStr)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize, IntoStaticStr)]
 pub enum NetplayPacketData {
     Heartbeat,
     Hello,
@@ -60,6 +60,7 @@ pub enum NetplayPacketData {
     Ready,
     Buffer {
         data: NetplayBufferItem,
+        frame_time: f32,
     },
     ReceiveCounts {
         received: Vec<usize>,
@@ -86,6 +87,7 @@ impl NetplayPacket {
                     pressed: Vec::new(),
                     signals: vec![NetplaySignal::Disconnect],
                 },
+                frame_time: 0.0,
             },
         }
     }

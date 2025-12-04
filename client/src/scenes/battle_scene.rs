@@ -31,6 +31,7 @@ struct PlayerController {
     connected: bool,
     buffer: PlayerInputBuffer,
     lead_tolerance: usize,
+    average_frame_time: f32,
 }
 
 struct Backup {
@@ -147,6 +148,7 @@ impl BattleScene {
                 connected: !is_playing_back_recording && setup.connected,
                 buffer: setup.buffer.clone(),
                 lead_tolerance: DEFAULT_LEAD_TOLERANCE,
+                average_frame_time: game_io.target_duration().as_secs_f32(),
             });
 
             if !setup.memories.is_empty() {
@@ -416,10 +418,11 @@ impl BattleScene {
             self.comms.receivers.clear();
         }
 
+        let target_frame_time = game_io.target_duration().as_secs_f32();
         let mut resimulation_time = self.simulation.time;
 
         for packet in packets {
-            if let Some(resim_time) = self.handle_packet(packet) {
+            if let Some(resim_time) = self.handle_packet(target_frame_time, packet) {
                 resimulation_time = resimulation_time.min(resim_time);
             }
         }
@@ -431,12 +434,16 @@ impl BattleScene {
         self.resolve_slowdown(game_io);
     }
 
-    fn handle_packet(&mut self, packet: NetplayPacket) -> Option<FrameTime> {
+    fn handle_packet(
+        &mut self,
+        target_frame_time: f32,
+        packet: NetplayPacket,
+    ) -> Option<FrameTime> {
         let index = packet.index;
         let mut resimulation_time = None;
 
         match packet.data {
-            NetplayPacketData::Buffer { data } => {
+            NetplayPacketData::Buffer { data, frame_time } => {
                 if let Some(controller) = self.player_controllers.get_mut(index) {
                     // check disconnect
                     if data.signals.contains(&NetplaySignal::Disconnect) {
@@ -457,6 +464,13 @@ impl BattleScene {
                     }
 
                     controller.buffer.push_last(data);
+
+                    // mimicking packet_sender.rs
+                    // we cap frame_time at target_frame_time since we care more about dips than headroom
+                    controller.average_frame_time = smooth_average_f32(
+                        controller.average_frame_time,
+                        frame_time.max(target_frame_time),
+                    );
                 }
             }
             NetplayPacketData::ReceiveCounts { received } => {
@@ -508,9 +522,12 @@ impl BattleScene {
 
             #[cfg(debug_assertions)]
             println!(
-                "controller: {i}, buffer + tolerance: {}, target: {} ",
+                "controller: {i}, buffer: {}, tolerance: {}, b+t: {}, b+t target: {}, fps: {:.1}",
+                controller.buffer.len(),
+                controller.lead_tolerance,
                 controller.buffer.len() + controller.lead_tolerance,
-                target_buffer_len
+                target_buffer_len,
+                1.0 / controller.average_frame_time
             );
 
             // try to maintain a buffer len to stay in the past
@@ -590,7 +607,10 @@ impl BattleScene {
         // update local buffer
         local_controller.buffer.push_last(data.clone());
 
-        self.broadcast(NetplayPacketData::Buffer { data });
+        self.broadcast(NetplayPacketData::Buffer {
+            data,
+            frame_time: game_io.frame_duration().as_secs_f32(),
+        });
 
         // send receive counts for resolving lead tolerance
         if self.simulation.time % SEND_RECEIVE_COUNTS_RATE == 0 {
@@ -1098,4 +1118,11 @@ impl Scene for BattleScene {
 
         render_pass.consume_queue(sprite_queue);
     }
+}
+
+const SMOOTH_FACTOR: f32 = 0.125;
+const SMOOTH_FACTOR_FLIPPED: f32 = 1.0 - SMOOTH_FACTOR;
+
+fn smooth_average_f32(old: f32, new: f32) -> f32 {
+    old * SMOOTH_FACTOR_FLIPPED + new * SMOOTH_FACTOR
 }
