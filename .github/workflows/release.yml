@@ -55,7 +55,7 @@ jobs:
         run: |
           mkdir butler
           cd butler
-          wget -O butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
+          wget -O butler.zip https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default
           unzip butler.zip
           chmod +x ./butler
           export BUTLER_API_KEY=${{ secrets.BUTLER_API_KEY }}
@@ -114,7 +114,7 @@ jobs:
         run: |
           mkdir butler
           cd butler
-          wget -O butler.zip https://broth.itch.ovh/butler/darwin-amd64/LATEST/archive/default
+          wget -O butler.zip https://broth.itch.zone/butler/darwin-amd64/LATEST/archive/default
           unzip butler.zip
           chmod +x ./butler
           export BUTLER_API_KEY=${{ secrets.BUTLER_API_KEY }}
@@ -186,7 +186,7 @@ jobs:
         run: |
           mkdir butler
           cd butler
-          wget -O butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
+          wget -O butler.zip https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default
           unzip butler.zip
           chmod +x ./butler
           export BUTLER_API_KEY=${{ secrets.BUTLER_API_KEY }}
