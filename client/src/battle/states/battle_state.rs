@@ -86,8 +86,11 @@ impl State for BattleState {
         // execute attacks
         self.execute_attacks(game_io, resources, simulation);
 
-        // process 0 HP
-        self.mark_deleted(game_io, resources, simulation);
+        // process 0 HP, and avoid deleting anything during time freeze actions
+        // time freeze will call mark_deleted for itself in ActionFreezeState::ActionCleanup
+        if !simulation.time_freeze_tracker.time_is_frozen() {
+            simulation.mark_deleted(game_io, resources);
+        }
 
         // resolve dynamic damage on cards
         self.resolve_dynamic_card_damage(game_io, resources, simulation);
@@ -809,27 +812,6 @@ impl BattleState {
         // remove expired attacks
         let filter = |attack_box: &AttackBox| attack_box.remaining_frames > 0;
         simulation.queued_attacks.retain(filter);
-    }
-
-    fn mark_deleted(
-        &mut self,
-        game_io: &GameIO,
-        resources: &SharedBattleResources,
-        simulation: &mut BattleSimulation,
-    ) {
-        let mut pending_deletion = Vec::new();
-
-        for (id, living) in simulation.entities.query_mut::<&Living>() {
-            if living.max_health == 0 || living.health > 0 {
-                continue;
-            }
-
-            pending_deletion.push(id);
-        }
-
-        for id in pending_deletion {
-            Entity::delete(game_io, resources, simulation, id.into());
-        }
     }
 
     fn update_artifacts(

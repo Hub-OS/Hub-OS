@@ -163,7 +163,7 @@ impl Player {
         });
 
         living.max_health = setup.base_health + health_boost;
-        living.set_health(setup.health);
+        living.health = setup.health.max(0);
 
         // idle callback
         let idle_callback = BattleCallback::new(move |_, _, simulation, _| {

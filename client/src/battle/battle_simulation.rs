@@ -820,6 +820,22 @@ impl BattleSimulation {
         self.call_pending_callbacks(game_io, resources);
     }
 
+    pub fn mark_deleted(&mut self, game_io: &GameIO, resources: &SharedBattleResources) {
+        let mut pending_deletion = Vec::new();
+
+        for (id, living) in self.entities.query_mut::<&Living>() {
+            if living.max_health == 0 || living.health > 0 {
+                continue;
+            }
+
+            pending_deletion.push(id);
+        }
+
+        for id in pending_deletion {
+            Entity::delete(game_io, resources, self, id.into());
+        }
+    }
+
     pub fn call_global<'lua, F, M>(
         &mut self,
         game_io: &GameIO,

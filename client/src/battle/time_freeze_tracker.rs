@@ -485,6 +485,9 @@ impl TimeFreezeTracker {
                 if let Some(entity_backup) = simulation.time_freeze_tracker.take_entity_backup() {
                     entity_backup.restore(simulation);
                 }
+
+                // delete anything that hit 0 hp during our action
+                simulation.mark_deleted(game_io, resources);
             }
             ActionFreezeState::PollEntityAction => {
                 time_freeze_tracker.advance_team_action();
