@@ -33,6 +33,10 @@ pub enum NetplayPacketData {
     Heartbeat,
     Hello,
     HelloAck,
+    Ping,
+    Pong {
+        sender: usize,
+    },
     PlayerSetup {
         player_package: PackageId,
         script_enabled: bool,
@@ -62,16 +66,13 @@ pub enum NetplayPacketData {
         data: NetplayBufferItem,
         frame_time: f32,
     },
-    ReceiveCounts {
-        received: Vec<usize>,
-    },
 }
 
 impl NetplayPacket {
     pub fn default_reliability(&self) -> Reliability {
         if matches!(
             self.data,
-            NetplayPacketData::Heartbeat | NetplayPacketData::ReceiveCounts { .. }
+            NetplayPacketData::Heartbeat | NetplayPacketData::Ping | NetplayPacketData::Pong { .. }
         ) {
             Reliability::Reliable
         } else {

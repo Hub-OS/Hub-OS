@@ -15,7 +15,7 @@ use std::sync::Arc;
 
 const SLOW_COOLDOWN: FrameTime = INPUT_BUFFER_LIMIT as FrameTime;
 const DEFAULT_LEAD_TOLERANCE: usize = 2;
-const SEND_RECEIVE_COUNTS_RATE: FrameTime = 60;
+const PING_RATE: FrameTime = 60;
 
 pub enum BattleEvent {
     Description(Arc<str>),
@@ -26,9 +26,10 @@ pub enum BattleEvent {
     CompleteFlee(bool),
 }
 
-#[derive(Clone)]
 struct PlayerController {
     connected: bool,
+    ping_sent: Option<Instant>,
+    rtt: f32,
     buffer: PlayerInputBuffer,
     lead_tolerance: usize,
     average_frame_time: f32,
@@ -140,15 +141,18 @@ impl BattleScene {
         };
 
         let config = resources.config.borrow();
+        let target_frame_time = game_io.target_duration().as_secs_f32();
 
         for setup in player_setups {
             simulation.inputs[setup.index].set_input_delay(setup.buffer.delay());
 
             player_controllers.push(PlayerController {
                 connected: !is_playing_back_recording && setup.connected,
+                ping_sent: None,
+                rtt: 0.0,
                 buffer: setup.buffer.clone(),
                 lead_tolerance: DEFAULT_LEAD_TOLERANCE,
-                average_frame_time: game_io.target_duration().as_secs_f32(),
+                average_frame_time: target_frame_time,
             });
 
             if !setup.memories.is_empty() {
@@ -418,11 +422,14 @@ impl BattleScene {
             self.comms.receivers.clear();
         }
 
+        let frame_start_instant = game_io.frame_start_instant();
         let target_frame_time = game_io.target_duration().as_secs_f32();
         let mut resimulation_time = self.simulation.time;
 
         for packet in packets {
-            if let Some(resim_time) = self.handle_packet(target_frame_time, packet) {
+            if let Some(resim_time) =
+                self.handle_packet(frame_start_instant, target_frame_time, packet)
+            {
                 resimulation_time = resimulation_time.min(resim_time);
             }
         }
@@ -436,6 +443,7 @@ impl BattleScene {
 
     fn handle_packet(
         &mut self,
+        frame_start_instant: Instant,
         target_frame_time: f32,
         packet: NetplayPacket,
     ) -> Option<FrameTime> {
@@ -473,18 +481,26 @@ impl BattleScene {
                     );
                 }
             }
-            NetplayPacketData::ReceiveCounts { received } => {
-                if let Some(local_index) = self.local_index {
-                    let local_controller = &self.player_controllers[local_index];
-                    let sent = self.synced_time as usize + local_controller.buffer.len();
+            NetplayPacketData::Ping => {
+                self.send(index, NetplayPacketData::Pong { sender: index });
+            }
+            NetplayPacketData::Pong { sender } => {
+                if self.local_index == Some(sender)
+                    && let Some(controller) = self.player_controllers.get_mut(index)
+                    && let Some(ping_sent_time) = controller.ping_sent.take()
+                {
+                    let new_rtt = (frame_start_instant - ping_sent_time).as_secs_f32();
 
-                    if let Some(controller) = self.player_controllers.get_mut(index)
-                        && let Some(&count) = received.get(local_index)
-                    {
-                        // treating sent - received as rtt in frames
-                        // half of rtt + 1 will be our new lead tolerance
-                        controller.lead_tolerance = sent.saturating_sub(count).div_ceil(2) + 1;
+                    if controller.rtt == 0.0 {
+                        controller.rtt = new_rtt;
+                    } else {
+                        controller.rtt = smooth_average_f32(controller.rtt, new_rtt);
                     }
+
+                    let frame_rtt = (controller.rtt / target_frame_time).ceil() as usize;
+                    // our lead tolerance is half rtt + 1
+                    // as we expect the time to send to us to be close to half the round trip
+                    controller.lead_tolerance = frame_rtt.div_ceil(2) + 1;
                 }
             }
             NetplayPacketData::Heartbeat => {}
@@ -492,7 +508,7 @@ impl BattleScene {
                 let name: &'static str = (&data).into();
 
                 log::error!(
-                    "Expecting Input, Heartbeat, or Disconnect during battle, received: {name} from {index}"
+                    "Unexpected packet received during battle, received: {name} from {index}"
                 );
             }
         }
@@ -522,11 +538,12 @@ impl BattleScene {
 
             #[cfg(debug_assertions)]
             println!(
-                "controller: {i}, buffer: {}, tolerance: {}, b+t: {}, b+t target: {}, fps: {:.1}",
+                "controller: {i}, buffer: {}, tolerance: {}, b+t: {}, b+t target: {}, rtt: {:.0}ms, fps: {:.1}",
                 controller.buffer.len(),
                 controller.lead_tolerance,
                 controller.buffer.len() + controller.lead_tolerance,
                 target_buffer_len,
+                controller.rtt * 1000.0,
                 1.0 / controller.average_frame_time
             );
 
@@ -541,6 +558,20 @@ impl BattleScene {
             println!("- slowing down");
             self.slow_cooldown = SLOW_COOLDOWN;
         }
+    }
+
+    fn send(&self, to_index: usize, data: NetplayPacketData) {
+        let Some(index) = self.local_index else {
+            return;
+        };
+
+        let senders = &self.comms.senders;
+        let Some(send) = senders.get(to_index).or(senders.last()) else {
+            return;
+        };
+
+        let packet = NetplayPacket { index, data };
+        send(packet);
     }
 
     fn broadcast(&self, data: NetplayPacketData) {
@@ -612,15 +643,33 @@ impl BattleScene {
             frame_time: game_io.frame_duration().as_secs_f32(),
         });
 
-        // send receive counts for resolving lead tolerance
-        if self.simulation.time % SEND_RECEIVE_COUNTS_RATE == 0 {
-            self.broadcast(NetplayPacketData::ReceiveCounts {
-                received: self
-                    .player_controllers
-                    .iter()
-                    .map(|controller| self.synced_time as usize + controller.buffer.len())
-                    .collect(),
+        self.try_ping();
+    }
+
+    fn try_ping(&mut self) {
+        if self.simulation.time % PING_RATE != 0 {
+            return;
+        }
+
+        let pong_pending = self
+            .player_controllers
+            .iter()
+            .enumerate()
+            .any(|(i, controller)| {
+                self.local_index != Some(i)
+                    && controller.connected
+                    && controller.ping_sent.is_some()
             });
+
+        if pong_pending {
+            return;
+        }
+
+        self.broadcast(NetplayPacketData::Ping);
+
+        let now = Instant::now();
+        for controller in &mut self.player_controllers {
+            controller.ping_sent = Some(now);
         }
     }
 

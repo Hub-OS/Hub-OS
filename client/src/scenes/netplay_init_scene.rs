@@ -346,8 +346,14 @@ impl NetplayInitScene {
             NetplayPacketData::Hello => {
                 // handled earlier
             }
-            NetplayPacketData::HelloAck | NetplayPacketData::Heartbeat => {
+            NetplayPacketData::HelloAck
+            | NetplayPacketData::Heartbeat
+            | NetplayPacketData::Pong { .. } => {
                 // response unnecessary
+            }
+            NetplayPacketData::Ping => {
+                let sender = self.local_index;
+                self.send(index, NetplayPacketData::Pong { sender });
             }
             NetplayPacketData::PlayerSetup {
                 player_package,
@@ -478,7 +484,6 @@ impl NetplayInitScene {
 
                 connection.player_setup.buffer.push_last(data);
             }
-            NetplayPacketData::ReceiveCounts { .. } => {}
         }
     }
 
