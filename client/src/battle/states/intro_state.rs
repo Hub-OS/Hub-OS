@@ -66,10 +66,6 @@ impl State for IntroState {
                 }
 
                 entity_ids.push((id, player.is_some()));
-
-                if player.is_some() {
-                    player_count += 1;
-                }
             }
 
             // move players to the end to animate last
@@ -80,10 +76,14 @@ impl State for IntroState {
             self.pending_intros = entity_ids
                 .into_iter()
                 .rev()
-                .flat_map(|(id, _)| {
+                .flat_map(|(id, is_player)| {
                     let entity_id = id.into();
                     let action_index =
                         self.resolve_intro_action(game_io, resources, simulation, entity_id)?;
+
+                    if is_player {
+                        player_count += 1;
+                    }
 
                     Some((entity_id, action_index))
                 })
