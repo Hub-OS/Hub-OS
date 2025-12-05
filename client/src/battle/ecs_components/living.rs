@@ -43,15 +43,13 @@ impl Default for Living {
 
 impl Living {
     pub fn set_health(&mut self, mut health: i32) {
-        // avoid healing entities pending deletion
-        if self.health <= 0 {
-            return;
-        }
-
         health = health.max(0);
 
         if self.max_health == 0 {
             self.max_health = health;
+        } else if self.health <= 0 {
+            // avoid healing entities pending deletion
+            return;
         }
 
         self.health = health.min(self.max_health);
