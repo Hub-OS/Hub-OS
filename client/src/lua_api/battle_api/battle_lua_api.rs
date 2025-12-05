@@ -72,7 +72,7 @@ impl BattleLuaApi {
 
         lua_api.add_static_injector(super::global_api::inject_global_api);
 
-        super::math_api::inject_math_api(&mut lua_api);
+        super::desync_patch_api::inject_desync_patch_api(&mut lua_api);
         super::require_api::inject_require_api(&mut lua_api);
         super::resources_api::inject_engine_api(&mut lua_api);
         super::turn_gauge_api::inject_turn_gauge_api(&mut lua_api);
