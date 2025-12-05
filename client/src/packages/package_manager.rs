@@ -236,7 +236,7 @@ impl<T: Package> PackageManager<T> {
             return None;
         }
 
-        if package_info.shareable {
+        if !package_info.shareable {
             // file can't be downloaded or shared by client, no need to resolve hash
             return Some(FileHash::ZERO);
         }
