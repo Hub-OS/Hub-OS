@@ -48,6 +48,7 @@ component.on_update_func = function()
     color.a = (1.0 - progress) * 255
   end
 
+  sprite:set_shader_effect(SpriteShaderEffect.Pixelate)
   sprite:set_color(color)
 
   if i > TOTAL_DURATION then
