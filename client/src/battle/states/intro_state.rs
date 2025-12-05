@@ -3,8 +3,9 @@ use crate::bindable::{ActionLockout, ComponentLifetime, EntityId, GenerationalIn
 use crate::render::{FrameTime, SpriteShaderEffect};
 use crate::resources::{Globals, SoundBuffer};
 use crate::transitions::BATTLE_FADE_DURATION;
-use crate::{battle::*, BATTLE_CAMERA_OFFSET};
+use crate::{BATTLE_CAMERA_OFFSET, battle::*};
 use framework::prelude::*;
+use rand::seq::SliceRandom;
 
 #[derive(Clone)]
 pub struct BattleInitMusic {
@@ -12,14 +13,20 @@ pub struct BattleInitMusic {
     pub loops: bool,
 }
 
-// max time per entity
-const MAX_ANIMATION_TIME: FrameTime = 32;
+const PLAYER_ANIMATION_OFFSET: FrameTime = 16;
+
+// default time per entity
+const DEFAULT_ANIMATION_TIME: FrameTime = 32;
 
 #[derive(Clone)]
 pub struct IntroState {
     completed: bool,
     // (entity_id, action_index)
-    tracked_intros: Vec<(EntityId, GenerationalIndex)>,
+    pending_intros: Vec<(EntityId, GenerationalIndex)>,
+    blocking_entities: Vec<EntityId>,
+    // npcs animate in sequence, players animate concurrently
+    npcs_remaining: usize,
+    next_player_anim: FrameTime,
 }
 
 impl State for IntroState {
@@ -49,21 +56,31 @@ impl State for IntroState {
         if simulation.time == 0 {
             let entities = &mut simulation.entities;
             let mut entity_ids = Vec::new();
+            let mut player_count = 0;
 
-            for (id, (entity, _)) in entities.query_mut::<(&mut Entity, &Character)>() {
+            for (id, (entity, _, player)) in
+                entities.query_mut::<(&mut Entity, &Character, Option<&Player>)>()
+            {
                 if !entity.spawned {
                     continue;
                 }
 
-                entity_ids.push(id);
+                entity_ids.push((id, player.is_some()));
+
+                if player.is_some() {
+                    player_count += 1;
+                }
             }
+
+            // move players to the end to animate last
+            entity_ids.sort_by_cached_key(|&(_, is_player)| is_player);
 
             // get intros for entities
             // built in reverse to allow us to pop from the end to get the next value
-            self.tracked_intros = entity_ids
+            self.pending_intros = entity_ids
                 .into_iter()
                 .rev()
-                .flat_map(|id| {
+                .flat_map(|(id, _)| {
                     let entity_id = id.into();
                     let action_index =
                         self.resolve_intro_action(game_io, resources, simulation, entity_id)?;
@@ -71,6 +88,11 @@ impl State for IntroState {
                     Some((entity_id, action_index))
                 })
                 .collect();
+
+            self.npcs_remaining = self.pending_intros.len() - player_count;
+
+            // shuffle players
+            self.pending_intros[self.npcs_remaining..].shuffle(&mut simulation.rng);
         }
 
         let scale = simulation.field.best_fitting_scale();
@@ -93,27 +115,41 @@ impl State for IntroState {
                 }
 
                 self.queue_next_intro(game_io, resources, simulation);
+
+                if self.npcs_remaining == 0 {
+                    self.next_player_anim = PLAYER_ANIMATION_OFFSET;
+                }
             }
             std::cmp::Ordering::Greater => {}
         }
 
         let entities = &mut simulation.entities;
 
-        // see if the active entity's action queue is empty in order to remove it from our queue
-        if let Some((id, _)) = self.tracked_intros.last().cloned() {
-            let pop = entities
+        // resolve which entities are still blocking intros from advancing
+        self.blocking_entities.retain(|&id| {
+            entities
                 .query_one_mut::<&mut ActionQueue>(id.into())
-                .map(|queue| queue.active.is_none() && queue.pending.is_empty())
-                .unwrap_or(true);
+                .map(|queue| queue.active.is_some() || !queue.pending.is_empty())
+                .unwrap_or(false)
+        });
 
-            if pop {
-                self.tracked_intros.pop();
+        // try to queue the next intro if we need to
+        if self.npcs_remaining > 0 {
+            if self.blocking_entities.is_empty() {
+                self.npcs_remaining -= 1;
                 self.queue_next_intro(game_io, resources, simulation);
+            }
+        } else {
+            self.next_player_anim -= 1;
+
+            if self.next_player_anim <= 0 {
+                self.queue_next_intro(game_io, resources, simulation);
+                self.next_player_anim = PLAYER_ANIMATION_OFFSET;
             }
         }
 
         // mark completion if there's no more entities to introduce
-        if self.tracked_intros.is_empty() {
+        if self.blocking_entities.is_empty() && self.pending_intros.is_empty() {
             self.completed = true;
 
             if simulation.progress < BattleProgress::CompletedIntro {
@@ -130,20 +166,24 @@ impl IntroState {
     pub fn new() -> Self {
         Self {
             completed: false,
-            tracked_intros: Default::default(),
+            pending_intros: Default::default(),
+            blocking_entities: Default::default(),
+            npcs_remaining: 0,
+            next_player_anim: 0,
         }
     }
 
     fn queue_next_intro(
-        &self,
+        &mut self,
         game_io: &GameIO,
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
-        let Some(&(entity_id, index)) = self.tracked_intros.last() else {
+        let Some((entity_id, index)) = self.pending_intros.pop() else {
             return;
         };
 
+        self.blocking_entities.push(entity_id);
         ActionQueue::ensure(&mut simulation.entities, entity_id);
         Action::queue_action(game_io, resources, simulation, entity_id, index);
     }
@@ -237,7 +277,7 @@ impl IntroState {
 
                 let elapsed = simulation.time - start_time;
 
-                let max_time = MAX_ANIMATION_TIME / 2;
+                let max_time = DEFAULT_ANIMATION_TIME / 2;
                 let time = (elapsed + 1) / 2;
 
                 let alpha = time as f32 / max_time as f32;
