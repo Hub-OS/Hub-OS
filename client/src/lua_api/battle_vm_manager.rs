@@ -26,7 +26,6 @@ pub struct BattleVmManager {
     pub encounter_vm: Option<usize>,
     pub vms: Vec<RollbackVM>,
     pub vms_by_id: HashMap<PackageId, Vec<usize>>,
-    pub vms_by_path: HashMap<String, Vec<usize>>,
     pub scripts: InternalScripts,
 }
 
@@ -36,7 +35,6 @@ impl BattleVmManager {
             encounter_vm: None,
             vms: Vec::new(),
             vms_by_id: Default::default(),
-            vms_by_path: Default::default(),
             scripts: Default::default(),
         }
     }
@@ -122,6 +120,7 @@ impl BattleVmManager {
         let vm = RollbackVM {
             lua,
             package_id: package_info.id.clone(),
+            match_namespace: package_info.namespace,
             namespaces: vec![namespace],
             path: package_info.script_path.clone(),
             permitted_dependencies: globals
@@ -144,9 +143,6 @@ impl BattleVmManager {
             .entry(vm.package_id.clone())
             .or_default();
         by_id_entry.push(vm_index);
-
-        let by_path_entry = vm_manager.vms_by_path.entry(vm.path.clone()).or_default();
-        by_path_entry.push(vm_index);
 
         vm_manager.vms.push(vm);
 
@@ -195,9 +191,12 @@ impl BattleVmManager {
     }
 
     pub fn find_vm_from_info(&self, package_info: &PackageInfo) -> Option<usize> {
-        self.vms_by_path
-            .get(&package_info.script_path)
-            .and_then(|vm_indices| vm_indices.first().cloned())
+        self.vms_by_id
+            .get(&package_info.id)
+            .into_iter()
+            .flat_map(|vm_indices| vm_indices.iter())
+            .find(|i| self.vms[**i].match_namespace == package_info.namespace)
+            .cloned()
     }
 
     pub fn find_vm(
