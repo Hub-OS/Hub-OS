@@ -4,12 +4,13 @@ use crate::resources::Globals;
 use framework::prelude::{AsyncTask, GameIO};
 use packets::address_parsing::uri_encode;
 use packets::structures::{PackageCategory, PackageId};
+use std::collections::{HashMap, HashSet};
 
 enum Event {
     ReceivedListing(Box<PackageListing>),
+    FailedListing(PackageId),
     InstallPackage,
-    Failed,
-    Success,
+    FailedDownload,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -17,8 +18,8 @@ pub enum UpdateStatus {
     Idle,
     CheckingForUpdate,
     DownloadingPackage,
-    Failed,
     Success,
+    Failed,
 }
 
 pub struct RepoPackageUpdater {
@@ -29,6 +30,8 @@ pub struct RepoPackageUpdater {
     install_required: Vec<(PackageCategory, PackageId, PackageId)>,
     install_position: usize,
     ignoring_installed_dependencies: bool,
+    dependent_map: HashMap<PackageId, Vec<PackageId>>,
+    cancelled_installs: HashSet<PackageId>,
 }
 
 impl RepoPackageUpdater {
@@ -41,6 +44,8 @@ impl RepoPackageUpdater {
             install_required: Vec::new(),
             install_position: 0,
             ignoring_installed_dependencies: false,
+            dependent_map: Default::default(),
+            cancelled_installs: Default::default(),
         }
     }
 
@@ -75,7 +80,7 @@ impl RepoPackageUpdater {
         self.install_required.clear();
         self.install_position = 0;
 
-        self.request_latest_listing(game_io);
+        self.request_listing(game_io);
     }
 
     pub fn update(&mut self, game_io: &mut GameIO) {
@@ -92,10 +97,10 @@ impl RepoPackageUpdater {
             Event::ReceivedListing(listing) => {
                 let globals = game_io.resource_mut::<Globals>().unwrap();
 
-                for (category, id) in listing.dependencies {
+                for (category, id) in &listing.dependencies {
                     if self.ignoring_installed_dependencies
                         && globals
-                            .package_info(category, PackageNamespace::Local, &id)
+                            .package_info(*category, PackageNamespace::Local, id)
                             .is_some()
                     {
                         // avoid checking packages that are already installed
@@ -103,8 +108,8 @@ impl RepoPackageUpdater {
                     }
 
                     // add only unique dependencies to avoid recursive chains
-                    if !self.queue.contains(&id) {
-                        self.queue.push(id);
+                    if !self.queue.contains(id) {
+                        self.queue.push(id.clone());
                     }
                 }
 
@@ -112,6 +117,11 @@ impl RepoPackageUpdater {
                 if let Some(category) = listing.preview_data.category() {
                     let queued_id = &self.queue[self.queue_position];
                     let latest_id = listing.id;
+
+                    for (_, id) in listing.dependencies {
+                        let dependents = self.dependent_map.entry(id).or_default();
+                        dependents.push(latest_id.clone())
+                    }
 
                     let existing_package = globals
                         .package_info(category, PackageNamespace::Local, queued_id)
@@ -147,24 +157,29 @@ impl RepoPackageUpdater {
                     }
                 }
 
-                // get the next package
-                self.queue_position += 1;
-                self.request_latest_listing(game_io);
+                self.request_next_listing(game_io);
+            }
+            Event::FailedListing(package_id) => {
+                self.cancelled_installs.insert(package_id);
+                self.request_next_listing(game_io);
             }
             Event::InstallPackage => {
                 self.install_package(game_io);
             }
-            Event::Failed => {
+            Event::FailedDownload => {
                 self.status = UpdateStatus::Failed;
-            }
-            Event::Success => {
-                self.status = UpdateStatus::Success;
             }
         }
     }
 
-    fn request_latest_listing(&mut self, game_io: &GameIO) {
+    fn request_next_listing(&mut self, game_io: &GameIO) {
+        self.queue_position += 1;
+        self.request_listing(game_io);
+    }
+
+    fn request_listing(&mut self, game_io: &GameIO) {
         let Some(id) = self.queue.get(self.queue_position) else {
+            self.cancel_unsatisfied_installs();
             self.download_package(game_io);
             return;
         };
@@ -178,10 +193,11 @@ impl RepoPackageUpdater {
 
         log::info!("Requesting metadata for {id}...");
 
+        let id = id.clone();
         let task = game_io.spawn_local_task(async move {
             let Some(value) = crate::http::request_json(&uri).await else {
                 log::error!("Failed to download meta file");
-                return Event::Failed;
+                return Event::FailedListing(id);
             };
 
             let listing = PackageListing::from(&value);
@@ -193,11 +209,34 @@ impl RepoPackageUpdater {
         self.status = UpdateStatus::CheckingForUpdate;
     }
 
+    fn cancel_unsatisfied_installs(&mut self) {
+        let mut queue: Vec<_> = self.cancelled_installs.iter().cloned().collect();
+
+        while let Some(dependency_id) = queue.pop() {
+            let Some(dependents) = self.dependent_map.remove(&dependency_id) else {
+                continue;
+            };
+
+            for dependent_id in dependents {
+                if !self.cancelled_installs.insert(dependent_id.clone()) {
+                    continue;
+                }
+
+                log::warn!("Skipping {dependent_id} due to unsatisfied dependencies");
+
+                queue.push(dependent_id);
+            }
+        }
+
+        self.install_required
+            .retain(|(_, _, id)| !self.cancelled_installs.contains(id));
+    }
+
     fn download_package(&mut self, game_io: &GameIO) {
         let Some(&(category, ref install_id, ref id)) =
             self.install_required.get(self.install_position)
         else {
-            self.status = UpdateStatus::Success;
+            self.complete();
             return;
         };
 
@@ -213,7 +252,7 @@ impl RepoPackageUpdater {
         let task = game_io.spawn_local_task(async move {
             let Some(zip_bytes) = crate::http::request(&uri).await else {
                 log::error!("Failed to download zip");
-                return Event::Failed;
+                return Event::FailedDownload;
             };
 
             packets::zip::extract_to(&zip_bytes, &base_path);
@@ -228,7 +267,6 @@ impl RepoPackageUpdater {
     fn install_package(&mut self, game_io: &mut GameIO) {
         let (category, install_id, new_id) = &self.install_required[self.install_position];
         let category = *category;
-        self.install_position += 1;
 
         // reload package
         let globals = game_io.resource_mut::<Globals>().unwrap();
@@ -244,7 +282,16 @@ impl RepoPackageUpdater {
             global_save.save();
         }
 
-        // continue working on queue
-        self.request_latest_listing(game_io);
+        // download next package
+        self.install_position += 1;
+        self.download_package(game_io);
+    }
+
+    fn complete(&mut self) {
+        self.status = if self.cancelled_installs.is_empty() {
+            UpdateStatus::Success
+        } else {
+            UpdateStatus::Failed
+        }
     }
 }
