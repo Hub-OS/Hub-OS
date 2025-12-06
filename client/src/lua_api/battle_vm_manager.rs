@@ -94,6 +94,8 @@ impl BattleVmManager {
             if !vm.namespaces.contains(&namespace) {
                 vm.namespaces.push(namespace);
             }
+
+            return;
         }
 
         // new vm
