@@ -8,6 +8,7 @@ pub mod HitFlag {
     use super::HitFlags;
     use framework::prelude::Vec2;
 
+    pub const ALL: HitFlags = !0;
     pub const NONE: HitFlags = 0;
     pub const RETAIN_INTANGIBLE: HitFlags = 1;
     pub const NO_COUNTER: HitFlags = 1 << 1;
@@ -34,6 +35,8 @@ pub mod HitFlag {
         PIERCE_GUARD,
         PIERCE_GROUND,
     ];
+
+    pub const KEEP_IN_FREEZE: HitFlags = BLIND;
 
     pub fn from_str(status_registry: &StatusRegistry, s: &str) -> HitFlags {
         match s {

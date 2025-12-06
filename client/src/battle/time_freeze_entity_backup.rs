@@ -1,5 +1,5 @@
 use super::{ActionQueue, BattleAnimator, BattleSimulation, Entity, Living, Movement};
-use crate::bindable::{Drag, EntityId, HitFlags};
+use crate::bindable::{Drag, EntityId, HitFlag, HitFlags};
 use crate::render::FrameTime;
 use crate::structures::GenerationalIndex;
 
@@ -57,7 +57,9 @@ impl TimeFreezeEntityBackup {
         // back up status_director
         let (statuses, drag, drag_lockout) = living
             .map(|living| {
-                let status_sprites = living.status_director.take_status_sprites();
+                let take_flags = !HitFlag::KEEP_IN_FREEZE;
+
+                let status_sprites = living.status_director.take_status_sprites(take_flags);
 
                 if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index)
                 {
@@ -67,12 +69,12 @@ impl TimeFreezeEntityBackup {
                     }
                 }
 
-                let statuses = living.status_director.applied_and_pending();
+                let statuses = living.status_director.applied_and_pending(take_flags);
                 let drag = living.status_director.take_drag_for_backup();
                 let drag_lockout = living.status_director.remaining_drag_lockout();
 
                 // clear existing statuses and call destructors to get rid of scripted effects and artifacts
-                living.status_director.clear_statuses();
+                living.status_director.clear_statuses(take_flags);
                 let destructors = living.status_director.take_ready_destructors();
                 simulation.pending_callbacks.extend(destructors);
 

@@ -3,7 +3,7 @@ use crate::battle::{
     Artifact, BattleSimulation, Entity, IdleCallback, Living, Movement, Player,
     SharedBattleResources,
 };
-use crate::bindable::{EntityId, SpriteColorMode};
+use crate::bindable::{EntityId, HitFlag, SpriteColorMode};
 use crate::ease::inverse_lerp;
 use crate::render::FrameTime;
 use crate::resources::Globals;
@@ -120,7 +120,7 @@ impl FormActivateState {
             activated.push(id);
 
             // clear statuses
-            living.status_director.clear_statuses();
+            living.status_director.clear_statuses(HitFlag::ALL);
 
             // call idle callback
             if let Some(callback) = idle_callback {

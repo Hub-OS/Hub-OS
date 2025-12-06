@@ -28,23 +28,25 @@ pub struct StatusDirector {
 }
 
 impl StatusDirector {
-    pub fn clear_statuses(&mut self) {
+    pub fn clear_statuses(&mut self, status_flags: HitFlags) {
         self.ready_destructors.extend(
             self.statuses
                 .iter_mut()
+                .filter(|s| status_flags & s.status_flag != 0)
                 .flat_map(|status| status.destructor.take()),
         );
 
-        self.statuses.clear();
-        self.new_statuses.clear();
+        self.statuses.retain(|s| status_flags & s.status_flag == 0);
+        self.new_statuses
+            .retain(|s| status_flags & s.status_flag == 0);
         self.drag = None;
         self.remaining_drag_lockout = 0;
     }
 
-    pub fn applied_and_pending(&self) -> Vec<(HitFlags, FrameTime)> {
+    pub fn applied_and_pending(&self, status_flags: HitFlags) -> Vec<(HitFlags, FrameTime)> {
         self.statuses
             .iter()
-            .filter(|status| status.remaining_time > 0)
+            .filter(|status| status_flags & status.status_flag != 0 && status.remaining_time > 0)
             .map(|status| (status.status_flag, status.remaining_time))
             .chain(
                 self.new_statuses
@@ -235,8 +237,20 @@ impl StatusDirector {
             })
     }
 
-    pub fn take_status_sprites(&mut self) -> Vec<(HitFlags, TreeIndex)> {
-        std::mem::take(&mut self.status_sprites)
+    pub fn take_status_sprites(&mut self, status_flags: HitFlags) -> Vec<(HitFlags, TreeIndex)> {
+        let mut old_sprites = std::mem::take(&mut self.status_sprites);
+
+        old_sprites.retain(|&(flag, index)| {
+            let retain = status_flags & flag != 0;
+
+            if !retain {
+                self.status_sprites.push((flag, index));
+            }
+
+            retain
+        });
+
+        old_sprites
     }
 
     pub fn update_status_sprites(
