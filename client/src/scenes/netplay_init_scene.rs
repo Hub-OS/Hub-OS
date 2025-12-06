@@ -352,8 +352,7 @@ impl NetplayInitScene {
                 // response unnecessary
             }
             NetplayPacketData::Ping => {
-                let sender = self.local_index;
-                self.send(index, NetplayPacketData::Pong { sender });
+                self.send(index, NetplayPacketData::Pong { sender: index });
             }
             NetplayPacketData::PlayerSetup {
                 player_package,
