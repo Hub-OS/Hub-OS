@@ -91,21 +91,23 @@ function status_init(status)
   local time = 0
 
   component.on_update_func = function()
-    freeze_sprite:set_offset(0, -entity:height() / 2)
-
     animator:set_state(animator_state)
     animator:set_playback(Playback.Loop)
     animator:sync_time(time)
     animator:apply(freeze_sprite)
     time = time + 1
 
-    entity_sprite:set_color_mode(ColorMode.Additive)
-    entity_sprite:set_color(FREEZE_COLOR)
-
     if is_mashing(entity) then
       local remaining_time = status:remaining_time()
       status:set_remaining_time(remaining_time - 1)
     end
+  end
+
+  local color_component = entity:create_component(Lifetime.Scene)
+  color_component.on_update_func = function()
+    freeze_sprite:set_offset(0, -entity:height() / 2)
+    entity_sprite:set_color_mode(ColorMode.Additive)
+    entity_sprite:set_color(FREEZE_COLOR)
   end
 
   -- aux props for weaknesses
@@ -135,6 +137,7 @@ function status_init(status)
   status.on_delete_func = function()
     entity_sprite:remove_node(freeze_sprite)
     component:eject()
+    color_component:eject()
     entity:remove_aux_prop(flinch_immunity)
     entity:remove_aux_prop(cancel_aux_prop)
     entity:remove_aux_prop(break_aux_prop)
