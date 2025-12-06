@@ -37,6 +37,7 @@ const SECTIONS: &[(&str, &[&str])] = &[
             "KayThree",
             "Kyqurikan",
             "PlayerZero",
+            "Sefaia",
             "Tim (Tchomp)",
             "Void.ExE",
         ],
