@@ -122,11 +122,7 @@ impl BattleVmManager {
         let vm = RollbackVM {
             lua,
             package_id: package_info.id.clone(),
-            namespaces: if namespace == package_info.namespace {
-                vec![namespace]
-            } else {
-                vec![namespace, package_info.namespace]
-            },
+            namespaces: vec![namespace],
             path: package_info.script_path.clone(),
             permitted_dependencies: globals
                 .package_dependency_iter([(
