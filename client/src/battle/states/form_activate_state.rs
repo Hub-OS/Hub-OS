@@ -1,7 +1,6 @@
 use super::{State, TurnStartState};
 use crate::battle::{
-    Artifact, BattleSimulation, Entity, IdleCallback, Living, Movement, Player,
-    SharedBattleResources,
+    Action, Artifact, BattleSimulation, Entity, Living, Movement, Player, SharedBattleResources,
 };
 use crate::bindable::{EntityId, HitFlag, SpriteColorMode};
 use crate::ease::inverse_lerp;
@@ -98,17 +97,10 @@ impl FormActivateState {
     ) {
         let mut activated = Vec::new();
 
-        type Query<'a> = (
-            &'a mut Entity,
-            &'a mut Living,
-            &'a mut Player,
-            Option<&'a IdleCallback>,
-        );
+        type Query<'a> = (&'a mut Entity, &'a mut Living, &'a mut Player);
 
         // deactivate previous forms, and activate new forms
-        for (id, (entity, living, player, idle_callback)) in
-            simulation.entities.query_mut::<Query>()
-        {
+        for (id, (entity, living, player)) in simulation.entities.query_mut::<Query>() {
             let Some(index) = player.active_form else {
                 continue;
             };
@@ -121,11 +113,6 @@ impl FormActivateState {
 
             // clear statuses
             living.status_director.clear_statuses(HitFlag::ALL);
-
-            // call idle callback
-            if let Some(callback) = idle_callback {
-                simulation.pending_callbacks.push(callback.0.clone());
-            }
 
             // deactivate previous forms
             for form in &player.forms {
@@ -154,9 +141,10 @@ impl FormActivateState {
             }
         }
 
-        // cancel movement
+        // cancel movement and actions
         for id in activated {
             Movement::cancel(simulation, id.into());
+            Action::cancel_all(game_io, resources, simulation, id.into());
         }
 
         simulation.call_pending_callbacks(game_io, resources);
