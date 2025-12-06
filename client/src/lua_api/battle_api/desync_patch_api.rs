@@ -1,4 +1,5 @@
 use super::BattleLuaApi;
+use crate::lua_api::battle_api::errors::get_source_name;
 use indexmap::IndexSet;
 use rand::Rng;
 use rollback_mlua::prelude::{LuaError, LuaNil};
@@ -48,7 +49,12 @@ pub fn patch_basic_api(lua_api: &mut BattleLuaApi) {
                             string_set.insert(s.as_bytes().into());
                         }
                         key => {
-                            log::warn!("pairs() encountered unsupported type: {}", key.type_name());
+                            let source_name = get_source_name(lua);
+
+                            log::warn!(
+                                "pairs() encountered unsupported type: {} in {source_name}",
+                                key.type_name()
+                            );
                             continue;
                         }
                     };

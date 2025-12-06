@@ -1,4 +1,7 @@
-use super::{GAME_FOLDER_REGISTRY_KEY, VM_INDEX_REGISTRY_KEY, inject_internal_scripts};
+use super::{
+    GAME_FOLDER_REGISTRY_KEY, PACKAGE_ID_REGISTRY_KEY, VM_INDEX_REGISTRY_KEY,
+    inject_internal_scripts,
+};
 use crate::battle::{
     BattleCallback, BattleScriptContext, BattleSimulation, RollbackVM, SharedBattleResources,
 };
@@ -152,8 +155,28 @@ impl BattleVmManager {
         // load root script
         let vms = &resources.vm_manager.vms;
         let lua = &vms.last().unwrap().lua;
-        lua.set_named_registry_value(VM_INDEX_REGISTRY_KEY, vm_index)
-            .unwrap();
+
+        if lua
+            .set_named_registry_value(VM_INDEX_REGISTRY_KEY, vm_index)
+            .is_err()
+        {
+            log::error!(
+                "Failed to set VM_INDEX_REGISTRY_KEY for {}",
+                package_info.id
+            );
+            return;
+        }
+
+        if lua
+            .set_named_registry_value(PACKAGE_ID_REGISTRY_KEY, package_info.id.as_str())
+            .is_err()
+        {
+            log::error!(
+                "Failed to set PACKAGE_ID_REGISTRY_KEY for {}",
+                package_info.id
+            );
+            return;
+        }
 
         globals.battle_api.inject_static(lua).unwrap();
 

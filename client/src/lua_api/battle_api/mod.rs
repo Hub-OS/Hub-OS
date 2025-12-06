@@ -163,6 +163,7 @@ pub const END_FN: &str = "on_end_func";
 // globals, using named registry keys to avoid lua globals / implementation privacy
 // naming conflicts with table names are avoided by using snake_case
 pub const VM_INDEX_REGISTRY_KEY: &str = "vm_index";
+pub const PACKAGE_ID_REGISTRY_KEY: &str = "pkg_id";
 const TILE_CACHE_REGISTRY_KEY: &str = "tiles";
 pub const GAME_FOLDER_REGISTRY_KEY: &str = "game_folder";
 pub const LOADED_REGISTRY_KEY: &str = "loaded";
