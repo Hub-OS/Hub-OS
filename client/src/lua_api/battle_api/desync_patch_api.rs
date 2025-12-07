@@ -1,9 +1,8 @@
 use super::BattleLuaApi;
 use crate::lua_api::battle_api::errors::get_source_name;
-use indexmap::IndexSet;
+use nom::AsBytes;
 use rand::Rng;
 use rollback_mlua::prelude::{LuaError, LuaNil};
-use std::rc::Rc;
 
 pub fn inject_desync_patch_api(lua_api: &mut BattleLuaApi) {
     patch_basic_api(lua_api);
@@ -17,18 +16,40 @@ pub fn patch_basic_api(lua_api: &mut BattleLuaApi) {
 
         lua.globals().set("next", LuaNil)?;
 
+        let next = lua.create_function(
+            |_, (state, key): (rollback_mlua::Table, rollback_mlua::Value)| {
+                let index_map: rollback_mlua::Table = state.raw_get("index_map")?;
+
+                let next_index = if key.is_nil() {
+                    1
+                } else {
+                    let index: usize = index_map.raw_get(key)?;
+                    index + 1
+                };
+
+                let index_list: rollback_mlua::Table = state.raw_get("index_list")?;
+                let next_key: rollback_mlua::Value = index_list.raw_get(next_index)?;
+
+                if next_key.is_nil() {
+                    return Ok((LuaNil, LuaNil));
+                }
+
+                let table: rollback_mlua::Table = state.raw_get("table")?;
+                let value: rollback_mlua::Value = table.raw_get(next_key.clone())?;
+
+                Ok((next_key, value))
+            },
+        )?;
+
+        lua.set_named_registry_value("next()", next)?;
+
         lua.globals().set(
             "pairs",
             lua.create_function(|lua, table: rollback_mlua::Table| {
-                #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy)]
-                enum NumberKey {
-                    Boolean(bool),
-                    Integer(i64),
-                    Float([u8; 8]),
-                }
-
-                let mut number_set = IndexSet::<NumberKey>::new();
-                let mut string_set = IndexSet::<Rc<[u8]>>::new();
+                let mut bools = Vec::<bool>::new();
+                let mut integers = Vec::<i64>::new();
+                let mut floats = Vec::<[u8; 8]>::new();
+                let mut strings = Vec::<Vec<u8>>::new();
 
                 let mut first_key = None;
 
@@ -37,16 +58,16 @@ pub fn patch_basic_api(lua_api: &mut BattleLuaApi) {
 
                     match &key {
                         rollback_mlua::Value::Boolean(b) => {
-                            number_set.insert(NumberKey::Boolean(*b));
+                            bools.push(*b);
                         }
                         rollback_mlua::Value::Integer(i) => {
-                            number_set.insert(NumberKey::Integer(*i));
+                            integers.push(*i);
                         }
                         rollback_mlua::Value::Number(n) => {
-                            number_set.insert(NumberKey::Float(n.to_le_bytes()));
+                            floats.push(n.to_le_bytes());
                         }
                         rollback_mlua::Value::String(s) => {
-                            string_set.insert(s.as_bytes().into());
+                            strings.push(s.as_bytes().into());
                         }
                         key => {
                             let source_name = get_source_name(lua);
@@ -65,89 +86,50 @@ pub fn patch_basic_api(lua_api: &mut BattleLuaApi) {
                 }
 
                 // sort keys for a consistent sort order
-                number_set.sort();
-                string_set.sort();
+                bools.sort();
+                integers.sort();
+                floats.sort();
+                strings.sort();
 
-                let next = lua.create_function(
-                    move |lua, (table, key): (rollback_mlua::Table, rollback_mlua::Value)| {
-                        let (mut map_index, index) = match &key {
-                            rollback_mlua::Nil => (0, Some(0)),
-                            rollback_mlua::Value::Boolean(b) => {
-                                (0, number_set.get_index_of(&NumberKey::Boolean(*b)))
-                            }
-                            rollback_mlua::Value::Integer(i) => {
-                                (0, number_set.get_index_of(&NumberKey::Integer(*i)))
-                            }
-                            rollback_mlua::Value::Number(n) => {
-                                let f = n.to_le_bytes();
-                                (0, number_set.get_index_of(&NumberKey::Float(f)))
-                            }
-                            rollback_mlua::Value::String(s) => {
-                                (1, string_set.get_index_of(s.as_bytes()))
-                            }
-                            _ => {
-                                return Ok((rollback_mlua::Nil, rollback_mlua::Nil));
-                            }
-                        };
+                // create state
+                let next_state = lua.create_table()?;
+                let index_map = lua.create_table()?;
+                let index_list = lua.create_table()?;
 
-                        let Some(mut index) = index else {
-                            // this shouldn't occur unless someone calls this iterator directly with an odd value
-                            return Ok((rollback_mlua::Nil, rollback_mlua::Nil));
-                        };
+                let mut i = 1;
 
-                        if !key.is_nil() {
-                            // for nil we want the first value
-                            // otherwise we want to know the next value
-                            index += 1;
-                        }
+                for value in bools {
+                    index_list.raw_push(value)?;
+                    index_map.raw_set(value, i)?;
+                    i += 1;
+                }
 
-                        loop {
-                            let key = match map_index {
-                                0 => {
-                                    let Some(next_value) = number_set.get_index(index) else {
-                                        map_index += 1;
-                                        index = 0;
-                                        continue;
-                                    };
+                for value in integers {
+                    index_list.raw_push(value)?;
+                    index_map.raw_set(value, i)?;
+                    i += 1;
+                }
 
-                                    match *next_value {
-                                        NumberKey::Boolean(b) => rollback_mlua::Value::Boolean(b),
-                                        NumberKey::Integer(i) => rollback_mlua::Value::Integer(i),
-                                        NumberKey::Float(u) => {
-                                            rollback_mlua::Value::Number(f64::from_le_bytes(u))
-                                        }
-                                    }
-                                }
-                                1 => {
-                                    let Some(next_value) = string_set.get_index(index) else {
-                                        map_index += 1;
-                                        index = 0;
-                                        continue;
-                                    };
+                for value in floats {
+                    let value = f64::from_le_bytes(value);
+                    index_list.raw_push(value)?;
+                    index_map.raw_set(value, i)?;
+                    i += 1;
+                }
 
-                                    let string = lua.create_string(next_value)?;
-                                    rollback_mlua::Value::String(string)
-                                }
-                                // out of values
-                                _ => break,
-                            };
+                for value in strings {
+                    let value = lua.create_string(value.as_bytes())?;
+                    index_list.raw_push(value.clone())?;
+                    index_map.raw_set(value, i)?;
+                    i += 1;
+                }
 
-                            let value: rollback_mlua::Value = table.raw_get(key.clone())?;
+                next_state.raw_set("table", table)?;
+                next_state.raw_set("index_map", index_map)?;
+                next_state.raw_set("index_list", index_list)?;
 
-                            if value.is_nil() {
-                                // set to nil during iteration, try the next value
-                                index += 1;
-                                continue;
-                            }
-
-                            return Ok((key, value));
-                        }
-
-                        Ok((rollback_mlua::Nil, rollback_mlua::Nil))
-                    },
-                )?;
-
-                Ok((next, table))
+                let next_fn: rollback_mlua::Value = lua.named_registry_value("next()")?;
+                Ok((next_fn, next_state))
             })?,
         )?;
 
