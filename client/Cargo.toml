@@ -17,7 +17,7 @@ slotmap = "1"
 hecs = "0.10"
 itertools = "0.14"
 log = "0.4"
-rollback_mlua = { git = "https://github.com/Hub-OS/rollback-mlua" }
+rollback_mlua = { workspace = true }
 num-derive = "0.4"
 num-traits = "0.2"
 rand = { version = "0.9", features = ["os_rng"] }
