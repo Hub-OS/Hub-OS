@@ -740,6 +740,8 @@ impl Living {
             callbacks.extend(aux_prop.callbacks().iter().cloned());
         }
 
+        // todo: do :once() auxprops activate twice from not cleaning up on every call?
+
         // apply multiplier
         let original_damage = card_properties.damage - card_properties.boosted_damage;
         let new_damage = (card_properties.damage as f32 * multiplier.max(0.0)) as i32;

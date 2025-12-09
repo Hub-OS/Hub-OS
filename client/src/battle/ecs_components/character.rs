@@ -164,12 +164,29 @@ impl Character {
         Ok(id)
     }
 
+    fn apply_aux_card_boosts(simulation: &mut BattleSimulation, entity_id: EntityId) {
+        let entities = &mut simulation.entities;
+        let (character, living) = entities
+            .query_one_mut::<(&mut Character, &mut Living)>(entity_id.into())
+            .unwrap();
+
+        let Some(card_properties) = character.cards.last_mut() else {
+            return;
+        };
+
+        // update card with multipliers
+        let callbacks = living.modify_used_card(card_properties);
+        simulation.pending_callbacks.extend(callbacks);
+    }
+
     pub fn use_card(
         game_io: &GameIO,
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
     ) {
+        Self::apply_aux_card_boosts(simulation, entity_id);
+
         let entities = &mut simulation.entities;
         let is_player = entities
             .satisfies::<&Player>(entity_id.into())
@@ -287,9 +304,9 @@ impl Character {
             // wait until movement ends before adding a card action
             // this is to prevent time freeze cards from applying during movement
             // process_action_queues only prevents non time freeze actions from starting until movements end
-            type Query<'a> = hecs::Without<(&'a mut Character, &'a mut Living), &'a Movement>;
+            type Query<'a> = hecs::Without<&'a mut Character, &'a Movement>;
 
-            for (id, (character, living)) in entities.query_mut::<Query>() {
+            for (id, character) in entities.query_mut::<Query>() {
                 if !character.card_use_requested {
                     continue;
                 }
@@ -304,15 +321,6 @@ impl Character {
                 }
 
                 character.card_use_requested = false;
-
-                let Some(card_properties) = character.cards.last_mut() else {
-                    continue;
-                };
-
-                // update card with multipliers
-                let callbacks = living.modify_used_card(card_properties);
-                simulation.pending_callbacks.extend(callbacks);
-
                 requesters.push(entity_id);
             }
 

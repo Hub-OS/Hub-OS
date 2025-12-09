@@ -6,7 +6,7 @@ use crate::battle::{
     ActionQueue, ActionType, ActionTypes, AttackContext, BattleCallback, Character, EmotionWindow,
     Entity, Player, SharedBattleResources,
 };
-use crate::lua_api::{create_action_table, VM_INDEX_REGISTRY_KEY};
+use crate::lua_api::{VM_INDEX_REGISTRY_KEY, create_action_table};
 use crate::render::FrameTime;
 use packets::structures::Emotion;
 use std::ops::{Range, RangeInclusive};
