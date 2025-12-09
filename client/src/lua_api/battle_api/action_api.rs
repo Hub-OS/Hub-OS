@@ -295,11 +295,6 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
-        let actions = &mut simulation.actions;
-
-        if actions.get_mut(id).is_none() {
-            return Err(action_not_found());
-        }
 
         Action::delete_multi(api_ctx.game_io, api_ctx.resources, simulation, true, [id]);
 
@@ -451,11 +446,9 @@ fn inject_step_api(lua_api: &mut BattleLuaApi) {
             let actions = &mut api_ctx.simulation.actions;
             let action = actions.get_mut(id).ok_or_else(action_not_found)?;
 
-            let step = (action.steps)
-                .get_mut(index)
-                .ok_or_else(action_step_not_found)?;
-
-            step.completed = true;
+            if let Some(step) = action.steps.get_mut(index) {
+                step.completed = true;
+            }
 
             lua.pack_multi(())
         },
