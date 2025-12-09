@@ -433,27 +433,27 @@ impl Player {
         let augment_iter = self.augments.values();
         let base_attack = augment_iter
             .fold(1, |acc, m| acc + m.attack_boost as i32 * m.level as i32)
-            .clamp(1, 5) as u8;
+            .min(5);
 
-        base_attack + self.attack_boost
+        (base_attack + self.attack_boost as i32).max(1) as _
     }
 
     pub fn rapid_level(&self) -> u8 {
         let augment_iter = self.augments.values();
         let base_speed = augment_iter
             .fold(1, |acc, m| acc + m.rapid_boost as i32 * m.level as i32)
-            .clamp(1, 5) as u8;
+            .min(5);
 
-        base_speed + self.rapid_boost
+        (base_speed + self.rapid_boost as i32).max(1) as _
     }
 
     pub fn charge_level(&self) -> u8 {
         let augment_iter = self.augments.values();
         let base_charge = augment_iter
             .fold(1, |acc, m| acc + m.charge_boost as i32 * m.level as i32)
-            .clamp(1, 5) as u8;
+            .min(5);
 
-        base_charge + self.charge_boost
+        (base_charge + self.charge_boost as i32).max(1) as _
     }
 
     pub fn calculate_charge_time(
