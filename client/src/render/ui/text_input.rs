@@ -176,7 +176,7 @@ impl UiNode for TextInput {
             if holding_ctrl {
                 self.caret_index -= backward_jump(&self.text, self.caret_index);
             } else if self.caret_index > 0 {
-                self.caret_index -= 1;
+                self.caret_index -= self.grapheme_before(self.caret_index).len();
             }
         }
 
@@ -184,7 +184,7 @@ impl UiNode for TextInput {
             if holding_ctrl {
                 self.caret_index += forward_jump(&self.text, self.caret_index);
             } else if self.caret_index < self.text.len() {
-                self.caret_index += 1;
+                self.caret_index += self.grapheme_at(self.caret_index).len();
             }
         }
 
@@ -277,6 +277,17 @@ impl TextInput {
         bounds.position() + caret_offset
     }
 
+    fn grapheme_at(&self, i: usize) -> &str {
+        self.text[i..].graphemes(true).next().unwrap_or_default()
+    }
+
+    fn grapheme_before(&self, i: usize) -> &str {
+        self.text[0..i]
+            .graphemes(true)
+            .next_back()
+            .unwrap_or_default()
+    }
+
     fn insert_text(&mut self, game_io: &GameIO, text: &str, holding_ctrl: bool) {
         for grapheme in text.graphemes(true) {
             if !(self.filter_callback)(grapheme) {
@@ -296,8 +307,11 @@ impl TextInput {
                         self.caret_index -= len;
                     } else if self.caret_index > 0 {
                         // remove one character
-                        self.text.remove(self.caret_index - 1);
-                        self.caret_index -= 1;
+                        let char_len = self.grapheme_before(self.caret_index).len();
+
+                        let range = self.caret_index - char_len..self.caret_index;
+                        self.text.drain(range);
+                        self.caret_index -= char_len;
                     }
                 }
 
@@ -312,7 +326,9 @@ impl TextInput {
                         self.text.replace_range(start..end, "");
                     } else if self.caret_index < self.text.len() {
                         // remove one character
-                        self.text.remove(self.caret_index);
+                        let char_len = self.grapheme_at(self.caret_index).len();
+                        let range = self.caret_index..self.caret_index + char_len;
+                        self.text.drain(range);
                     }
                 }
 
