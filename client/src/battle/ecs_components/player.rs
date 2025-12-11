@@ -410,13 +410,13 @@ impl Player {
 
     pub fn hand_size(&self) -> usize {
         const MAX_HAND_SIZE: usize = CARD_SELECT_ROWS * CARD_SELECT_CARD_COLS;
-        const BASE_HAND_SIZE: i8 = 5;
+        const BASE_HAND_SIZE: i32 = 5;
 
-        let boosted_hand_size = BASE_HAND_SIZE.saturating_add(self.hand_size_boost);
+        let boosted_hand_size = BASE_HAND_SIZE.saturating_add(self.hand_size_boost as _);
 
         let augment_iter = self.augments.values();
         let augmented_hand_size = augment_iter.fold(boosted_hand_size, |acc, m| {
-            acc.saturating_add(m.hand_size_boost * m.level as i8)
+            acc.saturating_add(m.hand_size_boost as i32 * m.level as i32)
         });
 
         // subtract space taken up by card buttons
@@ -426,7 +426,7 @@ impl Player {
 
         let max = MAX_HAND_SIZE.saturating_sub(button_space);
 
-        (augmented_hand_size as usize).max(1).min(max)
+        (augmented_hand_size.max(1) as usize).min(max)
     }
 
     pub fn attack_level(&self) -> u8 {
