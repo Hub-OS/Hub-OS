@@ -70,7 +70,7 @@ async fn listen_loop(
                 if let Some(packet_receiver) = packet_receivers.get_mut(&socket_address) {
                     match packet_receiver.receive_packet(Instant::now(), filled_buf) {
                         Ok(Some((channel, messages))) => {
-                            decode_messages(&sender, socket_address, channel, messages, &config).await;
+                            decode_messages(&sender, socket_address, channel, messages, &config);
                         }
                         Ok(None) => {}
                         Err(e) => {
@@ -89,7 +89,7 @@ async fn listen_loop(
     }
 }
 
-async fn decode_messages(
+fn decode_messages(
     sender: &Sender<ThreadMessage>,
     socket_address: SocketAddr,
     channel: PacketChannels,
