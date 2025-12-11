@@ -44,33 +44,40 @@ fn start_test_environment(
     let mut sent_messages = vec![vec![]; MESSAGES_PER_RUN];
 
     for _ in 0..RUNS {
+        // queue messages to send
         for _ in 0..MESSAGES_PER_RUN {
             send(&channel_a);
         }
 
-        // send messages to our messages vec
-        let now = Instant::now();
-        let mut i = 0;
-
-        sender_a.tick(now, |bytes| {
-            let Some(bucket) = sent_messages.get_mut(i) else {
-                return;
-            };
-
-            i += 1;
-
-            bucket.clear();
-            bucket.extend_from_slice(bytes);
-        });
-
+        // simulate communication, stop when every message has been received
         let mut received = 0;
+        let mut pending_drop = DROPPED_PER_RUN;
 
         while received != MESSAGES_PER_RUN {
+            let now = Instant::now();
+
+            // clear buckets
+            for message in &mut sent_messages {
+                message.clear();
+            }
+
+            // send messages
+            let mut sent = 0;
+
+            sender_a.tick(now, |bytes| {
+                let Some(bucket) = sent_messages.get_mut(sent) else {
+                    return;
+                };
+
+                bucket.extend_from_slice(bytes);
+                sent += 1;
+            });
+
             // shuffle messages
-            sent_messages.shuffle(&mut rng);
+            sent_messages[..sent].shuffle(&mut rng);
 
             // read them
-            for message in &sent_messages[..i.saturating_sub(DROPPED_PER_RUN)] {
+            for message in &sent_messages[..sent.saturating_sub(pending_drop)] {
                 let Some((_channel, read_messages)) =
                     receiver_b.receive_packet(now, message).unwrap()
                 else {
@@ -80,6 +87,9 @@ fn start_test_environment(
                 received += read_messages.len();
                 receive(read_messages);
             }
+
+            // already dropped messages, allow the resends through
+            pending_drop = 0;
 
             // handle acks
             sender_b.tick(now, |message| {
