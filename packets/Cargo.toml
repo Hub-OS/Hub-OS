@@ -14,7 +14,7 @@ num-traits = "0.2"
 rollback_mlua = { workspace = true, optional = true }
 mlua = { version = "*", optional = true }
 log = "0.4"
-async-std = "1.12"
+smol = { workspace = true }
 strum = { version = "0.26", features = ["derive"] }
 hmac-sha256 = "1"
 hex = "0.4.3"

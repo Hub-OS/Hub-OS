@@ -9,8 +9,7 @@ mod threads;
 use clap::Parser;
 use plugins::LuaPluginInterface;
 
-#[async_std::main]
-async fn main() {
+fn main() {
     std::panic::set_hook(Box::new(|p| {
         use std::backtrace::Backtrace;
 
@@ -35,7 +34,9 @@ async fn main() {
         .with_plugin_interface(Box::new(LuaPluginInterface::new()))
         .start();
 
-    if let Err(err) = future.await {
-        panic!("{}", err);
-    }
+    smol::block_on(async move {
+        if let Err(err) = future.await {
+            panic!("{}", err);
+        }
+    });
 }

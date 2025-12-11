@@ -8,11 +8,8 @@ license = "GPL-3.0"
 [dependencies]
 packets = { path = "../packets", features = ["mlua"] }
 structures = { path = "../structures" }
-async-std = { version = "1.12", features = ["attributes"] }
-futures = { version = "0.3", default-features = false, features = [
-  "std",
-  "async-await"
-] }
+smol = { workspace = true }
+futures = { workspace = true }
 isahc = "1.7"
 mlua = { version = "0.9", features = ["vendored", "lua54"] }
 clap = { version = "4.3", features = ["derive"] }

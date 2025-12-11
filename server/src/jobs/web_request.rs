@@ -17,7 +17,7 @@ pub fn web_request(
     let promise = JobPromise::new();
     let mut thread_promise = promise.clone();
 
-    async_std::task::spawn(async move {
+    smol::spawn(async move {
         let response = match web_request_internal(url, method, headers, body).await {
             Ok(response) => response,
             Err(err) => {
@@ -54,7 +54,8 @@ pub fn web_request(
             body,
             headers,
         }));
-    });
+    })
+    .detach();
 
     promise
 }

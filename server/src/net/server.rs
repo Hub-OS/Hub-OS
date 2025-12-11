@@ -67,7 +67,6 @@ impl Server {
         &mut self,
         message_receiver: Receiver<ThreadMessage>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        use futures::FutureExt;
         use futures::StreamExt;
 
         log::info!("Server started");
@@ -80,16 +79,13 @@ impl Server {
             (*self.config).clone(),
         );
 
-        let sleep_future = async_std::task::sleep(SERVER_TICK_RATE).fuse();
+        let mut sleep_stream = smol::Timer::interval(SERVER_TICK_RATE).fuse();
         let mut message_stream = message_receiver.stream();
-
-        futures::pin_mut!(sleep_future);
 
         loop {
             futures::select_biased! {
-                _ = sleep_future => {
+                _ = sleep_stream.select_next_some() => {
                     self.tick(listener_sender.clone()).await;
-                    sleep_future.set(async_std::task::sleep(SERVER_TICK_RATE).fuse());
                 }
                 message = message_stream.select_next_some() => {
                     match message {
@@ -112,7 +108,7 @@ impl Server {
                                 packet,
                             );
                         }
-                        ThreadMessage::NetplayPacket  { socket_address, packet } => {
+                        ThreadMessage::NetplayPacket { socket_address, packet } => {
                             let packet_orchestrator = self.packet_orchestrator.borrow_mut();
                             packet_orchestrator.forward_netplay_packet(socket_address, packet);
                         }

@@ -18,10 +18,9 @@ pub async fn resolve_socket_addr(mut address: &str) -> Option<SocketAddr> {
     let socket_addr = if host == "localhost" {
         SocketAddr::new(Ipv4Addr::LOCALHOST.into(), port)
     } else {
-        use async_std::net::ToSocketAddrs;
-        let mut socket_addrs = (host, port).to_socket_addrs().await.ok()?;
+        let socket_addrs = smol::net::resolve((host, port)).await.ok()?;
 
-        let mut socket_addr = socket_addrs.next()?;
+        let mut socket_addr = *socket_addrs.first()?;
 
         if port_index.is_none() {
             socket_addr.set_port(DEFAULT_PORT);

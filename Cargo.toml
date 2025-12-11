@@ -17,3 +17,8 @@ lto = true
 
 [workspace.dependencies]
 rollback_mlua = { git = "https://github.com/Hub-OS/rollback-mlua" }
+smol = "2"
+futures = { version = "0.3", default-features = false, features = [
+  "std",
+  "async-await"
+] }

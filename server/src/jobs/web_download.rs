@@ -11,7 +11,7 @@ pub fn web_download(
     let promise = JobPromise::new();
     let mut thread_promise = promise.clone();
 
-    async_std::task::spawn(async move {
+    smol::spawn(async move {
         let response = match web_request_internal(url, method, headers, body).await {
             Ok(response) => response,
             Err(err) => {
@@ -29,7 +29,8 @@ pub fn web_download(
         }
 
         thread_promise.set_value(PromiseValue::Success(true));
-    });
+    })
+    .detach();
 
     promise
 }
@@ -38,10 +39,10 @@ async fn save_response(
     destination: String,
     response: isahc::Response<isahc::AsyncBody>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    use async_std::fs::File;
-    use async_std::io::BufWriter;
     use futures::io::BufReader;
     use futures::{AsyncBufReadExt, AsyncWriteExt};
+    use smol::fs::File;
+    use smol::io::BufWriter;
 
     let file = File::create(destination).await?;
 

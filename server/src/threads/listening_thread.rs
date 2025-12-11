@@ -2,7 +2,7 @@ use crate::net::ServerConfig;
 use crate::threads::{ListenerMessage, ThreadMessage};
 use flume::{Receiver, Sender};
 use futures::StreamExt;
-use packets::{deserialize, PacketChannels};
+use packets::{PacketChannels, deserialize};
 use std::time::Instant;
 use std::{collections::HashMap, net::SocketAddr};
 
@@ -12,15 +12,15 @@ pub fn create_listening_thread(
     socket: std::net::UdpSocket,
     config: ServerConfig,
 ) {
-    let async_socket = async_std::net::UdpSocket::from(socket);
+    let async_socket = smol::net::UdpSocket::try_from(socket).unwrap();
 
-    async_std::task::spawn(listen_loop(sender, receiver, async_socket, config));
+    smol::spawn(listen_loop(sender, receiver, async_socket, config)).detach();
 }
 
 async fn listen_loop(
     sender: Sender<ThreadMessage>,
     receiver: Receiver<ListenerMessage>,
-    async_socket: async_std::net::UdpSocket,
+    async_socket: smol::net::UdpSocket,
     config: ServerConfig,
 ) {
     use futures::FutureExt;

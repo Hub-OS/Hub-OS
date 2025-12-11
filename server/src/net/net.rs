@@ -7,8 +7,8 @@ use crate::jobs::JobPromise;
 use crate::threads::ThreadMessage;
 use flume::Sender;
 use indexmap::IndexSet;
-use packets::{Reliability, ServerPacket, MAX_IDLE_DURATION};
-use rand::{thread_rng, RngCore};
+use packets::{MAX_IDLE_DURATION, Reliability, ServerPacket};
+use rand::{RngCore, thread_rng};
 use slotmap::{HopSlotMap, SlotMap};
 use std::borrow::Cow;
 use std::cell::RefCell;
@@ -2691,7 +2691,7 @@ impl Net {
         let promise = JobPromise::new();
         let out_promise = promise.clone();
 
-        async_std::task::spawn(async move {
+        smol::spawn(async move {
             if let Some(socket_address) =
                 packets::address_parsing::resolve_socket_addr(&address).await
             {
@@ -2702,7 +2702,8 @@ impl Net {
                     })
                     .unwrap();
             }
-        });
+        })
+        .detach();
 
         out_promise
     }
@@ -2710,7 +2711,7 @@ impl Net {
     pub fn message_server(&mut self, address: String, data: Vec<u8>) {
         let message_sender = self.message_sender.clone();
 
-        async_std::task::spawn(async move {
+        smol::spawn(async move {
             if let Some(socket_address) =
                 packets::address_parsing::resolve_socket_addr(&address).await
             {
@@ -2721,7 +2722,8 @@ impl Net {
                     })
                     .unwrap();
             }
-        });
+        })
+        .detach();
     }
 
     // ugly opengl like context storing

@@ -43,10 +43,8 @@ clap = { version = "4.3", features = ["derive"] }
 unicode_categories = "0.1"
 flate2 = "1.0"
 bimap = "0.6"
-futures = { version = "0.3", default-features = false, features = [
-  "std",
-  "async-await"
-] }
+smol = { workspace = true }
+futures = { workspace = true }
 walkdir = "2"
 toml = "0.9"
 serde_json = "1.0"
@@ -59,7 +57,6 @@ nom = { git = "https://github.com/rust-bakery/nom.git", rev = "2560d5ca917db83db
 uncased = "0.9"
 dirs-next = "2.0.0"
 webbrowser = { version = "1" }
-smol = "2"
 base64 = "0.22.1"
 fluent-templates = "0.13.0"
 sys-locale = "0.3.2"
