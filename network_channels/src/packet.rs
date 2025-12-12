@@ -43,7 +43,7 @@ pub(crate) enum SenderTask<ChannelLabel> {
         time: Instant,
     },
     Ack {
-        header: Option<PacketHeader<ChannelLabel>>,
+        header: PacketHeader<ChannelLabel>,
         time: Instant,
     },
 }

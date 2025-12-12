@@ -1,7 +1,7 @@
 use crate::channel_send_tracking::ChannelSendTracking;
 use crate::config::Config;
 use crate::packet::{FragmentType, Packet, PacketHeader, SenderTask};
-use crate::{serialize, Label};
+use crate::{Label, serialize};
 use instant::{Duration, Instant};
 use std::sync::mpsc;
 
@@ -107,10 +107,6 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
             match packet_instruction {
                 SenderTask::Ack { header, time } => {
                     self.last_receive_time = time;
-
-                    let Some(header) = header else {
-                        continue;
-                    };
 
                     let mut packets_iter = self.stored_packets.iter();
 

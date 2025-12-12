@@ -66,17 +66,9 @@ impl<ChannelLabel: Label> PacketReceiver<ChannelLabel> {
                         receiver.sort_packet(header, fragment_type, data.to_vec()),
                     )));
                 }
-
-                let _ = self.task_sender.send(SenderTask::Ack {
-                    header: None,
-                    time: now,
-                });
             }
             Packet::Ack { header } => {
-                let _ = self.task_sender.send(SenderTask::Ack {
-                    header: Some(header),
-                    time: now,
-                });
+                let _ = self.task_sender.send(SenderTask::Ack { header, time: now });
             }
         }
 
