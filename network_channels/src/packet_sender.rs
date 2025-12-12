@@ -38,12 +38,13 @@ pub struct PacketSender<ChannelLabel: Label> {
     retry_delay: Duration,
     rtt_resend_factor: f32,
     mtu: u16,
-    bytes_per_sec: usize,
+    bytes_per_sec: f32,
     max_bytes_per_sec: Option<usize>,
     bytes_per_second_increase_factor: f32,
     bytes_per_second_slow_factor: f32,
     remaining_send_budget: usize,
     successfully_sent: usize,
+    last_tick: Instant,
     last_clear: Instant,
     #[cfg(feature = "reliable_statistics")]
     statistics: ReliablePacketStatistics,
@@ -60,16 +61,18 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
             .map(|label| ChannelSendTracking::new(*label))
             .collect();
 
+        let now = Instant::now();
+
         Self {
             send_trackers,
             task_receiver,
             stored_packets: Vec::new(),
-            last_receive_time: Instant::now(),
+            last_receive_time: now,
             rtt_resend_factor: config.rtt_resend_factor,
             estimated_rtt: config.initial_rtt,
             retry_delay: config.initial_rtt.mul_f32(config.rtt_resend_factor),
             mtu: config.mtu,
-            bytes_per_sec: config.initial_bytes_per_second,
+            bytes_per_sec: config.initial_bytes_per_second as _,
             max_bytes_per_sec: config
                 .max_bytes_per_second
                 .map(|bytes| bytes.max(config.mtu as usize)),
@@ -77,7 +80,8 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
             bytes_per_second_slow_factor: config.bytes_per_second_slow_factor,
             remaining_send_budget: config.initial_bytes_per_second,
             successfully_sent: 0,
-            last_clear: Instant::now(),
+            last_tick: now,
+            last_clear: now,
             #[cfg(feature = "reliable_statistics")]
             statistics: Default::default(),
         }
@@ -90,16 +94,20 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
 
     /// Sends new packets and resends old packets.
     pub fn tick(&mut self, now: Instant, mut send: impl FnMut(&[u8])) {
+        let restored_budget = (now - self.last_tick).as_secs_f32() * self.bytes_per_sec;
+        self.remaining_send_budget += restored_budget as usize;
+
         // prioritize new packets
         self.send_latest(now, &mut send);
         self.resend_old(now, &mut send);
 
-        if now - self.last_clear > Duration::from_secs(1) {
+        if now - self.last_clear > self.estimated_rtt {
             // clear successfully sent to avoid speeding up from mostly idling
             self.successfully_sent = 0;
-            self.remaining_send_budget = self.bytes_per_sec;
             self.last_clear = now;
         }
+
+        self.last_tick = now;
     }
 
     fn send_latest(&mut self, now: Instant, send: &mut dyn FnMut(&[u8])) {
@@ -128,23 +136,17 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                         // try speeding up
                         self.successfully_sent += packet.bytes.len();
 
-                        let threshold = if self.bytes_per_sec > self.mtu as usize * 2 {
-                            // must successfully utilize almost all of the budget
-                            self.bytes_per_sec - self.mtu as usize * 2
-                        } else {
-                            // must successfully utilize at least half of the budget
-                            self.bytes_per_sec / 2
-                        };
+                        let max_bytes_per_rtt =
+                            self.estimated_rtt.as_secs_f32() * self.bytes_per_sec;
+                        let threshold = (max_bytes_per_rtt * 0.95) as usize;
 
                         if self.successfully_sent >= threshold {
                             // speed up
-                            self.bytes_per_sec = (self.bytes_per_sec as f32
-                                * self.bytes_per_second_increase_factor)
-                                as usize;
+                            self.bytes_per_sec *= self.bytes_per_second_increase_factor;
 
                             // limit increase
                             if let Some(max) = self.max_bytes_per_sec {
-                                self.bytes_per_sec = self.bytes_per_sec.min(max);
+                                self.bytes_per_sec = self.bytes_per_sec.min(max as _);
                             }
 
                             self.successfully_sent = 0;
@@ -301,8 +303,7 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
 
         if slowing {
             // reduce bytes per tick
-            self.bytes_per_sec =
-                (self.bytes_per_sec as f32 * self.bytes_per_second_slow_factor) as usize;
+            self.bytes_per_sec *= self.bytes_per_second_slow_factor;
 
             // send at least one packet
             self.bytes_per_sec = self.bytes_per_sec.max(self.mtu as _);
