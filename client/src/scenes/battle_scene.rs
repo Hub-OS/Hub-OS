@@ -560,10 +560,19 @@ impl BattleScene {
         }
     }
 
-    fn send(&self, to_index: usize, data: NetplayPacketData) {
+    fn send(&self, mut to_index: usize, data: NetplayPacketData) {
         let Some(index) = self.local_index else {
             return;
         };
+
+        if index == to_index {
+            log::warn!("Attempted to send netplay packet to self");
+            return;
+        }
+
+        if to_index > index {
+            to_index -= 1;
+        }
 
         let senders = &self.comms.senders;
         let Some(send) = senders.get(to_index).or(senders.last()) else {
