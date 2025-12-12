@@ -80,6 +80,15 @@ impl NetplayPacket {
         }
     }
 
+    pub fn prioritize(&self) -> bool {
+        matches!(
+            self.data,
+            NetplayPacketData::Buffer { .. }
+                | NetplayPacketData::Ping
+                | NetplayPacketData::Pong { .. }
+        )
+    }
+
     pub fn new_disconnect_signal(index: usize) -> NetplayPacket {
         NetplayPacket {
             index,

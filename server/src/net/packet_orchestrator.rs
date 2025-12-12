@@ -233,16 +233,25 @@ impl PacketOrchestrator {
             return;
         }
 
+        let prioritize = packet.prioritize();
         let reliability = packet.default_reliability();
         let data = Arc::new(serialize(packet));
 
-        if let Some(addresses) = self.netplay_route_map.get(&socket_address) {
-            for address in addresses {
-                if let Some(index) = self.connection_map.get(address) {
-                    self.connections[*index]
-                        .netplay_channel
-                        .send_shared_bytes(reliability, data.clone());
-                }
+        let Some(addresses) = self.netplay_route_map.get(&socket_address) else {
+            return;
+        };
+
+        for address in addresses {
+            let Some(index) = self.connection_map.get(address) else {
+                continue;
+            };
+
+            let channel = &self.connections[*index].netplay_channel;
+
+            if prioritize {
+                channel.send_shared_bytes_with_priority(reliability, data.clone());
+            } else {
+                channel.send_shared_bytes(reliability, data.clone());
             }
         }
     }

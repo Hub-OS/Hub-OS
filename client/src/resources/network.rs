@@ -5,8 +5,8 @@ use framework::prelude::async_sleep;
 use futures::StreamExt;
 use packets::{
     ClientPacket, MULTICAST_ADDR, MULTICAST_PORT, MULTICAST_V4, MulticastPacket,
-    MulticastPacketWrapper, NetplayPacket, NetplayPacketData, PacketChannels, Reliability,
-    SERVER_TICK_RATE, SERVER_TICK_RATE_F, ServerPacket, SyncDataPacket, deserialize,
+    MulticastPacketWrapper, NetplayPacket, PacketChannels, Reliability, SERVER_TICK_RATE,
+    SERVER_TICK_RATE_F, ServerPacket, SyncDataPacket, deserialize,
 };
 use std::collections::HashMap;
 use std::future::Future;
@@ -544,7 +544,7 @@ impl EventListener {
         };
         let connection = &mut self.connections[*index];
 
-        if matches!(packet.data, NetplayPacketData::Buffer { .. }) {
+        if packet.prioritize() {
             connection
                 .netplay_channel
                 .send_serialized_with_priority(reliability, packet);
