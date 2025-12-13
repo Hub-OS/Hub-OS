@@ -103,15 +103,18 @@ pub fn warn_deprecated(lua: &rollback_mlua::Lua, name: &str) {
     log::warn!("deprecated use of {name} in {:?}", get_source_name(lua));
 }
 
+pub fn get_source_package_id(lua: &rollback_mlua::Lua) -> String {
+    lua.named_registry_value(PACKAGE_ID_REGISTRY_KEY)
+        .unwrap_or_default()
+}
+
 pub fn get_source_name(lua: &rollback_mlua::Lua) -> String {
     let source_name = lua
         .inspect_stack(1)
         .map(|debug| debug.source().source.unwrap_or_default().to_string())
         .unwrap_or_default();
 
-    let package_id: String = lua
-        .named_registry_value(PACKAGE_ID_REGISTRY_KEY)
-        .unwrap_or_default();
+    let package_id = get_source_package_id(lua);
 
     format!("{source_name} - {package_id}")
 }

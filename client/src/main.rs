@@ -10,8 +10,8 @@ fn main() {
         let output = format!("{p}\n{backtrace}");
 
         let _ = std::fs::write("crash.txt", &output);
-        eprintln!("{output}");
-        hub_os::send_crash_report(output);
+        hub_os::crash_reports::print_crash_report(output.clone());
+        hub_os::crash_reports::send_crash_report(output);
     }));
 
     // check lib.rs

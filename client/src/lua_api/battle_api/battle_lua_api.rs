@@ -3,6 +3,8 @@
 // and rust does not allow the type parameter to store dynamic/anonymous lifetimes
 
 use crate::battle::BattleScriptContext;
+use crate::crash_reports::{set_crash_context, take_crash_context};
+use crate::lua_api::battle_api::errors::get_source_package_id;
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -394,6 +396,11 @@ impl BattleLuaApi {
             std::mem::transmute::<DynamicApiCtx, DynamicApiCtx<'static, 'static>>(dynamic_api)
         }));
 
+        // set crash context for reports in case we crash
+        const CRASH_CONTEXT_NAME: &str = "VM Package ID";
+        let old_context = take_crash_context(CRASH_CONTEXT_NAME);
+        set_crash_context(CRASH_CONTEXT_NAME, get_source_package_id(lua));
+
         // call the function
         if let Err(err) = wrapped_fn(lua) {
             log::error!("{err}");
@@ -404,6 +411,13 @@ impl BattleLuaApi {
 
         if let Some(dynamic_api) = old_dynamic_api {
             lua.set_app_data(dynamic_api);
+        }
+
+        // reset context
+        if let Some(context) = old_context {
+            set_crash_context(CRASH_CONTEXT_NAME, context);
+        } else {
+            take_crash_context(CRASH_CONTEXT_NAME);
         }
     }
 }

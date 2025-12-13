@@ -33,6 +33,8 @@ mod supporting_service;
 mod tips;
 mod transitions;
 
+pub mod crash_reports;
+
 use crate::args::Args;
 use crate::overlays::*;
 use crate::render::PostProcessAdjust;
@@ -100,23 +102,4 @@ pub fn main(app: WinitPlatformApp) -> anyhow::Result<()> {
     game.run(|game_io| BootScene::new(game_io, log_receiver))?;
 
     Ok(())
-}
-
-pub fn send_crash_report(message: String) {
-    if cfg!(debug_assertions) {
-        println!("\nAutomated crash reports are disabled in debug builds.");
-        return;
-    }
-
-    let request = minreq::post(CRASH_REPORT_ENDPOINT).with_body(message);
-
-    if request
-        .send()
-        .map(|response| response.status_code == 200)
-        .unwrap_or_default()
-    {
-        println!("\nCrash report uploaded to hubos.dev. Give the devs a heads up.");
-    } else {
-        println!("\nFailed to send crash report. Share crash.txt with a dev.");
-    }
 }

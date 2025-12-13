@@ -1,7 +1,7 @@
 #![cfg(target_os = "android")]
 
+use hub_os::ResourcePaths;
 use hub_os::framework::prelude::WinitPlatformApp;
-use hub_os::{ResourcePaths, send_crash_report};
 use packets::structures::FileHash;
 use packets::zip;
 
@@ -13,9 +13,11 @@ pub fn android_main(app: WinitPlatformApp) {
         use std::backtrace::Backtrace;
 
         let backtrace = Backtrace::force_capture();
+        let context = hub_os::crash_reports::create_context_string();
+
         let output = format!("{p}\n{backtrace}");
-        eprintln!("{output}");
-        send_crash_report(output);
+        hub_os::crash_reports::print_crash_report(output.clone());
+        hub_os::crash_reports::send_crash_report(output);
     }));
 
     let locks = (
