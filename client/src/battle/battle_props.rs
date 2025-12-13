@@ -118,7 +118,7 @@ impl PlayerSetup {
         });
 
         // deck
-        deck_restrictions.apply_augments(augments.into_iter());
+        deck_restrictions.apply_augments(player_package, augments.into_iter());
 
         let mut deck = global_save.active_deck().cloned().unwrap_or_default();
         deck.conform(game_io, ns, &deck_restrictions);

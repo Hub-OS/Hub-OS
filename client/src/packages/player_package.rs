@@ -11,8 +11,10 @@ struct PlayerMeta {
     category: String,
     long_name: String,
     name: String,
-    health: i32,
     element: String,
+    health: i32,
+    mega_boost: i8,
+    giga_boost: i8,
     description: String,
     long_description: String,
     preview_texture_path: String,
@@ -29,8 +31,10 @@ pub struct PlayerPackage {
     pub package_info: PackageInfo,
     pub long_name: Arc<str>,
     pub name: Arc<str>,
-    pub health: i32,
     pub element: Element,
+    pub health: i32,
+    pub mega_boost: i8,
+    pub giga_boost: i8,
     pub description: Arc<str>,
     pub long_description: Arc<str>,
     pub icon_texture_path: String,
@@ -95,8 +99,10 @@ impl Package for PlayerPackage {
         } else {
             meta.long_name.into()
         };
-        package.health = meta.health;
         package.element = Element::from(meta.element);
+        package.health = meta.health;
+        package.mega_boost = meta.mega_boost;
+        package.giga_boost = meta.giga_boost;
         package.description = meta.description.into();
         package.long_description = meta.long_description.into();
         package.preview_texture_path = base_path.clone() + &meta.preview_texture_path;

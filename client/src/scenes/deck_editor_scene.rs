@@ -152,8 +152,9 @@ impl DeckEditorScene {
 
         // limits
         let global_save = &globals.global_save;
+        let player_package = global_save.player_package(game_io).unwrap();
         let mut deck_restrictions = globals.restrictions.base_deck_restrictions();
-        deck_restrictions.apply_augments(global_save.valid_augments(game_io));
+        deck_restrictions.apply_augments(player_package, global_save.valid_augments(game_io));
 
         // camera
         let mut camera = Camera::new(game_io);

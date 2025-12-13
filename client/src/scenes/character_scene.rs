@@ -235,7 +235,7 @@ impl<'a> StatusData<'a> {
 
         // resolve deck restrictions
         let mut deck_restrictions = globals.restrictions.base_deck_restrictions();
-        deck_restrictions.apply_augments(augments.into_iter());
+        deck_restrictions.apply_augments(player_package, augments.into_iter());
 
         Self {
             player_package,

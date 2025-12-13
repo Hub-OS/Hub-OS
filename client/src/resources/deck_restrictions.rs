@@ -1,6 +1,8 @@
 use super::{Globals, Restrictions};
 use crate::bindable::CardClass;
-use crate::packages::{AugmentPackage, CardPackage, PackageManager, PackageNamespace};
+use crate::packages::{
+    AugmentPackage, CardPackage, PackageManager, PackageNamespace, PlayerPackage,
+};
 use crate::saves::{Card, Deck};
 use framework::prelude::GameIO;
 use packets::structures::PackageId;
@@ -30,10 +32,11 @@ impl Default for DeckRestrictions {
 impl DeckRestrictions {
     pub fn apply_augments<'a>(
         &mut self,
+        player: &PlayerPackage,
         augments: impl Iterator<Item = (&'a AugmentPackage, usize)>,
     ) {
-        let mut mega_boost = 0;
-        let mut giga_boost = 0;
+        let mut mega_boost = player.mega_boost as isize;
+        let mut giga_boost = player.giga_boost as isize;
 
         for (package, level) in augments {
             mega_boost += package.mega_boost * level as isize;
