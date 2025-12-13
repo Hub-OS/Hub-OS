@@ -1,5 +1,5 @@
 use super::errors::{entity_not_found, invalid_tile};
-use super::{create_entity_table, BattleLuaApi, TILE_CACHE_REGISTRY_KEY, TILE_TABLE};
+use super::{BattleLuaApi, TILE_CACHE_REGISTRY_KEY, TILE_TABLE, create_entity_table};
 use crate::battle::{
     ActionQueue, BattleScriptContext, Character, Entity, Field, Obstacle, Player, Spell, Tile,
     TileState,
@@ -356,6 +356,14 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         tile.set_direction(direction);
 
         lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(TILE_TABLE, "original_facing", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
+        lua.pack_multi(tile.original_direction())
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "set_highlight", |api_ctx, lua, params| {
