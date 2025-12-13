@@ -95,7 +95,10 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
     /// Sends new packets and resends old packets.
     pub fn tick(&mut self, now: Instant, mut send: impl FnMut(&[u8])) {
         let restored_budget = (now - self.last_tick).as_secs_f32() * self.bytes_per_sec;
-        self.remaining_send_budget += restored_budget as usize;
+        self.remaining_send_budget = self
+            .remaining_send_budget
+            .saturating_add(restored_budget as _)
+            .min(self.bytes_per_sec as _);
 
         // prioritize new packets
         self.send_latest(now, &mut send);
