@@ -2,7 +2,7 @@ use network_channels::{
     ChannelSender, Config, ConnectionBuilder, Instant, PacketReceiver, PacketSender, Reliability,
     deserialize,
 };
-use rand::{SeedableRng, rngs, seq::SliceRandom};
+use rand::{Rng, SeedableRng, rngs, seq::SliceRandom};
 
 fn create_config() -> Config {
     Config {
@@ -32,7 +32,7 @@ fn start_test_environment(
 ) {
     const RUNS: usize = 100;
     const MESSAGES_PER_RUN: usize = 100;
-    const DROPPED_PER_RUN: usize = 5;
+    const DROP_CHANCE: f32 = 0.1; // 10% drop chance
 
     let config = create_config();
     // A is the sender
@@ -51,7 +51,6 @@ fn start_test_environment(
 
         // simulate communication, stop when every message has been received
         let mut received = 0;
-        let mut pending_drop = DROPPED_PER_RUN;
 
         while received != MESSAGES_PER_RUN {
             let now = Instant::now();
@@ -77,7 +76,11 @@ fn start_test_environment(
             sent_messages[..sent].shuffle(&mut rng);
 
             // read them
-            for message in &sent_messages[..sent.saturating_sub(pending_drop)] {
+            for message in &sent_messages[..sent] {
+                if rng.random_range(0.0..=1.0) <= DROP_CHANCE {
+                    continue;
+                }
+
                 let Some((_channel, read_messages)) =
                     receiver_b.receive_packet(now, message).unwrap()
                 else {
@@ -88,11 +91,12 @@ fn start_test_environment(
                 receive(read_messages);
             }
 
-            // already dropped messages, allow the resends through
-            pending_drop = 0;
-
             // handle acks
             sender_b.tick(now, |message| {
+                if rng.random_range(0.0..=1.0) <= DROP_CHANCE {
+                    return;
+                }
+
                 let _ = receiver_a.receive_packet(now, message);
             });
         }
