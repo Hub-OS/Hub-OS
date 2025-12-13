@@ -13,7 +13,6 @@ pub fn android_main(app: WinitPlatformApp) {
         use std::backtrace::Backtrace;
 
         let backtrace = Backtrace::force_capture();
-        let context = hub_os::crash_reports::create_context_string();
 
         let output = format!("{p}\n{backtrace}");
         hub_os::crash_reports::print_crash_report(output.clone());
