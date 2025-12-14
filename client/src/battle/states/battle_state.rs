@@ -1103,7 +1103,9 @@ impl BattleState {
             }
 
             // update intangibility
-            living.intangibility.update();
+            if !simulation.time_freeze_tracker.time_is_frozen() {
+                living.intangibility.update();
+            }
 
             let deactivate_callbacks = living.intangibility.take_deactivate_callbacks();
             callbacks.extend(deactivate_callbacks);
