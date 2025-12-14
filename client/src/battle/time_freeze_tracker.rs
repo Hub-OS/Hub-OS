@@ -275,7 +275,9 @@ impl TimeFreezeTracker {
     fn should_freeze(&self) -> bool {
         matches!(
             self.state,
-            TimeFreezeState::Action(ActionFreezeState::Freeze) | TimeFreezeState::Animation(_)
+            TimeFreezeState::Action(ActionFreezeState::Freeze)
+                | TimeFreezeState::Action(ActionFreezeState::ActionCleanup)
+                | TimeFreezeState::Animation(_)
         ) && self.active_time == self.state_start_time
     }
 
