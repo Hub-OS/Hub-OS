@@ -340,7 +340,8 @@ impl TextInput {
                     let is_valid_character = self.text_style.supports_character(grapheme);
 
                     if is_valid_character
-                        && self.text.len() + grapheme.len() <= self.character_limit
+                        && (self.character_limit == usize::MAX
+                            || self.text.graphemes(true).count() < self.character_limit)
                     {
                         self.text.insert_str(self.caret_index, grapheme);
                         self.caret_index += grapheme.len();
