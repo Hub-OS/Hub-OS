@@ -1,12 +1,13 @@
+use crate::Restrictions;
 use crate::bindable::CardClass;
 use crate::packages::PackageNamespace;
 use crate::resources::{DeckRestrictions, Globals};
 use crate::saves::Card;
-use crate::Restrictions;
 use framework::prelude::GameIO;
 use packets::structures::{PackageCategory, PackageId, Uuid};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use unicode_segmentation::UnicodeSegmentation;
 
 #[derive(Default, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Deck {
@@ -233,7 +234,13 @@ impl Deck {
 
             // read name
             let name_start = count_end + 1;
-            let name_end = name_start + 8;
+            let name_len = text[name_start..]
+                .grapheme_indices(true)
+                .nth(8)
+                .map(|(i, _)| i)
+                .unwrap_or(line.len());
+
+            let name_end = name_start + name_len;
 
             if line.len() < name_end + 1 {
                 // must have room for the name and a space for the next read
@@ -257,5 +264,27 @@ impl Deck {
         }
 
         Some(deck)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::saves::Deck;
+
+    #[test]
+    fn import() {
+        const PROTO_MAN_EX: &str = "2 ProtoMn B BattleNetwork6.Class02.Mega.005.ProtoEX";
+
+        let deck = Deck::import_string(PROTO_MAN_EX.to_string()).unwrap();
+
+        for card in &deck.cards {
+            assert_eq!(card.code.as_str(), "B");
+            assert_eq!(
+                card.package_id.as_str(),
+                "BattleNetwork6.Class02.Mega.005.ProtoEX"
+            );
+        }
+
+        assert_eq!(deck.cards.len(), 2)
     }
 }
