@@ -711,11 +711,16 @@ impl BattleState {
                 }
 
                 // test tangibility
-                if intangible
-                    && let Ok(living) = simulation.entities.query_one_mut::<&mut Living>(id)
-                    && !living.intangibility.try_pierce(&hit_props)
-                {
-                    continue;
+                let entities = &mut simulation.entities;
+                if intangible {
+                    let living_result = entities.query_one_mut::<&mut Living>(id);
+                    let try_pierce =
+                        |living: &mut Living| living.intangibility.try_pierce(&hit_props);
+
+                    // only test pierce if damage wasn't blocked
+                    if simulation.defense.damage_blocked || !living_result.is_ok_and(try_pierce) {
+                        continue;
+                    }
                 }
 
                 if let Some((attacker_id, tile_pos)) = attacker {
