@@ -147,10 +147,11 @@ impl MainMenuScene {
         let mut textbox = Textbox::new_navigation(game_io);
 
         if !character_data.loaded {
-            const MESSAGE: &str = "Missing player mod.\n\n\nInstall from Manage Mods in Config.";
+            let globals = game_io.resource::<Globals>().unwrap();
+            let initial_setup_message = globals.translate("initial-setup-message");
 
             textbox.use_navigation_avatar(game_io);
-            textbox.push_interface(TextboxMessage::new(MESSAGE.to_string()));
+            textbox.push_interface(TextboxMessage::new(initial_setup_message));
             textbox.open();
         }
 
