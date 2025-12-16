@@ -28,6 +28,7 @@ mod render;
 mod resources;
 mod saves;
 mod scenes;
+mod stopwatch;
 mod structures;
 mod supporting_service;
 mod tips;
