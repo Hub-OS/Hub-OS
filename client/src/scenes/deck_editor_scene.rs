@@ -7,6 +7,7 @@ use crate::resources::*;
 use crate::saves::{Card, Deck, GlobalSave};
 use framework::prelude::*;
 use std::collections::HashMap;
+use uncased::UncasedStr;
 
 const NAMESPACE: PackageNamespace = PackageNamespace::Local;
 const MOVE_BULK_DELAY: FrameTime = 60;
@@ -19,6 +20,7 @@ enum EditorMode {
 
 enum Event {
     Leave(bool),
+    Search(String),
     SwitchMode(EditorMode),
 }
 
@@ -120,6 +122,13 @@ impl Sorting {
     }
 }
 
+#[repr(u8)]
+#[derive(Clone, Copy, PartialEq)]
+enum SearchOption {
+    Search,
+    Sort,
+}
+
 pub struct DeckEditorScene {
     deck_index: usize,
     deck_restrictions: DeckRestrictions,
@@ -133,7 +142,9 @@ pub struct DeckEditorScene {
     select_card_on_release: bool,
     scene_time: FrameTime,
     page_tracker: PageTracker,
-    context_menu: ContextMenu<Sorting>,
+    pack_menu: ContextMenu<SearchOption>,
+    sort_menu: ContextMenu<Sorting>,
+    search_text: String,
     last_sort: Option<Sorting>,
     mode: EditorMode,
     deck_dock: Dock,
@@ -216,7 +227,19 @@ impl DeckEditorScene {
             scene_time: 0,
             page_tracker: PageTracker::new(game_io, 2)
                 .with_page_arrow_offset(0, pack_dock.page_arrow_offset),
-            context_menu: ContextMenu::new_translated(
+            pack_menu: ContextMenu::new_translated(
+                game_io,
+                "deck-editor-pack-context-menu-label",
+                Vec2::ZERO,
+            )
+            .with_translated_options(
+                game_io,
+                &[
+                    ("deck-editor-option-search", SearchOption::Search),
+                    ("deck-editor-option-sort", SearchOption::Sort),
+                ],
+            ),
+            sort_menu: ContextMenu::new_translated(
                 game_io,
                 "deck-editor-sort-context-menu-label",
                 Vec2::ZERO,
@@ -232,6 +255,7 @@ impl DeckEditorScene {
                     ("deck-editor-sort-count", Sorting::Number),
                 ],
             ),
+            search_text: Default::default(),
             last_sort: None,
             mode: EditorMode::Default,
             deck_dock,
@@ -358,7 +382,10 @@ impl Scene for DeckEditorScene {
 
             dock.draw(game_io, &mut sprite_queue, self.mode, offset);
 
-            if !self.textbox.is_open() && !self.context_menu.is_open() {
+            let menu_open =
+                self.textbox.is_open() || self.pack_menu.is_open() || self.sort_menu.is_open();
+
+            if !menu_open {
                 dock.draw_cursor(&mut sprite_queue, offset);
             }
         }
@@ -367,14 +394,20 @@ impl Scene for DeckEditorScene {
         self.page_tracker.draw_page_arrows(&mut sprite_queue);
 
         // draw context menu
-        if self.context_menu.is_open() {
+        if self.pack_menu.is_open() {
             let (active_dock, _) = resolve_active_and_inactive_dock!(self);
 
-            // context menu
-            self.context_menu
-                .set_position(active_dock.context_menu_position);
+            let position = active_dock.context_menu_position;
+            self.pack_menu.recalculate_layout(game_io);
+            self.pack_menu.set_top_center(position);
+            self.pack_menu.draw(game_io, &mut sprite_queue);
+        } else if self.sort_menu.is_open() {
+            let (active_dock, _) = resolve_active_and_inactive_dock!(self);
 
-            self.context_menu.draw(game_io, &mut sprite_queue);
+            let position = active_dock.context_menu_position;
+            self.sort_menu.recalculate_layout(game_io);
+            self.sort_menu.set_top_center(position);
+            self.sort_menu.draw(game_io, &mut sprite_queue);
         }
 
         // draw deck total frame
@@ -437,14 +470,52 @@ fn handle_events(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
 
             scene.mode = mode;
         }
+        Event::Search(search_text) => {
+            if !scene.search_text.is_empty() {
+                let deck = scene.create_deck(game_io);
+                scene.pack_dock.card_slots = CardListItem::pack_vec_from_packages(game_io, &deck);
+            }
+
+            scene.search_text = search_text.to_ascii_lowercase();
+
+            apply_name_filter(scene, game_io);
+        }
     }
+}
+
+/// only runs on chips in the pack
+fn apply_name_filter(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
+    let search_text = &scene.search_text;
+
+    if search_text.is_empty() {
+        return;
+    }
+
+    let globals = game_io.resource::<Globals>().unwrap();
+    let packages = &globals.card_packages;
+
+    let dock = &mut scene.pack_dock;
+
+    dock.card_slots.retain(|slot| {
+        slot.as_ref()
+            .and_then(|item| packages.package(NAMESPACE, &item.card.package_id))
+            .is_some_and(|package| {
+                let short_name = UncasedStr::new(&package.card_properties.short_name);
+                let long_name = UncasedStr::new(&package.long_name);
+
+                short_name.starts_with(search_text) || long_name.starts_with(search_text)
+            })
+    });
+
+    dock.scroll_tracker.set_selected_index(0);
+    dock.scroll_tracker.set_total_items(dock.card_slots.len());
+    dock.update_preview();
 }
 
 fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
     scene.ui_input_tracker.update(game_io);
 
-    if scene.context_menu.is_open() {
-        handle_context_menu_input(scene, game_io);
+    if handle_any_context_input(scene, game_io) {
         scene.confirm_held_time = 0;
         scene.confirm_interrupted = true;
         return;
@@ -543,7 +614,11 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
         globals.audio.play_sound(&globals.sfx.cursor_select);
 
-        scene.context_menu.open();
+        if scene.page_tracker.active_page() == 0 {
+            scene.sort_menu.open();
+        } else {
+            scene.pack_menu.open();
+        }
     }
 
     // flip card previews
@@ -624,7 +699,21 @@ fn handle_select_regular_input(scene: &mut DeckEditorScene, game_io: &GameIO) {
     }
 }
 
-fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
+fn handle_any_context_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) -> bool {
+    if scene.pack_menu.is_open() {
+        handle_options_menu_input(scene, game_io);
+        return true;
+    }
+
+    if scene.sort_menu.is_open() {
+        handle_sort_menu_input(scene, game_io);
+        return true;
+    }
+
+    false
+}
+
+fn handle_options_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
     let input_util = InputUtil::new(game_io);
 
     // closing menu
@@ -632,12 +721,48 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
         let globals = game_io.resource::<Globals>().unwrap();
         globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
-        scene.context_menu.close();
+        scene.pack_menu.close();
+        return;
+    }
+
+    let Some(selected_option) = scene.pack_menu.update(game_io, &scene.ui_input_tracker) else {
+        return;
+    };
+
+    scene.pack_menu.close();
+
+    match selected_option {
+        SearchOption::Search => {
+            let event_sender = scene.event_sender.clone();
+
+            let interface = TextboxPrompt::new(move |s| {
+                let _ = event_sender.send(Event::Search(s));
+            })
+            .with_character_limit(8);
+
+            scene.textbox.push_interface(interface);
+            scene.textbox.open();
+        }
+        SearchOption::Sort => {
+            scene.sort_menu.open();
+        }
+    }
+}
+
+fn handle_sort_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
+    let input_util = InputUtil::new(game_io);
+
+    // closing menu
+    if input_util.was_just_pressed(Input::Option) {
+        let globals = game_io.resource::<Globals>().unwrap();
+        globals.audio.play_sound(&globals.sfx.cursor_cancel);
+
+        scene.sort_menu.close();
 
         return;
     }
 
-    let Some(selected_option) = scene.context_menu.update(game_io, &scene.ui_input_tracker) else {
+    let Some(selected_option) = scene.sort_menu.update(game_io, &scene.ui_input_tracker) else {
         return;
     };
 
@@ -1206,15 +1331,15 @@ impl Dock {
         self.card_count = total_cards;
     }
 
-    fn update_preview(&mut self) -> Option<()> {
+    fn update_preview(&mut self) {
         let selected_index = self.scroll_tracker.selected_index();
 
-        let card_list_item = self.card_slots.get(selected_index)?;
-        let card = card_list_item.as_ref().map(|item| &item.card);
+        let card = self
+            .card_slots
+            .get(selected_index)
+            .and_then(|item| item.as_ref().map(|item| item.card.clone()));
 
-        self.card_preview.set_card(card.cloned());
-
-        None
+        self.card_preview.set_card(card);
     }
 
     fn draw(

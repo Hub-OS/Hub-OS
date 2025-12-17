@@ -405,7 +405,7 @@ impl UiLayout {
     }
 
     pub fn update(&mut self, game_io: &mut GameIO, ui_input_tracker: &UiInputTracker) {
-        self.recalculate(game_io);
+        self.recalculate_layout(game_io);
 
         for node in self.tree.nodes_mut() {
             let node_index = node.index();
@@ -624,7 +624,7 @@ impl UiLayout {
         }
     }
 
-    fn recalculate(&mut self, game_io: &GameIO) {
+    pub fn recalculate_layout(&mut self, game_io: &GameIO) {
         if self.calculated {
             return;
         }
@@ -694,7 +694,7 @@ impl UiLayout {
     }
 
     pub fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
-        self.recalculate(game_io);
+        self.recalculate_layout(game_io);
 
         let mut offset_y = self.bounds.y;
 

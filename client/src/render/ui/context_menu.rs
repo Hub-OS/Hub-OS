@@ -130,8 +130,12 @@ impl<T: Copy + 'static> ContextMenu<T> {
         self.open = false;
     }
 
+    pub fn recalculate_layout(&mut self, game_io: &GameIO) {
+        self.ui_layout.recalculate_layout(game_io);
+    }
+
     pub fn bounds(&self) -> Rect {
-        self.ui_layout.get_bounds(TreeIndex::tree_root()).unwrap()
+        self.ui_layout.bounds()
     }
 
     pub fn set_and_translate_options(&mut self, game_io: &GameIO, options: &[(&str, T)]) {
@@ -208,6 +212,11 @@ impl<T: Copy + 'static> ContextMenu<T> {
     }
 
     pub fn set_position(&mut self, position: Vec2) {
+        self.ui_layout.set_position(position);
+    }
+
+    pub fn set_top_center(&mut self, mut position: Vec2) {
+        position.x -= self.bounds().width * 0.5;
         self.ui_layout.set_position(position);
     }
 

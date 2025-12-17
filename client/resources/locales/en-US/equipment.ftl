@@ -39,6 +39,9 @@ deck-list-import-failed = Failed to read from clipboard.
 deck-list-new-deck-name = NewFldr
 
 deck-editor-scene-title = Folder Edit
+deck-editor-pack-context-menu-label = FILTER
+deck-editor-option-search = Search
+deck-editor-option-sort = Sort
 deck-editor-sort-context-menu-label = SORT
 deck-editor-sort-id = ID
 deck-editor-sort-alphabetical = ABCDE
