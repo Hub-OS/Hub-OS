@@ -10,6 +10,7 @@ pub struct ContextMenu<T: Copy + 'static> {
     ui_receiver: flume::Receiver<T>,
     cursor_sprite: Sprite,
     cursor_animator: Animator,
+    label_index: GenerationalIndex,
     body_index: GenerationalIndex,
     arrow_sprite: Sprite,
     arrow_visible: bool,
@@ -55,7 +56,6 @@ impl<T: Copy + 'static> ContextMenu<T> {
 
         let label_style = UiStyle {
             nine_patch: Some(label_9patch),
-            padding_right: arrow_sprite.origin().x,
             ..Default::default()
         };
 
@@ -67,6 +67,7 @@ impl<T: Copy + 'static> ContextMenu<T> {
             ..Default::default()
         };
 
+        let mut label_index = None;
         let mut body_index = None;
 
         // ui
@@ -74,6 +75,7 @@ impl<T: Copy + 'static> ContextMenu<T> {
             bounds,
             vec![
                 UiLayoutNode::new(Text::new(game_io, FontName::Context).with_string(label))
+                    .with_handle(&mut label_index)
                     .with_style(label_style),
                 UiLayoutNode::new_container()
                     .with_handle(&mut body_index)
@@ -97,6 +99,7 @@ impl<T: Copy + 'static> ContextMenu<T> {
             cursor_animator,
             arrow_sprite,
             arrow_visible: false,
+            label_index: label_index.unwrap(),
             body_index: body_index.unwrap(),
             first_option_index: None,
             open: false,
@@ -111,6 +114,15 @@ impl<T: Copy + 'static> ContextMenu<T> {
 
     pub fn with_arrow(mut self, visible: bool) -> Self {
         self.arrow_visible = visible;
+
+        self.ui_layout.update_style(self.label_index, |style| {
+            style.padding_right = if visible {
+                self.arrow_sprite.origin().x
+            } else {
+                0.0
+            };
+        });
+
         self
     }
 

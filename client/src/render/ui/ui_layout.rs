@@ -238,6 +238,61 @@ impl UiLayout {
         self
     }
 
+    pub fn update_style(&mut self, index: GenerationalIndex, updater: impl FnOnce(&mut UiStyle)) {
+        let Some(element) = self.tree.get_mut(index) else {
+            return;
+        };
+
+        let taffy_style = self.taffy.style(element.taffy_node).unwrap();
+
+        // recreate ui style
+        let mut style = UiStyle {
+            // styles in taffy
+            flex_direction: taffy_style.flex_direction,
+            justify_content: taffy_style.justify_content,
+            align_items: taffy_style.align_items,
+            align_self: taffy_style.align_self,
+            flex_grow: taffy_style.flex_grow,
+            flex_shrink: taffy_style.flex_shrink,
+            flex_basis: taffy_style.flex_basis,
+            position: taffy_style.position,
+            left: taffy_style.inset.left,
+            right: taffy_style.inset.right,
+            top: taffy_style.inset.top,
+            bottom: taffy_style.inset.bottom,
+            margin_left: taffy_style.margin.left,
+            margin_right: taffy_style.margin.right,
+            margin_top: taffy_style.margin.top,
+            margin_bottom: taffy_style.margin.bottom,
+            min_width: taffy_style.min_size.width,
+            min_height: taffy_style.min_size.height,
+            max_width: taffy_style.max_size.width,
+            max_height: taffy_style.max_size.height,
+
+            // styles on element
+            nine_patch: element.nine_patch.take(),
+            ime_padding: element.ime_padding,
+            padding_left: element.padding_left,
+            padding_right: element.padding_right,
+            padding_top: element.padding_top,
+            padding_bottom: element.padding_bottom,
+        };
+
+        updater(&mut style);
+
+        // update taffy style
+        let taffy_style = derive_taffy_style(&style);
+        let _ = self.taffy.set_style(element.taffy_node, taffy_style);
+
+        // update element style
+        element.nine_patch = style.nine_patch;
+        element.ime_padding = style.ime_padding;
+        element.padding_left = style.padding_left;
+        element.padding_right = style.padding_right;
+        element.padding_top = style.padding_top;
+        element.padding_bottom = style.padding_bottom;
+    }
+
     pub fn with_focus(mut self, focused: bool) -> UiLayout {
         self.focused = focused;
         self
