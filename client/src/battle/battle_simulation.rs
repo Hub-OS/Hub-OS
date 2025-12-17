@@ -1013,6 +1013,9 @@ impl BattleSimulation {
             }
         }
 
+        self.time_freeze_tracker
+            .draw_intro_aura(self, &mut sprite_queue);
+
         sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
 
         // draw hp on living entities

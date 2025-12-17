@@ -2,10 +2,10 @@ use super::{
     Action, Artifact, BattleCallback, BattleSimulation, Character, Entity, Player,
     SharedBattleResources, TimeFreezeEntityBackup,
 };
-use crate::bindable::{CardProperties, EntityId, Team, TimeFreezeChainLimit};
+use crate::bindable::{CardProperties, EntityId, SpriteColorMode, Team, TimeFreezeChainLimit};
 use crate::ease::inverse_lerp;
 use crate::render::ui::{FontName, TextStyle};
-use crate::render::{FrameTime, SpriteColorQueue};
+use crate::render::{FrameTime, SpriteColorQueue, SpriteShaderEffect};
 use crate::resources::{
     AssetManager, BATTLE_INFO_SHADOW_COLOR, Globals, RESOLUTION_F, ResourcePaths,
 };
@@ -721,5 +721,81 @@ impl TimeFreezeTracker {
             let scale = Vec2::new(1.0, summary_scale_y);
             card_props.draw_summary(game_io, sprite_queue, position, scale, true);
         }
+    }
+
+    pub fn draw_intro_aura(
+        &self,
+        simulation: &BattleSimulation,
+        sprite_queue: &mut SpriteColorQueue,
+    ) {
+        if !matches!(
+            self.state,
+            TimeFreezeState::Action(
+                ActionFreezeState::DisplaySummary | ActionFreezeState::Counterable,
+            )
+        ) {
+            return;
+        }
+
+        let Some(tracker) = self.action_chain.last().cloned() else {
+            return;
+        };
+
+        let entities = &simulation.entities;
+        let Ok(mut entity_query) = entities.query_one::<&mut Entity>(tracker.entity.into()) else {
+            return;
+        };
+
+        let Some(entity) = entity_query.get() else {
+            return;
+        };
+
+        let Some(sprite_tree) = simulation.sprite_trees.get(entity.sprite_tree_index) else {
+            return;
+        };
+
+        let mut elapsed = self.active_time - self.state_start_time;
+
+        if self.state == TimeFreezeState::Action(ActionFreezeState::Counterable) {
+            elapsed += ActionFreezeState::DisplaySummary.duration();
+        }
+
+        let elapsed = elapsed as f32;
+
+        let mut sprite_tree = sprite_tree.clone();
+        let progress = elapsed / 40.0;
+
+        if !(0.0..1.0).contains(&progress) {
+            return;
+        }
+
+        let perspective_flipped = simulation.local_team.flips_perspective();
+
+        // start at tile center
+        let field = &simulation.field;
+        let mut position = field.calc_tile_center((entity.x, entity.y), perspective_flipped);
+
+        // apply the entity offset
+        position += entity.corrected_offset(perspective_flipped);
+
+        // apply elevation
+        position.y -= entity.elevation;
+
+        let alpha = (1.0 - progress) * 0.75;
+        let color = Color::from_rgb_u8s(32, 32, 64).multiply_alpha(alpha);
+
+        for sprite_node in sprite_tree.values_mut() {
+            sprite_node.set_shader_effect(SpriteShaderEffect::Grayscale);
+            sprite_node.set_color_mode(SpriteColorMode::Multiply);
+            sprite_node.set_color(color);
+        }
+
+        // increase by a % of the original size every frame
+        let root_node = sprite_tree.root_mut();
+        let scale = root_node.scale();
+        root_node.set_scale(scale + elapsed * 0.015);
+
+        let flipped = perspective_flipped ^ entity.flipped();
+        sprite_tree.draw_with_offset(sprite_queue, position, flipped);
     }
 }
