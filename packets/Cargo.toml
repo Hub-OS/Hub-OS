@@ -26,6 +26,7 @@ path-clean = "1"
 zip = { version = "0.6", features = ["deflate"], default-features = false }
 indexmap = "2"
 uuid = { version = "1", features = ["v4", "serde"] }
+unicode-segmentation = { workspace = true }
 
 [features]
 rollback_mlua = ["dep:rollback_mlua"]

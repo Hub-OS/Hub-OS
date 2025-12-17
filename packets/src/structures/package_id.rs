@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use std::sync::Arc;
 
 #[derive(Default, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -57,6 +58,38 @@ impl PackageId {
 
     pub fn as_str(&self) -> &str {
         &self.0
+    }
+
+    pub fn prefixes_for_ids<'a>(ids: impl Iterator<Item = &'a PackageId>) -> HashSet<&'a str> {
+        use unicode_segmentation::UnicodeSegmentation;
+
+        let ns_blacklist = HashSet::from(["com.", "org.", "dev.", "io.", "xyz.", "com.discord."]);
+        let mut namespaces = HashSet::new();
+
+        'outer: for id in ids {
+            let id_str = id.as_str();
+            let mut ns_end = 0;
+
+            loop {
+                let Some((i, _)) = id_str[ns_end..]
+                    .grapheme_indices(true)
+                    .find(|(_, grapheme)| *grapheme == ".")
+                else {
+                    // invalid
+                    continue 'outer;
+                };
+
+                ns_end += i + 1;
+
+                if !ns_blacklist.contains(&id_str[..ns_end]) {
+                    break;
+                }
+            }
+
+            namespaces.insert(&id_str[..ns_end]);
+        }
+
+        namespaces
     }
 }
 

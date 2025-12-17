@@ -38,7 +38,7 @@ rust-ini = "0.21"
 serde = { version = "1.0", features = ["derive"] }
 strum = { version = "0.26", features = ["derive"] }
 taffy = "0.3"
-unicode-segmentation = "1.10"
+unicode-segmentation = { workspace = true }
 clap = { version = "4.3", features = ["derive"] }
 unicode_categories = "0.1"
 flate2 = "1.0"

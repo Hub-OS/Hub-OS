@@ -1,0 +1,7 @@
+animation state="ARROW_UP"
+frame x="1" y="1" w="8" h="6" originx="4" originy="3" duration="20f"
+frame x="11" y="1" w="8" h="6" originx="4" originy="3" duration="12f"
+
+animation state="ARROW_DOWN"
+frame x="1" y="9" w="8" h="6" originx="4" originy="2" duration="20f"
+frame x="11" y="9" w="8" h="6" originx="4" originy="2" duration="12f"

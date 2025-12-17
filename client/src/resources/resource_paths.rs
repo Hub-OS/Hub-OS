@@ -69,6 +69,8 @@ impl ResourcePaths {
     pub const SUB_SCENE_ANIMATION: &'static str = "resources/scenes/shared/sub_scene.animation";
     pub const PAGE_ARROW: &'static str = "resources/scenes/shared/page_arrow.png";
     pub const PAGE_ARROW_ANIMATION: &'static str = "resources/scenes/shared/page_arrow.animation";
+    pub const MORE_ARROWS: &'static str = "resources/scenes/shared/more_arrows.png";
+    pub const MORE_ARROWS_ANIMATION: &'static str = "resources/scenes/shared/more_arrows.animation";
     pub const SELECT_CURSOR: &'static str = "resources/scenes/shared/select_cursor.png";
     pub const SELECT_CURSOR_ANIMATION: &'static str =
         "resources/scenes/shared/select_cursor.animation";

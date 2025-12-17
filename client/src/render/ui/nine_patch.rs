@@ -112,6 +112,10 @@ impl NinePatch {
             .and_then(|frame_list| frame_list.frame(0).cloned());
     }
 
+    pub fn widths(&self) -> f32 {
+        self.left_width() + self.right_width()
+    }
+
     pub fn top_height(&self) -> f32 {
         self.top
             .as_ref()
@@ -144,6 +148,10 @@ impl NinePatch {
         self.bottom = animator
             .frame_list(state)
             .and_then(|frame_list| frame_list.frame(0).cloned());
+    }
+
+    pub fn heights(&self) -> f32 {
+        self.top_height() + self.bottom_height()
     }
 
     pub fn body_bounds(&self, mut rect: Rect) -> Rect {

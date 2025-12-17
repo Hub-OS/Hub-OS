@@ -22,3 +22,4 @@ futures = { version = "0.3", default-features = false, features = [
   "std",
   "async-await"
 ] }
+unicode-segmentation = "1.10"
