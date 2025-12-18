@@ -248,6 +248,7 @@ impl NetplayInitScene {
 
         if let Some((_, receiver)) = &self.fallback_sender_receiver {
             if receiver.is_disconnected() {
+                log::error!("Fallback connection closed");
                 self.stage = ConnectionStage::Failed;
                 return;
             }
@@ -478,6 +479,7 @@ impl NetplayInitScene {
                 };
 
                 if !connection.spectating && data.signals.contains(&NetplaySignal::Disconnect) {
+                    log::info!("Player {} disconnected", connection.player_setup.index);
                     self.stage = ConnectionStage::Failed;
                 }
 
@@ -864,6 +866,12 @@ impl NetplayInitScene {
             }
         }
     }
+
+    fn refresh_connections(&mut self, game_io: &GameIO) {
+        for connection in &mut self.player_connections {
+            connection.last_message = game_io.frame_start_instant();
+        }
+    }
 }
 
 impl Scene for NetplayInitScene {
@@ -895,6 +903,8 @@ impl Scene for NetplayInitScene {
         while let Ok(event) = self.event_receiver.try_recv() {
             match event {
                 Event::ResolvedAddresses { players } => {
+                    self.refresh_connections(game_io);
+
                     for (i, (send, receiver)) in players.into_iter().enumerate() {
                         let connection = &mut self.player_connections[i];
                         connection.send = Some(send);
@@ -904,6 +914,8 @@ impl Scene for NetplayInitScene {
                     self.stage.advance();
                 }
                 Event::Fallback { fallback } => {
+                    self.refresh_connections(game_io);
+
                     self.last_fallback_instant = game_io.frame_start_instant();
                     self.fallback_sender_receiver = Some(fallback);
                     self.stage.advance();
