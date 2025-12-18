@@ -4,7 +4,9 @@ use crate::packages::PackageNamespace;
 use crate::render::ui::{FontName, TextStyle, Textbox, TextboxMessage, TextboxQuestion};
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::{BattleRecording, PlayerInputBuffer, RecordedRollback, RecordedSimulationFlow};
+use crate::saves::{
+    BattleRecording, PlayerInputBuffer, RecordedPreview, RecordedRollback, RecordedSimulationFlow,
+};
 use framework::prelude::*;
 use packets::structures::PackageId;
 use packets::{
@@ -46,6 +48,7 @@ pub struct BattleScene {
     server_messages: usize,
     statistics_callback: Option<BattleStatisticsCallback>,
     recording: Option<BattleRecording>,
+    recording_preview: Option<RecordedPreview>,
     ui_camera: Camera,
     textbox: Textbox,
     textbox_is_blocking_input: bool,
@@ -185,6 +188,7 @@ impl BattleScene {
             server_messages: 0,
             statistics_callback: props.statistics_callback,
             recording,
+            recording_preview: None,
             ui_camera: Camera::new_ui(game_io),
             textbox: Textbox::new_overworld(game_io)
                 .with_transition_animation_enabled(!is_playing_back_recording),
@@ -885,6 +889,12 @@ impl BattleScene {
         }
 
         simulation.pre_update(game_io, resources, state);
+
+        // must run before state, as the intro state will hide entities
+        if self.recording.is_some() && self.recording_preview.is_none() {
+            self.recording_preview = Some(simulation.render_preview(game_io));
+        }
+
         state.update(game_io, resources, simulation);
         simulation.post_update(game_io, resources);
 
@@ -1070,7 +1080,9 @@ impl Scene for BattleScene {
                 .update_memories(&setup.package_id, memories);
         }
 
-        if let Some(recording) = self.recording.take() {
+        if let (Some(recording), Some(preview)) =
+            (self.recording.take(), self.recording_preview.take())
+        {
             let meta = BattleMeta {
                 encounter_package_pair: self.meta.encounter_package_pair.clone(),
                 data: std::mem::take(&mut self.meta.data),
@@ -1081,7 +1093,7 @@ impl Scene for BattleScene {
                 recording_enabled: false,
             };
 
-            globals.battle_recording = Some((meta, recording))
+            globals.battle_recording = Some((meta, recording, preview))
         }
     }
 

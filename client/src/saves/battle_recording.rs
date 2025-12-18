@@ -10,6 +10,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, VecDeque};
 use std::time::{SystemTime, UNIX_EPOCH};
 
+pub type RecordedPreview = AsyncTask<Option<image::ImageBuffer<image::Rgba<u8>, Vec<u8>>>>;
+
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct RecordedRollback {
     pub flow_step: usize,
@@ -87,7 +89,7 @@ impl BattleRecording {
         setup.blocks = Default::default();
     }
 
-    pub fn save(mut self, game_io: &GameIO, meta: &BattleMeta) {
+    pub fn save(mut self, game_io: &GameIO, meta: &BattleMeta, preview: RecordedPreview) {
         let service_comm = game_io.resource::<SupportingServiceComm>().unwrap().clone();
         let globals = game_io.resource::<Globals>().unwrap();
         let nickname = globals.global_save.nickname.clone();
@@ -135,26 +137,7 @@ impl BattleRecording {
             }
         }
 
-        // get preview path
-        let encounter_preview = self
-            .encounter_package_pair
-            .as_ref()
-            .and_then(|(ns, id)| {
-                let ns = ns.strip_recording();
-                globals.encounter_packages.package_or_fallback(ns, id)
-            })
-            .and_then(|package| {
-                let path = &package.preview_texture_path;
-                let bytes = globals.assets.binary_silent(path);
-
-                if bytes.is_empty() {
-                    return None;
-                }
-
-                let file_name = ResourcePaths::file_name(path)?;
-
-                Some((file_name.to_string(), bytes))
-            });
+        let preview_image = preview.join().flatten();
 
         log::info!("Starting background thread to save recording");
 
@@ -180,10 +163,7 @@ impl BattleRecording {
             let _ = std::fs::create_dir_all(&folder_path);
 
             // create package file
-            let preview_image_toml = encounter_preview
-                .as_ref()
-                .map(|(file_name, _)| format!("preview_texture_path = \"{file_name}\""))
-                .unwrap_or_else(|| String::from("# preview_texture_path = \"\""));
+            let preview_comment = if preview_image.is_none() { "#" } else { "" };
 
             let toml_path = folder_path.clone() + "package.toml";
             let toml_data = format!(
@@ -193,7 +173,7 @@ impl BattleRecording {
                 id = \"~{unique_id}\"\n\
                 name = \"Recorded Battle\"\n\
                 description = \"{}'s recorded battle.\"\n\
-                {preview_image_toml}\n\
+                {preview_comment}preview_texture_path = \"preview.png\"\n\
                 recording_path = \"recording.dat\"\n\
                 # Add package ids to this list to override recorded packages with installed packages.\n\
                 recording_overrides = []\n\
@@ -207,12 +187,18 @@ impl BattleRecording {
             }
 
             // save preview image
-            if let Some((file_name, bytes)) = encounter_preview {
-                let to_path = folder_path.clone() + file_name.as_str();
+            let preview_path = folder_path.clone() + "preview.png";
 
-                if let Err(e) = std::fs::write(&to_path, bytes) {
-                    log::error!("Failed to copy preview texture to {to_path:?}: {e}");
+            if let Some(image) = preview_image {
+                if let Ok(file) = std::fs::File::create(&preview_path) {
+                    let png_encoder = image::codecs::png::PngEncoder::new(file);
+
+                    if let Err(e) = image.write_with_encoder(png_encoder) {
+                        log::error!("Failed to write preview texture to {preview_path:?}: {e}");
+                    }
                 }
+            } else {
+                log::error!("Failed to capture preview for recording");
             }
 
             // create recording file

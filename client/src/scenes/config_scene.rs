@@ -1050,7 +1050,7 @@ impl ConfigScene {
                 Event::SaveLastBattle => {
                     let globals = game_io.resource_mut::<Globals>().unwrap();
 
-                    if let Some((props, recording)) = globals.battle_recording.take() {
+                    if let Some((props, recording, preview)) = globals.battle_recording.take() {
                         // notify the player
                         let interface =
                             TextboxMessage::new(globals.translate("config-save-last-battle-save"));
@@ -1058,7 +1058,7 @@ impl ConfigScene {
                         self.textbox.open();
 
                         // save
-                        recording.save(game_io, &props);
+                        recording.save(game_io, &props, preview);
                     } else {
                         log::error!("No recording? How did we get here.");
                     }

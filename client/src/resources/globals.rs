@@ -8,7 +8,7 @@ use crate::render::{
     PostProcessColorBlindness, PostProcessGhosting, SpritePipelineCollection,
 };
 use crate::resources::*;
-use crate::saves::{BattleRecording, Config, GlobalSave, InternalResolution};
+use crate::saves::{BattleRecording, Config, GlobalSave, InternalResolution, RecordedPreview};
 use framework::prelude::*;
 use packets::address_parsing::uri_encode;
 use packets::structures::FileHash;
@@ -44,7 +44,7 @@ pub struct Globals {
     pub translations: Translations,
 
     // recording
-    pub battle_recording: Option<(BattleMeta, BattleRecording)>,
+    pub battle_recording: Option<(BattleMeta, BattleRecording, RecordedPreview)>,
 
     // sounds
     pub audio: AudioManager,

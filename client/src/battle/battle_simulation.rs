@@ -6,6 +6,7 @@ use crate::packages::{CardPackage, PackageNamespace};
 use crate::render::ui::{BattleBannerPopup, FontName, PlayerHealthUi, Text};
 use crate::render::*;
 use crate::resources::*;
+use crate::saves::RecordedPreview;
 use crate::scenes::BattleEvent;
 use crate::structures::{DenseSlotMap, SlotMap};
 use framework::prelude::*;
@@ -336,6 +337,11 @@ impl BattleSimulation {
 
         // spawn pending entities
         self.spawn_pending();
+
+        if self.time == 0 {
+            // we run this early on the first frame for rendering recording previews
+            self.update_sync_nodes();
+        }
 
         // apply animations after spawning to display frame 0
         self.apply_animations();
@@ -983,24 +989,16 @@ impl BattleSimulation {
                     shadow_y += movement.interpolate_jump_height(progress);
                 }
 
-                let base_sprite = self
-                    .sprite_trees
-                    .get_mut(entity.sprite_tree_index)
-                    .unwrap()
-                    .root_mut();
-                let color_mode = base_sprite.color_mode();
-                let color = base_sprite.color();
-                let shader_effect = base_sprite.shader_effect();
-
-                let shadow_tree = self.sprite_trees.get_mut(shadow.sprite_tree_index).unwrap();
                 let mut position = position;
                 position.y += shadow_y;
 
-                let sprite = shadow_tree.root_mut();
-                sprite.set_color_mode(color_mode);
-                sprite.set_color(color);
-                sprite.set_shader_effect(shader_effect);
-                shadow_tree.draw_with_offset(&mut sprite_queue, position, flipped);
+                shadow.draw(
+                    &mut sprite_queue,
+                    &mut self.sprite_trees,
+                    entity,
+                    position,
+                    flipped,
+                );
             }
 
             entity_tree_render_params.push((entity.sprite_tree_index, position, flipped));
@@ -1183,6 +1181,138 @@ impl BattleSimulation {
         for (_, banner) in self.banner_popups.iter_mut() {
             banner.draw(game_io, sprite_queue);
         }
+    }
+
+    pub fn render_preview(&mut self, game_io: &GameIO) -> RecordedPreview {
+        let graphics = game_io.graphics().clone();
+
+        let device = graphics.device();
+        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("Recording Preview"),
+        });
+
+        // build render target and pass
+        let render_target = RenderTarget::new(&graphics, UVec2::new(72, 64));
+        let mut render_pass = RenderPass::new(&mut encoder, &render_target);
+
+        // build camera
+        let mut camera = Camera::new(game_io);
+        let render_size = render_target.size().as_vec2();
+        camera.set_scale(RESOLUTION_F / render_size * 0.9);
+
+        // resolve and sort entities to render
+        let mut sorted_entities = Vec::new();
+
+        for (id, (entity, _)) in self.entities.query_mut::<(&mut Entity, &Character)>() {
+            if entity.spawned && !entity.deleted {
+                sorted_entities.push((id, entity.sort_key(&self.sprite_trees)))
+            }
+        }
+
+        sorted_entities.sort_by_key(|(_, key)| *key);
+
+        // render sprites
+        let mut sprite_queue = SpriteColorQueue::new(game_io, &camera, Default::default());
+
+        let perspective_flipped = self.local_team.flips_perspective();
+
+        let field = &self.field;
+        let field_width = field.cols().saturating_sub(2) as f32 * field.tile_size().x;
+        let position_scale = render_size.x / field_width;
+        let position_offset = Vec2::new(0.0, field.tile_size().y);
+
+        let resolve_position = |entity: &Entity| {
+            // start at tile center
+            let mut position = field.calc_tile_center((entity.x, entity.y), perspective_flipped);
+
+            // apply the entity offset
+            position += entity.corrected_offset(perspective_flipped);
+
+            // ignoring elevation
+
+            // shift
+            position += position_offset;
+
+            // scale position
+            position * position_scale
+        };
+
+        // render shadows
+        for (id, _) in &sorted_entities {
+            let Ok((entity, shadow)) = self.entities.query_one_mut::<(&Entity, &EntityShadow)>(*id)
+            else {
+                continue;
+            };
+
+            let position = resolve_position(entity);
+            let flipped = perspective_flipped ^ entity.flipped();
+
+            shadow.draw(
+                &mut sprite_queue,
+                &mut self.sprite_trees,
+                entity,
+                position,
+                flipped,
+            );
+        }
+
+        // render sprites
+        for (id, _) in &sorted_entities {
+            let Ok(entity) = self.entities.query_one_mut::<&Entity>(*id) else {
+                continue;
+            };
+
+            let Some(sprite_tree) = self.sprite_trees.get_mut(entity.sprite_tree_index) else {
+                continue;
+            };
+
+            let position = resolve_position(entity);
+            let flipped = perspective_flipped ^ entity.flipped();
+            sprite_tree.draw_with_offset(&mut sprite_queue, position, flipped);
+        }
+
+        // complete render
+        render_pass.consume_queue(sprite_queue);
+        render_pass.flush();
+
+        // convert texture to rgba
+        const FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba8UnormSrgb;
+
+        let converted_target =
+            RenderTarget::new_with_format(&graphics, render_target.size(), FORMAT);
+
+        let blitter = wgpu::util::TextureBlitter::new(device, FORMAT);
+        blitter.copy(
+            device,
+            &mut encoder,
+            render_target.texture().view(),
+            converted_target.texture().view(),
+        );
+
+        // submit
+        let command_buffer = encoder.finish();
+
+        let queue = game_io.graphics().queue();
+        queue.submit([command_buffer]);
+
+        // capture render
+        let (sender, receiver) = flume::unbounded();
+
+        queue.on_submitted_work_done(move || {
+            let _ = sender.send(());
+        });
+
+        game_io.spawn_local_task(async move {
+            // wait for render to complete
+            let _ = receiver.recv_async().await;
+
+            // request bytes
+            let bytes = converted_target.texture().read_bytes(&graphics).await;
+
+            // add metadata for later usage
+            let size = converted_target.size();
+            image::ImageBuffer::<image::Rgba<u8>, Vec<u8>>::from_vec(size.x, size.y, bytes)
+        })
     }
 
     #[cfg(debug_assertions)]

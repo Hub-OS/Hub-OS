@@ -1,8 +1,8 @@
 use crate::battle::{BattleAnimator, BattleSimulation, Entity};
 use crate::bindable::{EntityId, GenerationalIndex, SpriteColorMode};
-use crate::render::SpriteNode;
-use crate::structures::{Tree, TreeIndex};
-use framework::common::GameIO;
+use crate::render::{SpriteColorQueue, SpriteNode};
+use crate::structures::{SlotMap, Tree, TreeIndex};
+use framework::prelude::*;
 
 #[derive(Clone)]
 pub struct EntityShadowHidden;
@@ -128,5 +128,30 @@ impl EntityShadow {
         if let Some(index) = shadow.animator_index {
             simulation.animators.remove(index);
         }
+    }
+
+    pub fn draw(
+        &self,
+        sprite_queue: &mut SpriteColorQueue,
+        sprite_trees: &mut SlotMap<Tree<SpriteNode>>,
+        entity: &Entity,
+        position: Vec2,
+        flipped: bool,
+    ) {
+        let base_sprite = sprite_trees
+            .get_mut(entity.sprite_tree_index)
+            .unwrap()
+            .root_mut();
+        let color_mode = base_sprite.color_mode();
+        let color = base_sprite.color();
+        let shader_effect = base_sprite.shader_effect();
+
+        let shadow_tree = sprite_trees.get_mut(self.sprite_tree_index).unwrap();
+
+        let sprite = shadow_tree.root_mut();
+        sprite.set_color_mode(color_mode);
+        sprite.set_color(color);
+        sprite.set_shader_effect(shader_effect);
+        shadow_tree.draw_with_offset(sprite_queue, position, flipped);
     }
 }
