@@ -20,10 +20,10 @@ animation state="UPDATE MODS PLEASE"
 frame x="96" y="3" w="12" h="9" originx="6" originy="11"
 
 animation state="QUESTION MARK?"
-frame x="109" y="2" w="7" h="11" originx="4" originy="12" duration="0"
+frame x="109" y="3" w="7" h="10" originx="4" originy="11" duration="0"
 
 animation state="EXCLAMATION MARK!"
-frame x="117" y="2" w="3" h="11" originx="2" originy="12" duration="0"
+frame x="117" y="3" w="3" h="10" originx="2" originy="11" duration="0"
 
 animation state="YES CHECK"
 frame x="121" y="4" w="10" h="8" originx="5" originy="10" duration="0"
@@ -139,6 +139,9 @@ frame x="117" y="30" w="14" h="14" originx="7" originy="15"
 
 animation state="RAM SHEEP"
 frame x="132" y="33" w="13" h="11" originx="7" originy="12"
+
+animation state="THE GOAT"
+frame x="146" y="32" w="14" h="12" originx="7" originy="13"
 
 animation state="LOVE HEART"
 frame x="1" y="59" w="11" h="10" originx="6" originy="11" duration="0"
