@@ -245,11 +245,13 @@ impl Field {
                     col - 1
                 };
 
+                // test if there's a claim past this column
+                let original_team = tile.original_team();
+
                 if let Some(neighbor_tile) = self.tile_at_mut((neighbor_col, row)) {
-                    // test if we've claimed past this column
                     team_state.behind_claimed |= neighbor_tile.direction() == direction
-                        && neighbor_tile.original_team() != team
-                        && neighbor_tile.team() == team;
+                        && neighbor_tile.original_team() == original_team
+                        && neighbor_tile.team() != original_team;
                 }
             }
 
