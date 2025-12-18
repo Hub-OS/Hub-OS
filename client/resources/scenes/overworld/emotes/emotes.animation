@@ -42,7 +42,13 @@ animation state="PVP SWORDS BATTLE"
 frame x="1" y="14" w="19" h="17" originx="10" originy="17" duration="0"
 
 animation state="CORN COB POG"
-frame x="38" y="19" w="12" h="10" originx="6" originy="11" duration="0"
+frame x="38" y="19" w="11" h="11" originx="6" originy="12" duration="0"
+
+animation state="POPCORN AND SODA"
+frame x="153" y="69" w="12" h="11" originx="6" originy="12" duration="0"
+
+animation state="EYES"
+frame x="141" y="71" w="11" h="8" originx="6" originy="10" duration="0"
 
 animation state="MARS TECH SCIENCE"
 frame x="51" y="18" w="11" h="11" originx="6" originy="12"
@@ -59,20 +65,14 @@ frame x="95" y="17" w="12" h="12" originx="6" originy="13"
 animation state="EVIL GRIN SMILING IMP"
 frame x="108" y="18" w="11" h="11" originx="6" originy="12" duration="0"
 
-animation state="FOLDER BUSY THINKING IN MENUS"
-frame x="120" y="15" w="14" h="14" originx="7" originy="15" duration="0"
-
-animation state="BUSY..."
-frame x="127" y="15" w="7" h="3" originx="4" originy="5" duration="0"
-
 animation state="THUMBS UP"
 frame x="135" y="16" w="9" h="12" originx="5" originy="14" duration="0"
 
 animation state="THUMBS DOWN"
 frame x="145" y="17" w="9" h="12" originx="5" originy="13" duration="0"
 
-animation state="CHIP"
-frame x="155" y="16" w="10" h="13" originx="6" originy="14" duration="0"
+animation state="FOLDER BUSY THINKING IN MENUS"
+frame x="120" y="15" w="14" h="14" originx="7" originy="15" duration="0"
 
 animation state="BIG SMILE"
 frame x="1" y="47" w="11" h="11" originx="6" originy="12" duration="0"
@@ -109,6 +109,12 @@ frame x="122" y="47" w="11" h="12" originx="6" originy="12" duration="0"
 
 animation state="PUKING VOMITING"
 frame x="134" y="47" w="11" h="12" originx="6" originy="12" duration="0"
+
+animation state="BUSY..."
+frame x="127" y="15" w="7" h="3" originx="4" originy="5" duration="0"
+
+animation state="CHIP"
+frame x="155" y="16" w="10" h="13" originx="6" originy="14" duration="0"
 
 animation state="HORSE"
 frame x="1" y="32" w="14" h="11" originx="7" originy="12"
