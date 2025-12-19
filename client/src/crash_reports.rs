@@ -1,8 +1,17 @@
 use crate::resources::CRASH_REPORT_ENDPOINT;
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use std::sync::{LazyLock, Mutex};
 
-static CONTEXT: LazyLock<Mutex<HashMap<String, String>>> = LazyLock::new(Default::default);
+static CONTEXT: LazyLock<Mutex<IndexMap<String, String>>> = LazyLock::new(|| {
+    let mut context = IndexMap::default();
+
+    context.insert(
+        String::from("Version"),
+        env!("CARGO_PKG_VERSION").to_string(),
+    );
+
+    Mutex::new(context)
+});
 
 pub fn set_crash_context(key: &str, context: String) {
     let mut map = CONTEXT.lock().unwrap();
@@ -11,7 +20,7 @@ pub fn set_crash_context(key: &str, context: String) {
 
 pub fn take_crash_context(key: &str) -> Option<String> {
     let mut map = CONTEXT.lock().unwrap();
-    map.remove(key)
+    map.shift_remove(key)
 }
 
 fn create_context_string() -> String {
