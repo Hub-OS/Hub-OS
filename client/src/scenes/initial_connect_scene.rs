@@ -89,82 +89,86 @@ impl InitialConnectScene {
         self.textbox.push_interface(textbox_interface);
 
         self.online_scene = None;
+        self.success = false
     }
 
     fn handle_packets(&mut self, game_io: &mut GameIO) {
-        if let Some(online_scene) = &mut self.online_scene {
-            // handle incoming packets
-            while let Ok(packet) = online_scene.packet_receiver().try_recv() {
-                match packet {
-                    ServerPacket::VersionInfo {
-                        version_id,
-                        version_iteration,
-                    } => {
-                        let globals = game_io.resource::<Globals>().unwrap();
+        let Some(online_scene) = &mut self.online_scene else {
+            return;
+        };
 
-                        if version_id != packets::VERSION_ID
-                            || version_iteration != packets::VERSION_ITERATION
-                        {
-                            let message = globals.translate("server-generic-incompatible-message");
-                            self.fail_with_message(message);
-                            return;
-                        }
+        // handle incoming packets
+        while let Ok(packet) = online_scene.packet_receiver().try_recv() {
+            match packet {
+                ServerPacket::VersionInfo {
+                    version_id,
+                    version_iteration,
+                } => {
+                    let globals = game_io.resource::<Globals>().unwrap();
 
-                        if version_iteration < packets::VERSION_ITERATION {
-                            let message = globals.translate("server-generic-ahead-message");
-                            self.fail_with_message(message);
-                            return;
-                        }
-
-                        if version_iteration > packets::VERSION_ITERATION {
-                            let message = globals.translate("server-generic-behind-message");
-                            self.fail_with_message(message);
-                            return;
-                        }
-
-                        if !self.connection_started {
-                            online_scene.start_connection(game_io, self.data.take());
-                            self.connection_started = true;
-                        }
+                    if version_id != packets::VERSION_ID
+                        || version_iteration != packets::VERSION_ITERATION
+                    {
+                        let message = globals.translate("server-generic-incompatible-message");
+                        self.fail_with_message(message);
+                        return;
                     }
-                    ServerPacket::PackageList { packages } => {
-                        online_scene.sync_assets(game_io, packages);
 
-                        // nothing else to sync, request join
-                        online_scene.request_join();
+                    if version_iteration < packets::VERSION_ITERATION {
+                        let message = globals.translate("server-generic-ahead-message");
+                        self.fail_with_message(message);
+                        return;
                     }
-                    ServerPacket::Kick { reason } => {
-                        let event = Event::Failed {
-                            reason: Some(reason),
-                        };
 
-                        self.event_sender.send(event).unwrap();
+                    if version_iteration > packets::VERSION_ITERATION {
+                        let message = globals.translate("server-generic-behind-message");
+                        self.fail_with_message(message);
+                        return;
                     }
-                    ServerPacket::CompleteConnection => {
-                        self.success = true;
-                        online_scene.handle_packet(game_io, packet);
-                    }
-                    ServerPacket::LoadPackage { .. }
-                    | ServerPacket::InitiateEncounter { .. }
-                    | ServerPacket::InitiateNetplay { .. }
-                    | ServerPacket::Restrictions { .. }
-                    | ServerPacket::AddCard { .. }
-                    | ServerPacket::AddBlock { .. }
-                    | ServerPacket::EnablePlayableCharacter { .. } => {
-                        self.deferred_packets.push(packet);
-                    }
-                    packet => {
-                        online_scene.handle_packet(game_io, packet);
+
+                    if !self.connection_started {
+                        online_scene.start_connection(game_io, self.data.take());
+                        self.connection_started = true;
                     }
                 }
-            }
+                ServerPacket::PackageList { packages } => {
+                    online_scene.sync_assets(game_io, packages);
 
-            if online_scene.packet_receiver().is_disconnected() {
-                self.online_scene.take();
-                self.event_sender
-                    .send(Event::Failed { reason: None })
-                    .unwrap();
+                    // nothing else to sync, request join
+                    online_scene.request_join();
+                }
+                ServerPacket::Kick { reason } => {
+                    let event = Event::Failed {
+                        reason: Some(reason),
+                    };
+
+                    self.event_sender.send(event).unwrap();
+                }
+                ServerPacket::CompleteConnection => {
+                    self.success = true;
+                    online_scene.handle_packet(game_io, packet);
+                }
+                ServerPacket::LoadPackage { .. }
+                | ServerPacket::InitiateEncounter { .. }
+                | ServerPacket::InitiateNetplay { .. }
+                | ServerPacket::Restrictions { .. }
+                | ServerPacket::AddCard { .. }
+                | ServerPacket::AddBlock { .. }
+                | ServerPacket::EnablePlayableCharacter { .. } => {
+                    self.deferred_packets.push(packet);
+                }
+                packet => {
+                    online_scene.handle_packet(game_io, packet);
+                }
             }
+        }
+
+        if online_scene.packet_receiver().is_disconnected() {
+            self.online_scene.take();
+            self.event_sender
+                .send(Event::Failed { reason: None })
+                .unwrap();
+            self.success = false;
         }
     }
 }
