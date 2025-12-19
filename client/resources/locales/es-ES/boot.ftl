@@ -10,3 +10,8 @@ boot-loading-tile-state-mods = Loading Tile States
 boot-loading-library-mods = Loading Libraries
 boot-cleaning-cache = Cleaning Cache
 boot-press-any-button = Press Any Button
+initial-setup-message =
+    Missing Navi mod.
+    
+    
+    Install from Manage Mods in Config.
