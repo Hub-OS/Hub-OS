@@ -134,23 +134,33 @@ impl TimeFreezeEntityBackup {
         }
 
         // restore action queue
-        if self.action_queue.active.is_some() || !self.action_queue.pending.is_empty() {
+        let mut old_queue = self.action_queue;
+
+        if old_queue.active.is_some() || !old_queue.pending.is_empty() {
             if let Ok(existing_queue) = entities.query_one_mut::<&mut ActionQueue>(id) {
                 if existing_queue.active.is_some() {
                     log::error!("Active action overwritten by TimeFreezeEntityBackup");
                 }
 
-                existing_queue.active = self.action_queue.active;
+                // avoid restoring deleted active actions
+                existing_queue.active = old_queue
+                    .active
+                    .filter(|&index| simulation.actions.contains_key(index));
+
+                // avoid restoring deleted queued actions
+                old_queue
+                    .pending
+                    .retain(|&index| simulation.actions.contains_key(index));
 
                 if existing_queue.pending.is_empty() {
                     // use old queue
-                    existing_queue.pending = self.action_queue.pending;
+                    existing_queue.pending = old_queue.pending;
                 } else {
                     // extend with old queue
-                    existing_queue.pending.extend(self.action_queue.pending);
+                    existing_queue.pending.extend(old_queue.pending);
                 }
             } else {
-                let _ = entities.insert_one(id, self.action_queue);
+                let _ = entities.insert_one(id, old_queue);
             }
         }
     }
