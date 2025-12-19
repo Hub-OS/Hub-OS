@@ -398,7 +398,6 @@ impl TextInput {
 
     fn caret_position(&self, bounds: Rect) -> Vec2 {
         let line_ranges = &self.cached_metrics.line_ranges;
-
         let caret_index = self.rendered_caret_index();
 
         let (line_index, range) = line_ranges
@@ -514,10 +513,7 @@ impl TextInput {
     }
 
     fn update_view_offset(&mut self, bounds: Rect) {
-        // measure
-        let caret_index = self.rendered_caret_index();
-        let metrics = self.text_style.measure(&self.rendered_text[..caret_index]);
-        let caret_offset = metrics.size;
+        let caret_position = self.caret_position(bounds);
 
         // invert for simpler logic, view offset is (-Infinity, 0.0] otherwise
         self.view_offset = -self.view_offset;
@@ -525,14 +521,14 @@ impl TextInput {
         if self.paged {
             // vertical scroll
             let page_height = self.text_style.line_height() * self.lines_per_page as f32;
-            self.view_offset.y = (caret_offset.y / page_height).floor() * page_height;
+            self.view_offset.y = (caret_position.y / page_height).floor() * page_height;
         } else {
             // horizontal scroll
-            self.view_offset.x = self.view_offset.x.min(caret_offset.x);
+            self.view_offset.x = self.view_offset.x.min(caret_position.x);
 
             // + 1.0 for caret width
-            if self.view_offset.x + bounds.width < caret_offset.x + 1.0 {
-                self.view_offset.x = caret_offset.x - bounds.width + 1.0;
+            if self.view_offset.x + bounds.width < caret_position.x + 1.0 {
+                self.view_offset.x = caret_position.x - bounds.width + 1.0;
             }
         }
 
