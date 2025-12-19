@@ -652,7 +652,7 @@ impl Textbox {
 
                 let style = resolve_text_style(custom_style, &mut self.text_style);
 
-                style.draw_slice(game_io, sprite_queue, text, range)
+                style.draw(game_io, sprite_queue, &text[range])
             }
 
             // render extra
