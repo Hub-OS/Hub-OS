@@ -239,7 +239,7 @@ impl Tree<SpriteNode> {
 
         // add shadow
         if text_style.shadow_color.a > 0.0 {
-            text_style.iterate(text, |frame, offset| {
+            text_style.iterate(text, |frame, offset, _| {
                 let mut char_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);
                 char_node.set_color(text_style.shadow_color);
                 char_node.set_layer(1);
@@ -253,7 +253,7 @@ impl Tree<SpriteNode> {
         }
 
         // add characters
-        text_style.iterate(text, |frame, offset| {
+        text_style.iterate(text, |frame, offset, _| {
             let mut char_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);
             char_node.set_using_parent_shader(true);
 

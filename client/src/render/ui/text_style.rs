@@ -134,7 +134,7 @@ impl TextStyle {
     }
 
     pub fn measure(&self, text: &str) -> TextMetrics {
-        self.iterate(text, |_, _| {})
+        self.iterate(text, |_, _, _| {})
     }
 
     pub fn measure_grapheme(&self, grapheme: &str) -> Vec2 {
@@ -159,7 +159,36 @@ impl TextStyle {
         text: &str,
         range: Range<usize>,
     ) {
+        self.draw_slice_impl(
+            game_io,
+            sprite_queue,
+            text,
+            range,
+            &mut |sprite_queue, sprite, _| sprite_queue.draw_sprite(sprite),
+        );
+    }
+
+    pub fn draw_slice_styled(
+        &self,
+        game_io: &GameIO,
+        sprite_queue: &mut SpriteColorQueue,
+        text: &str,
+        range: Range<usize>,
+        draw_styled_fn: &mut dyn FnMut(&mut SpriteColorQueue, &mut Sprite, Option<usize>),
+    ) {
+        self.draw_slice_impl(game_io, sprite_queue, text, range, draw_styled_fn);
+    }
+
+    fn draw_slice_impl(
+        &self,
+        game_io: &GameIO,
+        sprite_queue: &mut SpriteColorQueue,
+        text: &str,
+        range: Range<usize>,
+        mut draw_styled_fn: &mut dyn FnMut(&mut SpriteColorQueue, &mut Sprite, Option<usize>),
+    ) {
         let prev_color_mode = sprite_queue.color_mode();
+        let draw_fn = &mut draw_styled_fn;
 
         let mut sprite = Sprite::new(game_io, self.glyph_atlas.texture().clone());
 
@@ -168,24 +197,39 @@ impl TextStyle {
         // draw shadow
         if self.shadow_color != Color::TRANSPARENT {
             Self::update_sprite_color(&mut sprite, sprite_queue, self.shadow_color);
-            self.iterate_slice(text, range.clone(), |frame, position| {
-                frame.apply(&mut sprite);
-
-                sprite.set_position(position + self.scale);
-                sprite_queue.draw_sprite(&sprite);
-            });
+            self.draw_single_run(
+                sprite_queue,
+                &mut sprite,
+                text,
+                range.clone(),
+                &mut |sprite_queue, sprite, index| {
+                    sprite.set_position(sprite.position() + self.scale);
+                    draw_fn(sprite_queue, sprite, index);
+                },
+            );
         }
 
-        // draw normal
+        // normal run
         Self::update_sprite_color(&mut sprite, sprite_queue, self.color);
-        self.iterate_slice(text, range, |frame, position| {
-            frame.apply(&mut sprite);
-
-            sprite.set_position(position);
-            sprite_queue.draw_sprite(&sprite);
-        });
+        self.draw_single_run(sprite_queue, &mut sprite, text, range.clone(), draw_fn);
 
         sprite_queue.set_color_mode(prev_color_mode);
+    }
+
+    fn draw_single_run(
+        &self,
+        sprite_queue: &mut SpriteColorQueue,
+        sprite: &mut Sprite,
+        text: &str,
+        range: Range<usize>,
+        draw_fn: &mut dyn FnMut(&mut SpriteColorQueue, &mut Sprite, Option<usize>),
+    ) {
+        self.iterate_slice(text, range, move |frame, position, index| {
+            frame.apply(sprite);
+            sprite.set_position(position);
+
+            draw_fn(sprite_queue, sprite, index);
+        });
     }
 
     fn update_sprite_color(sprite: &mut Sprite, sprite_queue: &mut SpriteColorQueue, color: Color) {
@@ -198,17 +242,26 @@ impl TextStyle {
         }
     }
 
-    pub fn iterate<F>(&self, text: &str, callback: F) -> TextMetrics
+    pub fn iterate<F>(&self, text: &str, mut callback: F) -> TextMetrics
     where
-        F: FnMut(AnimationFrame, Vec2),
+        F: FnMut(AnimationFrame, Vec2, Option<usize>),
     {
-        self.iterate_slice(text, 0..text.len(), callback)
+        self.iterate_slice_impl(text, 0..text.len(), &mut callback)
     }
 
     pub fn iterate_slice<F>(&self, text: &str, range: Range<usize>, mut callback: F) -> TextMetrics
     where
-        F: FnMut(AnimationFrame, Vec2),
+        F: FnMut(AnimationFrame, Vec2, Option<usize>),
     {
+        self.iterate_slice_impl(text, range, &mut callback)
+    }
+
+    fn iterate_slice_impl(
+        &self,
+        text: &str,
+        range: Range<usize>,
+        mut callback: &mut dyn FnMut(AnimationFrame, Vec2, Option<usize>),
+    ) -> TextMetrics {
         let mut insert_tracker = TextInsertTracker::new(self);
         insert_tracker.line_start_index = range.start;
 
@@ -328,7 +381,7 @@ impl TextStyle {
 
                         let position = self.bounds.position() + Vec2::new(x, y) * self.scale;
 
-                        callback(frame, position);
+                        callback(frame, position, Some(index));
 
                         max_y = max_y.max(y + character_size.y);
                     }
@@ -366,10 +419,11 @@ impl TextStyle {
         }
     }
 
-    fn output_ellipsis<F>(&self, insert_tracker: &mut TextInsertTracker, callback: &mut F)
-    where
-        F: FnMut(AnimationFrame, Vec2),
-    {
+    fn output_ellipsis(
+        &self,
+        insert_tracker: &mut TextInsertTracker,
+        callback: &mut dyn FnMut(AnimationFrame, Vec2, Option<usize>),
+    ) {
         let frame = self.character_frame(".");
 
         if !frame.valid {
@@ -383,7 +437,7 @@ impl TextStyle {
             let offset = ellipsis_tracker.next_position(0, frame.size());
 
             let position = self.bounds.position() + (start_position + offset) * self.scale;
-            callback(frame.clone(), position);
+            callback(frame.clone(), position, None);
         }
 
         insert_tracker.x += ellipsis_tracker.x;

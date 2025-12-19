@@ -1,4 +1,5 @@
 use super::*;
+use crate::bindable::SpriteColorMode;
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
@@ -11,6 +12,8 @@ pub struct TextInput {
     caret_index: usize,
     character_limit: usize,
     text: String,
+    rendered_text: String,
+    prev_pre_edit: Option<(String, Option<(usize, usize)>)>,
     text_style: TextStyle,
     active: bool,
     init_active: bool,
@@ -36,6 +39,8 @@ impl TextInput {
             caret_index: 0,
             character_limit: usize::MAX,
             text: String::new(),
+            rendered_text: String::new(),
+            prev_pre_edit: None,
             text_style: TextStyle::new(game_io, font),
             active: false,
             init_active: false,
@@ -56,6 +61,7 @@ impl TextInput {
 
     pub fn with_str(mut self, text: &str) -> Self {
         self.text = String::from(text);
+        self.rendered_text = String::from(text);
         self.caret_index = text.len();
         self.cached_metrics = self.text_style.measure(text);
         self
@@ -101,6 +107,32 @@ impl TextInput {
         self.lines_per_page = (page_size.y / self.text_style.line_height()) as usize;
         self.text_style.bounds.width = page_size.x;
         self
+    }
+
+    /// Returns true if the text in prev_pre_edit is updated
+    fn update_pre_edit(&mut self, input: &mut GameInputManager) -> bool {
+        let pre_edit = input.text_pre_edit();
+
+        let Some((prev_text, selection)) = &mut self.prev_pre_edit else {
+            self.prev_pre_edit = pre_edit.map(|(text, selection)| (text.to_string(), selection));
+            return self.prev_pre_edit.is_some();
+        };
+
+        let Some((new_text, new_selection)) = pre_edit else {
+            self.prev_pre_edit = None;
+            return true;
+        };
+
+        *selection = new_selection;
+
+        if prev_text != new_text {
+            // reuse buffer
+            prev_text.clear();
+            prev_text.push_str(new_text);
+            return true;
+        }
+
+        false
     }
 }
 
@@ -206,6 +238,10 @@ impl UiNode for TextInput {
             }
         }
 
+        // update pre edit
+        let updated_pre_edit = self.update_pre_edit(input);
+
+        // handle incoming text
         let mut incoming_text = input.text().to_string();
 
         if holding_ctrl && input.was_key_just_pressed(Key::V) {
@@ -213,7 +249,7 @@ impl UiNode for TextInput {
             incoming_text.clone_from(&input.request_clipboard_text());
         }
 
-        if !incoming_text.is_empty() {
+        if updated_pre_edit || !incoming_text.is_empty() {
             // update text
             self.insert_text(game_io, &incoming_text, holding_ctrl);
         }
@@ -238,7 +274,65 @@ impl UiNode for TextInput {
         sprite_queue.set_scissor(scissor_rect);
 
         // todo: if paged, use draw_sliced to render just the page
-        self.text_style.draw(game_io, sprite_queue, &self.text);
+        let pre_edit_selection = self
+            .prev_pre_edit
+            .as_ref()
+            .and_then(|(_, selection)| *selection)
+            .map(|selection| {
+                let start = selection.0.min(selection.1);
+                let end = selection.0.max(selection.1);
+                start + self.caret_index..end + self.caret_index
+            })
+            .unwrap_or_default();
+
+        let pre_edit_range = self
+            .prev_pre_edit
+            .as_ref()
+            .map(|(text, _)| self.caret_index..self.caret_index + text.len());
+
+        let text_shadow_color = self.text_style.shadow_color;
+
+        if let Some(pre_edit_range) = pre_edit_range {
+            self.text_style.draw_slice_styled(
+                game_io,
+                sprite_queue,
+                &self.rendered_text,
+                0..self.rendered_text.len(),
+                &mut move |sprite_queue, sprite, index| {
+                    if index.is_none_or(|i| !pre_edit_range.contains(&i)) {
+                        // draw plain
+                        sprite_queue.draw_sprite(sprite);
+                        return;
+                    }
+
+                    let prev_color = sprite.color();
+
+                    if index.is_none_or(|i| !pre_edit_selection.contains(&i))
+                        || sprite.color() == text_shadow_color
+                    {
+                        // render non selected pre edit text with transparency
+                        sprite.set_color(prev_color.multiply_alpha(0.65));
+                        sprite_queue.draw_sprite(sprite);
+                        sprite.set_color(prev_color);
+                        return;
+                    }
+
+                    let prev_color_mode = sprite_queue.color_mode();
+
+                    // draw styled
+                    sprite_queue.set_color_mode(SpriteColorMode::Multiply);
+                    sprite.set_color(Color::GREEN);
+                    sprite_queue.draw_sprite(sprite);
+
+                    // reset styles
+                    sprite_queue.set_color_mode(prev_color_mode);
+                    sprite.set_color(prev_color);
+                },
+            );
+        } else {
+            self.text_style
+                .draw(game_io, sprite_queue, &self.rendered_text);
+        }
 
         if self.active && self.caret_time % 60 < 30 {
             // draw cursor
@@ -377,6 +471,17 @@ impl TextInput {
             }
         }
 
+        // update rendered_text
+        self.rendered_text.clear();
+        self.rendered_text.push_str(&self.text[0..self.caret_index]);
+
+        if let Some((text, _)) = &self.prev_pre_edit {
+            self.rendered_text.push_str(text);
+        }
+
+        self.rendered_text.push_str(&self.text[self.caret_index..]);
+
+        // resolve bounds
         let old_size = self.measure_ui_size(game_io);
         self.cached_metrics = self.text_style.measure(&self.text);
 
