@@ -113,6 +113,10 @@ impl TextInput {
     fn update_pre_edit(&mut self, input: &mut GameInputManager) -> bool {
         let pre_edit = input.text_pre_edit();
 
+        // reset caret time for the cases where we exit early
+        let mut prev_caret_time = self.caret_time;
+        self.caret_time = 0;
+
         let Some((prev_text, selection)) = &mut self.prev_pre_edit else {
             self.prev_pre_edit = pre_edit.map(|(text, selection)| (text.to_string(), selection));
             return self.prev_pre_edit.is_some();
@@ -123,7 +127,11 @@ impl TextInput {
             return true;
         };
 
-        *selection = new_selection;
+        if *selection != new_selection {
+            *selection = new_selection;
+            // prevent caret time from being restored, as we moved rendered caret position
+            prev_caret_time = 0;
+        }
 
         if prev_text != new_text {
             // reuse buffer
@@ -131,6 +139,9 @@ impl TextInput {
             prev_text.push_str(new_text);
             return true;
         }
+
+        // restore caret time since nothing changed
+        self.caret_time = prev_caret_time;
 
         false
     }
@@ -375,20 +386,32 @@ impl UiNode for TextInput {
 }
 
 impl TextInput {
+    fn rendered_caret_index(&self) -> usize {
+        self.caret_index
+            + self
+                .prev_pre_edit
+                .as_ref()
+                .and_then(|(_, selection)| *selection)
+                .map(|selection| selection.1)
+                .unwrap_or_default()
+    }
+
     fn caret_position(&self, bounds: Rect) -> Vec2 {
         let line_ranges = &self.cached_metrics.line_ranges;
+
+        let caret_index = self.rendered_caret_index();
 
         let (line_index, range) = line_ranges
             .iter()
             .enumerate()
-            .filter(|(_, range)| range.start <= self.caret_index)
+            .filter(|(_, range)| range.start <= caret_index)
             .next_back()
             .map(|(i, range)| (i, range.clone()))
             .unwrap_or_default();
 
         let before_caret_metrics = self
             .text_style
-            .measure(&self.text[range.start..self.caret_index]);
+            .measure(&self.rendered_text[range.start..caret_index]);
 
         let caret_offset = Vec2::new(
             before_caret_metrics.size.x,
@@ -483,7 +506,7 @@ impl TextInput {
 
         // resolve bounds
         let old_size = self.measure_ui_size(game_io);
-        self.cached_metrics = self.text_style.measure(&self.text);
+        self.cached_metrics = self.text_style.measure(&self.rendered_text);
 
         if !self.paged {
             self.sizing_dirty = self.sizing_dirty || old_size != self.measure_ui_size(game_io);
@@ -492,7 +515,8 @@ impl TextInput {
 
     fn update_view_offset(&mut self, bounds: Rect) {
         // measure
-        let metrics = self.text_style.measure(&self.text[..self.caret_index]);
+        let caret_index = self.rendered_caret_index();
+        let metrics = self.text_style.measure(&self.rendered_text[..caret_index]);
         let caret_offset = metrics.size;
 
         // invert for simpler logic, view offset is (-Infinity, 0.0] otherwise
