@@ -46,6 +46,7 @@ use crate::scenes::BootScene;
 use clap::Parser;
 use framework::logging::*;
 use framework::prelude::*;
+use framework::runtime::GameWindowLoop;
 use rand::seq::IndexedRandom;
 use supporting_service::*;
 
@@ -59,7 +60,10 @@ const TITLE_LIST: [&str; 3] = [
     "Hub OS: Modular Battler",
 ];
 
-pub fn main(app: WinitPlatformApp) -> anyhow::Result<()> {
+pub type GameLoop = framework::prelude::WinitGameLoop;
+pub type PlatformApp = <GameLoop as GameWindowLoop>::PlatformApp;
+
+pub fn main(app: PlatformApp) -> anyhow::Result<()> {
     let args = Args::parse();
 
     // init_game_folders in case we haven't already
@@ -80,7 +84,7 @@ pub fn main(app: WinitPlatformApp) -> anyhow::Result<()> {
     log::info!("Version {}", env!("CARGO_PKG_VERSION"));
 
     let random_title = TITLE_LIST.choose(&mut rand::rng()).unwrap();
-    let game = Game::<WinitGameLoop>::new(random_title, (RESOLUTION * 4).into())
+    let game = Game::<GameLoop>::new(random_title, (RESOLUTION * 4).into())
         .with_platform_app(app)
         .with_resizable(true)
         .with_setup(|game_io| {

@@ -1,4 +1,3 @@
-use framework::prelude::WinitPlatformApp;
 use std::sync::OnceLock;
 
 static GAME_PATH: OnceLock<String> = OnceLock::new();
@@ -290,7 +289,7 @@ impl ResourcePaths {
     pub const CREDITS_BG_ANIMATION: &'static str = "resources/scenes/credits/bg.animation";
 
     #[allow(unused_variables)]
-    pub fn init_game_folders(app: &WinitPlatformApp, _data_folder_arg: Option<String>) {
+    pub fn init_game_folders(app: &crate::PlatformApp, _data_folder_arg: Option<String>) {
         #[cfg(not(target_os = "android"))]
         {
             let game_path = std::env::current_dir().unwrap_or_default();

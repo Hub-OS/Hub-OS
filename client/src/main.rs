@@ -1,6 +1,6 @@
 // #![windows_subsystem = "windows"]
 
-use framework::prelude::WinitPlatformApp;
+use hub_os::PlatformApp;
 
 fn main() {
     std::panic::set_hook(Box::new(|p| {
@@ -15,5 +15,6 @@ fn main() {
     }));
 
     // check lib.rs
-    hub_os::main(WinitPlatformApp::default()).unwrap()
+    #[allow(clippy::unit_arg)]
+    hub_os::main(PlatformApp::default()).unwrap()
 }
