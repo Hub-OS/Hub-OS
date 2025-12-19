@@ -6,6 +6,8 @@ use unicode_segmentation::UnicodeSegmentation;
 
 pub struct TextInput {
     view_offset: Vec2,
+    ime_area: Rect,
+    ime_area_updated: bool,
     caret_index: usize,
     character_limit: usize,
     text: String,
@@ -29,6 +31,8 @@ impl TextInput {
 
         Self {
             view_offset: Vec2::ZERO,
+            ime_area: Rect::ZERO,
+            ime_area_updated: false,
             caret_index: 0,
             character_limit: usize::MAX,
             text: String::new(),
@@ -122,7 +126,10 @@ impl UiNode for TextInput {
                 self.init_active = false;
                 self.active = true;
                 self.caret_time = 0;
-                game_io.input_mut().start_text_input();
+
+                let input = game_io.input_mut();
+                input.set_ime_cursor_area(self.ime_area);
+                input.start_text_input();
             }
 
             return;
@@ -132,10 +139,15 @@ impl UiNode for TextInput {
 
         if input_util.controller_just_pressed(Input::Confirm) {
             // open text input again, allows use to reopen input after accidental close
-            game_io.input_mut().start_text_input();
+            let input = game_io.input_mut();
+
+            input.set_ime_cursor_area(self.ime_area);
+            input.start_text_input();
         }
 
         let input = game_io.input_mut();
+
+        // test if we should confirm the input
         let holding_shift = input.is_key_down(Key::LShift) || input.is_key_down(Key::RShift);
         let pressed_return =
             input.was_key_just_pressed(Key::Return) || input.is_key_repeated(Key::Return);
@@ -156,6 +168,12 @@ impl UiNode for TextInput {
 
             (self.change_callback)(&self.text);
             return;
+        }
+
+        // update ime area if it updated
+        if input.accepting_text() && self.ime_area_updated {
+            input.set_ime_cursor_area(self.ime_area);
+            self.ime_area_updated = false;
         }
 
         // update caret
@@ -216,7 +234,8 @@ impl UiNode for TextInput {
         (self.text_style.bounds).set_position(bounds.position() + self.view_offset);
 
         // restrict rendering to bounds
-        sprite_queue.set_scissor(bounds / RESOLUTION_F);
+        let scissor_rect = bounds / RESOLUTION_F;
+        sprite_queue.set_scissor(scissor_rect);
 
         // todo: if paged, use draw_sliced to render just the page
         self.text_style.draw(game_io, sprite_queue, &self.text);
@@ -235,6 +254,14 @@ impl UiNode for TextInput {
 
         // reset scissor
         sprite_queue.set_scissor(Rect::UNIT);
+
+        // update ime area
+        let mut ime_area = scissor_rect;
+        ime_area.set_position(ime_area.position() * 2.0 - 1.0);
+        ime_area.y *= -1.0;
+
+        self.ime_area_updated |= self.ime_area != ime_area;
+        self.ime_area = ime_area;
     }
 
     fn ui_size_dirty(&self) -> bool {
