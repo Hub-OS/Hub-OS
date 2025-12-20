@@ -85,9 +85,20 @@ impl<T: Copy + 'static> CommandPalette<T> {
             return None;
         }
 
+        // scroll
+        let prev_index = self.scroll_tracker.selected_index();
+
         self.scroll_tracker.handle_vertical_input(ui_input_tracker);
 
+        if prev_index != self.scroll_tracker.selected_index() {
+            let globals = game_io.resource::<Globals>().unwrap();
+            globals.audio.play_sound(&globals.sfx.cursor_move);
+        }
+
         if input_util.was_just_pressed(Input::Confirm) {
+            let globals = game_io.resource::<Globals>().unwrap();
+            globals.audio.play_sound(&globals.sfx.cursor_select);
+
             self.options
                 .get(self.scroll_tracker.selected_index())
                 .map(|(_, command)| *command)
