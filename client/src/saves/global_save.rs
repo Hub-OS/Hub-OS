@@ -30,6 +30,7 @@ pub struct GlobalSave {
     pub resource_package_order: Vec<(PackageId, bool)>,
     #[serde(default = "GlobalSave::current_time")]
     pub resource_order_time: u64,
+    pub virtual_controller_visible: bool,
 }
 
 impl GlobalSave {
@@ -444,6 +445,7 @@ impl Default for GlobalSave {
             memories: HashMap::new(),
             resource_package_order: Vec::new(),
             resource_order_time: 0,
+            virtual_controller_visible: true,
         }
     }
 }

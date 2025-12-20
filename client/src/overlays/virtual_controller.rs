@@ -1,7 +1,7 @@
 use crate::bindable::SpriteColorMode;
-use crate::render::ui::{build_9patch, FontName, NinePatch, TextStyle};
+use crate::render::ui::{FontName, NinePatch, TextStyle, build_9patch};
 use crate::render::{Animator, Camera, FrameTime, SpriteColorQueue};
-use crate::resources::{AssetManager, Globals, ResourcePaths, RESOLUTION_F};
+use crate::resources::{AssetManager, Globals, RESOLUTION_F, ResourcePaths};
 use crate::saves::Config;
 use framework::prelude::*;
 use std::ops::Range;
@@ -527,6 +527,31 @@ impl VirtualController {
         self.last_movement_touch = None;
         self.selection_start = None;
     }
+
+    fn try_toggling_visibility(&self, game_io: &mut GameIO) {
+        if game_io.window().ime_height() > 0 {
+            return;
+        }
+
+        let input = game_io.input();
+
+        let globals = game_io.resource::<Globals>().unwrap();
+        let previously_visible = globals.global_save.virtual_controller_visible;
+
+        let new_visible = if previously_visible {
+            input
+                .controller(0)
+                .is_none_or(|c| c.latest_button().is_none())
+        } else {
+            !input.touches().is_empty()
+        };
+
+        if new_visible != previously_visible {
+            let globals = game_io.resource_mut::<Globals>().unwrap();
+            globals.global_save.virtual_controller_visible = new_visible;
+            globals.global_save.save();
+        }
+    }
 }
 
 impl GameOverlay for VirtualController {
@@ -618,6 +643,7 @@ impl GameOverlay for VirtualController {
         }
 
         self.last_touch_id = game_io.input().touches().first().map(|t| t.id);
+        self.try_toggling_visibility(game_io);
     }
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
@@ -627,6 +653,11 @@ impl GameOverlay for VirtualController {
         }
 
         let globals = game_io.resource::<Globals>().unwrap();
+
+        if !globals.global_save.virtual_controller_visible {
+            return;
+        }
+
         let editing = globals.editing_virtual_controller;
 
         let assets = &globals.assets;
