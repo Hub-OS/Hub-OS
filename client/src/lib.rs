@@ -60,7 +60,11 @@ const TITLE_LIST: [&str; 3] = [
     "Hub OS: Modular Battler",
 ];
 
+#[cfg(target_os = "android")]
+pub type GameLoop = framework::prelude::AndroidGameLoop;
+#[cfg(not(target_os = "android"))]
 pub type GameLoop = framework::prelude::WinitGameLoop;
+
 pub type PlatformApp = <GameLoop as GameWindowLoop>::PlatformApp;
 
 pub fn main(app: PlatformApp) -> anyhow::Result<()> {
@@ -71,15 +75,18 @@ pub fn main(app: PlatformApp) -> anyhow::Result<()> {
 
     let (log_sender, log_receiver) = flume::unbounded();
 
-    default_logger::DefaultLogger::new()
+    let logger_result = default_logger::DefaultLogger::new()
         .with_global_level_filter(log::LevelFilter::Warn)
         .with_crate_level_filter(env!("CARGO_PKG_NAME"), log::LevelFilter::Trace)
         .with_crate_level_filter("framework", log::LevelFilter::Trace)
         .with_listener(move |log| {
             let _ = log_sender.send(log);
         })
-        .init()
-        .unwrap();
+        .init();
+
+    if logger_result.is_err() {
+        log::error!("Logger already set");
+    }
 
     log::info!("Version {}", env!("CARGO_PKG_VERSION"));
 

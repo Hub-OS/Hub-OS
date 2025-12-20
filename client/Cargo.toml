@@ -70,6 +70,9 @@ minreq = { version = "2", features = ["https-native"] }
 opener = "0.8.2"
 
 [target.'cfg(target_os = "android")'.dependencies]
+framework = { git = "https://github.com/Hub-OS/framework", features = [
+  "android"
+] }
 minreq = { version = "2", features = ["https"] }
 
 [features]

@@ -7,10 +7,12 @@ version = "0.83.0"
 
 [profile.dev]
 opt-level = 1
+debug = 1
 
 [profile.dev-fast]
 inherits = "dev"
 opt-level = 0
+debug = 1
 
 [profile.release]
 lto = true

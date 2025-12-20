@@ -80,7 +80,7 @@ dependencies = [
 [[package]]
 name = "android"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#c2a492c6f1b86402f1661ae40bd9d1aadfab6086"
+source = "git+https://github.com/Hub-OS/framework#5059c19a12824983bb22c0a1c12250e073035556"
 dependencies = [
  "android-activity",
  "jni",
@@ -119,6 +119,21 @@ name = "android-tzdata"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e999941b234f3131b00bc13c22d06e8c5ff726d1b6318ac7eb276997bbb4fef0"
+
+[[package]]
+name = "android_game_loop"
+version = "0.1.0"
+source = "git+https://github.com/Hub-OS/framework#5059c19a12824983bb22c0a1c12250e073035556"
+dependencies = [
+ "android",
+ "android-activity",
+ "anyhow",
+ "framework_core",
+ "input",
+ "log",
+ "math",
+ "ndk",
+]
 
 [[package]]
 name = "android_system_properties"
@@ -584,7 +599,7 @@ checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 [[package]]
 name = "cfg_macros"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#c2a492c6f1b86402f1661ae40bd9d1aadfab6086"
+source = "git+https://github.com/Hub-OS/framework#5059c19a12824983bb22c0a1c12250e073035556"
 
 [[package]]
 name = "chrono"
@@ -1364,8 +1379,9 @@ dependencies = [
 [[package]]
 name = "framework"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#c2a492c6f1b86402f1661ae40bd9d1aadfab6086"
+source = "git+https://github.com/Hub-OS/framework#5059c19a12824983bb22c0a1c12250e073035556"
 dependencies = [
+ "android_game_loop",
  "cfg_macros",
  "framework_core",
  "input",
@@ -1378,7 +1394,7 @@ dependencies = [
 [[package]]
 name = "framework_core"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#c2a492c6f1b86402f1661ae40bd9d1aadfab6086"
+source = "git+https://github.com/Hub-OS/framework#5059c19a12824983bb22c0a1c12250e073035556"
 dependencies = [
  "anyhow",
  "async-executor",
@@ -2110,7 +2126,7 @@ dependencies = [
 [[package]]
 name = "input"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#c2a492c6f1b86402f1661ae40bd9d1aadfab6086"
+source = "git+https://github.com/Hub-OS/framework#5059c19a12824983bb22c0a1c12250e073035556"
 dependencies = [
  "math",
  "strum 0.25.0",
@@ -2390,7 +2406,7 @@ checksum = "34080505efa8e45a4b816c349525ebe327ceaa8559756f0356cba97ef3bf7432"
 [[package]]
 name = "logging"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#c2a492c6f1b86402f1661ae40bd9d1aadfab6086"
+source = "git+https://github.com/Hub-OS/framework#5059c19a12824983bb22c0a1c12250e073035556"
 dependencies = [
  "backtrace",
  "cfg_macros",
@@ -2441,7 +2457,7 @@ dependencies = [
 [[package]]
 name = "math"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#c2a492c6f1b86402f1661ae40bd9d1aadfab6086"
+source = "git+https://github.com/Hub-OS/framework#5059c19a12824983bb22c0a1c12250e073035556"
 dependencies = [
  "bytemuck",
  "glam",
@@ -4718,7 +4734,7 @@ dependencies = [
 [[package]]
 name = "wasm_forward"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#c2a492c6f1b86402f1661ae40bd9d1aadfab6086"
+source = "git+https://github.com/Hub-OS/framework#5059c19a12824983bb22c0a1c12250e073035556"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
@@ -5584,7 +5600,7 @@ dependencies = [
 [[package]]
 name = "winit_game_loop"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#c2a492c6f1b86402f1661ae40bd9d1aadfab6086"
+source = "git+https://github.com/Hub-OS/framework#5059c19a12824983bb22c0a1c12250e073035556"
 dependencies = [
  "android",
  "anyhow",
