@@ -8,7 +8,7 @@ use std::sync::mpsc;
 pub struct StoredPacket<ChannelLabel> {
     header: PacketHeader<ChannelLabel>,
     bytes: Vec<u8>,
-    creation: Instant,
+    send_time: Option<Instant>,
     next_retry: Instant,
     attempts: u8,
     priority: bool,
@@ -123,37 +123,7 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
 
                     if let Some(index) = packets_iter.position(|packet| packet.header == header) {
                         let packet = self.stored_packets.remove(index);
-
-                        // resolve rtt using a smoothing factor, matching TCP
-                        const A: f32 = 0.125;
-                        const A_FLIPPED: f32 = 1.0 - A;
-
-                        let rtt_sample = time - packet.creation;
-                        self.estimated_rtt =
-                            self.estimated_rtt.mul_f32(A_FLIPPED) + rtt_sample.mul_f32(A);
-
-                        // update retry delay
-                        let new_delay = self.estimated_rtt.mul_f32(self.rtt_resend_factor);
-                        self.retry_delay = self.retry_delay.min(new_delay);
-
-                        // try speeding up
-                        self.successfully_sent += packet.bytes.len();
-
-                        let max_bytes_per_rtt =
-                            self.estimated_rtt.as_secs_f32() * self.bytes_per_sec;
-                        let threshold = (max_bytes_per_rtt * 0.95) as usize;
-
-                        if self.successfully_sent >= threshold {
-                            // speed up
-                            self.bytes_per_sec *= self.bytes_per_second_increase_factor;
-
-                            // limit increase
-                            if let Some(max) = self.max_bytes_per_sec {
-                                self.bytes_per_sec = self.bytes_per_sec.min(max as _);
-                            }
-
-                            self.successfully_sent = 0;
-                        }
+                        self.sample_ack(time, packet);
 
                         #[cfg(feature = "reliable_statistics")]
                         {
@@ -229,14 +199,19 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                         }
 
                         if reliability.is_reliable() {
-                            let stored_packet = StoredPacket {
+                            let mut stored_packet = StoredPacket {
                                 header,
                                 bytes,
-                                creation: now,
-                                next_retry: if sending { now + self.retry_delay } else { now },
-                                attempts: if sending { 1 } else { 0 },
+                                send_time: None,
+                                next_retry: now,
+                                attempts: 0,
                                 priority,
                             };
+
+                            if sending {
+                                stored_packet.next_retry = now + self.retry_delay;
+                                stored_packet.attempts = 1
+                            }
 
                             if priority {
                                 self.stored_packets.insert(0, stored_packet);
@@ -265,6 +240,41 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                     send(&bytes);
                 }
             };
+        }
+    }
+
+    fn sample_ack(&mut self, time: Instant, acked_packet: StoredPacket<ChannelLabel>) {
+        let Some(send_time) = acked_packet.send_time else {
+            return;
+        };
+
+        // resolve rtt using a smoothing factor, matching TCP
+        const A: f32 = 0.125;
+        const A_FLIPPED: f32 = 1.0 - A;
+
+        let rtt_sample = time - send_time;
+        self.estimated_rtt = self.estimated_rtt.mul_f32(A_FLIPPED) + rtt_sample.mul_f32(A);
+
+        // update retry delay
+        let new_delay = self.estimated_rtt.mul_f32(self.rtt_resend_factor);
+        self.retry_delay = self.retry_delay.min(new_delay);
+
+        // try speeding up
+        self.successfully_sent += acked_packet.bytes.len();
+
+        let max_bytes_per_rtt = self.estimated_rtt.as_secs_f32() * self.bytes_per_sec;
+        let threshold = (max_bytes_per_rtt * 0.95) as usize;
+
+        if self.successfully_sent >= threshold {
+            // speed up
+            self.bytes_per_sec *= self.bytes_per_second_increase_factor;
+
+            // limit increase
+            if let Some(max) = self.max_bytes_per_sec {
+                self.bytes_per_sec = self.bytes_per_sec.min(max as _);
+            }
+
+            self.successfully_sent = 0;
         }
     }
 
@@ -297,6 +307,10 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
 
             send(&packet.bytes);
             packet.next_retry = now + self.retry_delay;
+
+            if packet.send_time.is_none() {
+                packet.send_time = Some(now);
+            }
 
             #[cfg(feature = "reliable_statistics")]
             {
