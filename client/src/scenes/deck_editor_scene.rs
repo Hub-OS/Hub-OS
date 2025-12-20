@@ -7,7 +7,6 @@ use crate::resources::*;
 use crate::saves::{Card, Deck, GlobalSave};
 use framework::prelude::*;
 use std::collections::HashMap;
-use uncased::UncasedStr;
 
 const NAMESPACE: PackageNamespace = PackageNamespace::Local;
 const MOVE_BULK_DELAY: FrameTime = 60;
@@ -499,7 +498,7 @@ fn handle_events(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
             scene.mode = mode;
         }
         Event::Search(search_text) => {
-            scene.name_filter = search_text.to_ascii_lowercase();
+            scene.name_filter = search_text.to_lowercase();
             apply_filters(scene, game_io);
             scene.pack_dock.update_preview();
         }
@@ -555,12 +554,7 @@ fn apply_filters(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
         dock.card_slots.retain(|slot| {
             slot.as_ref()
                 .and_then(|item| packages.package(NAMESPACE, &item.card.package_id))
-                .is_some_and(|package| {
-                    let short_name = UncasedStr::new(&package.card_properties.short_name);
-                    let long_name = UncasedStr::new(&package.long_name);
-
-                    short_name.starts_with(name_filter) || long_name.starts_with(name_filter)
-                })
+                .is_some_and(|package| package.search_name.contains(name_filter))
         });
     }
 

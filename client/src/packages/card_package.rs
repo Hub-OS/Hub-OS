@@ -1,10 +1,10 @@
 use super::*;
+use crate::CardRecipe;
 use crate::bindable::{CardClass, CardProperties};
 use crate::render::ui::{PackageListing, PackagePreviewData};
 use crate::render::{FrameTime, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, ResourcePaths};
 use crate::structures::VecMap;
-use crate::CardRecipe;
 use framework::prelude::{GameIO, Sprite, Texture, UVec2, Vec2};
 use serde::Deserialize;
 use std::sync::Arc;
@@ -60,6 +60,7 @@ pub struct CardPackage {
     pub hidden: bool,
     pub limit: usize,
     pub recipes: Vec<CardRecipe>,
+    pub search_name: String,
 }
 
 impl Package for CardPackage {
@@ -210,6 +211,10 @@ impl Package for CardPackage {
                 5
             }
         });
+
+        package.search_name = package.card_properties.short_name.to_lowercase()
+            + "\0"
+            + &package.long_name.to_lowercase();
 
         package
     }
