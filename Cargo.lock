@@ -80,11 +80,13 @@ dependencies = [
 [[package]]
 name = "android"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#5059c19a12824983bb22c0a1c12250e073035556"
+source = "git+https://github.com/Hub-OS/framework#1b2420f30904040c44a271707b489a67431d75c6"
 dependencies = [
  "android-activity",
  "jni",
  "log",
+ "ndk",
+ "ndk-sys",
 ]
 
 [[package]]
@@ -103,7 +105,7 @@ dependencies = [
  "log",
  "ndk",
  "ndk-context",
- "ndk-sys 0.6.0+11769913",
+ "ndk-sys",
  "num_enum",
  "thiserror 1.0.69",
 ]
@@ -123,7 +125,7 @@ checksum = "e999941b234f3131b00bc13c22d06e8c5ff726d1b6318ac7eb276997bbb4fef0"
 [[package]]
 name = "android_game_loop"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#5059c19a12824983bb22c0a1c12250e073035556"
+source = "git+https://github.com/Hub-OS/framework#1b2420f30904040c44a271707b489a67431d75c6"
 dependencies = [
  "android",
  "android-activity",
@@ -599,7 +601,7 @@ checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 [[package]]
 name = "cfg_macros"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#5059c19a12824983bb22c0a1c12250e073035556"
+source = "git+https://github.com/Hub-OS/framework#1b2420f30904040c44a271707b489a67431d75c6"
 
 [[package]]
 name = "chrono"
@@ -1379,7 +1381,7 @@ dependencies = [
 [[package]]
 name = "framework"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#5059c19a12824983bb22c0a1c12250e073035556"
+source = "git+https://github.com/Hub-OS/framework#1b2420f30904040c44a271707b489a67431d75c6"
 dependencies = [
  "android_game_loop",
  "cfg_macros",
@@ -1394,7 +1396,7 @@ dependencies = [
 [[package]]
 name = "framework_core"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#5059c19a12824983bb22c0a1c12250e073035556"
+source = "git+https://github.com/Hub-OS/framework#1b2420f30904040c44a271707b489a67431d75c6"
 dependencies = [
  "anyhow",
  "async-executor",
@@ -1603,7 +1605,7 @@ dependencies = [
  "vec_map",
  "wasm-bindgen",
  "web-sys",
- "windows 0.54.0",
+ "windows 0.58.0",
 ]
 
 [[package]]
@@ -2126,7 +2128,7 @@ dependencies = [
 [[package]]
 name = "input"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#5059c19a12824983bb22c0a1c12250e073035556"
+source = "git+https://github.com/Hub-OS/framework#1b2420f30904040c44a271707b489a67431d75c6"
 dependencies = [
  "math",
  "strum 0.25.0",
@@ -2305,7 +2307,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "07033963ba89ebaf1584d767badaa2e8fcec21aedea6b8c0346d487d49c28667"
 dependencies = [
  "cfg-if",
- "windows-targets 0.48.5",
+ "windows-targets 0.53.3",
 ]
 
 [[package]]
@@ -2406,13 +2408,13 @@ checksum = "34080505efa8e45a4b816c349525ebe327ceaa8559756f0356cba97ef3bf7432"
 [[package]]
 name = "logging"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#5059c19a12824983bb22c0a1c12250e073035556"
+source = "git+https://github.com/Hub-OS/framework#1b2420f30904040c44a271707b489a67431d75c6"
 dependencies = [
  "backtrace",
  "cfg_macros",
  "console_error_panic_hook",
  "log",
- "ndk-sys 0.5.0+25.2.9519653",
+ "ndk-sys",
  "termcolor",
  "wasm_forward",
 ]
@@ -2457,7 +2459,7 @@ dependencies = [
 [[package]]
 name = "math"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#5059c19a12824983bb22c0a1c12250e073035556"
+source = "git+https://github.com/Hub-OS/framework#1b2420f30904040c44a271707b489a67431d75c6"
 dependencies = [
  "bytemuck",
  "glam",
@@ -2609,7 +2611,7 @@ dependencies = [
  "bitflags 2.9.4",
  "jni-sys",
  "log",
- "ndk-sys 0.6.0+11769913",
+ "ndk-sys",
  "num_enum",
  "raw-window-handle",
  "thiserror 1.0.69",
@@ -2620,15 +2622,6 @@ name = "ndk-context"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "27b02d87554356db9e9a873add8782d4ea6e3e58ea071a9adb9a2e8ddb884a8b"
-
-[[package]]
-name = "ndk-sys"
-version = "0.5.0+25.2.9519653"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8c196769dd60fd4f363e11d948139556a344e79d451aeb2fa2fd040738ef7691"
-dependencies = [
- "jni-sys",
-]
 
 [[package]]
 name = "ndk-sys"
@@ -4734,7 +4727,7 @@ dependencies = [
 [[package]]
 name = "wasm_forward"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#5059c19a12824983bb22c0a1c12250e073035556"
+source = "git+https://github.com/Hub-OS/framework#1b2420f30904040c44a271707b489a67431d75c6"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
@@ -5029,7 +5022,7 @@ dependencies = [
  "log",
  "metal",
  "naga",
- "ndk-sys 0.6.0+11769913",
+ "ndk-sys",
  "objc",
  "ordered-float 5.0.0",
  "parking_lot",
@@ -5096,7 +5089,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -5600,7 +5593,7 @@ dependencies = [
 [[package]]
 name = "winit_game_loop"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#5059c19a12824983bb22c0a1c12250e073035556"
+source = "git+https://github.com/Hub-OS/framework#1b2420f30904040c44a271707b489a67431d75c6"
 dependencies = [
  "android",
  "anyhow",
