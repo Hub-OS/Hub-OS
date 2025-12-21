@@ -119,7 +119,14 @@ impl TextInput {
 
         let Some((prev_text, selection)) = &mut self.prev_pre_edit else {
             self.prev_pre_edit = pre_edit.map(|(text, selection)| (text.to_string(), selection));
-            return self.prev_pre_edit.is_some();
+
+            let updated = self.prev_pre_edit.is_some();
+
+            if !updated {
+                self.caret_time = prev_caret_time;
+            }
+
+            return updated;
         };
 
         let Some((new_text, new_selection)) = pre_edit else {
