@@ -10,6 +10,18 @@ static CONTEXT: LazyLock<Mutex<IndexMap<String, String>>> = LazyLock::new(|| {
         env!("CARGO_PKG_VERSION").to_string(),
     );
 
+    context.insert(
+        String::from("Platform"),
+        #[cfg(target_os = "android")]
+        String::from("Android"),
+        #[cfg(target_os = "linux")]
+        String::from("Linux"),
+        #[cfg(target_os = "macos")]
+        String::from("macOS"),
+        #[cfg(target_os = "windows")]
+        String::from("Windows"),
+    );
+
     Mutex::new(context)
 });
 
