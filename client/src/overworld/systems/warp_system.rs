@@ -67,14 +67,18 @@ pub fn system_warp(game_io: &mut GameIO, area: &mut OverworldArea) {
                 let event_sender = area.event_sender.clone();
                 let player_entity = area.player_data.entity;
 
+                let globals = game_io.resource::<Globals>().unwrap();
+                let fail_message = globals.translate("server-warp-failed");
+
                 game_io
                     .spawn_local_task(async move {
                         let events = if poll_task.await {
                             vec![OverworldEvent::TransferServer { address, data }]
                         } else {
-                            let message = String::from("Looks like the next area is offline...");
                             vec![
-                                OverworldEvent::SystemMessage { message },
+                                OverworldEvent::SystemMessage {
+                                    message: fail_message,
+                                },
                                 OverworldEvent::WarpIn {
                                     target_entity: player_entity,
                                     position: warp_position,
