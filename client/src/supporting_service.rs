@@ -103,9 +103,8 @@ impl GameService for SupportingService {
 
         if suspended {
             // stop music as another thread controls audio and would continue playing in the background
-            self.suspended_music = globals.audio.is_music_playing();
-
-            if self.suspended_music {
+            if !self.suspended_music && globals.audio.is_music_playing() {
+                self.suspended_music = true;
                 globals.audio.stop_music();
             }
         }
