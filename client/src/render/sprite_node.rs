@@ -306,6 +306,7 @@ impl Tree<SpriteNode> {
         flipped: bool,
     ) {
         let initial_shader_effect = sprite_queue.shader_effect();
+        let initial_color_mode = sprite_queue.color_mode();
 
         let inherit = InheritedProperties {
             offset: root_offset,
@@ -320,6 +321,7 @@ impl Tree<SpriteNode> {
         self.draw_subtree(sprite_queue, self.root_index(), &inherit);
 
         sprite_queue.set_shader_effect(initial_shader_effect);
+        sprite_queue.set_color_mode(initial_color_mode);
         sprite_queue.set_palette(None);
     }
 

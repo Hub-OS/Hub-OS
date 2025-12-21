@@ -907,8 +907,7 @@ impl BattleSimulation {
         // draw background
         self.background.draw(game_io, render_pass);
 
-        let mut sprite_queue =
-            SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::default());
+        let mut sprite_queue = SpriteColorQueue::new(game_io, &self.camera, Default::default());
 
         // draw field
         self.field.draw(
@@ -1172,8 +1171,6 @@ impl BattleSimulation {
 
             if let Some(tree) = emotion_sprite_tree {
                 tree.draw(sprite_queue);
-                sprite_queue.set_color_mode(Default::default());
-                sprite_queue.set_palette(None);
             }
         }
 

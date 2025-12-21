@@ -330,7 +330,6 @@ impl State for CardSelectState {
                 if let Some(sprite_tree) = simulation.sprite_trees.get_mut(button.sprite_tree_index)
                 {
                     sprite_tree.draw(sprite_queue);
-                    sprite_queue.set_color_mode(SpriteColorMode::Multiply);
                 }
             }
         }
@@ -341,7 +340,6 @@ impl State for CardSelectState {
             && let Some(sprite_tree) = simulation.sprite_trees.get_mut(button.sprite_tree_index)
         {
             sprite_tree.draw(sprite_queue);
-            sprite_queue.set_color_mode(SpriteColorMode::Multiply);
         }
 
         // drawing selection
@@ -428,7 +426,6 @@ impl State for CardSelectState {
 
                         if let Some(sprite_tree) = simulation.sprite_trees.get_mut(index) {
                             sprite_tree.draw(sprite_queue);
-                            sprite_queue.set_color_mode(SpriteColorMode::Multiply);
                         }
                     }
                 }
@@ -481,7 +478,9 @@ impl State for CardSelectState {
                 inverse_lerp!(FORM_FADE_DELAY, FORM_FADE_DELAY + FORM_FADE_TIME, elapsed);
             let a = crate::ease::quadratic(progress);
 
-            let color = transparent_flash_color(game_io).multiply_alpha(a);
+            let prev_color = resources.ui_fade_color.get();
+            let target_color = transparent_flash_color(game_io);
+            let color = Color::lerp(prev_color, target_color, a);
             resources.ui_fade_color.set(color);
         }
     }
