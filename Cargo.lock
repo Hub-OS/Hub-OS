@@ -80,7 +80,7 @@ dependencies = [
 [[package]]
 name = "android"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#1b2420f30904040c44a271707b489a67431d75c6"
+source = "git+https://github.com/Hub-OS/framework#7be7ca3997e841f72cd4f81f108736351a06d32f"
 dependencies = [
  "android-activity",
  "jni",
@@ -125,7 +125,7 @@ checksum = "e999941b234f3131b00bc13c22d06e8c5ff726d1b6318ac7eb276997bbb4fef0"
 [[package]]
 name = "android_game_loop"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#1b2420f30904040c44a271707b489a67431d75c6"
+source = "git+https://github.com/Hub-OS/framework#7be7ca3997e841f72cd4f81f108736351a06d32f"
 dependencies = [
  "android",
  "android-activity",
@@ -601,7 +601,7 @@ checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 [[package]]
 name = "cfg_macros"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#1b2420f30904040c44a271707b489a67431d75c6"
+source = "git+https://github.com/Hub-OS/framework#7be7ca3997e841f72cd4f81f108736351a06d32f"
 
 [[package]]
 name = "chrono"
@@ -1381,7 +1381,7 @@ dependencies = [
 [[package]]
 name = "framework"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#1b2420f30904040c44a271707b489a67431d75c6"
+source = "git+https://github.com/Hub-OS/framework#7be7ca3997e841f72cd4f81f108736351a06d32f"
 dependencies = [
  "android_game_loop",
  "cfg_macros",
@@ -1396,7 +1396,7 @@ dependencies = [
 [[package]]
 name = "framework_core"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#1b2420f30904040c44a271707b489a67431d75c6"
+source = "git+https://github.com/Hub-OS/framework#7be7ca3997e841f72cd4f81f108736351a06d32f"
 dependencies = [
  "anyhow",
  "async-executor",
@@ -2128,7 +2128,7 @@ dependencies = [
 [[package]]
 name = "input"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#1b2420f30904040c44a271707b489a67431d75c6"
+source = "git+https://github.com/Hub-OS/framework#7be7ca3997e841f72cd4f81f108736351a06d32f"
 dependencies = [
  "math",
  "strum 0.25.0",
@@ -2408,7 +2408,7 @@ checksum = "34080505efa8e45a4b816c349525ebe327ceaa8559756f0356cba97ef3bf7432"
 [[package]]
 name = "logging"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#1b2420f30904040c44a271707b489a67431d75c6"
+source = "git+https://github.com/Hub-OS/framework#7be7ca3997e841f72cd4f81f108736351a06d32f"
 dependencies = [
  "backtrace",
  "cfg_macros",
@@ -2459,11 +2459,11 @@ dependencies = [
 [[package]]
 name = "math"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#1b2420f30904040c44a271707b489a67431d75c6"
+source = "git+https://github.com/Hub-OS/framework#7be7ca3997e841f72cd4f81f108736351a06d32f"
 dependencies = [
  "bytemuck",
  "glam",
- "web-time 0.2.4",
+ "web-time",
 ]
 
 [[package]]
@@ -4727,7 +4727,7 @@ dependencies = [
 [[package]]
 name = "wasm_forward"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#1b2420f30904040c44a271707b489a67431d75c6"
+source = "git+https://github.com/Hub-OS/framework#7be7ca3997e841f72cd4f81f108736351a06d32f"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
@@ -4849,16 +4849,6 @@ name = "web-sys"
 version = "0.3.78"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77e4b637749ff0d92b8fad63aa1f7cff3cbe125fd49c175cd6345e7272638b12"
-dependencies = [
- "js-sys",
- "wasm-bindgen",
-]
-
-[[package]]
-name = "web-time"
-version = "0.2.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa30049b1c872b72c89866d458eae9f20380ab280ffd1b1e18df2d3e2d98cfe0"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
@@ -5583,7 +5573,7 @@ dependencies = [
  "wayland-protocols",
  "wayland-protocols-plasma",
  "web-sys",
- "web-time 1.1.0",
+ "web-time",
  "windows-sys 0.52.0",
  "x11-dl",
  "x11rb",
@@ -5593,7 +5583,7 @@ dependencies = [
 [[package]]
 name = "winit_game_loop"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#1b2420f30904040c44a271707b489a67431d75c6"
+source = "git+https://github.com/Hub-OS/framework#7be7ca3997e841f72cd4f81f108736351a06d32f"
 dependencies = [
  "android",
  "anyhow",
