@@ -1,15 +1,15 @@
-sync-data-scene-title = Sync Data
-sync-data-requesting-message = Requesting sync...
-sync-data-accept-sync-question = Accept sync from { $name }?
-sync-data-rejected-message = Request rejected.
+sync-data-scene-title = Sincronizar Data
+sync-data-requesting-message = Solicitando sincronização...
+sync-data-accept-sync-question = Aceitar sincronização de { $name }?
+sync-data-rejected-message = Solicitação rejeitada.
 sync-data-spider-man-pointing-error =
-    Sync cancelled.
-    Start sync from only one device.
-sync-data-disconnect-error = Connection lost.
-sync-data-syncing-message = Syncing...
-sync-data-syncing-packages-message = Syncing packages...
-sync-data-downloading-package-message = Downloading packages: { $current }/{ $total }
-sync-data-syncing-save-message = Syncing save...
-sync-data-read-remote-save-error = Failed to read remote save.
-sync-data-cancelled-message = Syncing cancelled.
-sync-data-complete-message = Sync complete.
+    Sincronização cancelada.
+    Inicie a sincronização por apenas um dispositivo.
+sync-data-disconnect-error = Conexão perdida.
+sync-data-syncing-message = Sincronizando...
+sync-data-syncing-packages-message = Sincronizando pacotes...
+sync-data-downloading-package-message = Transferindo pacotes: { $current }/{ $total }
+sync-data-syncing-save-message = Sincronizando o save...
+sync-data-read-remote-save-error = Falha ao ler o save remoto.
+sync-data-cancelled-message = Sincronização cancelada.
+sync-data-complete-message = Sincronização concluída.
