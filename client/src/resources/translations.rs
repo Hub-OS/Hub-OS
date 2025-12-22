@@ -11,6 +11,7 @@ pub type TranslationArgs<'key, 'value> = Vec<(&'key str, crate::FluentValue<'val
 pub struct Translations {
     language: fluent_templates::LanguageIdentifier,
     loader: fluent_templates::ArcLoader,
+    locales: Vec<fluent_templates::LanguageIdentifier>,
 }
 
 impl Translations {
@@ -53,11 +54,18 @@ impl Translations {
         .and_then(|language| language.to_string().parse().ok())
         .unwrap_or(loader.fallback().clone());
 
-        Self { language, loader }
+        let mut locales: Vec<_> = loader.locales().cloned().collect();
+        locales.sort();
+
+        Self {
+            language,
+            loader,
+            locales,
+        }
     }
 
-    pub fn locales(&self) -> Box<dyn Iterator<Item = &fluent_templates::LanguageIdentifier> + '_> {
-        self.loader.locales()
+    pub fn locales(&self) -> &[fluent_templates::LanguageIdentifier] {
+        &self.locales
     }
 
     pub fn translate(&self, text_key: &str) -> String {

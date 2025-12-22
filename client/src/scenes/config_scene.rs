@@ -498,32 +498,26 @@ impl ConfigScene {
                 },
                 |game_io, value, right| {
                     let globals = game_io.resource::<Globals>().unwrap();
+                    let locales = globals.translations.locales();
 
                     let new_identifier = if let Some(value_string) = value {
                         let language_id = value_string
                             .parse::<fluent_templates::LanguageIdentifier>()
                             .ok()?;
 
-                        let mut locales_iter = globals.translations.locales();
-                        let index = locales_iter.position(|id| *id == language_id)?;
-
-                        let mut locales_iter = globals.translations.locales();
+                        let index = locales.iter().position(|id| *id == language_id)?;
 
                         if right {
-                            locales_iter.nth(index + 1)
+                            locales.get(index + 1)
                         } else if index > 0 {
-                            locales_iter.nth(index - 1)
+                            locales.get(index - 1)
                         } else {
                             None
                         }
+                    } else if right {
+                        locales.first()
                     } else {
-                        let mut locales_iter = globals.translations.locales();
-
-                        if right {
-                            locales_iter.next()
-                        } else {
-                            locales_iter.last()
-                        }
+                        locales.last()
                     };
 
                     new_identifier.map(|id| id.to_string())
