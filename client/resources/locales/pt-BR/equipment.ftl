@@ -1,80 +1,76 @@
 character-status-scene-title = Status
-character-status-blocks-option = Blocks
+character-status-blocks-option = Blocos
 character-status-switch-drives-option = Drives
 character-status-navis-option = Navis
-character-status-attack-level-label = Attack LV
-character-status-rapid-level-label = Rapid  LV
-character-status-charge-level-label = Charge LV
-character-status-deck-tab = Folder
-character-status-deck-mega-limit-label = MegaLim
-character-status-deck-giga-limit-label = GigaLim
+character-status-attack-level-label = NV Ataque
+character-status-rapid-level-label = NV Rápido
+character-status-charge-level-label = NV Carga
+character-status-deck-tab = Pasta
+character-status-deck-mega-limit-label = LimMega
+character-status-deck-giga-limit-label = LimGiga
 character-status-deck-dark-limit-label = DarkLim
-character-status-augments-tab = Augments
-card-library-scene-title = Library
-card-class-standard = Standard
+character-status-augments-tab = Poderes
+card-library-scene-title = Galeria
+card-class-standard = Normal
 card-class-mega = Mega
 card-class-giga = Giga
-card-class-dark = Dark
+card-class-dark = Obscuro
 card-class-recipe = P.A.
-deck-list-scene-title = Folder List
-deck-list-context-menu-label = SELECT
-deck-list-option-new = NEW
-deck-list-option-edit = EDIT
-deck-list-option-equip = EQUIP
-deck-list-option-change-name = CHG NAME
-deck-list-option-more = MORE
-deck-list-option-back = BACK{ "    " }
-deck-list-option-clone = CLONE
-deck-list-option-delete = DELETE
-deck-list-delete-question = Delete { $name }?
-deck-list-option-export = EXPORT
-deck-list-copied-to-clipboard = Copied to clipboard.
-deck-list-copied-to-clipboard-failed = Failed to copy to clipboard.
-deck-list-option-import = IMPORT
-deck-list-import-failed = Failed to read from clipboard.
-deck-list-new-deck-name = NewFldr
-deck-editor-scene-title = Folder Edit
-deck-editor-pack-menu-label = FILTER
-deck-editor-option-search = Search
-deck-editor-option-namespace = Namesp.
-deck-editor-option-sort = Sort
-deck-editor-namespace-menu-label = NAMESPACE
-deck-editor-sort-menu-label = SORT
+deck-list-scene-title = Lista de Pastas
+deck-list-context-menu-label = Seleção
+deck-list-option-new = NOVO
+deck-list-option-edit = EDITAR
+deck-list-option-equip = USAR
+deck-list-option-change-name = RENOMEA{" "}
+deck-list-option-more = MAIS
+deck-list-option-back = VOLTAR
+deck-list-option-clone = CLONAR
+deck-list-option-delete = APAGAR
+deck-list-delete-question = Remover { $name }?
+deck-list-option-export = EXPORTAR
+deck-list-copied-to-clipboard = Copiado para a área de transferência.
+deck-list-copied-to-clipboard-failed = Falha ao copiar para a área de transferência!
+deck-list-option-import = IMPORTAR
+deck-list-import-failed = Erro ao ler da área de transferência.
+deck-list-new-deck-name = NovaPsta
+deck-editor-scene-title = Editar Pasta
+deck-editor-pack-menu-label = FILTRO
+deck-editor-option-search = Buscar
+deck-editor-option-namespace = NomeEs.
+deck-editor-option-sort = Ordena
+deck-editor-namespace-menu-label = NOMESPAÇO
+deck-editor-sort-menu-label = ORDENAR
 deck-editor-sort-id = ID
 deck-editor-sort-alphabetical = ABCDE
-deck-editor-sort-code = Code
-deck-editor-sort-damage = Attack
+deck-editor-sort-code = Código
+deck-editor-sort-damage = Ataque
 deck-editor-sort-element = Element
-deck-editor-sort-count = No.
-deck-editor-regular-card-mode-question = Choose Regular Chip?
+deck-editor-sort-count = Num.
+deck-editor-regular-card-mode-question = Escolher Chip Regular?
 deck-editor-regular-card-mode-start =
-    Choose a card to
-    use as a Regular
-    Card!
-deck-editor-regular-card-select =
-    Finished setting up
-    the Regular Chip
-deck-editor-regular-card-deselect =
-    Regular Chip
-    settings released.
-deck-editor-equip-deck-question = Equip { $name }?
+    Escolha um chip para
+    usar como um Chip
+    Regular!
+deck-editor-regular-card-select = Chip Regular escolhido
+deck-editor-regular-card-deselect = Chip Regular desmarcado.
+deck-editor-equip-deck-question = Equipar { $name }?
 character-select-scene-title = Navis
-character-select-locked-character = Locked by a rule set or connected server.
-character-select-invalid-dependencies = Missing or invalid dependencies.
-character-select-fallback-details = Continuing with this navi will discard innate abilities.
-blocks-scene-title = Blocks
-blocks-information-box-label = INFORMATION
-blocks-apply-label = RUN!
-blocks-option-move = Move
+character-select-locked-character = Bloqueado por um conjunto de regras ou de um servidor.
+character-select-invalid-dependencies = Depedências em falta ou inválidas.
+character-select-fallback-details = Continuar com esse Navi irá descartár as habilidades inatas.
+blocks-scene-title = Blocos
+blocks-information-box-label = INFORMAÇÃO
+blocks-apply-label = LANÇAR!
+blocks-option-move = Mover
 blocks-option-remove = Remove
-blocks-leave-question = Quit the customizer?
+blocks-leave-question = Sair do Customizador?
 blocks-success =
-    OK
-    RUN complete!
+    OK!
+    Lançamento completo!
 switch-drives-scene-title = Drives
-switch-drives-head-slot = Head
-switch-drives-body-slot = Body
-switch-drives-arm-slot = Arm
-switch-drives-leg-slot = Leg
-switch-drives-unequip-question = Unequip { $name }?
-switch-drives-filter-slot-question = Filter for { $slot } drives?
+switch-drives-head-slot = Cabeça
+switch-drives-body-slot = Corpo
+switch-drives-arm-slot = Braços
+switch-drives-leg-slot = Pernas
+switch-drives-unequip-question = Desequipar { $name }?
+switch-drives-filter-slot-question = Filtrar para Drives de { $slot }?
