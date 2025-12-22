@@ -258,10 +258,17 @@ impl TextStyle {
 
     fn iterate_slice_impl(
         &self,
-        text: &str,
-        range: Range<usize>,
+        mut text: &str,
+        mut range: Range<usize>,
         mut callback: &mut dyn FnMut(AnimationFrame, Vec2, Option<usize>),
     ) -> TextMetrics {
+        // reinterpret range to skip chars
+        // we don't limit the end to make sure words are properly wrapped
+        // even if they could partially fit on screen
+        text = &text[range.start..];
+        range.end -= range.start;
+        range.start = 0;
+
         let mut insert_tracker = TextInsertTracker::new(self);
         insert_tracker.line_start_index = range.start;
 
@@ -271,10 +278,6 @@ impl TextStyle {
         let mut last_grapheme = "";
 
         'primary: for (word_index, word) in word_indices(text) {
-            if word_index + word.len() - 1 < range.start {
-                continue;
-            }
-
             let word_width = self.measure_unbroken(word);
             let on_last_line = insert_tracker.y + insert_tracker.whitespace.y * 2.0
                 > insert_tracker.unscaled_bounds_size.y;
@@ -304,10 +307,6 @@ impl TextStyle {
 
             for (relative_index, character) in word.grapheme_indices(true) {
                 let index = word_index + relative_index;
-
-                if index < range.start {
-                    continue;
-                }
 
                 if index >= range.end {
                     break;
