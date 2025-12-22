@@ -25,7 +25,6 @@ impl SupportingServiceComm {
 }
 
 pub struct SupportingService {
-    suspended_music: bool,
     receiver: flume::Receiver<SupportingServiceEvent>,
 }
 
@@ -35,23 +34,13 @@ impl SupportingService {
 
         game_io.set_resource(SupportingServiceComm { sender });
 
-        Self {
-            suspended_music: false,
-            receiver,
-        }
+        Self { receiver }
     }
 }
 
 impl GameService for SupportingService {
     fn pre_update(&mut self, game_io: &mut GameIO) {
-        let suspended = game_io.suspended();
         let globals = game_io.resource_mut::<Globals>().unwrap();
-
-        if !suspended && self.suspended_music {
-            // resume music if we stopped it
-            globals.audio.restart_music();
-            self.suspended_music = false;
-        }
 
         // handle internal resolution and snap resize
         let internal_resolution = globals.internal_resolution;
@@ -101,14 +90,7 @@ impl GameService for SupportingService {
         let suspended = game_io.suspended();
         let globals = game_io.resource_mut::<Globals>().unwrap();
 
-        if suspended {
-            // stop music as another thread controls audio and would continue playing in the background
-            if !self.suspended_music && globals.audio.is_music_playing() {
-                self.suspended_music = true;
-                globals.audio.stop_music();
-            }
-        }
-
+        globals.audio.set_suspended(suspended);
         globals.audio.drop_empty_sinks();
 
         while let Ok(event) = self.receiver.try_recv() {

@@ -1,6 +1,6 @@
 use super::SoundBuffer;
 use indexmap::IndexMap;
-use rodio::cpal::{traits::HostTrait, Device};
+use rodio::cpal::{Device, traits::HostTrait};
 use rodio::{DeviceTrait, OutputStream, OutputStreamBuilder, Source};
 use std::cell::RefCell;
 use std::time::{Duration, Instant};
@@ -14,6 +14,7 @@ pub struct AudioManager {
     music_stack: RefCell<Vec<(SoundBuffer, bool)>>,
     music_volume: f32,
     sfx_volume: f32,
+    suspended: bool,
 }
 
 impl AudioManager {
@@ -25,6 +26,7 @@ impl AudioManager {
             music_stack: RefCell::new(vec![(SoundBuffer::new_empty(), false)]),
             music_volume: 1.0,
             sfx_volume: 1.0,
+            suspended: false,
         };
 
         audio_manager.use_device(name);
@@ -118,7 +120,26 @@ impl AudioManager {
         true
     }
 
+    pub fn set_suspended(&mut self, suspended: bool) {
+        if self.suspended == suspended {
+            return;
+        }
+        self.suspended = suspended;
+
+        if let Some(music_sink) = self.music_sink.get_mut() {
+            if suspended {
+                music_sink.set_volume(0.0);
+            } else {
+                music_sink.set_volume(self.music_volume);
+            }
+        }
+    }
+
     pub fn restart_music(&self) {
+        if self.suspended {
+            return;
+        }
+
         let stack = self.music_stack.borrow();
         let (buffer, loops) = stack.last().cloned().unwrap();
 
@@ -156,12 +177,14 @@ impl AudioManager {
         // create a new sink
         let music_sink = rodio::Sink::connect_new(stream.mixer());
 
-        music_sink.set_volume(self.music_volume);
+        if !self.suspended {
+            music_sink.set_volume(self.music_volume);
 
-        if loops {
-            music_sink.append(buffer.create_looped_sampler(None));
-        } else {
-            music_sink.append(buffer.create_sampler());
+            if loops {
+                music_sink.append(buffer.create_looped_sampler(None));
+            } else {
+                music_sink.append(buffer.create_sampler());
+            }
         }
 
         *self.music_sink.borrow_mut() = Some(music_sink);
@@ -175,6 +198,10 @@ impl AudioManager {
     }
 
     pub fn play_sound(&self, buffer: &SoundBuffer) {
+        if self.suspended {
+            return;
+        }
+
         let Some(stream) = self.stream.as_ref() else {
             return;
         };
@@ -213,6 +240,10 @@ impl AudioManager {
     }
 
     fn play_restart(&self, buffer: &SoundBuffer) {
+        if self.suspended {
+            return;
+        }
+
         self.try_ensure_sink(buffer);
 
         let mut sfx_sinks = self.sfx_sinks.borrow_mut();
@@ -234,6 +265,10 @@ impl AudioManager {
     }
 
     fn play_no_overlap(&self, buffer: &SoundBuffer) {
+        if self.suspended {
+            return;
+        }
+
         self.try_ensure_sink(buffer);
 
         let mut sfx_sinks = self.sfx_sinks.borrow_mut();
@@ -262,6 +297,10 @@ impl AudioManager {
     }
 
     fn play_loop_section(&self, buffer: &SoundBuffer, start: usize, end: usize) {
+        if self.suspended {
+            return;
+        }
+
         let Some(stream) = self.stream.as_ref() else {
             return;
         };
