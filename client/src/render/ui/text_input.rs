@@ -311,10 +311,11 @@ impl UiNode for TextInput {
         let text_shadow_color = self.text_style.shadow_color;
 
         if let Some(pre_edit_range) = pre_edit_range {
-            self.text_style.draw_styled(
+            self.text_style.draw_slice_styled(
                 game_io,
                 sprite_queue,
                 &self.rendered_text,
+                0..self.rendered_text.len(),
                 &mut move |sprite_queue, sprite, index| {
                     if index.is_none_or(|i| !pre_edit_range.contains(&i)) {
                         // draw plain

@@ -149,19 +149,42 @@ impl TextStyle {
     }
 
     pub fn draw(&self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue, text: &str) {
-        self.draw_styled(
-            game_io,
-            sprite_queue,
-            text,
-            &mut |sprite_queue, sprite, _| sprite_queue.draw_sprite(sprite),
-        );
+        self.draw_slice(game_io, sprite_queue, text, 0..text.len());
     }
 
-    pub fn draw_styled(
+    pub fn draw_slice(
         &self,
         game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         text: &str,
+        range: Range<usize>,
+    ) {
+        self.draw_slice_impl(
+            game_io,
+            sprite_queue,
+            text,
+            range,
+            &mut |sprite_queue, sprite, _| sprite_queue.draw_sprite(sprite),
+        );
+    }
+
+    pub fn draw_slice_styled(
+        &self,
+        game_io: &GameIO,
+        sprite_queue: &mut SpriteColorQueue,
+        text: &str,
+        range: Range<usize>,
+        draw_styled_fn: &mut dyn FnMut(&mut SpriteColorQueue, &mut Sprite, Option<usize>),
+    ) {
+        self.draw_slice_impl(game_io, sprite_queue, text, range, draw_styled_fn);
+    }
+
+    fn draw_slice_impl(
+        &self,
+        game_io: &GameIO,
+        sprite_queue: &mut SpriteColorQueue,
+        text: &str,
+        range: Range<usize>,
         mut draw_styled_fn: &mut dyn FnMut(&mut SpriteColorQueue, &mut Sprite, Option<usize>),
     ) {
         let prev_color_mode = sprite_queue.color_mode();
@@ -178,6 +201,7 @@ impl TextStyle {
                 sprite_queue,
                 &mut sprite,
                 text,
+                range.clone(),
                 &mut |sprite_queue, sprite, index| {
                     sprite.set_position(sprite.position() + self.scale);
                     draw_fn(sprite_queue, sprite, index);
@@ -187,7 +211,7 @@ impl TextStyle {
 
         // normal run
         Self::update_sprite_color(&mut sprite, sprite_queue, self.color);
-        self.draw_single_run(sprite_queue, &mut sprite, text, draw_fn);
+        self.draw_single_run(sprite_queue, &mut sprite, text, range.clone(), draw_fn);
 
         sprite_queue.set_color_mode(prev_color_mode);
     }
@@ -197,9 +221,10 @@ impl TextStyle {
         sprite_queue: &mut SpriteColorQueue,
         sprite: &mut Sprite,
         text: &str,
+        range: Range<usize>,
         draw_fn: &mut dyn FnMut(&mut SpriteColorQueue, &mut Sprite, Option<usize>),
     ) {
-        self.iterate(text, move |frame, position, index| {
+        self.iterate_slice(text, range, move |frame, position, index| {
             frame.apply(sprite);
             sprite.set_position(position);
 
@@ -221,16 +246,24 @@ impl TextStyle {
     where
         F: FnMut(AnimationFrame, Vec2, Option<usize>),
     {
-        self.iterate_impl(text, &mut callback)
+        self.iterate_slice_impl(text, 0..text.len(), &mut callback)
     }
 
-    fn iterate_impl(
+    pub fn iterate_slice<F>(&self, text: &str, range: Range<usize>, mut callback: F) -> TextMetrics
+    where
+        F: FnMut(AnimationFrame, Vec2, Option<usize>),
+    {
+        self.iterate_slice_impl(text, range, &mut callback)
+    }
+
+    fn iterate_slice_impl(
         &self,
         text: &str,
+        range: Range<usize>,
         mut callback: &mut dyn FnMut(AnimationFrame, Vec2, Option<usize>),
     ) -> TextMetrics {
         let mut insert_tracker = TextInsertTracker::new(self);
-        insert_tracker.line_start_index = 0;
+        insert_tracker.line_start_index = range.start;
 
         let mut max_x: f32 = 0.0;
         let mut max_y: f32 = 0.0;
@@ -238,6 +271,10 @@ impl TextStyle {
         let mut last_grapheme = "";
 
         'primary: for (word_index, word) in word_indices(text) {
+            if word_index + word.len() - 1 < range.start {
+                continue;
+            }
+
             let word_width = self.measure_unbroken(word);
             let on_last_line = insert_tracker.y + insert_tracker.whitespace.y * 2.0
                 > insert_tracker.unscaled_bounds_size.y;
@@ -267,6 +304,14 @@ impl TextStyle {
 
             for (relative_index, character) in word.grapheme_indices(true) {
                 let index = word_index + relative_index;
+
+                if index < range.start {
+                    continue;
+                }
+
+                if index >= range.end {
+                    break;
+                }
 
                 match character {
                     " " => {
