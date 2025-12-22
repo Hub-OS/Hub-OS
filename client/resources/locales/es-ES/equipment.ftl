@@ -8,6 +8,7 @@ character-status-charge-level-label = Charge LV
 character-status-deck-tab = Folder
 character-status-deck-mega-limit-label = MegaLim
 character-status-deck-giga-limit-label = GigaLim
+character-status-deck-dark-limit-label = DarkLim
 character-status-augments-tab = Augments
 card-library-scene-title = Library
 card-class-standard = Standard
