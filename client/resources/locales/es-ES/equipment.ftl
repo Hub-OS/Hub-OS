@@ -67,7 +67,7 @@ blocks-information-box-label = INFORMATION
 blocks-apply-label = RUN!
 blocks-option-move = Move
 blocks-option-remove = Remove
-blocks-leave-question = Quit the customizer?
+blocks-leave-question = Quit customizing and return to menu?
 blocks-success =
     OK
     RUN complete!
@@ -78,3 +78,4 @@ switch-drives-arm-slot = Arm
 switch-drives-leg-slot = Leg
 switch-drives-unequip-question = Unequip { $name }?
 switch-drives-filter-slot-question = Filter for { $slot } drives?
+switch-drives-leave-question = Quit customizing and return to menu?
