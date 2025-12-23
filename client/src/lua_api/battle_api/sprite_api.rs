@@ -471,7 +471,7 @@ fn parse_text_style<'lua>(
 ) -> rollback_mlua::Result<TextStyle> {
     let font_name: rollback_mlua::String = table.get("font")?;
     let font_name = font_name.to_str()?;
-    let font = FontName::from_name(font_name);
+    let font = FontName::from_cow(font_name.into());
 
     let texture_path = table.get::<_, Option<rollback_mlua::String>>("texture_path")?;
     let animation_path = table.get::<_, Option<rollback_mlua::String>>("animation_path")?;

@@ -33,10 +33,18 @@ pub enum FontName {
 }
 
 impl FontName {
-    pub fn from_name(name: &str) -> Self {
-        let uppercase_name = name.to_uppercase();
+    pub fn from_cow(mut name: Cow<str>) -> Self {
+        if !name.chars().all(|c| c.is_uppercase()) {
+            name = match name {
+                Cow::Borrowed(s) => s.to_uppercase().into(),
+                Cow::Owned(mut s) => {
+                    s.make_ascii_lowercase();
+                    s.into()
+                }
+            }
+        }
 
-        match uppercase_name.as_str() {
+        match &*name {
             "THICK" => FontName::Thick,
             "THIN" => FontName::Thin,
             "THIN_SMALL" => FontName::ThinSmall,
@@ -55,39 +63,8 @@ impl FontName {
             "ENTITY_HP_RED" => FontName::EntityHpRed,
             "ENTITY_HP_GREEN" => FontName::EntityHpGreen,
             "DUPLICATE_COUNT" => FontName::DuplicateCount,
-            _ => FontName::External(uppercase_name.into()),
+            _ => FontName::External(name.into()),
         }
-    }
-
-    pub fn from_state_prefix(state_prefix: &str) -> Option<Self> {
-        let font_name = match state_prefix {
-            "THICK_U+" => FontName::Thick,
-            "THIN_U+" => FontName::Thin,
-            "THIN_SMALL_U+" => FontName::ThinSmall,
-            "MICRO_U+" => FontName::Micro,
-            "MENU_TITLE_U+" => FontName::MenuTitle,
-            "NAVIGATION_U+" => FontName::Navigation,
-            "CONTEXT_U+" => FontName::Context,
-            "CODE_U+" => FontName::Code,
-            "PLAYER_HP_U+" => FontName::PlayerHp,
-            "PLAYER_HP_ORANGE_U+" => FontName::PlayerHpOrange,
-            "PLAYER_HP_GREEN_U+" => FontName::PlayerHpGreen,
-            "DAMAGE_U+" => FontName::Damage,
-            "RESULT_U+" => FontName::Result,
-            "BATTLE_U+" => FontName::Battle,
-            "ENTITY_HP_U+" => FontName::EntityHp,
-            "ENTITY_HP_RED_U+" => FontName::EntityHpRed,
-            "ENTITY_HP_GREEN_U+" => FontName::EntityHpGreen,
-            "DUPLICATE_COUNT_U+" => FontName::DuplicateCount,
-            _ => {
-                let name_end = state_prefix.rfind(SPLIT_PATTERN)?;
-                let name = &state_prefix[0..name_end];
-
-                FontName::External(name.to_uppercase().into())
-            }
-        };
-
-        Some(font_name)
     }
 }
 
@@ -128,33 +105,30 @@ impl GlyphAtlas {
         let mut fonts = Vec::new();
 
         for (state, frames) in animator.iter_states() {
-            let Some(pattern_index) = state.rfind(SPLIT_PATTERN) else {
+            let Some(split_index) = state.find(SPLIT_PATTERN) else {
                 log::warn!("{animation_path:?} has invalid state: {state:?}");
                 continue;
             };
 
-            let split_index = pattern_index + SPLIT_PATTERN.len();
-            let (font_prefix, glyph_hex) = state.split_at(split_index);
+            let (font_prefix, split_str) = state.split_at(split_index);
+            let hex_str = &split_str[SPLIT_PATTERN.len()..];
 
-            let Some(font) = FontName::from_state_prefix(font_prefix) else {
-                log::warn!("{animation_path:?} has invalid font prefix: {font_prefix:?}");
-                continue;
-            };
+            let font = FontName::from_cow(Cow::Borrowed(font_prefix));
 
             // translate the unicode into characters for a simpler and faster lookup
-            let Some(glyph_string) = Self::parse_glyph_hex(glyph_hex) else {
-                log::warn!("{animation_path:?} has invalid glyph hex {glyph_hex:?} in {state:?}");
+            let Some(grapheme) = Self::parse_glyph_hex(hex_str) else {
+                log::warn!("{animation_path:?} has invalid glyph hex {hex_str:?} in {state:?}");
                 continue;
             };
 
             let frame = frames.frame(0).cloned().unwrap_or_default();
 
             // attempt inserting frame for lowercase ascii
-            if let Some(char) = glyph_string.chars().next()
+            if let Some(char) = grapheme.chars().next()
                 && char.is_ascii_uppercase()
-                && glyph_string.is_ascii()
+                && grapheme.is_ascii()
             {
-                let lowercase_glyph_string = char.to_ascii_lowercase().to_string().into();
+                let lowercase_glyph_string = grapheme.to_ascii_lowercase().into();
 
                 map.entry((Cow::Owned(font.clone()), lowercase_glyph_string))
                     .or_insert_with(|| frame.clone());
@@ -165,7 +139,7 @@ impl GlyphAtlas {
             }
 
             // insert frame for unmodified character
-            map.insert((Cow::Owned(font), glyph_string.into()), frame);
+            map.insert((Cow::Owned(font), grapheme.into()), frame);
         }
 
         Self {

@@ -84,7 +84,7 @@ impl TextStyle {
             font: if blueprint.font_name.is_empty() {
                 FontName::Thin
             } else {
-                FontName::from_name(&blueprint.font_name)
+                FontName::from_cow(blueprint.font_name.into())
             },
             min_glyph_width: blueprint.min_glyph_width,
             letter_spacing: blueprint.letter_spacing,
@@ -361,8 +361,10 @@ impl TextStyle {
                         }
 
                         let prev_x = insert_tracker.x;
-                        let character_size = frame.size() - frame.origin;
-                        let (x, y) = insert_tracker.next_position(index, character_size).into();
+                        let character_size = frame.size();
+                        let (x, y) = insert_tracker
+                            .next_position(index, character_size, frame.origin)
+                            .into();
 
                         if may_ellipse && insert_tracker.should_ellipse_before(0.0) {
                             insert_tracker.x = prev_x;
@@ -433,7 +435,7 @@ impl TextStyle {
         let start_position = Vec2::new(insert_tracker.x + self.letter_spacing, insert_tracker.y);
 
         for _ in 0..3 {
-            let offset = ellipsis_tracker.next_position(0, frame.size());
+            let offset = ellipsis_tracker.next_position(0, frame.size(), Vec2::ZERO);
 
             let position = self.bounds.position() + (start_position + offset) * self.scale;
             callback(frame.clone(), position, None);
@@ -519,7 +521,9 @@ impl<'a> TextInsertTracker<'a> {
             >= self.unscaled_bounds_size.x
     }
 
-    fn next_position(&mut self, index: usize, character_size: Vec2) -> Vec2 {
+    fn next_position(&mut self, index: usize, mut character_size: Vec2, origin: Vec2) -> Vec2 {
+        character_size.x -= origin.x;
+
         let mut width_used = if self.style.monospace {
             self.whitespace.x
         } else {
@@ -544,11 +548,11 @@ impl<'a> TextInsertTracker<'a> {
     }
 
     fn insert_space(&mut self, index: usize) {
-        self.next_position(index, self.whitespace);
+        self.next_position(index, self.whitespace, Vec2::ZERO);
     }
 
     fn insert_tab(&mut self, index: usize) {
-        self.next_position(index, Vec2::new(self.whitespace.x * 4.0, 0.0));
+        self.next_position(index, Vec2::new(self.whitespace.x * 4.0, 0.0), Vec2::ZERO);
     }
 
     fn new_line(&mut self, index: usize, byte_length: usize) {
