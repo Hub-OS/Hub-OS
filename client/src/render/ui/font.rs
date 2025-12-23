@@ -125,10 +125,9 @@ impl GlyphAtlas {
 
             // attempt inserting frame for lowercase ascii
             if let Some(char) = grapheme.chars().next()
-                && char.is_ascii_uppercase()
-                && grapheme.is_ascii()
+                && char.is_uppercase()
             {
-                let lowercase_glyph_string = grapheme.to_ascii_lowercase().into();
+                let lowercase_glyph_string = grapheme.to_lowercase().into();
 
                 map.entry((Cow::Owned(font.clone()), lowercase_glyph_string))
                     .or_insert_with(|| frame.clone());
