@@ -351,7 +351,7 @@ impl StatusPage {
                 text.style.letter_spacing = 2.0;
                 text.style.bounds.set_position(point);
 
-                text.text = format!("{} {value}", globals.translate(prefix_key));
+                text.text = format!("{:<9} {value}", globals.translate(prefix_key));
 
                 page.text.push(text);
             }
