@@ -63,7 +63,7 @@ blocks-information-box-label = INFORMAÇÃO
 blocks-apply-label = LANÇAR!
 blocks-option-move = Mover
 blocks-option-remove = Remove
-blocks-leave-question = Sair do Customizador?
+blocks-leave-question = Quit customizing and return to menu?
 blocks-success =
     OK!
     Lançamento completo!
@@ -74,3 +74,4 @@ switch-drives-arm-slot = Braços
 switch-drives-leg-slot = Pernas
 switch-drives-unequip-question = Desequipar { $name }?
 switch-drives-filter-slot-question = Filtrar para Drives de { $slot }?
+switch-drives-leave-question = Quit customizing and return to menu?
