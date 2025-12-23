@@ -29,6 +29,7 @@ const SECTIONS: &[(&str, &[&str])] = &[
     ("credits-sound-design", &["DJRezzed"]),
     ("credits-graphics", &["Konst", "Salad"]),
     ("credits-user-experience", &["Gray Nine", "KayThree"]),
+    ("credits-localization", &["Rockin"]),
     (
         "credits-testers",
         &[
@@ -563,7 +564,7 @@ impl CreditsFun {
             time as f32 / 60.0
         }
 
-        const FIRST_SWITCH: FrameTime = section_end_frame(4) - FADE_IN_TIME * 2 / 3;
+        const FIRST_SWITCH: FrameTime = section_end_frame(5) - FADE_IN_TIME * 2 / 3;
         const SECOND_SWITCH: FrameTime = section_end_frame(8) - FADE_IN_TIME / 2;
         const THIRD_SWITCH: FrameTime = section_end_frame(9) - FADE_IN_TIME / 2;
 
