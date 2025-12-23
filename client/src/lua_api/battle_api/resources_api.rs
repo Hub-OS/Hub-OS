@@ -67,7 +67,7 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
         let player = entities.query_one_mut::<&Player>(entity_id.into()).ok();
 
         if player.is_some_and(|player| player.index == simulation.local_player_index)
-            && !simulation.is_resimulation
+            && (!simulation.is_resimulation || matches!(behavior, AudioBehavior::EndLoop))
         {
             let globals = game_io.resource::<Globals>().unwrap();
             let sound_buffer = globals.assets.audio(game_io, &path);
