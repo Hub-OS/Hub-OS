@@ -1195,22 +1195,10 @@ impl BattleSimulation {
         // build camera
         let mut camera = Camera::new(game_io);
         let render_size = render_target.size().as_vec2();
-        camera.set_scale(RESOLUTION_F / render_size * 0.9);
+        camera.set_scale(RESOLUTION_F / render_size);
 
         // resolve and sort entities to render
         let mut sorted_entities = Vec::new();
-
-        for (id, (entity, _)) in self.entities.query_mut::<(&mut Entity, &Character)>() {
-            if entity.spawned && !entity.deleted {
-                sorted_entities.push((id, entity.sort_key(&self.sprite_trees)))
-            }
-        }
-
-        sorted_entities.sort_by_key(|(_, key)| *key);
-
-        // render sprites
-        let mut sprite_queue = SpriteColorQueue::new(game_io, &camera, Default::default());
-
         let perspective_flipped = self.local_team.flips_perspective();
 
         let field = &self.field;
@@ -1234,27 +1222,61 @@ impl BattleSimulation {
             position * position_scale
         };
 
+        const TOP_PADDING: f32 = 6.0;
+        let base_top = camera.bounds().top();
+        let mut fit_scale: f32 = 0.9;
+
+        for (id, (entity, _)) in self.entities.query_mut::<(&mut Entity, &Character)>() {
+            if !entity.spawned || entity.deleted {
+                continue;
+            }
+
+            let Some(sprite_tree) = self.sprite_trees.get(entity.sprite_tree_index) else {
+                continue;
+            };
+
+            let position = resolve_position(entity);
+
+            // resolve scale
+            let root_sprite = sprite_tree.root();
+            let height = root_sprite.origin().y.max(0.0);
+            let edge_to_floor = position.y - base_top;
+
+            fit_scale = fit_scale.min((edge_to_floor - TOP_PADDING) / height);
+
+            // add sort key
+            sorted_entities.push((id, position, entity.sort_key(&self.sprite_trees)));
+        }
+
+        sorted_entities.sort_by_key(|(_, _, key)| *key);
+
+        // adjust camera to fit everyone on screen
+        camera.set_scale(camera.scale() * fit_scale);
+        let inv_fit_scale = 1.0 / fit_scale;
+
+        // render sprites
+        let mut sprite_queue = SpriteColorQueue::new(game_io, &camera, Default::default());
+
         // render shadows
-        for (id, _) in &sorted_entities {
+        for (id, position, _) in &sorted_entities {
             let Ok((entity, shadow)) = self.entities.query_one_mut::<(&Entity, &EntityShadow)>(*id)
             else {
                 continue;
             };
 
-            let position = resolve_position(entity);
             let flipped = perspective_flipped ^ entity.flipped();
 
             shadow.draw(
                 &mut sprite_queue,
                 &mut self.sprite_trees,
                 entity,
-                position,
+                *position * inv_fit_scale,
                 flipped,
             );
         }
 
         // render sprites
-        for (id, _) in &sorted_entities {
+        for (id, position, _) in &sorted_entities {
             let Ok(entity) = self.entities.query_one_mut::<&Entity>(*id) else {
                 continue;
             };
@@ -1263,9 +1285,8 @@ impl BattleSimulation {
                 continue;
             };
 
-            let position = resolve_position(entity);
             let flipped = perspective_flipped ^ entity.flipped();
-            sprite_tree.draw_with_offset(&mut sprite_queue, position, flipped);
+            sprite_tree.draw_with_offset(&mut sprite_queue, *position * inv_fit_scale, flipped);
         }
 
         // complete render
