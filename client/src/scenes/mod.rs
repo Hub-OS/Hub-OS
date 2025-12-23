@@ -49,3 +49,8 @@ pub use resource_order_scene::*;
 pub use server_edit_scene::*;
 pub use server_list_scene::*;
 pub use sync_data_scene::*;
+
+#[cfg(debug_assertions)]
+mod font_test_scene;
+#[cfg(debug_assertions)]
+pub use font_test_scene::*;

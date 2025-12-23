@@ -66,6 +66,30 @@ impl FontName {
             _ => FontName::External(name.into()),
         }
     }
+
+    pub fn as_str(&self) -> &str {
+        match self {
+            FontName::Thick => "THICK",
+            FontName::Thin => "THIN",
+            FontName::ThinSmall => "THIN_SMALL",
+            FontName::MenuTitle => "MENU_TITLE",
+            FontName::Navigation => "NAVIGATION",
+            FontName::Micro => "MICRO",
+            FontName::Context => "CONTEXT",
+            FontName::Code => "CODE",
+            FontName::PlayerHp => "PLAYER_HP",
+            FontName::PlayerHpOrange => "PLAYER_HP_ORANGE",
+            FontName::PlayerHpGreen => "PLAYER_HP_GREEN",
+            FontName::Damage => "DAMAGE",
+            FontName::Result => "RESULT",
+            FontName::Battle => "BATTLE",
+            FontName::EntityHp => "ENTITY_HP",
+            FontName::EntityHpRed => "ENTITY_HP_RED",
+            FontName::EntityHpGreen => "ENTITY_HP_GREEN",
+            FontName::DuplicateCount => "DUPLICATE_COUNT",
+            FontName::External(name) => name,
+        }
+    }
 }
 
 pub struct GlyphAtlas {

@@ -23,7 +23,9 @@ enum Event {
     OpenBindingContextMenu(flume::Sender<Option<BindingContextOption>>),
     EditVirtualControllerLayout,
     RequestNicknameChange,
-    ChangeNickname { name: String },
+    ChangeNickname {
+        name: String,
+    },
     SyncData,
     ClearCache,
     ViewPackages,
@@ -36,7 +38,11 @@ enum Event {
     SaveLastBattle,
     ViewCredits,
     OpenLink(String),
-    Leave { save: bool },
+    #[cfg(debug_assertions)]
+    ViewFonts,
+    Leave {
+        save: bool,
+    },
 }
 
 #[derive(EnumIter, Clone, Copy)]
@@ -801,6 +807,8 @@ impl ConfigScene {
                     ResourcePaths::game_folder().to_string() + "third_party_licenses.html",
                 ),
             ),
+            #[cfg(debug_assertions)]
+            create_button("View Fonts", Event::ViewFonts),
         ]
     }
 }
@@ -1066,14 +1074,20 @@ impl ConfigScene {
                     }
                 }
                 Event::ViewCredits => {
-                    let transition = crate::transitions::new_sub_scene(game_io);
                     let scene = CreditsScene::new(game_io);
+                    let transition = crate::transitions::new_sub_scene(game_io);
                     self.next_scene = NextScene::new_push(scene).with_transition(transition);
                 }
                 Event::OpenLink(address) => {
                     if let Err(err) = webbrowser::open(&address) {
                         log::error!("{err:?}");
                     }
+                }
+                #[cfg(debug_assertions)]
+                Event::ViewFonts => {
+                    let scene = crate::scenes::FontTestScene::new(game_io);
+                    let transition = crate::transitions::new_sub_scene(game_io);
+                    self.next_scene = NextScene::new_push(scene).with_transition(transition);
                 }
                 Event::Leave { save } => {
                     let globals = game_io.resource_mut::<Globals>().unwrap();
