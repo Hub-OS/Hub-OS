@@ -41,6 +41,7 @@ impl TimeFreezeEntityBackup {
         // swap action index
         let old_action_queue = std::mem::take(action_queue);
 
+        action_queue.action_type = old_action_queue.action_type;
         action_queue.active = if simulation.actions.contains_key(action_index) {
             Some(action_index)
         } else {
@@ -151,6 +152,11 @@ impl TimeFreezeEntityBackup {
                 old_queue
                     .pending
                     .retain(|&index| simulation.actions.contains_key(index));
+
+                if old_queue.active.is_some() || !old_queue.pending.is_empty() {
+                    // adopt old action type
+                    existing_queue.action_type = old_queue.action_type;
+                }
 
                 if existing_queue.pending.is_empty() {
                     // use old queue
