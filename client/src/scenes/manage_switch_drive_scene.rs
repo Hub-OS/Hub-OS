@@ -381,9 +381,11 @@ impl ManageSwitchDriveScene {
     fn request_leave(&mut self, game_io: &GameIO) {
         let event_sender = self.event_sender.clone();
 
+        let globals = game_io.resource::<Globals>().unwrap();
+
         let question = TextboxQuestion::new(
             game_io,
-            String::from("Quit customizing and return to menu?"),
+            globals.translate("switch-drives-leave-question"),
             move |yes| {
                 if yes {
                     event_sender.send(Event::Leave).unwrap();

@@ -533,7 +533,7 @@ impl BlocksScene {
 
                     let question = TextboxQuestion::new(
                         game_io,
-                        String::from("Quit customizing and return to menu?"),
+                        globals.translate("blocks-leave-question"),
                         move |yes| {
                             if yes {
                                 event_sender.send(Event::Leave).unwrap();
