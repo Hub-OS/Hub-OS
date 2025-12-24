@@ -366,26 +366,32 @@ impl StatusPage {
             let list = ScrollableList::new(game_io, bounds, 15.0)
                 .with_label(label.to_uppercase())
                 .with_focus(false)
-                .with_children(vec![
-                    Box::new(
-                        Text::new_monospace(game_io, FontName::Thin)
-                            .with_string(format!(
-                                "{:<7} {:>2}",
-                                globals.translate("character-status-deck-mega-limit-label"),
-                                data.deck_restrictions.mega_limit
-                            ))
-                            .with_shadow_color(TEXT_DARK_SHADOW_COLOR),
-                    ),
-                    Box::new(
-                        Text::new_monospace(game_io, FontName::Thin)
-                            .with_string(format!(
-                                "{:<7} {:>2}",
-                                globals.translate("character-status-deck-giga-limit-label"),
-                                data.deck_restrictions.giga_limit
-                            ))
-                            .with_shadow_color(TEXT_DARK_SHADOW_COLOR),
-                    ),
-                ]);
+                .with_children(
+                    [
+                        (
+                            "character-status-deck-mega-limit-label",
+                            data.deck_restrictions.mega_limit,
+                        ),
+                        (
+                            "character-status-deck-giga-limit-label",
+                            data.deck_restrictions.giga_limit,
+                        ),
+                        (
+                            "character-status-deck-dark-limit-label",
+                            data.deck_restrictions.dark_limit,
+                        ),
+                    ]
+                    .iter()
+                    .map(|(label_key, limit)| -> Box<dyn UiNode + 'static> {
+                        let string = format!("{:<7} {:>2}", globals.translate(label_key), limit);
+                        let text = Text::new_monospace(game_io, FontName::Thin)
+                            .with_string(string)
+                            .with_shadow_color(TEXT_DARK_SHADOW_COLOR);
+
+                        Box::new(text)
+                    })
+                    .collect(),
+                );
 
             page.lists.push(list);
         }

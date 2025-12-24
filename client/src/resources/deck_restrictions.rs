@@ -37,14 +37,17 @@ impl DeckRestrictions {
     ) {
         let mut mega_boost = player.mega_boost as isize;
         let mut giga_boost = player.giga_boost as isize;
+        let mut dark_boost = player.dark_boost as isize;
 
         for (package, level) in augments {
-            mega_boost += package.mega_boost * level as isize;
-            giga_boost += package.giga_boost * level as isize;
+            mega_boost += package.mega_boost as isize * level as isize;
+            giga_boost += package.giga_boost as isize * level as isize;
+            dark_boost += package.dark_boost as isize * level as isize;
         }
 
         self.mega_limit = (mega_boost + self.mega_limit as isize).max(0) as usize;
         self.giga_limit = (giga_boost + self.giga_limit as isize).max(0) as usize;
+        self.dark_limit = (dark_boost + self.dark_limit as isize).max(0) as usize;
     }
 
     /// Uses validate_cards and checks regular card validity
