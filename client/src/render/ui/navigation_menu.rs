@@ -1,6 +1,6 @@
 use super::{FontName, TextStyle};
 use crate::overworld::OverworldPlayerData;
-use crate::render::ui::{draw_clock, draw_date, ScrollTracker, UiInputTracker};
+use crate::render::ui::{ScrollTracker, UiInputTracker, draw_clock, draw_date};
 use crate::render::*;
 use crate::resources::*;
 use crate::scenes::*;
@@ -413,7 +413,7 @@ impl NavigationMenu {
             draw_clock(game_io, sprite_queue);
 
             if self.overlay {
-                let mut text_style = TextStyle::new_monospace(game_io, FontName::Micro);
+                let mut text_style = TextStyle::new(game_io, FontName::Micro);
 
                 text_style.bounds.set_position(self.hp_label_point);
                 text_style.draw(game_io, sprite_queue, &self.hp_label_text);
@@ -422,6 +422,7 @@ impl NavigationMenu {
                 text_style.draw(game_io, sprite_queue, &self.money_label_text);
 
                 text_style.font = FontName::Thin;
+                text_style.monospace = true;
 
                 text_style.bounds.set_position(self.hp_point);
                 text_style.draw(game_io, sprite_queue, &self.hp_text);
