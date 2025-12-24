@@ -25,7 +25,7 @@ server-kicked = Você foi expulso do servidor: "{ $reason }"
 server-disconnected =
     Tudo continua ainda.{ "\u0001" }..{ "\u0001" }
     Parece que fomos desconectados.
-server-warp-failed = Looks like the next area is offline...
+server-warp-failed = Parece que a próxima área esta offline...
 emotes-menu-search = PESQUISAR
 items-scene-title = Itens
 items-no-items-item = Sem Itens
