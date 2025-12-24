@@ -2,7 +2,7 @@ use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 use std::time::Duration;
 
 pub const VERSION_ID: &str = "Hub OS";
-pub const VERSION_ITERATION: u64 = 74;
+pub const VERSION_ITERATION: u64 = 75;
 pub const SERVER_TICK_RATE_F: f32 = 1.0 / 20.0; // 1 / 20 of a second
 pub const SERVER_TICK_RATE: Duration = Duration::from_millis(50); // 1 / 20 of a second
 pub const MAX_IDLE_DURATION: Duration = Duration::from_secs(1);

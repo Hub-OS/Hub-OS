@@ -572,8 +572,8 @@ impl BattleState {
                         continue;
                     }
 
-                    if attack_box.team == entity.team {
-                        // can't hit members of the same team
+                    if attack_box.team == entity.team && attack_box.team != Team::Other {
+                        // can't hit members of the same team, unless it's Team.Other
                         continue;
                     }
 
