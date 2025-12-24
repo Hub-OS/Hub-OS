@@ -135,6 +135,10 @@ impl State for BattleState {
         simulation: &mut BattleSimulation,
         sprite_queue: &mut SpriteColorQueue<'a>,
     ) {
+        if !simulation.hud_visible() {
+            return;
+        }
+
         // win / lose message
         if simulation.progress < BattleProgress::BattleEnded {
             // turn gauge

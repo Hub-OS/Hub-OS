@@ -89,6 +89,8 @@ impl State for TurnStartState {
         sprite_queue: &mut SpriteColorQueue<'a>,
     ) {
         // turn gauge
-        simulation.turn_gauge.draw(sprite_queue);
+        if simulation.hud_visible() {
+            simulation.turn_gauge.draw(sprite_queue);
+        }
     }
 }

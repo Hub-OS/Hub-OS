@@ -1148,14 +1148,25 @@ impl BattleSimulation {
     }
 
     pub fn draw_hud_nodes(&mut self, sprite_queue: &mut SpriteColorQueue) {
-        let sprite_tree = self.sprite_trees.values_mut().next().unwrap();
-        sprite_tree.draw(sprite_queue);
+        if let Some(sprite_tree) = self.sprite_trees.values_mut().next() {
+            sprite_tree.draw(sprite_queue);
+        } else {
+            log::error!("Hud node deleted?");
+        }
+    }
+
+    pub fn hud_visible(&self) -> bool {
+        self.sprite_trees
+            .values()
+            .next()
+            .map(|tree| tree.root().visible())
+            .unwrap_or_default()
     }
 
     pub fn draw_ui(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
         let local_id: hecs::Entity = self.local_player_id.into();
 
-        if local_id != hecs::Entity::DANGLING {
+        if self.hud_visible() && local_id != hecs::Entity::DANGLING {
             // draw player ui
             self.local_health_ui.draw(game_io, sprite_queue);
 
