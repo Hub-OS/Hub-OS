@@ -26,6 +26,7 @@ use packets::{
     ClientAssetType, ClientPacket, Reliability, SERVER_TICK_RATE, ServerPacket, address_parsing,
 };
 use std::collections::{HashMap, VecDeque};
+use strum::IntoEnumIterator;
 
 pub struct OverworldOnlineScene {
     area: OverworldArea,
@@ -1012,25 +1013,37 @@ impl OverworldOnlineScene {
                 self.next_scene_queue
                     .push_back((AutoEmote::Menu, next_scene));
             }
-            ServerPacket::ReferPackage { package_id } => {
+            ServerPacket::ReferPackage {
+                package_id,
+                options,
+            } => {
                 let globals = game_io.resource::<Globals>().unwrap();
 
-                let repo = &globals.config.package_repo;
-                let encoded_id = uri_encode(package_id.as_str());
-                let uri = format!("{repo}/api/mods/{encoded_id}/meta");
+                let ignore = options.unless_installed
+                    && PackageCategory::iter().any(|category| {
+                        globals
+                            .package_info(category, PackageNamespace::Local, &package_id)
+                            .is_some()
+                    });
 
-                let event_sender = self.area.event_sender.clone();
+                if !ignore {
+                    let repo = &globals.config.package_repo;
+                    let encoded_id = uri_encode(package_id.as_str());
+                    let uri = format!("{repo}/api/mods/{encoded_id}/meta");
 
-                game_io
-                    .spawn_local_task(async move {
-                        let Some(value) = crate::http::request_json(&uri).await else {
-                            return;
-                        };
+                    let event_sender = self.area.event_sender.clone();
 
-                        let listing = PackageListing::from(&value);
-                        let _ = event_sender.send(OverworldEvent::PackageReferred(listing));
-                    })
-                    .detach()
+                    game_io
+                        .spawn_local_task(async move {
+                            let Some(value) = crate::http::request_json(&uri).await else {
+                                return;
+                            };
+
+                            let listing = PackageListing::from(&value);
+                            let _ = event_sender.send(OverworldEvent::PackageReferred(listing));
+                        })
+                        .detach()
+                }
             }
             ServerPacket::OfferPackage {
                 id,

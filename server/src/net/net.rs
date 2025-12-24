@@ -7,7 +7,7 @@ use crate::jobs::JobPromise;
 use crate::threads::ThreadMessage;
 use flume::Sender;
 use indexmap::IndexSet;
-use packets::{MAX_IDLE_DURATION, Reliability, ServerPacket};
+use packets::{MAX_IDLE_DURATION, ReferOptions, Reliability, ServerPacket};
 use rand::{RngCore, thread_rng};
 use slotmap::{HopSlotMap, SlotMap};
 use std::borrow::Cow;
@@ -1267,7 +1267,12 @@ impl Net {
         );
     }
 
-    pub fn refer_package(&mut self, player_id: ActorId, package_id: PackageId) {
+    pub fn refer_package(
+        &mut self,
+        player_id: ActorId,
+        package_id: PackageId,
+        options: ReferOptions,
+    ) {
         let Some(client) = self.clients.get_mut(&player_id) else {
             return;
         };
@@ -1275,7 +1280,10 @@ impl Net {
         self.packet_orchestrator.borrow_mut().send(
             client.socket_address,
             Reliability::ReliableOrdered,
-            ServerPacket::ReferPackage { package_id },
+            ServerPacket::ReferPackage {
+                package_id,
+                options,
+            },
         );
     }
 

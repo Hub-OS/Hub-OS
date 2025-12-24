@@ -5,6 +5,11 @@ use super::{VERSION_ID, VERSION_ITERATION};
 use serde::{Deserialize, Serialize};
 use strum::IntoStaticStr;
 
+#[derive(Clone, PartialEq, Default, Debug, Serialize, Deserialize)]
+pub struct ReferOptions {
+    pub unless_installed: bool,
+}
+
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, IntoStaticStr)]
 pub enum ServerPacket {
     VersionInfo {
@@ -226,6 +231,7 @@ pub enum ServerPacket {
     },
     ReferPackage {
         package_id: PackageId,
+        options: ReferOptions,
     },
     OfferPackage {
         name: String,

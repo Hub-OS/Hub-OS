@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
+use strum::EnumIter;
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize, Serialize)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize, Serialize, EnumIter)]
 #[repr(u8)]
 pub enum PackageCategory {
     Augment,

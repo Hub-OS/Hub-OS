@@ -1,6 +1,7 @@
-use super::lua_helpers::*;
 use super::LuaApi;
+use super::lua_helpers::*;
 use crate::net::ShopItem;
+use packets::ReferOptions;
 use packets::structures::ActorId;
 use packets::structures::{PackageId, TextStyleBlueprint, TextboxOptions, TextureAnimPathPair};
 
@@ -388,14 +389,23 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 
     lua_api.add_dynamic_function("Net", "refer_package", |api_ctx, lua, params| {
-        let (player_id, package_id_string): (ActorId, mlua::String) = lua.unpack_multi(params)?;
+        let (player_id, package_id_string, options): (ActorId, mlua::String, Option<mlua::Table>) =
+            lua.unpack_multi(params)?;
 
         let package_id_str = package_id_string.to_str()?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
         let package_id = PackageId::from(package_id_str);
-        net.refer_package(player_id, package_id);
+        net.refer_package(
+            player_id,
+            package_id,
+            options
+                .map(|o| ReferOptions {
+                    unless_installed: o.get::<_, bool>("unless_installed").is_ok_and(|b| b),
+                })
+                .unwrap_or_default(),
+        );
 
         lua.pack_multi(())
     });
