@@ -1479,6 +1479,12 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
+    getter::<&Living, _>(
+        lua_api,
+        "status_immunities",
+        |living: &Living, lua, _: ()| lua.pack_multi(living.status_director.immunities()),
+    );
+
     setter(
         lua_api,
         "register_status_callback",

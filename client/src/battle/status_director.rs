@@ -64,6 +64,10 @@ impl StatusDirector {
         self.immunity |= hit_flags;
     }
 
+    pub fn immunities(&self) -> HitFlags {
+        self.immunity
+    }
+
     pub fn set_destructor(&mut self, flag: HitFlags, destructor: Option<BattleCallback>) {
         let Some(status) = self
             .statuses
