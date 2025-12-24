@@ -1011,7 +1011,7 @@ impl BattleSimulation {
         }
 
         self.time_freeze_tracker
-            .draw_intro_aura(self, &mut sprite_queue);
+            .draw_intro_aura(self, &mut sprite_queue, blind_filter);
 
         sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
 

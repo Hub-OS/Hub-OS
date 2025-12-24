@@ -727,6 +727,7 @@ impl TimeFreezeTracker {
         &self,
         simulation: &BattleSimulation,
         sprite_queue: &mut SpriteColorQueue,
+        blind_filter: Option<Team>,
     ) {
         if !matches!(
             self.state,
@@ -740,6 +741,10 @@ impl TimeFreezeTracker {
         let Some(tracker) = self.action_chain.last().cloned() else {
             return;
         };
+
+        if blind_filter.is_some_and(|team| team != tracker.team) {
+            return;
+        }
 
         let entities = &simulation.entities;
         let Ok(mut entity_query) = entities.query_one::<&mut Entity>(tracker.entity.into()) else {
