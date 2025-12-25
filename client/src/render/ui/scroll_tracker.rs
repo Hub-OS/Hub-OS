@@ -296,6 +296,10 @@ impl ScrollTracker {
     }
 
     pub fn remember_index(&mut self) {
+        if self.total_items <= self.selected_index {
+            log::warn!("Attempted to remember an out of bounds index");
+            return;
+        }
         self.remembered_index = Some(self.selected_index)
     }
 

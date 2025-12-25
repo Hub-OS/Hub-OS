@@ -978,8 +978,10 @@ fn select_card(scene: &mut DeckEditorScene, game_io: &GameIO) {
     } else if let Some(inactive_index) = inactive_dock.scroll_tracker.forget_index() {
         let active_index = active_dock.scroll_tracker.selected_index();
         success = inter_dock_swap(scene, game_io, inactive_index, active_index).is_ok();
-    } else {
+    } else if active_dock.scroll_tracker.total_items() > 0 {
         active_dock.scroll_tracker.remember_index();
+    } else {
+        success = false;
     }
 
     let globals = game_io.resource::<Globals>().unwrap();
@@ -1094,13 +1096,19 @@ fn inter_dock_swap(
     }
 
     let pack_slots = &scene.pack_dock.card_slots;
+    let empty_pack = pack_slots.is_empty();
     let pack_item = pack_slots.get(pack_index).and_then(|o| o.as_ref());
     let pack_card_count = pack_item.map(|item| item.count).unwrap_or_default();
 
     // store the index of the transferred card in case we need to move it back
     let mut stored_index = transfer_to_pack(scene, game_io, deck_index);
 
-    let Ok(index) = transfer_to_deck(scene, game_io, pack_index) else {
+    let index = if empty_pack {
+        // don't transfer the chip we moved to the pack back to the deck
+        0
+    } else if let Ok(index) = transfer_to_deck(scene, game_io, pack_index) {
+        index
+    } else {
         if transfer_to_pack_cleanup(scene, stored_index) {
             // converted negative cards in pack to 0
             return Ok(());
