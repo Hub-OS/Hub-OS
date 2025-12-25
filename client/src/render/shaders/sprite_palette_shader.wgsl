@@ -21,6 +21,11 @@ fn sample_palette(uv: vec2<f32>) -> vec4<f32> {
 }
 
 @fragment
+fn adopt_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @location(0) vec4<f32> {
+    return vec4<f32>(color.rgb, sample_palette(uv).a);
+}
+
+@fragment
 fn multiply_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @location(0) vec4<f32> {
     return color * sample_palette(uv);
 }
@@ -33,6 +38,8 @@ fn add_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @locat
 
     return out;
 }
+
+// no grascale_adopt_main implementation, adopt_main is used instead
 
 @fragment
 fn grayscale_multiply_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @location(0) vec4<f32> {
@@ -65,6 +72,13 @@ fn resolve_pixelated_uv(uv: vec2<f32>, color: vec4<f32>, frame: vec4<f32>) -> ve
     let scale_origin = vec2<f32>(frame.z * 0.5, 0.0);
     let centered_uv = uv - frame.xy - scale_origin;
     return trunc(centered_uv / block_size) * block_size + frame.xy + scale_origin;
+}
+
+@fragment
+fn pixelate_adopt_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>, @location(2) frame: vec4<f32>) -> @location(0) vec4<f32> {
+    let updated_uv = resolve_pixelated_uv(uv, color, frame);
+
+    return vec4<f32>(color.rgb, sample_palette(updated_uv).a);
 }
 
 @fragment

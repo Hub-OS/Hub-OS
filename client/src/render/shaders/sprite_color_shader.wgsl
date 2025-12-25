@@ -72,6 +72,11 @@ var txture: texture_2d<f32>;
 var smplr: sampler;
 
 @fragment
+fn adopt_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @location(0) vec4<f32> {
+    return vec4<f32>(color.rgb, textureSample(txture, smplr, uv).a);
+}
+
+@fragment
 fn multiply_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @location(0) vec4<f32> {
     return color * textureSample(txture, smplr, uv);
 }
@@ -80,10 +85,12 @@ fn multiply_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @
 fn add_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @location(0) vec4<f32> {
     let sample = textureSample(txture, smplr, uv);
     var out: vec4<f32> = clamp(color + sample, vec4<f32>(), vec4<f32>(1.0));
-    out.w = sample.w * color.w;
+    out.a = sample.a * color.a;
 
     return out;
 }
+
+// no grascale_adopt_main implementation, adopt_main is used instead
 
 @fragment
 fn grayscale_multiply_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @location(0) vec4<f32> {
@@ -99,7 +106,7 @@ fn grayscale_add_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>)
 
     let grayscale = vec4<f32>(vec3<f32>(average), sample.a);
     var out: vec4<f32> = clamp(color + grayscale, vec4<f32>(), vec4<f32>(1.0));
-    out.w = sample.w * color.w;
+    out.a = sample.a * color.a;
 
     return out;
 }
@@ -118,6 +125,14 @@ fn resolve_pixelated_uv(uv: vec2<f32>, color: vec4<f32>, frame: vec4<f32>) -> ve
     return trunc(centered_uv / block_size) * block_size + frame.xy + scale_origin;
 }
 
+
+@fragment
+fn pixelate_adopt_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>, @location(2) frame: vec4<f32>) -> @location(0) vec4<f32> {
+    let updated_uv = resolve_pixelated_uv(uv, color, frame);
+
+    return vec4<f32>(color.rgb, textureSample(txture, smplr, updated_uv).a);
+}
+
 @fragment
 fn pixelate_multiply_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>, @location(2) frame: vec4<f32>) -> @location(0) vec4<f32> {
     let updated_uv = resolve_pixelated_uv(uv, color, frame);
@@ -131,7 +146,7 @@ fn pixelate_add_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>, 
 
     let sample = textureSample(txture, smplr, updated_uv);
     var out: vec4<f32> = clamp(color + sample, vec4<f32>(), vec4<f32>(1.0));
-    out.w = sample.w * color.w;
+    out.a = sample.a * color.a;
 
     return out;
 }

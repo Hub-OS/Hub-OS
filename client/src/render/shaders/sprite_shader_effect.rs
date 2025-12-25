@@ -24,7 +24,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for SpriteShaderEffect {
                     from: lua_value.type_name(),
                     to: "SpriteShaderEffect",
                     message: None,
-                })
+                });
             }
         };
 

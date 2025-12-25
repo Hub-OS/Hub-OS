@@ -8,16 +8,27 @@ use std::sync::Arc;
 pub struct SpritePipelineCollection {
     add_pipeline: SpritePipeline<SpriteInstanceData>,
     multiply_pipeline: SpritePipeline<SpriteInstanceData>,
+    adopt_pipeline: SpritePipeline<SpriteInstanceData>,
+
     palette_add_pipeline: SpritePipeline<SpriteInstanceData>,
     palette_multiply_pipeline: SpritePipeline<SpriteInstanceData>,
+    palette_adopt_pipeline: SpritePipeline<SpriteInstanceData>,
+
     grayscale_add_pipeline: SpritePipeline<SpriteInstanceData>,
     grayscale_multiply_pipeline: SpritePipeline<SpriteInstanceData>,
+    grayscale_adopt_pipeline: SpritePipeline<SpriteInstanceData>,
+
     grayscale_palette_add_pipeline: SpritePipeline<SpriteInstanceData>,
     grayscale_palette_multiply_pipeline: SpritePipeline<SpriteInstanceData>,
+    grayscale_palette_adopt_pipeline: SpritePipeline<SpriteInstanceData>,
+
     pixelate_add_pipeline: SpritePipeline<SpriteInstanceData>,
     pixelate_multiply_pipeline: SpritePipeline<SpriteInstanceData>,
+    pixelate_adopt_pipeline: SpritePipeline<SpriteInstanceData>,
+
     pixelate_palette_add_pipeline: SpritePipeline<SpriteInstanceData>,
     pixelate_palette_multiply_pipeline: SpritePipeline<SpriteInstanceData>,
+    pixelate_palette_adopt_pipeline: SpritePipeline<SpriteInstanceData>,
 }
 
 impl SpritePipelineCollection {
@@ -27,9 +38,23 @@ impl SpritePipelineCollection {
         let palette_shader =
             device.create_shader_module(include_wgsl!("sprite_palette_shader.wgsl"));
 
+        // reused for grayscale
+        let plain_adopt = create_pipeline(game_io, &shared_shader, "vs_main", "adopt_main");
+        let palette_adopt = create_palette_pipeline(
+            game_io,
+            &shared_shader,
+            "vs_main",
+            &palette_shader,
+            "adopt_main",
+        );
+
         Self {
+            // plain
             add_pipeline: create_pipeline(game_io, &shared_shader, "vs_main", "add_main"),
             multiply_pipeline: create_pipeline(game_io, &shared_shader, "vs_main", "multiply_main"),
+            adopt_pipeline: plain_adopt.clone(),
+
+            // palette
             palette_add_pipeline: create_palette_pipeline(
                 game_io,
                 &shared_shader,
@@ -44,6 +69,9 @@ impl SpritePipelineCollection {
                 &palette_shader,
                 "multiply_main",
             ),
+            palette_adopt_pipeline: palette_adopt.clone(),
+
+            // grayscale
             grayscale_add_pipeline: create_pipeline(
                 game_io,
                 &shared_shader,
@@ -56,6 +84,9 @@ impl SpritePipelineCollection {
                 "vs_main",
                 "grayscale_multiply_main",
             ),
+            grayscale_adopt_pipeline: plain_adopt,
+
+            // grayscale palette
             grayscale_palette_add_pipeline: create_palette_pipeline(
                 game_io,
                 &shared_shader,
@@ -70,6 +101,9 @@ impl SpritePipelineCollection {
                 &palette_shader,
                 "grayscale_multiply_main",
             ),
+            grayscale_palette_adopt_pipeline: palette_adopt.clone(),
+
+            // pixelate
             pixelate_add_pipeline: create_pipeline(
                 game_io,
                 &shared_shader,
@@ -82,6 +116,14 @@ impl SpritePipelineCollection {
                 "pixelate_vs_main",
                 "pixelate_multiply_main",
             ),
+            pixelate_adopt_pipeline: create_pipeline(
+                game_io,
+                &shared_shader,
+                "pixelate_vs_main",
+                "pixelate_adopt_main",
+            ),
+
+            // pixelate palette
             pixelate_palette_add_pipeline: create_palette_pipeline(
                 game_io,
                 &shared_shader,
@@ -95,6 +137,13 @@ impl SpritePipelineCollection {
                 "pixelate_vs_main",
                 &palette_shader,
                 "pixelate_multiply_main",
+            ),
+            pixelate_palette_adopt_pipeline: create_palette_pipeline(
+                game_io,
+                &shared_shader,
+                "pixelate_vs_main",
+                &palette_shader,
+                "pixelate_adopt_main",
             ),
         }
     }
@@ -111,11 +160,13 @@ impl SpritePipelineCollection {
                     match color_mode {
                         SpriteColorMode::Add => &self.palette_add_pipeline,
                         SpriteColorMode::Multiply => &self.palette_multiply_pipeline,
+                        SpriteColorMode::Adopt => &self.palette_adopt_pipeline,
                     }
                 } else {
                     match color_mode {
                         SpriteColorMode::Add => &self.add_pipeline,
                         SpriteColorMode::Multiply => &self.multiply_pipeline,
+                        SpriteColorMode::Adopt => &self.adopt_pipeline,
                     }
                 }
             }
@@ -124,11 +175,13 @@ impl SpritePipelineCollection {
                     match color_mode {
                         SpriteColorMode::Add => &self.grayscale_palette_add_pipeline,
                         SpriteColorMode::Multiply => &self.grayscale_palette_multiply_pipeline,
+                        SpriteColorMode::Adopt => &self.grayscale_palette_adopt_pipeline,
                     }
                 } else {
                     match color_mode {
                         SpriteColorMode::Add => &self.grayscale_add_pipeline,
                         SpriteColorMode::Multiply => &self.grayscale_multiply_pipeline,
+                        SpriteColorMode::Adopt => &self.grayscale_adopt_pipeline,
                     }
                 }
             }
@@ -137,11 +190,13 @@ impl SpritePipelineCollection {
                     match color_mode {
                         SpriteColorMode::Add => &self.pixelate_palette_add_pipeline,
                         SpriteColorMode::Multiply => &self.pixelate_palette_multiply_pipeline,
+                        SpriteColorMode::Adopt => &self.pixelate_palette_adopt_pipeline,
                     }
                 } else {
                     match color_mode {
                         SpriteColorMode::Add => &self.pixelate_add_pipeline,
                         SpriteColorMode::Multiply => &self.pixelate_multiply_pipeline,
+                        SpriteColorMode::Adopt => &self.pixelate_adopt_pipeline,
                     }
                 }
             }

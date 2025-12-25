@@ -1,5 +1,6 @@
 use crate::battle::ActionType;
 use crate::bindable::{AudioBehavior, LuaVector, TimeFreezeChainLimit};
+use crate::lua_api::battle_api::errors::warn_deprecated;
 use crate::render::FrameTime;
 use crate::resources::ResourcePaths;
 use rollback_mlua::LuaSerdeExt;
@@ -151,8 +152,32 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     use crate::bindable::SpriteColorMode;
 
     let color_mode_table = lua.create_table()?;
+    let color_mode_metatable = lua.create_table()?;
+    color_mode_metatable.raw_set(
+        "__index",
+        lua.create_function(
+            |lua, (self_table, key): (rollback_mlua::Table, rollback_mlua::String)| {
+                let value = self_table.raw_get::<_, rollback_mlua::Value>(key.clone())?;
+
+                if !value.is_nil() {
+                    return lua.pack_multi(value);
+                }
+
+                if key.to_string_lossy() == "Additive" {
+                    warn_deprecated(lua, "ColorMode.Additive (use ColorMode.Add instead)");
+                    self_table.set("Additive", SpriteColorMode::Add)?;
+                    return lua.pack_multi(SpriteColorMode::Add);
+                }
+
+                lua.pack_multi(rollback_mlua::Nil)
+            },
+        )?,
+    )?;
+    color_mode_table.set_metatable(Some(color_mode_metatable));
+
     color_mode_table.set("Multiply", SpriteColorMode::Multiply)?;
-    color_mode_table.set("Additive", SpriteColorMode::Add)?;
+    color_mode_table.set("Add", SpriteColorMode::Add)?;
+    color_mode_table.set("Adopt", SpriteColorMode::Adopt)?;
     globals.set("ColorMode", color_mode_table)?;
 
     use crate::bindable::AnimatorPlaybackMode;

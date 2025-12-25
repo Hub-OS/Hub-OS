@@ -7,6 +7,7 @@ pub enum SpriteColorMode {
     Add,
     #[default]
     Multiply,
+    Adopt,
 }
 
 impl SpriteColorMode {
@@ -14,6 +15,7 @@ impl SpriteColorMode {
         match self {
             SpriteColorMode::Add => Color::BLACK,
             SpriteColorMode::Multiply => Color::WHITE,
+            SpriteColorMode::Adopt => Color::WHITE,
         }
     }
 }
@@ -32,7 +34,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for SpriteColorMode {
                     from: lua_value.type_name(),
                     to: "SpriteColorMode",
                     message: None,
-                })
+                });
             }
         };
 
