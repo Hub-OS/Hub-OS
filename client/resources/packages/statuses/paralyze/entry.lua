@@ -41,8 +41,13 @@ function status_init(status)
   component.on_update_func = function()
     -- old: if time // 2 % 2 == 0 then
     if time // 2 % 2 == 0 and time // 8 % 2 == 0 then
-      entity_sprite:set_color_mode(ColorMode.Additive)
-      entity_sprite:set_color(COLOR)
+      entity_sprite:set_color_mode(ColorMode.Add)
+
+      local color = entity:color()
+      color.r = COLOR.r
+      color.g = COLOR.g
+      color.b = COLOR.b
+      entity_sprite:set_color(color)
     end
 
     time = time + 1

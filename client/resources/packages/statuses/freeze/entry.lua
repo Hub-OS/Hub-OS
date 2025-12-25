@@ -106,8 +106,13 @@ function status_init(status)
   local color_component = entity:create_component(Lifetime.Scene)
   color_component.on_update_func = function()
     freeze_sprite:set_offset(0, -entity:height() / 2)
-    entity_sprite:set_color_mode(ColorMode.Additive)
-    entity_sprite:set_color(FREEZE_COLOR)
+    entity_sprite:set_color_mode(ColorMode.Add)
+
+    local color = entity:color()
+    color.r = FREEZE_COLOR.r
+    color.g = FREEZE_COLOR.g
+    color.b = FREEZE_COLOR.b
+    entity_sprite:set_color(color)
   end
 
   -- aux props for weaknesses

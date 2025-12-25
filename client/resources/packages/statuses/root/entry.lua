@@ -14,7 +14,12 @@ function status_init(status)
 
     if apply_color then
       entity_sprite:set_color_mode(ColorMode.Multiply)
-      entity_sprite:set_color(COLOR)
+
+      local color = entity:color()
+      color.r = COLOR.r
+      color.g = COLOR.g
+      color.b = COLOR.b
+      entity_sprite:set_color(color)
     end
 
     time = time + 1
