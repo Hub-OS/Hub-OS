@@ -1056,7 +1056,15 @@ impl BattleState {
         for (id, (entity, living, player, update_callback, components, mut movement)) in
             entities.query_mut::<Query>().into_iter()
         {
-            if !entity.spawned || entity.deleted {
+            if !entity.spawned {
+                continue;
+            }
+
+            if entity.deleted {
+                // remove statuses on deleted entities
+                let status_director = &mut living.status_director;
+                status_director.clear_statuses(!0);
+                callbacks.extend(status_director.take_ready_destructors());
                 continue;
             }
 
