@@ -33,8 +33,8 @@ local i = 0
 local sprite = entity:sprite()
 local color = Color.new(255, 255, 255, 255)
 
-local component = entity:create_component(Lifetime.ActiveBattle)
-component.on_update_func = function()
+local animate_component = entity:create_component(Lifetime.ActiveBattle)
+animate_component.on_update_func = function()
   i = i + 1
 
   if i == 1 then
@@ -54,4 +54,18 @@ component.on_update_func = function()
   if i > TOTAL_DURATION then
     entity:erase()
   end
+end
+
+
+local color_component = entity:create_component(Lifetime.Scene)
+color_component.on_update_func = function()
+  if i > START_DELAY then
+    local progress =
+        (i - START_DELAY) / (TOTAL_DURATION - START_DELAY)
+
+    color.a = (1.0 - progress) * 255
+  end
+
+  sprite:set_shader_effect(SpriteShaderEffect.Pixelate)
+  sprite:set_color(color)
 end

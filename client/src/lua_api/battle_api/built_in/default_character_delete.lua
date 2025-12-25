@@ -21,16 +21,6 @@ local component = entity:create_component(Lifetime.ActiveBattle)
 component.on_update_func = function()
   i = i + 1
 
-  -- flash the entity white
-  local color = WHITE
-
-  if (i // 2) % 2 == 0 then
-    color = BLACK
-  end
-
-  sprite:set_color_mode(ColorMode.Additive)
-  sprite:set_color(color)
-
   -- spawn explosions
   if i % EXPLOSION_RATE == 1 and i < TOTAL_DURATION - END_DELAY then
     local explosion = Explosion.new()
@@ -55,4 +45,19 @@ component.on_update_func = function()
   if i >= TOTAL_DURATION then
     entity:erase()
   end
+end
+
+
+local color_component = entity:create_component(Lifetime.Scene)
+
+color_component.on_update_func = function()
+  -- flash the entity white
+  local color = WHITE
+
+  if (i // 2) % 2 == 0 then
+    color = BLACK
+  end
+
+  sprite:set_color_mode(ColorMode.Add)
+  sprite:set_color(color)
 end
