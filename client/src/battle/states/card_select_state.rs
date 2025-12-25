@@ -109,10 +109,10 @@ impl State for CardSelectState {
             simulation.statistics.turns += 1;
             simulation.turn_gauge.set_time(0);
 
-            type Query<'a> = (&'a Player, &'a mut PlayerHand);
+            type Query<'a> = (&'a Entity, &'a Player, &'a mut PlayerHand);
 
             // reset staged items confirmation and initialize selection data
-            for (_, (player, hand)) in simulation.entities.query_mut::<Query>() {
+            for (_, (_, player, hand)) in simulation.entities.query_mut::<Query>() {
                 hand.staged_items.set_confirmed(false);
 
                 if player.index >= self.player_selections.len() {
@@ -130,8 +130,8 @@ impl State for CardSelectState {
 
             // handle frame 0 scripted confirmation
             let mut pre_confirmed = false;
-            for (id, (player, hand)) in simulation.entities.query_mut::<Query>() {
-                if !hand.staged_items.confirmed() {
+            for (id, (entity, player, hand)) in simulation.entities.query_mut::<Query>() {
+                if !entity.deleted && !hand.staged_items.confirmed() {
                     continue;
                 }
 
