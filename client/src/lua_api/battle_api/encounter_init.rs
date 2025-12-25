@@ -1,6 +1,6 @@
 use super::errors::{encounter_method_called_after_start, server_communication_closed};
 use super::field_api::get_field_compat_table;
-use super::{create_entity_table, BattleLuaApi, ENCOUNTER_TABLE, MUTATOR_TABLE, SPAWNER_TABLE};
+use super::{BattleLuaApi, ENCOUNTER_TABLE, MUTATOR_TABLE, SPAWNER_TABLE, create_entity_table};
 use crate::battle::{
     BattleInitMusic, BattleProgress, BattleScriptContext, BattleSimulation, Character, Entity,
     SharedBattleResources, TileState, TileStateAnimationSupport,
@@ -294,6 +294,48 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
             let mut api_ctx = api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
             simulation.time_freeze_tracker.set_chain_limit(chain_limit);
+
+            lua.pack_multi(())
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        ENCOUNTER_TABLE,
+        "set_team_owner_limit",
+        |api_ctx, lua, params| {
+            let (_, limit): (rollback_mlua::Table, u8) = lua.unpack_multi(params)?;
+
+            let mut api_ctx = api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+            simulation.ownership_tracking.team_owned_limit = limit;
+
+            lua.pack_multi(())
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        ENCOUNTER_TABLE,
+        "set_entity_owner_limit",
+        |api_ctx, lua, params| {
+            let (_, limit): (rollback_mlua::Table, u8) = lua.unpack_multi(params)?;
+
+            let mut api_ctx = api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+            simulation.ownership_tracking.entity_owned_limit = limit;
+
+            lua.pack_multi(())
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        ENCOUNTER_TABLE,
+        "set_entities_share_ownership",
+        |api_ctx, lua, params| {
+            let (_, share): (rollback_mlua::Table, Option<bool>) = lua.unpack_multi(params)?;
+
+            let mut api_ctx = api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+            simulation.ownership_tracking.share_entity_limit = share.unwrap_or(true);
 
             lua.pack_multi(())
         },

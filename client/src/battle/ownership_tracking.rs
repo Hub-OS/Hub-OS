@@ -3,6 +3,9 @@ use crate::bindable::{EntityId, EntityOwner};
 #[derive(Default, Clone)]
 pub struct OwnershipTracking {
     owned_entities: Vec<(EntityOwner, EntityId)>,
+    pub(crate) team_owned_limit: u8,
+    pub(crate) entity_owned_limit: u8,
+    pub(crate) share_entity_limit: bool,
 }
 
 impl OwnershipTracking {
@@ -21,8 +24,13 @@ impl OwnershipTracking {
             }
 
             let same_team_and_type = match (existing_ownership, ownership) {
-                (EntityOwner::Team(a), EntityOwner::Team(b))
-                | (EntityOwner::Entity(a, _), EntityOwner::Entity(b, _)) => *a == b,
+                (EntityOwner::Team(team_a), EntityOwner::Team(team_b)) => *team_a == team_b,
+                (EntityOwner::Entity(team_a, _), EntityOwner::Entity(team_b, _))
+                    if self.share_entity_limit =>
+                {
+                    *team_a == team_b
+                }
+                (EntityOwner::Entity(_, a), EntityOwner::Entity(_, b)) => *a == b,
                 _ => false,
             };
 
@@ -38,8 +46,8 @@ impl OwnershipTracking {
         }
 
         let limit = match ownership {
-            EntityOwner::Team(_) => 2,
-            EntityOwner::Entity(_, _) => 1,
+            EntityOwner::Team(_) => self.team_owned_limit,
+            EntityOwner::Entity(_, _) => self.entity_owned_limit,
         };
 
         let pending_deletion = if count >= limit {
