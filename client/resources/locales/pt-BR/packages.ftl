@@ -33,5 +33,5 @@ package-info-downloading = Baixando...
 package-info-update-error = Falha ao baixar.
 package-info-update-success = Baixado com sucesso.
 package-info-update-unnecessary = Já está atualizado.
-package-info-delete-success = Pacote apagado.
-package-info-delete-while-connected-error = O pacote não pode ser apagado enquanto conectado a um servidor.
+package-info-delete-success = Pacote removido.
+package-info-delete-while-connected-error = O pacote não pode ser removido enquanto conectado a um servidor.
