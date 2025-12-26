@@ -1,5 +1,5 @@
 battle-select-scene-title = Seleção de Batalha
-battle-select-scene-title-selection = Batalha Selecionada: { $name }
+battle-select-scene-title-selection = Batalha: { $name }
 battle-run-question = Escapar da batalha?
 battle-run-disabled-message = Não pode escapar dessa batalha!
 battle-run-success =
@@ -8,7 +8,7 @@ battle-run-success =
 battle-run-failed =
     Essa não!
     Não deu para escapar!
-battle-turn-start-banner = TURNO INICIADO!
+battle-turn-start-banner = INICIAR BATALHA!
 battle-turn-number-start-banner = INICIAR TURNO { $number }!
 battle-final-turn-banner = TURNO FINAL!
 battle-success-banner = SUCESSO
