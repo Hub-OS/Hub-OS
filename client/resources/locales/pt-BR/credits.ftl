@@ -1,6 +1,6 @@
 credits-heading = Créditos Hub OS
 credits-music = Música
-credits-sound-design = Sound Design
+credits-sound-design = Design Sonoro
 credits-programmers = Programadores
 credits-graphics = Gráficos
 credits-user-experience = Experiência de Usuário
