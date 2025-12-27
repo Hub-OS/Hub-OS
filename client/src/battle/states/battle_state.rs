@@ -1071,47 +1071,21 @@ impl BattleState {
             let already_updated = entity.updated;
             entity.updated = true;
 
-            if !living.status_director.is_dragged() && !entity.time_frozen {
+            if entity.time_frozen {
+                // we can only clear statuses
+                callbacks.extend(living.status_director.take_ready_destructors());
+            } else if !living.status_director.is_dragged() {
                 // process statuses as long as the entity isn't being dragged and time is not frozen
-                let status_director = &mut living.status_director;
+                living.status_director.update_remaining_time();
 
-                status_director.update();
-
-                if status_director.remaining_drag_lockout() == 0 {
-                    // apply new statuses as long as there's no drag lockout
-                    status_director.apply_new_statuses(status_registry);
-
-                    // status destructors
-                    callbacks.extend(status_director.take_ready_destructors());
-
-                    // new status callbacks
-                    for (hit_flag, reapplied) in status_director.take_new_statuses() {
-                        if status_registry.inactionable_flags() & hit_flag != 0
-                            && let Some(movement) = &mut movement
-                        {
-                            // pause movement when we become inactionable
-                            // we don't want to pause movements after the first frame
-                            // allows drag + wind to move this entity
-                            movement.paused = true;
-                        }
-
-                        if let Some(callback) = status_registry.status_constructor(hit_flag) {
-                            callbacks.push(callback.bind((id.into(), reapplied)));
-                        }
-
-                        // call registered status callbacks
-                        if let Some(status_callbacks) = living.status_callbacks.get(&hit_flag) {
-                            callbacks.extend(status_callbacks.iter().cloned());
-                        }
-                    }
-                }
-
-                if let Some(movement) = &mut movement {
-                    // unpause movement when we're actionable again
-                    if !status_director.is_inactionable(status_registry) {
-                        movement.paused = false;
-                    }
-                }
+                StatusDirector::apply_status_changes(
+                    status_registry,
+                    callbacks,
+                    entity,
+                    living,
+                    &mut movement,
+                    id.into(),
+                );
             }
 
             if entity.time_frozen {

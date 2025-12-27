@@ -1,4 +1,5 @@
 use super::{ActionQueue, BattleAnimator, BattleSimulation, Entity, Living, Movement};
+use crate::battle::{SharedBattleResources, StatusDirector};
 use crate::bindable::{Drag, EntityId, HitFlag, HitFlags};
 use crate::render::FrameTime;
 use crate::structures::GenerationalIndex;
@@ -9,7 +10,7 @@ pub struct TimeFreezeEntityBackup {
     pub action_queue: ActionQueue,
     pub movement: Option<Movement>,
     pub animator: BattleAnimator,
-    pub statuses: Vec<(HitFlags, FrameTime)>,
+    pub statuses: Vec<(HitFlags, FrameTime, bool)>,
     pub drag: Option<Drag>,
     pub drag_lockout: u8,
 }
@@ -59,8 +60,9 @@ impl TimeFreezeEntityBackup {
         let (statuses, drag, drag_lockout) = living
             .map(|living| {
                 let take_flags = !HitFlag::KEEP_IN_FREEZE;
+                let status_director = &mut living.status_director;
 
-                let status_sprites = living.status_director.take_status_sprites(take_flags);
+                let status_sprites = status_director.take_status_sprites(take_flags);
 
                 if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index)
                 {
@@ -70,13 +72,26 @@ impl TimeFreezeEntityBackup {
                     }
                 }
 
-                let statuses = living.status_director.applied_and_pending(take_flags);
-                let drag = living.status_director.take_drag_for_backup();
-                let drag_lockout = living.status_director.remaining_drag_lockout();
+                // track old statuses
+                let mut statuses: Vec<_> = status_director
+                    .applied()
+                    .filter(|(flag, _)| *flag & take_flags != 0)
+                    .map(|(flag, duration)| (flag, duration, true))
+                    .collect();
+
+                statuses.extend(
+                    status_director
+                        .pending()
+                        .filter(|(flag, _)| *flag & take_flags != 0)
+                        .map(|(flag, duration)| (flag, duration, false)),
+                );
+
+                let drag = status_director.take_drag_for_backup();
+                let drag_lockout = status_director.remaining_drag_lockout();
 
                 // clear existing statuses and call destructors to get rid of scripted effects and artifacts
-                living.status_director.clear_statuses(take_flags);
-                let destructors = living.status_director.take_ready_destructors();
+                status_director.clear_statuses(take_flags);
+                let destructors = status_director.take_ready_destructors();
                 simulation.pending_callbacks.extend(destructors);
 
                 (statuses, drag, drag_lockout)
@@ -97,7 +112,7 @@ impl TimeFreezeEntityBackup {
         })
     }
 
-    pub fn restore(self, simulation: &mut BattleSimulation) {
+    pub fn restore(mut self, simulation: &mut BattleSimulation, resources: &SharedBattleResources) {
         // fully restore the entity
         let entities = &mut simulation.entities;
         let id = self.entity_id.into();
@@ -113,20 +128,36 @@ impl TimeFreezeEntityBackup {
         // restore animator
         simulation.animators[entity.animator_index] = self.animator;
 
-        // restore statuses
+        // restore statuses, happens before movement since this can modify movement
         if let Some(living) = living {
             // merge to retain statuses applied during time freeze
             let status_director = &mut living.status_director;
 
-            for (flag, duration) in self.statuses {
-                status_director.reapply_status(flag, duration);
+            for (flag, duration, reapply) in self.statuses {
+                if reapply {
+                    status_director.reapply_status(flag, duration);
+                } else {
+                    status_director.apply_status(flag, duration);
+                }
             }
+
+            let movement_is_drag = self.drag.is_some() || self.drag_lockout > 0;
 
             if let Some(drag) = self.drag {
                 status_director.set_drag(drag);
             }
 
             status_director.set_remaining_drag_lockout(self.drag_lockout);
+
+            // must be called after entity.time_frozen = true
+            StatusDirector::apply_status_changes(
+                &resources.status_registry,
+                &mut simulation.pending_callbacks,
+                entity,
+                living,
+                &mut self.movement.as_mut().filter(|_| !movement_is_drag),
+                self.entity_id,
+            );
         }
 
         // restore the movement

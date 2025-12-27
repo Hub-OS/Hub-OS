@@ -1,5 +1,6 @@
 use super::{BattleCallback, Entity, SharedBattleResources, StatusRegistry};
-use crate::bindable::{Drag, HitFlag, HitFlags, SpriteColorMode};
+use crate::battle::{Living, Movement};
+use crate::bindable::{Drag, EntityId, HitFlag, HitFlags, SpriteColorMode};
 use crate::render::{AnimatorLoopMode, FrameTime, SpriteNode, TreeIndex};
 use crate::resources::DRAG_LOCKOUT;
 use crate::structures::{Tree, VecMap};
@@ -43,17 +44,16 @@ impl StatusDirector {
         self.remaining_drag_lockout = 0;
     }
 
-    pub fn applied_and_pending(&self, status_flags: HitFlags) -> Vec<(HitFlags, FrameTime)> {
+    pub fn applied(&self) -> impl Iterator<Item = (HitFlags, FrameTime)> {
         self.statuses
             .iter()
-            .filter(|status| status_flags & status.status_flag != 0 && status.remaining_time > 0)
             .map(|status| (status.status_flag, status.remaining_time))
-            .chain(
-                self.new_statuses
-                    .iter()
-                    .map(|status| (status.status_flag, status.remaining_time)),
-            )
-            .collect()
+    }
+
+    pub fn pending(&self) -> impl Iterator<Item = (HitFlags, FrameTime)> {
+        self.new_statuses
+            .iter()
+            .map(|status| (status.status_flag, status.remaining_time))
     }
 
     pub fn clear_immunity(&mut self) {
@@ -389,10 +389,16 @@ impl StatusDirector {
         }
     }
 
-    // should be called after update()
-    pub fn take_new_statuses(&mut self) -> Vec<(HitFlags, bool)> {
+    fn take_new_statuses(&mut self) -> Vec<(HitFlags, bool)> {
         self.new_statuses
             .drain(..)
+            .map(|status| (status.status_flag, status.reapplied))
+            .collect()
+    }
+
+    fn take_reapplied_statuses(&mut self) -> Vec<(HitFlags, bool)> {
+        self.new_statuses
+            .extract_if(.., |status| status.reapplied)
             .map(|status| (status.status_flag, status.reapplied))
             .collect()
     }
@@ -414,7 +420,64 @@ impl StatusDirector {
         std::mem::take(&mut self.ready_destructors)
     }
 
-    pub fn apply_new_statuses(&mut self, registry: &StatusRegistry) {
+    /// Should be called after update_remaining_time() when nearby
+    pub fn apply_status_changes(
+        registry: &StatusRegistry,
+        callbacks: &mut Vec<BattleCallback>,
+        entity: &mut Entity,
+        living: &mut Living,
+        movement: &mut Option<&mut Movement>,
+        id: EntityId,
+    ) {
+        let status_director = &mut living.status_director;
+
+        if status_director.is_dragged() || status_director.remaining_drag_lockout > 0 {
+            return;
+        }
+
+        // apply new statuses as long as there's no drag lockout
+        status_director.apply_new_statuses(registry);
+
+        // status destructors
+        callbacks.extend(status_director.take_ready_destructors());
+
+        // new status callbacks
+        let statuses = if entity.time_frozen {
+            // assuming we're restoring a time freeze backup
+            status_director.take_reapplied_statuses()
+        } else {
+            status_director.take_new_statuses()
+        };
+
+        for (hit_flag, reapplied) in statuses {
+            if registry.inactionable_flags() & hit_flag != 0
+                && let Some(movement) = movement
+            {
+                // pause movement when we become inactionable
+                // we don't want to pause movements after the first frame
+                // allows drag + wind to move this entity
+                movement.paused = true;
+            }
+
+            if let Some(callback) = registry.status_constructor(hit_flag) {
+                callbacks.push(callback.bind((id, reapplied)));
+            }
+
+            // call registered status callbacks
+            if let Some(status_callbacks) = living.status_callbacks.get(&hit_flag) {
+                callbacks.extend(status_callbacks.iter().cloned());
+            }
+        }
+
+        if let Some(movement) = movement {
+            // unpause movement when we're actionable again
+            if !status_director.is_inactionable(registry) {
+                movement.paused = false;
+            }
+        }
+    }
+
+    fn apply_new_statuses(&mut self, registry: &StatusRegistry) {
         self.resolve_conflicts(registry);
 
         self.new_statuses.retain(|status| {
@@ -469,7 +532,7 @@ impl StatusDirector {
         }
     }
 
-    pub fn update(&mut self) {
+    pub fn update_remaining_time(&mut self) {
         // update remaining time
         for status in &mut self.statuses {
             status.remaining_time -= 1;
