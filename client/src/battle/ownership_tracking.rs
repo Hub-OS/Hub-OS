@@ -1,6 +1,6 @@
 use crate::bindable::{EntityId, EntityOwner};
 
-#[derive(Default, Clone)]
+#[derive(Clone)]
 pub struct OwnershipTracking {
     owned_entities: Vec<(EntityOwner, EntityId)>,
     pub(crate) team_owned_limit: u8,
@@ -8,10 +8,30 @@ pub struct OwnershipTracking {
     pub(crate) share_entity_limit: bool,
 }
 
+impl Default for OwnershipTracking {
+    fn default() -> Self {
+        Self {
+            owned_entities: Default::default(),
+            team_owned_limit: 2,
+            entity_owned_limit: 1,
+            share_entity_limit: true,
+        }
+    }
+}
+
 impl OwnershipTracking {
     #[must_use]
     // returns an entity to delete
     pub fn track(&mut self, ownership: EntityOwner, entity_id: EntityId) -> Option<EntityId> {
+        let limit = match ownership {
+            EntityOwner::Team(_) => self.team_owned_limit,
+            EntityOwner::Entity(_, _) => self.entity_owned_limit,
+        };
+
+        if limit == 0 {
+            return Some(entity_id);
+        }
+
         let mut first_index = None;
         let mut count = 0;
         let mut updated_ownership = false;
@@ -45,14 +65,8 @@ impl OwnershipTracking {
             count += 1;
         }
 
-        let limit = match ownership {
-            EntityOwner::Team(_) => self.team_owned_limit,
-            EntityOwner::Entity(_, _) => self.entity_owned_limit,
-        };
-
         let pending_deletion = if count >= limit {
-            let (_, id) = self.owned_entities.remove(first_index.unwrap());
-            Some(id)
+            first_index.map(|index| self.owned_entities.remove(index).1)
         } else {
             None
         };
