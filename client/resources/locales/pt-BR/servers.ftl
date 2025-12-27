@@ -1,0 +1,36 @@
+server-list-scene-title = Lista de Servidores
+server-list-context-menu-label = Opções
+server-list-context-menu-tip = MENU
+server-list-option-new = NOVO
+server-list-option-edit = EDITAR
+server-list-option-move = MOVER
+server-list-option-delete = APAGAR
+server-list-delete-question = Apagar { $name }?
+server-edit-scene-title = Editar Servidor
+server-edit-new-scene-title = Novo Servidor
+server-edit-save = Salvar
+server-edit-cancel = Cancelar
+server-edit-name-label = NOME
+server-edit-address-label = ENDEREÇO
+server-offline-message = { $name } está off-line...
+server-behind-message = O servidor { $name } está usando uma versão antiga do jogo.
+server-ahead-message = O servidor { $name } está usando uma versão nova do jogo.
+server-incompatible-message = { $name } é incompatível.
+server-generic-behind-message = O servidor está usando uma versão antiga do jogo.
+server-generic-ahead-message = O servidor está usando uma versão nova do jogo.
+server-generic-incompatible-message = O servidor é incompatível.
+server-invalid-address-message = Eu não consegui entender o endereço para { $name }.
+server-connection-failed = Falha na conexão.
+server-kicked = Você foi expulso do servidor: "{ $reason }"
+server-disconnected =
+    Tudo continua ainda.{ "\u0001" }..{ "\u0001" }
+    Parece que fomos desconectados.
+server-warp-failed = Parece que a próxima área esta offline...
+server-leave-question = Desconectar?
+emotes-menu-search = PESQUISAR
+items-scene-title = Itens
+items-no-items-item = Sem itens
+items-no-items-description = Você não tem itens.
+key-items-scene-title = Items Chave
+key-items-no-items-description = Você não tem Itens Chave.
+shop-leave-question = Já vai embora?

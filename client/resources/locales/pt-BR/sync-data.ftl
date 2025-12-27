@@ -1,0 +1,16 @@
+sync-data-scene-title = Sincronizar Data
+sync-data-scanning-message = Buscando pareamento...
+sync-data-requesting-message = Solicitando sincronização...
+sync-data-accept-sync-question = Aceitar sincronização de { $name }?
+sync-data-rejected-message = Solicitação rejeitada.
+sync-data-spider-man-pointing-error =
+    Sincronização cancelada.
+    Inicie a sincronização por apenas um dispositivo.
+sync-data-disconnect-error = Conexão perdida.
+sync-data-syncing-message = Sincronizando...
+sync-data-syncing-packages-message = Sincronizando pacotes...
+sync-data-downloading-package-message = Transferindo pacotes: { $current }/{ $total }
+sync-data-syncing-save-message = Sincronizando o save...
+sync-data-read-remote-save-error = Falha ao ler o save remoto.
+sync-data-cancelled-message = Sincronização cancelada.
+sync-data-complete-message = Sincronização concluída.

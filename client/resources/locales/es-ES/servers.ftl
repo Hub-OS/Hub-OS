@@ -1,0 +1,36 @@
+server-list-scene-title = Server List
+server-list-context-menu-label = OPTIONS
+server-list-context-menu-tip = MENU
+server-list-option-new = NEW
+server-list-option-edit = EDIT
+server-list-option-move = MOVE
+server-list-option-delete = DELETE
+server-list-delete-question = Delete { $name }?
+server-edit-scene-title = Edit Server
+server-edit-new-scene-title = New Server
+server-edit-save = Save
+server-edit-cancel = Cancel
+server-edit-name-label = NAME
+server-edit-address-label = ADDRESS
+server-offline-message = { $name } is offline.
+server-behind-message = { $name } is behind. We'll need to downgrade to connect.
+server-ahead-message = { $name } is ahead. We'll need to update to connect.
+server-incompatible-message = { $name } is incompatible.
+server-generic-behind-message = The server is behind. We'll need to downgrade to connect.
+server-generic-ahead-message = The server is ahead. We'll need to update to connect.
+server-generic-incompatible-message = The server is incompatible.
+server-invalid-address-message = I couldn't understand the address for { $name }.
+server-connection-failed = Connection failed.
+server-kicked = We've been kicked: "{ $reason }"
+server-disconnected =
+    Everything is still.{ "\u0001" }..{ "\u0001" }
+    Looks like we've been disconnected.
+server-warp-failed = Looks like the next area is offline...
+server-leave-question = Jack out?
+emotes-menu-search = SEARCH
+items-scene-title = Items
+items-no-items-item = No items
+items-no-items-description = You have no items.
+key-items-scene-title = Key Items
+key-items-no-items-description = You have no Key Items.
+shop-leave-question = Leaving already?
