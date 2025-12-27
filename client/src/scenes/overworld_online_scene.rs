@@ -1722,12 +1722,14 @@ impl OverworldOnlineScene {
             self.menu_manager.use_player_avatar(game_io);
             let event_sender = self.area.event_sender.clone();
 
-            let interface =
-                TextboxQuestion::new(game_io, String::from("Jack out?"), move |response| {
-                    if response {
-                        event_sender.send(OverworldEvent::Leave).unwrap();
-                    }
-                });
+            let globals = game_io.resource::<Globals>().unwrap();
+            let message = globals.translate("server-leave-question");
+
+            let interface = TextboxQuestion::new(game_io, message, move |response| {
+                if response {
+                    event_sender.send(OverworldEvent::Leave).unwrap();
+                }
+            });
 
             self.menu_manager.push_textbox_interface(interface);
         }

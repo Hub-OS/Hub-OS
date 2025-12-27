@@ -1,5 +1,6 @@
 sync-data-scene-title = Sync Data
 
+sync-data-scanning-message = Scanning for peers...
 sync-data-requesting-message = Requesting sync...
 sync-data-accept-sync-question = 
     Accept sync from {$name}?

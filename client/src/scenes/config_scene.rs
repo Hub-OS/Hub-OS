@@ -651,7 +651,7 @@ impl ConfigScene {
         let mut children: Vec<Box<dyn UiNode>> = vec![
             Box::new(UiConfigCycle::new(
                 game_io,
-                "config-key-style-mix",
+                "config-key-style-label",
                 config.borrow().key_style,
                 config.clone(),
                 &[

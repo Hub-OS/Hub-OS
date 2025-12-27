@@ -109,8 +109,11 @@ impl SyncDataScene {
         discovered: &VecMap<SocketAddr, (Uuid, String)>,
     ) -> Vec<Box<dyn UiNode>> {
         if discovered.is_empty() {
+            let globals = game_io.resource::<Globals>().unwrap();
+            let message = globals.translate("sync-data-scanning-message");
+
             return vec![Box::new(
-                Text::new(game_io, FontName::Thick).with_str("Scanning for peers..."),
+                Text::new(game_io, FontName::Thick).with_string(message),
             )];
         }
 
