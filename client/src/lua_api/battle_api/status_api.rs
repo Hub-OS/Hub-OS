@@ -1,6 +1,6 @@
 use super::errors::entity_not_found;
 use super::{
-    create_entity_table, BattleLuaApi, DELETE_FN, HIT_FLAG_TABLE, HIT_HELPER_TABLE, STATUS_TABLE,
+    BattleLuaApi, DELETE_FN, HIT_FLAG_TABLE, HIT_HELPER_TABLE, STATUS_TABLE, create_entity_table,
 };
 use crate::battle::{BattleCallback, Living};
 use crate::bindable::{EntityId, HitFlag, HitFlags};
@@ -179,6 +179,20 @@ pub fn inject_hit_flag_api(lua_api: &mut BattleLuaApi) {
             lua.pack_multi(result)
         },
     );
+
+    lua_api.add_dynamic_function(HIT_HELPER_TABLE, "action_blockers", |api_ctx, lua, _| {
+        let api_ctx = api_ctx.borrow();
+        let status_registry = &api_ctx.resources.status_registry;
+
+        lua.pack_multi(status_registry.inactionable_flags())
+    });
+
+    lua_api.add_dynamic_function(HIT_HELPER_TABLE, "mobility_blockers", |api_ctx, lua, _| {
+        let api_ctx = api_ctx.borrow();
+        let status_registry = &api_ctx.resources.status_registry;
+
+        lua.pack_multi(status_registry.immobilizing_flags())
+    });
 }
 
 pub fn create_status_table(
