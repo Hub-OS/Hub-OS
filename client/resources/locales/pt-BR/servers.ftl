@@ -26,7 +26,7 @@ server-disconnected =
     Tudo continua ainda.{ "\u0001" }..{ "\u0001" }
     Parece que fomos desconectados.
 server-warp-failed = Parece que a próxima área esta offline...
-server-leave-question = Jack out?
+server-leave-question = Desconectar?
 emotes-menu-search = PESQUISAR
 items-scene-title = Itens
 items-no-items-item = Sem itens
