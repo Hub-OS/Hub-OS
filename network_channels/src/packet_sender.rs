@@ -104,7 +104,7 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
         self.send_latest(now, &mut send);
         self.resend_old(now, &mut send);
 
-        if now - self.last_clear > self.estimated_rtt {
+        if now - self.last_clear > self.estimated_rtt * 2 {
             // clear successfully sent to avoid speeding up from mostly idling
             self.successfully_sent = 0;
             self.last_clear = now;
@@ -263,7 +263,7 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
         self.successfully_sent += acked_packet.bytes.len();
 
         let max_bytes_per_rtt = self.estimated_rtt.as_secs_f32() * self.bytes_per_sec;
-        let threshold = (max_bytes_per_rtt * 0.95) as usize;
+        let threshold = max_bytes_per_rtt as usize;
 
         if self.successfully_sent >= threshold {
             // speed up
