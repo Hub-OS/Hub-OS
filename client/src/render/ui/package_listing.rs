@@ -1,5 +1,6 @@
 use super::{ElementSprite, FontName, TextStyle, UiNode};
 use crate::bindable::CardClass;
+use crate::packages::PackageNamespace;
 use crate::render::ui::PackagePreviewData;
 use crate::render::{Animator, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, ResourcePaths, TEXT_DARK_SHADOW_COLOR};
@@ -332,10 +333,37 @@ impl UiNode for PackageListing {
             }
         }
 
+        // render an indicator for mods we haven't installed
+        let is_installed = self
+            .preview_data
+            .category()
+            .map(|category| {
+                let globals = game_io.resource::<Globals>().unwrap();
+                globals
+                    .package_info(category, PackageNamespace::Local, &self.id)
+                    .is_some()
+            })
+            .unwrap_or_default();
+
+        let state = if is_installed { "INSTALL" } else { "INSTALLED" };
+
+        let assets = &game_io.resource::<Globals>().unwrap().assets;
+        let mut status_sprite = assets.new_sprite(game_io, ResourcePaths::INSTALL_STATUS);
+        Animator::load_new(assets, ResourcePaths::INSTALL_STATUS_ANIMATION)
+            .with_state(state)
+            .apply(&mut status_sprite);
+
+        status_sprite.set_position(bounds.top_left() + Vec2::new(-1.0, 0.0));
+        sprite_queue.draw_sprite(&status_sprite);
+
+        // render the name
+        let mut text_style = TextStyle::new(game_io, FontName::Thick);
         text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
         text_style.ellipsis = true;
-        text_style.bounds = bounds + Vec2::ONE;
-        text_style.bounds.width -= used_x;
+
+        let status_space = status_sprite.size().x;
+        text_style.bounds = bounds + Vec2::new(status_space, 1.0);
+        text_style.bounds.width -= used_x + status_space;
         text_style.draw(game_io, sprite_queue, &self.long_name);
     }
 

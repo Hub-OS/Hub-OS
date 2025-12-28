@@ -263,6 +263,9 @@ impl ResourcePaths {
 
     // PackagesScene
     pub const PACKAGES_UI_ANIMATION: &'static str = "resources/scenes/packages/ui.animation";
+    pub const INSTALL_STATUS: &'static str = "resources/scenes/packages/install_status.png";
+    pub const INSTALL_STATUS_ANIMATION: &'static str =
+        "resources/scenes/packages/install_status.animation";
     pub const PACKAGE_ICON: &'static str = "resources/scenes/packages/package_categories.png";
     pub const PACKAGE_ICON_ANIMATION: &'static str =
         "resources/scenes/packages/package_categories.animation";
