@@ -1172,7 +1172,7 @@ impl Scene for BattleScene {
             let globals = game_io.resource::<Globals>().unwrap();
             let assets = &globals.assets;
 
-            let mut progress_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+            let mut progress_sprite = assets.new_sprite(game_io, ResourcePaths::PIXEL);
             progress_sprite.set_color(Color::new(1.0, 1.0, 1.0, 0.5));
 
             let total_time = self.simulation.time + self.remaining_replay_buffer();

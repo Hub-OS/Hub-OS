@@ -95,7 +95,7 @@ pub fn player_interaction_debug_render(
     let position = area.map.world_3d_to_screen(interaction_point);
 
     let assets = &globals.assets;
-    let mut pixel = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+    let mut pixel = assets.new_sprite(game_io, ResourcePaths::PIXEL);
     pixel.set_origin(Vec2::ONE * 0.5);
     pixel.set_position(position);
 

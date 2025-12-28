@@ -184,7 +184,7 @@ impl NavigationMenu {
         let money_label_point = ui_animator.point_or_zero("MONEY_LABEL") - ui_animator.origin();
 
         // backing fade sprite
-        let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+        let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::PIXEL);
         fade_sprite.set_color(Color::TRANSPARENT);
         fade_sprite.set_bounds(Rect::from_corners(Vec2::ZERO, RESOLUTION_F));
 

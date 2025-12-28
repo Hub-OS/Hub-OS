@@ -61,7 +61,7 @@ impl ResourcePaths {
 
     // General
     pub const BLANK: &'static str = "";
-    pub const WHITE_PIXEL: &'static str = "resources/scenes/shared/white_pixel.png";
+    pub const PIXEL: &'static str = "resources/scenes/shared/white_pixel.png";
     pub const FONTS: &'static str = "resources/scenes/shared/fonts.png";
     pub const FONTS_ANIMATION: &'static str = "resources/scenes/shared/fonts.animation";
     pub const SUB_SCENE: &'static str = "resources/scenes/shared/sub_scene.png";

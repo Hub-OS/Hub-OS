@@ -661,7 +661,7 @@ impl GameOverlay for VirtualController {
         let editing = globals.editing_virtual_controller;
 
         let assets = &globals.assets;
-        let mut white_pixel = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+        let mut pixel = assets.new_sprite(game_io, ResourcePaths::PIXEL);
 
         // draw editing buttons
         if editing {
@@ -728,7 +728,7 @@ impl GameOverlay for VirtualController {
             queue.draw_sprite(sprite);
 
             if editing && pressed {
-                draw_rect(&mut queue, &mut white_pixel, sprite.bounds());
+                draw_rect(&mut queue, &mut pixel, sprite.bounds());
             }
         }
 
@@ -736,7 +736,7 @@ impl GameOverlay for VirtualController {
         let mut dpad_color = RELEASED_COLOR;
 
         if self.selected_buttons.contains(&Button::LeftStick) {
-            draw_rect(&mut queue, &mut white_pixel, self.dpad_sprite.bounds());
+            draw_rect(&mut queue, &mut pixel, self.dpad_sprite.bounds());
             dpad_color = PRESSED_COLOR
         }
 
@@ -745,7 +745,7 @@ impl GameOverlay for VirtualController {
 
         // draw selection rect
         if let (Some(start), Some(&end)) = (self.selection_start, self.touch_positions.first()) {
-            draw_rect(&mut queue, &mut white_pixel, Rect::from_corners(start, end));
+            draw_rect(&mut queue, &mut pixel, Rect::from_corners(start, end));
         }
 
         render_pass.consume_queue(queue);

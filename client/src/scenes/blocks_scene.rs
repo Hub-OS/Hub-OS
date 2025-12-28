@@ -1359,7 +1359,7 @@ impl ColorSelector {
         let assets = &globals.assets;
 
         // shade behind the selector
-        let mut shade = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+        let mut shade = assets.new_sprite(game_io, ResourcePaths::PIXEL);
         shade.set_size(RESOLUTION_F);
         shade.set_color(Color::BLACK.multiply_alpha(0.5));
         sprite_queue.draw_sprite(&shade);

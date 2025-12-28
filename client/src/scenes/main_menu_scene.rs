@@ -77,7 +77,7 @@ impl CharacterData {
         let mut sprite = if let Some(package) = player_package {
             assets.new_sprite(game_io, &package.preview_texture_path)
         } else {
-            assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL)
+            assets.new_sprite(game_io, ResourcePaths::PIXEL)
         };
 
         sprite.set_position(Vec2::new(0.0, RESOLUTION_F.y - sprite.size().y));

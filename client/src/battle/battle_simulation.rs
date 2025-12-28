@@ -68,7 +68,7 @@ impl BattleSimulation {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
-        let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+        let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::PIXEL);
         fade_sprite.set_color(Color::TRANSPARENT);
 
         let mut sprite_trees: SlotMap<Tree<SpriteNode>> = Default::default();
@@ -1119,7 +1119,7 @@ impl BattleSimulation {
                 let mut base_position = entity.screen_position(&self.field, perspective_flipped);
                 base_position.y -= entity.height + 16.0 + entity.elevation;
 
-                let mut border_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+                let mut border_sprite = assets.new_sprite(game_io, ResourcePaths::PIXEL);
                 border_sprite.set_color(Color::BLACK);
                 border_sprite.set_size(Vec2::new(16.0, 16.0));
 

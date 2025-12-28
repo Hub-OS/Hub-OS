@@ -197,7 +197,7 @@ impl NetplayInitScene {
             )
             .collect();
 
-        let mut sprite = (globals.assets).new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+        let mut sprite = (globals.assets).new_sprite(game_io, ResourcePaths::PIXEL);
         sprite.set_color(flash_color(game_io));
 
         Self {

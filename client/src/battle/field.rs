@@ -488,7 +488,7 @@ impl Field {
         sprite_queue.set_color_mode(SpriteColorMode::Multiply);
 
         let assets = &game_io.resource::<Globals>().unwrap().assets;
-        let mut highlight_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+        let mut highlight_sprite = assets.new_sprite(game_io, ResourcePaths::PIXEL);
         highlight_sprite.set_color(Color::YELLOW);
         highlight_sprite.set_size(self.tile_size);
         highlight_sprite.set_origin(Vec2::new(0.5, 0.0));

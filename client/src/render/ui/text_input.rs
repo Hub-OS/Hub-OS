@@ -46,7 +46,7 @@ impl TextInput {
             init_active: false,
             silent: false,
             caret_time: 0,
-            solid_sprite: (globals.assets).new_sprite(game_io, ResourcePaths::WHITE_PIXEL),
+            solid_sprite: (globals.assets).new_sprite(game_io, ResourcePaths::PIXEL),
             paged: false,
             lines_per_page: 0,
             cached_metrics: TextMetrics {

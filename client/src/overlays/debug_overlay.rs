@@ -98,7 +98,7 @@ impl GameOverlay for DebugOverlay {
         let mut sprite_queue =
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
         let assets = &globals.assets;
-        let mut rectangle = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+        let mut rectangle = assets.new_sprite(game_io, ResourcePaths::PIXEL);
 
         // draw history
         for (i, scale) in self.history.iter().enumerate() {

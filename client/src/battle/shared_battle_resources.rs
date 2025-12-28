@@ -45,7 +45,7 @@ impl SharedBattleResources {
 
         let (event_sender, event_receiver) = flume::unbounded();
 
-        let fade_sprite_texture = assets.texture(game_io, ResourcePaths::WHITE_PIXEL);
+        let fade_sprite_texture = assets.texture(game_io, ResourcePaths::PIXEL);
 
         // large fade sprite to account for camera differences between ui and battle
         let mut fade_sprite = Sprite::new(game_io, fade_sprite_texture);

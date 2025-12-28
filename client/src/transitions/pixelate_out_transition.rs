@@ -1,6 +1,6 @@
 use crate::bindable::SpriteColorMode;
 use crate::render::{Camera, FrameTime, SpriteColorQueue, SpriteShaderEffect};
-use crate::resources::{AssetManager, Globals, ResourcePaths, RESOLUTION_F};
+use crate::resources::{AssetManager, Globals, RESOLUTION_F, ResourcePaths};
 use framework::prelude::*;
 
 const MAX_PIXELATION: f32 = 1.0 / 12.0;
@@ -97,7 +97,7 @@ impl SceneTransition for PixelateTransition {
         sprite_queue.draw_sprite(&target_sprite);
 
         // flash color on top
-        let mut color_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+        let mut color_sprite = assets.new_sprite(game_io, ResourcePaths::PIXEL);
         color_sprite.set_size(RESOLUTION_F);
         color_sprite.set_color(Color {
             a: color_intensity,

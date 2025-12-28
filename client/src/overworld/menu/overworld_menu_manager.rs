@@ -63,7 +63,7 @@ pub struct OverworldMenuManager {
 impl OverworldMenuManager {
     pub fn new(game_io: &GameIO) -> Self {
         let assets = &game_io.resource::<Globals>().unwrap().assets;
-        let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+        let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::PIXEL);
         fade_sprite.set_color(Color::BLACK);
         fade_sprite.set_size(RESOLUTION_F);
 

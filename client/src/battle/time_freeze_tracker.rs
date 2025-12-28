@@ -662,7 +662,7 @@ impl TimeFreezeTracker {
                 inverse_lerp!(ActionFreezeState::COUNTER_DURATION, 0, state_elapsed_time);
 
             let assets = &game_io.resource::<Globals>().unwrap().assets;
-            let mut sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+            let mut sprite = assets.new_sprite(game_io, ResourcePaths::PIXEL);
             sprite.set_width(BAR_WIDTH * width_multiplier);
             sprite.set_height(2.0);
 

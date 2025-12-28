@@ -58,7 +58,7 @@ impl InitialConnectScene {
             bg_animator.load(assets, ResourcePaths::INITIAL_CONNECT_BG_ANIMATION);
             bg_animator.set_state("DEFAULT");
         } else {
-            bg_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+            bg_sprite = assets.new_sprite(game_io, ResourcePaths::PIXEL);
             bg_sprite.set_size(RESOLUTION_F);
         }
 

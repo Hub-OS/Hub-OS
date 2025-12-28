@@ -121,7 +121,7 @@ impl Scene for FontTestScene {
         // render lines
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
-        let mut line_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+        let mut line_sprite = assets.new_sprite(game_io, ResourcePaths::PIXEL);
 
         let line_height = text_style.line_height();
 
