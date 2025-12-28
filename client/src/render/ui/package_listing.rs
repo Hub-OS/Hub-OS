@@ -2,7 +2,7 @@ use super::{ElementSprite, FontName, TextStyle, UiNode};
 use crate::bindable::CardClass;
 use crate::render::ui::PackagePreviewData;
 use crate::render::{Animator, SpriteColorQueue};
-use crate::resources::{AssetManager, Globals, ResourcePaths};
+use crate::resources::{AssetManager, Globals, ResourcePaths, TEXT_DARK_SHADOW_COLOR};
 use framework::prelude::*;
 use packets::structures::{FileHash, PackageCategory, PackageId, SwitchDriveSlot};
 use serde_json as json;
@@ -241,6 +241,8 @@ impl UiNode for PackageListing {
                 // draw damage
                 if *damage != 0 {
                     let mut text_style = TextStyle::new(game_io, FontName::Thick);
+                    text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
+
                     let damage_space = text_style.measure("0000").size;
                     let damage_text = format!("{damage}");
                     text_style.monospace = true;
@@ -356,7 +358,7 @@ impl UiNode for PackageListing {
             }
         }
 
-        let mut text_style = TextStyle::new(game_io, FontName::Thick);
+        text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
         text_style.ellipsis = true;
         text_style.bounds = bounds + Vec2::ONE;
         text_style.bounds.width -= used_x;
