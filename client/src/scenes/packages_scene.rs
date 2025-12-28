@@ -15,7 +15,6 @@ use packets::structures::PackageCategory;
 use strum::{EnumIter, IntoEnumIterator};
 use taffy::style::{Dimension, FlexDirection};
 
-const DIM_COLOR: Color = Color::new(0.75, 0.75, 0.75, 1.0);
 const PACKAGES_PER_REQUEST: usize = 21;
 
 type RequestTask = AsyncTask<Vec<PackageListing>>;

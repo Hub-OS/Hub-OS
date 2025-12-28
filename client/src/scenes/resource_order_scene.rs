@@ -5,7 +5,7 @@ use crate::render::ui::{
     SubSceneFrame, TextStyle, Textbox, TextboxMessage, TextboxQuestion, UiInputTracker,
 };
 use crate::render::{Animator, Background, Camera, SpriteColorQueue};
-use crate::resources::{Globals, ResourcePaths, TEXT_DARK_SHADOW_COLOR};
+use crate::resources::{DIM_TEXT_COLOR, Globals, ResourcePaths, TEXT_DARK_SHADOW_COLOR};
 use crate::saves::GlobalSave;
 use framework::prelude::*;
 use packets::structures::{Input, PackageId};
@@ -368,7 +368,7 @@ impl Scene for ResourceOrderScene {
             text_style.color = if enabled {
                 Color::WHITE
             } else {
-                Color::WHITE.multiply_color(0.75)
+                DIM_TEXT_COLOR
             };
 
             // draw package name
