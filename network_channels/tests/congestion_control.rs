@@ -22,20 +22,6 @@ fn high_latency() {
         ..default_config
     };
 
-    // A is the sender
-    let (channel_a, mut sender_a, mut receiver_a) = create_connection(&config);
-    // B is listening and sending acks on the other side
-    let (_, mut sender_b, mut receiver_b) = create_connection(&config);
-
-    // resolve messages to send
-    let serialized = serialize(vec![0; 1330]);
-    let message = Arc::new(serialized);
-
-    for _ in 0..1000 {
-        channel_a.send_shared_bytes(Reliability::Reliable, message.clone());
-    }
-
-    // the test
     const TICKS_PER_SECOND: u32 = 20;
     const TICK_RTTS: &[u32] = &[1, 5, 20, 30, 40, 50, 100];
     const SECONDS: u32 = 10;
@@ -43,20 +29,32 @@ fn high_latency() {
     let mut time = Instant::now();
 
     for &tick_rtt in TICK_RTTS {
+        // A is the sender
+        let (channel_a, mut sender_a, mut receiver_a) = create_connection(&config);
+        // B is listening and sending acks on the other side
+        let (_, mut sender_b, mut receiver_b) = create_connection(&config);
+
+        // send messages
+        let serialized = serialize(vec![0; 1330]);
+        let message = Arc::new(serialized);
+
+        for _ in 0..1000 {
+            channel_a.send_shared_bytes(Reliability::Reliable, message.clone());
+        }
+
+        // the test
         let mut messages_sent = 0;
 
         for tick in 0..(TICKS_PER_SECOND * SECONDS) {
             sender_a.tick(time, |bytes| {
+                assert!(bytes.len() > 500, "should not fragment for this test");
+
                 // receive packets so we can send acks
-                let (_, messages) = receiver_b
+                receiver_b
                     .receive_packet(time, bytes)
                     .expect("valid packet")
                     .expect("valid channel");
 
-                assert!(
-                    !messages.is_empty(),
-                    "received message should not be partial"
-                );
                 messages_sent += 1;
             });
 
@@ -75,6 +73,11 @@ fn high_latency() {
             time += Duration::from_secs(1) / TICKS_PER_SECOND;
         }
 
-        assert!(messages_sent > 5, "should increase send rate");
+        let total_round_trips = TICKS_PER_SECOND * SECONDS / tick_rtt;
+        let min_messages = total_round_trips * 3;
+        assert!(
+            messages_sent > min_messages,
+            "should increase send rate. tick_rtt: {tick_rtt}, messages_sent: {messages_sent}, min_messages: {min_messages}"
+        );
     }
 }
