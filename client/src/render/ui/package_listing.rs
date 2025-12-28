@@ -270,14 +270,8 @@ impl UiNode for PackageListing {
 
                 used_x += element_sprite.size().x + 1.0 + category_sprite.size().x;
             }
-            PackagePreviewData::Augment {
-                colors,
-                flat,
-                shape,
-                slot,
-                ..
-            } => {
-                let mut x_offset = 0.0;
+            PackagePreviewData::Augment { shape, slot, .. } => {
+                let mut offset = Vec2::ZERO;
 
                 if let Some(slot) = slot {
                     let state = match slot {
@@ -287,48 +281,28 @@ impl UiNode for PackageListing {
                         SwitchDriveSlot::Legs => "SWITCH_DRIVE_LEGS",
                     };
 
-                    let category_sprite = create_category_sprite(game_io, bounds, state);
-                    sprite_queue.draw_sprite(&category_sprite);
+                    let mut sprite = create_category_sprite(game_io, bounds, state);
+                    sprite.set_position(sprite.position() + offset);
+                    sprite_queue.draw_sprite(&sprite);
 
-                    x_offset = -category_sprite.size().x;
-                    used_x += category_sprite.size().x;
+                    used_x += sprite.size().x;
+                    offset.x -= sprite.size().x;
                 }
 
                 if shape.is_some() {
-                    let assets = &game_io.resource::<Globals>().unwrap().assets;
-                    let mut sprite = assets.new_sprite(game_io, ResourcePaths::BLOCKS_UI);
-                    sprite.set_scale(Vec2::new(2.0, 2.0));
+                    let mut sprite = create_category_sprite(game_io, bounds, "BLOCKS");
+                    sprite.set_position(sprite.position() + offset);
+                    sprite_queue.draw_sprite(&sprite);
 
-                    let mut animator =
-                        Animator::load_new(assets, ResourcePaths::BLOCKS_PREVIEW_ANIMATION);
-
-                    let mut position = bounds.center_right();
-                    position.x += x_offset - 3.0;
-
-                    for color in colors.iter().rev() {
-                        animator.set_state(if *flat {
-                            color.flat_state()
-                        } else {
-                            color.plus_state()
-                        });
-
-                        animator.apply(&mut sprite);
-
-                        sprite.set_position(position - sprite.size() * 0.5);
-                        sprite_queue.draw_sprite(&sprite);
-
-                        position.x -= sprite.size().x;
-                        position.x -= 1.0;
-                    }
-
-                    used_x += bounds.right() - position.x;
+                    used_x += sprite.size().x;
+                    offset.x -= sprite.size().x;
                 }
 
                 if shape.is_none() && slot.is_none() {
-                    let category_sprite = create_category_sprite(game_io, bounds, "LIBRARY");
-                    sprite_queue.draw_sprite(&category_sprite);
+                    let sprite = create_category_sprite(game_io, bounds, "LIBRARY");
+                    sprite_queue.draw_sprite(&sprite);
 
-                    used_x += category_sprite.size().x;
+                    used_x += sprite.size().x;
                 }
             }
             PackagePreviewData::Encounter { recording } => {
