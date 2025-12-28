@@ -38,7 +38,9 @@ end
 
 ---@param status Status
 function status_init(status)
-  Resources.play_audio(SFX)
+  if not status:reapplied() then
+    Resources.play_audio(SFX)
+  end
 
   local entity = status:owner()
   local entity_sprite = entity:sprite()
