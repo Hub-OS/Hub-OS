@@ -2,7 +2,9 @@ use crate::bindable::SpriteColorMode;
 use crate::packages::{PackageNamespace, RepoPackageUpdater, UpdateStatus};
 use crate::render::ui::*;
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
-use crate::resources::{AssetManager, Globals, Input, InputUtil, ResourcePaths};
+use crate::resources::{
+    AssetManager, Globals, Input, InputUtil, ResourcePaths, TEXT_DARK_SHADOW_COLOR,
+};
 use framework::prelude::*;
 use packets::address_parsing::uri_encode;
 use taffy::style::{AlignItems, Dimension, FlexDirection};
@@ -107,7 +109,9 @@ impl PackageScene {
 
             for range in ranges {
                 children.push(Box::new(
-                    Text::new(game_io, FontName::Thin).with_str(&text[range]),
+                    Text::new(game_io, FontName::Thin)
+                        .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
+                        .with_str(&text[range]),
                 ));
             }
         };
