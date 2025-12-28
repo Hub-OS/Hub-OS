@@ -16,6 +16,7 @@ struct PlayerMeta {
     mega_boost: i8,
     giga_boost: i8,
     dark_boost: i8,
+    deck_boost: i8,
     description: String,
     long_description: String,
     preview_texture_path: String,
@@ -37,6 +38,7 @@ pub struct PlayerPackage {
     pub mega_boost: i8,
     pub giga_boost: i8,
     pub dark_boost: i8,
+    pub deck_boost: i8,
     pub description: Arc<str>,
     pub long_description: Arc<str>,
     pub icon_texture_path: String,
@@ -106,6 +108,7 @@ impl Package for PlayerPackage {
         package.mega_boost = meta.mega_boost;
         package.giga_boost = meta.giga_boost;
         package.dark_boost = meta.dark_boost;
+        package.deck_boost = meta.deck_boost;
         package.description = meta.description.into();
         package.long_description = meta.long_description.into();
         package.preview_texture_path = base_path.clone() + &meta.preview_texture_path;

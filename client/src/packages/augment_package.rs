@@ -22,6 +22,7 @@ struct AugmentMeta {
     mega_boost: i8,
     giga_boost: i8,
     dark_boost: i8,
+    deck_boost: i8,
     hand_size_boost: i8,
     tags: Vec<Cow<'static, str>>,
 
@@ -51,6 +52,7 @@ pub struct AugmentPackage {
     pub mega_boost: i8,
     pub giga_boost: i8,
     pub dark_boost: i8,
+    pub deck_boost: i8,
     pub hand_size_boost: i8,
     pub priority: bool,
     pub tags: Vec<Cow<'static, str>>,
@@ -149,6 +151,7 @@ impl Package for AugmentPackage {
         package.mega_boost = meta.mega_boost;
         package.giga_boost = meta.giga_boost;
         package.dark_boost = meta.dark_boost;
+        package.deck_boost = meta.deck_boost;
         package.hand_size_boost = meta.hand_size_boost;
         package.priority = meta.priority.unwrap_or_default();
         package.tags = meta.tags;
