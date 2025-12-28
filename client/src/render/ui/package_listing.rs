@@ -51,6 +51,7 @@ impl From<&json::Value> for PackageListing {
                 element: get_str(package_table, "element").into(),
                 secondary_element: get_str(package_table, "secondary_element").into(),
                 damage: get_i32(package_table, "damage"),
+                can_boost: get_bool(package_table, "can_boost").unwrap_or(true),
             },
             "augment" => PackagePreviewData::Augment {
                 slot: package_table
@@ -175,6 +176,10 @@ fn get_i32(table: &json::Value, key: &str) -> i32 {
         .get(key)
         .and_then(|value| value.as_i64())
         .unwrap_or_default() as i32
+}
+
+fn get_bool(table: &json::Value, key: &str) -> Option<bool> {
+    table.get(key).and_then(|value| value.as_bool())
 }
 
 fn map_array_values<'a, V, F>(

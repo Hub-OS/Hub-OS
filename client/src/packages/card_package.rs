@@ -87,6 +87,7 @@ impl Package for CardPackage {
                 element: self.card_properties.element,
                 secondary_element: self.card_properties.secondary_element,
                 damage: self.card_properties.damage,
+                can_boost: self.card_properties.can_boost,
             },
             dependencies: self.package_info.requirements.clone(),
         }

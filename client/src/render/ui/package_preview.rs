@@ -17,6 +17,7 @@ pub enum PackagePreviewData {
         element: Element,
         secondary_element: Element,
         damage: i32,
+        can_boost: bool,
     },
     Player {
         element: Element,
@@ -239,6 +240,7 @@ impl PackagePreview {
                 element,
                 secondary_element,
                 damage,
+                can_boost,
                 ..
             } => {
                 // image
@@ -283,6 +285,18 @@ impl PackagePreview {
                 let text_anchor = animator.point_or_zero("DAMAGE_END");
                 let text_size = text.measure().size;
                 text.style.bounds += text_anchor - text_size;
+
+                if !*can_boost {
+                    // underline non boostable chips
+                    let globals = game_io.resource::<Globals>().unwrap();
+
+                    let mut sprite = globals.assets.new_sprite(game_io, ResourcePaths::PIXEL);
+                    sprite.set_position(
+                        text.style.bounds.position() + Vec2::new(0.0, text_size.y + 1.0),
+                    );
+                    sprite.set_width(text_size.x);
+                    self.sprites.push(sprite);
+                }
 
                 self.text.push(text);
             }

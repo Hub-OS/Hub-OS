@@ -1,4 +1,5 @@
 use super::{CardClass, Element, HitFlag, HitFlags};
+use crate::ResourcePaths;
 use crate::battle::StatusRegistry;
 use crate::bindable::SpriteColorMode;
 use crate::packages::{CardPackage, CardPackageStatusDuration, PackageId, PackageNamespace};
@@ -175,12 +176,21 @@ impl<L, F> CardProperties<L, F> {
             text_style.color = Color::WHITE;
             let text = format!("{:>3}", self.damage);
 
-            let damage_width = text_style.measure(&text).size.x;
-            let damage_offset = DAMAGE_OFFSET + Vec2::new(-damage_width, 0.0);
+            let damage_size = text_style.measure(&text).size;
+            let damage_offset = DAMAGE_OFFSET + Vec2::new(-damage_size.x, 0.0);
 
             let damage_index = sprite_tree.insert_root_text_child(game_io, &text_style, &text);
             let damage_node = sprite_tree.get_mut(damage_index).unwrap();
             damage_node.set_offset(damage_offset);
+
+            if !self.can_boost {
+                // draw underline
+                let mut line = SpriteNode::new(game_io, SpriteColorMode::Multiply);
+                line.set_texture(game_io, ResourcePaths::PIXEL.to_string());
+                line.set_offset(damage_offset + Vec2::new(0.0, damage_size.y + 1.0));
+                line.set_size(Vec2::new(damage_size.x, 1.0));
+                sprite_tree.insert_root_child(line);
+            }
         }
 
         sprite_tree
@@ -246,7 +256,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CardProperties {
                     from: lua_value.type_name(),
                     to: "CardProperties",
                     message: None,
-                })
+                });
             }
         };
 

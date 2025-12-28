@@ -1,10 +1,10 @@
+use crate::ResourcePaths;
 use crate::bindable::Element;
 use crate::packages::PackageNamespace;
-use crate::render::ui::{ElementSprite, FontName, TextStyle};
 use crate::render::SpriteColorQueue;
+use crate::render::ui::{ElementSprite, FontName, TextStyle};
 use crate::resources::{AssetManager, Globals, TEXT_DARK_SHADOW_COLOR};
 use crate::saves::Card;
-use crate::ResourcePaths;
 use framework::prelude::*;
 
 pub struct CardPreview<'a> {
@@ -49,7 +49,7 @@ impl<'a> CardPreview<'a> {
         let assets = &globals.assets;
         let package_manager = &globals.card_packages;
 
-        let (preview_texture_path, element, secondary_element, conceal_damage, damage);
+        let (preview_texture_path, element, secondary_element, conceal_damage, damage, can_boost);
 
         if let Some(package) =
             package_manager.package_or_fallback(self.namespace, &self.card.package_id)
@@ -62,12 +62,14 @@ impl<'a> CardPreview<'a> {
             damage = self
                 .damage_override
                 .unwrap_or(package.card_properties.damage);
+            can_boost = package.card_properties.can_boost;
         } else {
             preview_texture_path = "";
             element = Element::None;
             secondary_element = Element::None;
             conceal_damage = false;
             damage = self.damage_override.unwrap_or_default();
+            can_boost = true;
         }
 
         const PREVIEW_OFFSET: Vec2 = Vec2::new(0.0, 24.0);
@@ -127,12 +129,22 @@ impl<'a> CardPreview<'a> {
                 &format!("{damage:>3}")
             };
 
-            let damage_width = label.measure(text).size.x;
-            let mut damage_offset = DAMAGE_OFFSET + Vec2::new(-damage_width, 0.0);
+            let damage_size = label.measure(text).size;
+            let mut damage_offset = DAMAGE_OFFSET + Vec2::new(-damage_size.x, 0.0);
             damage_offset.x -= DAMAGE_OFFSET.x - DAMAGE_OFFSET.x * scale.x;
 
             label.bounds.set_position(damage_offset + self.position);
             label.draw(game_io, sprite_queue, text);
+
+            if !can_boost {
+                // underline non boostable chips
+                let globals = game_io.resource::<Globals>().unwrap();
+
+                let mut line = globals.assets.new_sprite(game_io, ResourcePaths::PIXEL);
+                line.set_position(label.bounds.position() + Vec2::new(0.0, damage_size.y + 1.0));
+                line.set_width(damage_size.x);
+                sprite_queue.draw_sprite(&line);
+            }
         }
     }
 }
