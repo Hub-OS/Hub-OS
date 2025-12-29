@@ -73,7 +73,7 @@ var smplr: sampler;
 
 @fragment
 fn adopt_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @location(0) vec4<f32> {
-    return vec4<f32>(color.rgb, textureSample(txture, smplr, uv).a);
+    return vec4<f32>(color.rgb, textureSample(txture, smplr, uv).a * color.a);
 }
 
 @fragment
@@ -130,7 +130,7 @@ fn resolve_pixelated_uv(uv: vec2<f32>, color: vec4<f32>, frame: vec4<f32>) -> ve
 fn pixelate_adopt_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>, @location(2) frame: vec4<f32>) -> @location(0) vec4<f32> {
     let updated_uv = resolve_pixelated_uv(uv, color, frame);
 
-    return vec4<f32>(color.rgb, textureSample(txture, smplr, updated_uv).a);
+    return vec4<f32>(color.rgb, textureSample(txture, smplr, updated_uv).a * color.a);
 }
 
 @fragment

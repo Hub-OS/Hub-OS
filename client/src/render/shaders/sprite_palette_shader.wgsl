@@ -22,7 +22,7 @@ fn sample_palette(uv: vec2<f32>) -> vec4<f32> {
 
 @fragment
 fn adopt_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @location(0) vec4<f32> {
-    return vec4<f32>(color.rgb, sample_palette(uv).a);
+    return vec4<f32>(color.rgb, sample_palette(uv).a * color.a);
 }
 
 @fragment
@@ -34,7 +34,7 @@ fn multiply_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @
 fn add_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @location(0) vec4<f32> {
     let palette_sample = sample_palette(uv);
     var out: vec4<f32> = clamp(color + palette_sample, vec4<f32>(), vec4<f32>(1.0));
-    out.w = palette_sample.w * color.w;
+    out.a = palette_sample.a * color.a;
 
     return out;
 }
@@ -78,7 +78,7 @@ fn resolve_pixelated_uv(uv: vec2<f32>, color: vec4<f32>, frame: vec4<f32>) -> ve
 fn pixelate_adopt_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>, @location(2) frame: vec4<f32>) -> @location(0) vec4<f32> {
     let updated_uv = resolve_pixelated_uv(uv, color, frame);
 
-    return vec4<f32>(color.rgb, sample_palette(updated_uv).a);
+    return vec4<f32>(color.rgb, sample_palette(updated_uv).a * color.a);
 }
 
 @fragment
@@ -94,7 +94,7 @@ fn pixelate_add_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>, 
 
     let sample = sample_palette(updated_uv);
     var out: vec4<f32> = clamp(color + sample, vec4<f32>(), vec4<f32>(1.0));
-    out.w = sample.w * color.w;
+    out.a = sample.a * color.a;
 
     return out;
 }
