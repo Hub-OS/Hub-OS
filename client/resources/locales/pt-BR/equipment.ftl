@@ -9,6 +9,7 @@ character-status-deck-tab = Limites
 character-status-deck-mega-limit-label = Megas
 character-status-deck-giga-limit-label = Gigas
 character-status-deck-dark-limit-label = Malgnos
+character-status-deck-deck-limit-label = ChipLim
 character-status-augments-tab = Habilidades
 card-library-scene-title = Galeria
 card-class-standard = Básico
