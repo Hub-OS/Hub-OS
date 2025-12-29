@@ -114,7 +114,6 @@ jobs:
           mkdir butler
           cd butler
           wget -O butler.zip https://broth.itch.zone/butler/darwin-amd64/LATEST/archive/default && unzip butler.zip || unzip ../scripts/itch/butler-darwin-amd64.zip
-          unzip butler.zip
           chmod +x ./butler
           export BUTLER_API_KEY=${{ secrets.BUTLER_API_KEY }}
           ./butler push ../dist hub-os/hub-os:mac --userversion ${{ github.ref_name }}
