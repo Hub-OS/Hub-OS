@@ -345,7 +345,7 @@ impl UiNode for PackageListing {
             })
             .unwrap_or_default();
 
-        let state = if is_installed { "INSTALL" } else { "INSTALLED" };
+        let state = if is_installed { "INSTALLED" } else { "INSTALL" };
 
         let assets = &game_io.resource::<Globals>().unwrap().assets;
         let mut status_sprite = assets.new_sprite(game_io, ResourcePaths::INSTALL_STATUS);
