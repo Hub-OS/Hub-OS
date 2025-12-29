@@ -53,6 +53,7 @@ jobs:
 
       - name: Push to itch.io
         run: |
+          mkdir butler
           cd butler
           wget -O butler.zip https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default && unzip butler.zip || unzip ../scripts/itch/butler-linux-amd64.zip
           chmod +x ./butler
@@ -110,6 +111,7 @@ jobs:
 
       - name: Push to itch.io
         run: |
+          mkdir butler
           cd butler
           wget -O butler.zip https://broth.itch.zone/butler/darwin-amd64/LATEST/archive/default && unzip butler.zip || unzip ../scripts/itch/butler-darwin-amd64.zip
           unzip butler.zip
@@ -181,6 +183,7 @@ jobs:
 
       - name: Push to itch.io
         run: |
+          mkdir butler
           cd butler
           wget -O butler.zip https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default && unzip butler.zip || unzip ../scripts/itch/butler-linux-amd64.zip
           chmod +x ./butler
