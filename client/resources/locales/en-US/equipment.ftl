@@ -8,10 +8,10 @@ character-status-rapid-level-label = Rapid  LV
 character-status-charge-level-label = Charge LV
 
 character-status-deck-tab = Folder
+character-status-deck-card-limit-label = ChipLim
 character-status-deck-mega-limit-label = MegaLim
 character-status-deck-giga-limit-label = GigaLim
 character-status-deck-dark-limit-label = DarkLim
-character-status-deck-deck-limit-label = ChipLim
 
 character-status-augments-tab = Augments
 

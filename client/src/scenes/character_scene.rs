@@ -369,7 +369,7 @@ impl StatusPage {
                 .with_children(
                     [
                         (
-                            "character-status-deck-deck-limit-label",
+                            "character-status-deck-card-limit-label",
                             data.deck_restrictions.required_total,
                         ),
                         (
