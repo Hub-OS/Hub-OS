@@ -695,31 +695,18 @@ impl Living {
         let mut multiplier = 1.0;
         let mut callbacks = Vec::new();
 
-        if card_properties.can_boost {
-            for aux_prop in self.aux_props.values_mut() {
-                let AuxEffect::IncreaseCardDamage(increase) = aux_prop.effect() else {
-                    // skip unrelated aux_props
-                    continue;
-                };
-
-                let increase = *increase;
-                aux_prop.process_card(Some(card_properties));
-
-                if !aux_prop.passed_all_tests() {
-                    continue;
-                }
-
-                aux_prop.mark_activated();
-                card_properties.damage += increase;
-                card_properties.boosted_damage += increase;
-
-                callbacks.extend(aux_prop.callbacks().iter().cloned());
-            }
-        }
-
         for aux_prop in self.aux_props.values_mut() {
             if !aux_prop.effect().executes_on_card_use() {
                 // skip unrelated aux_props
+                continue;
+            }
+
+            if !card_properties.can_boost
+                && matches!(
+                    aux_prop.effect(),
+                    AuxEffect::IncreaseCardDamage(_) | AuxEffect::IncreaseCardMultiplier(_)
+                )
+            {
                 continue;
             }
 
@@ -729,14 +716,18 @@ impl Living {
                 continue;
             }
 
-            aux_prop.mark_activated();
-
             match aux_prop.effect() {
-                AuxEffect::IncreaseCardDamage(_) => {}
-                AuxEffect::IncreaseCardMultiplier(increase) => multiplier += increase,
+                AuxEffect::IncreaseCardDamage(increase) => {
+                    card_properties.damage += increase;
+                    card_properties.boosted_damage += increase;
+                }
+                AuxEffect::IncreaseCardMultiplier(increase) => {
+                    multiplier += increase;
+                }
                 _ => log::error!("Engine error: Unexpected AuxEffect!"),
             }
 
+            aux_prop.mark_activated();
             callbacks.extend(aux_prop.callbacks().iter().cloned());
         }
 
@@ -783,7 +774,7 @@ impl Living {
     pub fn predict_card_multiplier(&self, card_properties: &CardProperties) -> f32 {
         let mut multiplier = 1.0;
 
-        if card_properties.damage == 0 {
+        if !card_properties.can_boost || card_properties.damage == 0 {
             // the multiplier doesn't matter if the damage is 0
             return multiplier;
         }
