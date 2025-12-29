@@ -32,13 +32,20 @@ impl Default for DeckRestrictions {
 impl DeckRestrictions {
     pub fn apply_augments<'a>(
         &mut self,
-        player: &PlayerPackage,
+        player: Option<&PlayerPackage>,
         augments: impl Iterator<Item = (&'a AugmentPackage, usize)>,
     ) {
-        let mut mega_boost = player.mega_boost as isize;
-        let mut giga_boost = player.giga_boost as isize;
-        let mut dark_boost = player.dark_boost as isize;
-        let mut deck_boost = player.deck_boost as isize;
+        let mut mega_boost = 0;
+        let mut giga_boost = 0;
+        let mut dark_boost = 0;
+        let mut deck_boost = 0;
+
+        if let Some(player) = player {
+            mega_boost = player.mega_boost as isize;
+            giga_boost = player.giga_boost as isize;
+            dark_boost = player.dark_boost as isize;
+            deck_boost = player.deck_boost as isize;
+        }
 
         for (package, level) in augments {
             mega_boost += package.mega_boost as isize * level as isize;

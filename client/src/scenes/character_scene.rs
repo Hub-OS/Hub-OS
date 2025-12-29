@@ -234,8 +234,14 @@ impl<'a> StatusData<'a> {
             .collect();
 
         // resolve deck restrictions
-        let mut deck_restrictions = globals.restrictions.base_deck_restrictions();
-        deck_restrictions.apply_augments(player_package, augments.into_iter());
+        let restrictions = &globals.restrictions;
+        let mut deck_restrictions = restrictions.base_deck_restrictions();
+        let script_enabled = restrictions.validate_player(game_io, player_package);
+
+        deck_restrictions.apply_augments(
+            script_enabled.then_some(player_package),
+            augments.into_iter(),
+        );
 
         Self {
             player_package,

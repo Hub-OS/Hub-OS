@@ -166,10 +166,16 @@ impl DeckEditorScene {
 
         // limits
         let global_save = &globals.global_save;
-        let mut deck_restrictions = globals.restrictions.base_deck_restrictions();
+        let restrictions = &globals.restrictions;
+        let mut deck_restrictions = restrictions.base_deck_restrictions();
 
         if let Some(player_package) = global_save.player_package(game_io) {
-            deck_restrictions.apply_augments(player_package, global_save.valid_augments(game_io));
+            let script_enabled = restrictions.validate_player(game_io, player_package);
+
+            deck_restrictions.apply_augments(
+                script_enabled.then_some(player_package),
+                global_save.valid_augments(game_io),
+            );
         }
 
         // camera

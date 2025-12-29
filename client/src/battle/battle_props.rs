@@ -78,8 +78,7 @@ impl PlayerSetup {
         let player_package = global_save.player_package(game_io).unwrap();
         let player_package_info = &player_package.package_info;
 
-        let script_enabled = restrictions.owns_player(&player_package_info.id)
-            && restrictions.validate_package_tree(game_io, player_package_info.triplet());
+        let script_enabled = restrictions.validate_player(game_io, player_package);
 
         let ns = PackageNamespace::Local;
 
@@ -118,7 +117,10 @@ impl PlayerSetup {
         });
 
         // deck
-        deck_restrictions.apply_augments(player_package, augments.into_iter());
+        deck_restrictions.apply_augments(
+            script_enabled.then_some(player_package),
+            augments.into_iter(),
+        );
 
         let mut deck = global_save.active_deck().cloned().unwrap_or_default();
         deck.conform(game_io, ns, &deck_restrictions);

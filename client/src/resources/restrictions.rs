@@ -1,5 +1,5 @@
 use super::{DeckRestrictions, Globals};
-use crate::packages::PackageInfo;
+use crate::packages::{PackageInfo, PlayerPackage};
 use crate::{packages::PackageNamespace, saves::Card};
 use framework::prelude::GameIO;
 use packets::structures::{BlockColor, FileHash, InstalledBlock, PackageCategory, PackageId};
@@ -146,6 +146,11 @@ impl Restrictions {
                 .cloned()
                 .unwrap_or(0)
         }
+    }
+
+    pub fn validate_player(&self, game_io: &GameIO, package: &PlayerPackage) -> bool {
+        self.owns_player(&package.package_info.id)
+            && self.validate_package_tree(game_io, package.package_info.triplet())
     }
 
     pub fn owns_player(&self, id: &PackageId) -> bool {
