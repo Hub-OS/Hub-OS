@@ -880,6 +880,10 @@ impl Living {
 
         action_queue.action_type = action_type;
 
+        for aux_prop in living.aux_props.values_mut() {
+            aux_prop.mark_context_start();
+        }
+
         let mut aux_props: Vec<_> = living
             .aux_props
             .values_mut()

@@ -80,6 +80,7 @@ pub enum AuxRequirement {
     Element(Element),
     Emotion(Emotion),
     NegativeTileInteraction,
+    ContextStart,
     Action(ActionTypes),
     ChargeTime(Comparison, FrameTime),
     CardChargeTime(Comparison, FrameTime),
@@ -133,6 +134,7 @@ impl AuxRequirement {
             AuxRequirement::Element(_)
             | AuxRequirement::Emotion(_)
             | AuxRequirement::NegativeTileInteraction
+            | AuxRequirement::ContextStart
             | AuxRequirement::Action(_)
             | AuxRequirement::ChargeTime(..)
             | AuxRequirement::CardChargeTime(..)
@@ -190,6 +192,7 @@ impl AuxRequirement {
                     .get::<_, Option<ActionTypes>>(2)?
                     .unwrap_or(ActionType::ALL),
             ),
+            "require_context_start" => AuxRequirement::ContextStart,
             "require_charge_time" => AuxRequirement::ChargeTime(table.get(2)?, table.get(3)?),
             "require_card_charge_time" => {
                 AuxRequirement::CardChargeTime(table.get(2)?, table.get(3)?)
@@ -530,9 +533,13 @@ impl AuxProp {
     }
 
     pub fn reset_tests(&mut self) {
-        for (_, state) in &mut self.requirements {
+        for (requirement, state) in &mut self.requirements {
             *state = RequirementState::default();
+
+            // we should always consider these as tested
+            state.tested = matches!(requirement, AuxRequirement::ContextStart);
         }
+
         self.activated = false;
         self.tested = false;
     }
@@ -567,6 +574,14 @@ impl AuxProp {
         }
 
         now_passing
+    }
+
+    pub fn mark_context_start(&mut self) {
+        for (requirement, state) in &mut self.requirements {
+            if matches!(requirement, AuxRequirement::ContextStart) {
+                state.passed = true;
+            }
+        }
     }
 
     pub fn process_body(
