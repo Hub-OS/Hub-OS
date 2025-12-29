@@ -1,0 +1,13 @@
+navigation-option-servers = Conectar
+navigation-option-decks = Pastas
+navigation-option-items = Itens
+navigation-option-library = Galeria
+navigation-option-character-status = Navi
+navigation-option-mail = E-Mail
+navigation-option-key-items = ItemChav
+navigation-option-battle-sim = Sim.Bat.
+navigation-option-config = Configs.
+navigation-health-label = Vida
+navigation-quit-question = Sair do Hub OS?
+navigation-yes = Sim
+navigation-no = Não
