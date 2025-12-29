@@ -11,6 +11,7 @@ character-status-deck-tab = Folder
 character-status-deck-mega-limit-label = MegaLim
 character-status-deck-giga-limit-label = GigaLim
 character-status-deck-dark-limit-label = DarkLim
+character-status-deck-deck-limit-label = ChipLim
 
 character-status-augments-tab = Augments
 

@@ -369,6 +369,10 @@ impl StatusPage {
                 .with_children(
                     [
                         (
+                            "character-status-deck-deck-limit-label",
+                            data.deck_restrictions.required_total,
+                        ),
+                        (
                             "character-status-deck-mega-limit-label",
                             data.deck_restrictions.mega_limit,
                         ),
