@@ -296,7 +296,7 @@ impl UiNode for PackageListing {
                     sprite_queue.draw_sprite(&sprite);
 
                     used_x += sprite.size().x;
-                    offset.x -= sprite.size().x;
+                    // offset.x -= sprite.size().x;
                 }
 
                 if shape.is_none() && slot.is_none() {
