@@ -225,7 +225,13 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
             let namespace = card_props.namespace.unwrap_or_default();
             button.description = packages
                 .package_or_fallback(namespace, &card_props.package_id)
-                .map(|package| package.description.clone());
+                .map(|package| {
+                    if package.long_description.is_empty() {
+                        package.description.clone()
+                    } else {
+                        package.long_description.clone()
+                    }
+                });
 
             lua.pack_multi(())
         },
