@@ -145,6 +145,7 @@ impl EntityShadow {
         let color_mode = base_sprite.color_mode();
         let color = base_sprite.color();
         let shader_effect = base_sprite.shader_effect();
+        let scale = base_sprite.scale();
 
         let shadow_tree = sprite_trees.get_mut(self.sprite_tree_index).unwrap();
 
@@ -152,6 +153,7 @@ impl EntityShadow {
         sprite.set_color_mode(color_mode);
         sprite.set_color(color);
         sprite.set_shader_effect(shader_effect);
+        sprite.set_scale(scale);
         shadow_tree.draw_with_offset(sprite_queue, position, flipped);
     }
 }
