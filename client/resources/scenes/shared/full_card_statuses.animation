@@ -40,3 +40,6 @@ frame x="180" y="270" w="12" h="12"
 
 animation state="FREEZE"
 frame x="192" y="270" w="12" h="12"
+
+animation state="DRAIN"
+frame x="227" y="270" w="12" h="12"
