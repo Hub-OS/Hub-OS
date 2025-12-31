@@ -1,16 +1,14 @@
-# @frame_rate 60
-
 animation state="CONTEXT_LABEL_TOP_LEFT"
-frame x="0" y="0" w="4" h="4" originx="4" originy="4"
+frame w="4" h="4" originx="4" originy="4"
 
 animation state="CONTEXT_LABEL_TOP"
-frame x="5" y="0" w="1" h="4" originy="4"
+frame x="5" w="1" h="4" originy="4"
 
 animation state="CONTEXT_LABEL_TOP_RIGHT"
-frame x="7" y="0" w="4" h="4" originy="4"
+frame x="7" w="4" h="4" originy="4"
 
 animation state="CONTEXT_LABEL_LEFT"
-frame x="0" y="5" w="4" h="1" originx="4"
+frame y="5" w="4" h="1" originx="4"
 
 animation state="CONTEXT_LABEL_BODY"
 frame x="5" y="5" w="1" h="1"
@@ -19,7 +17,7 @@ animation state="CONTEXT_LABEL_RIGHT"
 frame x="7" y="5" w="4" h="1"
 
 animation state="CONTEXT_LABEL_BOTTOM_LEFT"
-frame x="0" y="7" w="4" h="2" originx="4"
+frame y="7" w="4" h="2" originx="4"
 
 animation state="CONTEXT_LABEL_BOTTOM"
 frame x="5" y="7" w="1" h="2"
@@ -28,28 +26,28 @@ animation state="CONTEXT_LABEL_BOTTOM_RIGHT"
 frame x="7" y="7" w="4" h="2"
 
 animation state="CONTEXT_BODY_LEFT"
-frame x="0" y="10" w="8" h="1" originx="8"
+frame y="10" w="8" h="1" originx="8"
 
 animation state="CONTEXT_BODY_BODY"
 frame x="9" y="10" w="1" h="1"
 
 animation state="CONTEXT_BODY_RIGHT"
-frame x="11" y="10" w="6" h="1"
+frame x="11" y="10" w="8" h="1"
 
 animation state="CONTEXT_BODY_BOTTOM_LEFT"
-frame x="0" y="12" w="8" h="6" originx="8"
+frame y="12" w="8" h="6" originx="8"
 
 animation state="CONTEXT_BODY_BOTTOM"
 frame x="9" y="12" w="1" h="6"
 
 animation state="CONTEXT_BODY_BOTTOM_RIGHT"
-frame x="11" y="12" w="6" h="6"
+frame x="11" y="12" w="8" h="6"
 
 animation state="CONTEXT_RIGHT_ARROW"
-frame x="18" y="0" w="28" h="13" originx="19"
+frame x="20" w="28" h="13" originx="19"
 
 animation state="BUTTON_TOP_LEFT"
-frame x="0" y="19" w="7" h="4" originx="7" originy="3"
+frame y="19" w="7" h="4" originx="7" originy="3"
 
 animation state="BUTTON_TOP"
 frame x="8" y="19" w="1" h="4" originy="3"
@@ -58,7 +56,7 @@ animation state="BUTTON_TOP_RIGHT"
 frame x="10" y="19" w="9" h="4" originy="3"
 
 animation state="BUTTON_LEFT"
-frame x="0" y="24" w="7" h="1" originx="7"
+frame y="24" w="7" h="1" originx="7"
 
 animation state="BUTTON_BODY"
 frame x="8" y="24" w="1" h="1"
@@ -67,7 +65,7 @@ animation state="BUTTON_RIGHT"
 frame x="10" y="24" w="9" h="1"
 
 animation state="BUTTON_BOTTOM_LEFT"
-frame x="0" y="26" w="7" h="4" originx="7" originy="1"
+frame y="26" w="7" h="4" originx="7" originy="1"
 
 animation state="BUTTON_BOTTOM"
 frame x="8" y="26" w="1" h="4" originy="1"
