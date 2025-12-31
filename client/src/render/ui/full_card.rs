@@ -233,34 +233,20 @@ impl FullCard {
                 // draw static properties
                 self.status_sprite.set_position(self.position);
 
-                if package.card_properties.can_charge {
-                    self.card_animator.set_state("CAN_CHARGE");
-                    self.card_animator.apply(&mut self.status_sprite);
-                    sprite_queue.draw_sprite(&self.status_sprite);
-                }
+                let static_properties = [
+                    (package.card_properties.can_charge, "CAN_CHARGE"),
+                    (package.card_properties.can_boost, "CAN_BOOST"),
+                    (package.card_properties.recover != 0, "RECOVER"),
+                    (package.card_properties.conceal, "CONCEAL"),
+                    (package.card_properties.time_freeze, "TIME_FREEZE"),
+                ];
 
-                if package.card_properties.can_boost {
-                    self.card_animator.set_state("CAN_BOOST");
-                    self.card_animator.apply(&mut self.status_sprite);
-                    sprite_queue.draw_sprite(&self.status_sprite);
-                }
-
-                if package.card_properties.recover != 0 {
-                    self.card_animator.set_state("RECOVER");
-                    self.card_animator.apply(&mut self.status_sprite);
-                    sprite_queue.draw_sprite(&self.status_sprite);
-                }
-
-                if package.card_properties.conceal {
-                    self.card_animator.set_state("CONCEAL");
-                    self.card_animator.apply(&mut self.status_sprite);
-                    sprite_queue.draw_sprite(&self.status_sprite);
-                }
-
-                if package.card_properties.time_freeze {
-                    self.card_animator.set_state("TIME_FREEZE");
-                    self.card_animator.apply(&mut self.status_sprite);
-                    sprite_queue.draw_sprite(&self.status_sprite);
+                for (applies, state) in static_properties {
+                    if applies {
+                        self.card_animator.set_state(state);
+                        self.card_animator.apply(&mut self.status_sprite);
+                        sprite_queue.draw_sprite(&self.status_sprite);
+                    }
                 }
             }
         } else {
