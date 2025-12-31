@@ -38,7 +38,12 @@ impl FontName {
             name = match name {
                 Cow::Borrowed(s) => s.to_uppercase().into(),
                 Cow::Owned(mut s) => {
-                    s.make_ascii_lowercase();
+                    if s.is_ascii() {
+                        s.make_ascii_uppercase();
+                    } else {
+                        s = s.to_uppercase();
+                    }
+
                     s.into()
                 }
             }
