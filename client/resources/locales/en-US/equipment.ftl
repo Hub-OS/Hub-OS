@@ -44,8 +44,29 @@ deck-editor-scene-title = Folder Edit
 deck-editor-pack-menu-label = FILTER
 deck-editor-option-search = Search
 deck-editor-option-namespace = Namesp.
+deck-editor-option-properties = Props.
 deck-editor-option-sort = Sort
+
 deck-editor-namespace-menu-label = NAMESPACE
+
+deck-editor-properties-menu-label = PROPERTIES
+deck-editor-properties-chargeable = Chargable
+deck-editor-properties-boostable = Boostable
+deck-editor-properties-recovers = Recovery
+deck-editor-properties-time-freeze = Time Freeze
+deck-editor-properties-concealed = Concealed
+
+deck-editor-properties-drain = Drain
+deck-editor-properties-drag = Drag
+deck-editor-properties-flinch = Flinch
+deck-editor-properties-flash = Flash
+deck-editor-properties-pierce-invis = Pierce Invis
+deck-editor-properties-pierce-guard = Pierce Guard
+deck-editor-properties-pierce-ground = Pierce Ground
+deck-editor-properties-blind = Blind
+deck-editor-properties-confuse = Confuse
+deck-editor-properties-paralyze = Paralyze
+
 deck-editor-sort-menu-label = SORT
 deck-editor-sort-id = ID
 deck-editor-sort-alphabetical = ABCDE
@@ -53,6 +74,7 @@ deck-editor-sort-code = Code
 deck-editor-sort-damage = Attack
 deck-editor-sort-element = Element
 deck-editor-sort-count = No.
+
 deck-editor-regular-card-mode-question = Choose Regular Chip?
 deck-editor-regular-card-mode-start = 
     Choose a card to
@@ -64,6 +86,7 @@ deck-editor-regular-card-select =
 deck-editor-regular-card-deselect = 
     Regular Chip
     settings released.
+
 deck-editor-equip-deck-question = Equip {$name}?
 
 character-select-scene-title = Navis
