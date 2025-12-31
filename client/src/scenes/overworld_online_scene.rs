@@ -1378,7 +1378,12 @@ impl OverworldOnlineScene {
             ServerPacket::ActorEmote { actor_id, emote_id } => {
                 if let Some(&entity) = self.actor_id_map.get_by_left(&actor_id) {
                     Emote::spawn_or_recycle(&mut self.area, entity, &emote_id);
-                    Emote::animate_actor(&mut self.area.entities, entity, &emote_id, false);
+                    Emote::animate_actor(
+                        &mut self.area.entities,
+                        entity,
+                        &emote_id,
+                        emote_id.ends_with("_LOOP") || emote_id.ends_with(" LOOP"),
+                    );
 
                     if entity == self.area.player_data.entity {
                         let entities = &mut self.area.entities;
