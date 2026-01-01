@@ -1,8 +1,22 @@
 use num_derive::FromPrimitive;
-use strum::Display;
+use strum::{Display, EnumCount, EnumIter};
 
 #[repr(u8)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Default, Clone, Copy, FromPrimitive, Display, Debug)]
+#[derive(
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Default,
+    Clone,
+    Copy,
+    FromPrimitive,
+    Display,
+    Debug,
+    EnumIter,
+    EnumCount,
+    Hash,
+)]
 pub enum Element {
     #[default]
     None,
@@ -31,6 +45,22 @@ impl Element {
                 | (Element::Cursor, Element::Wind)
                 | (Element::Break, Element::Cursor)
         )
+    }
+
+    pub fn translation_key(self) -> &'static str {
+        match self {
+            Element::Fire => "element-fire",
+            Element::Aqua => "element-aqua",
+            Element::Elec => "element-elec",
+            Element::Wood => "element-wood",
+            Element::Sword => "element-sword",
+            Element::Wind => "element-wind",
+            Element::Cursor => "element-cursor",
+            Element::Summon => "element-summon",
+            Element::Plus => "element-plus",
+            Element::Break => "element-break",
+            Element::None => "element-none",
+        }
     }
 }
 
@@ -73,7 +103,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for Element {
                     from: lua_value.type_name(),
                     to: "Element",
                     message: None,
-                })
+                });
             }
         };
 

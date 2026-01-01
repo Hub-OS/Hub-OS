@@ -73,6 +73,8 @@ impl ResourcePaths {
     pub const SELECT_CURSOR: &'static str = "resources/scenes/shared/select_cursor.png";
     pub const SELECT_CURSOR_ANIMATION: &'static str =
         "resources/scenes/shared/select_cursor.animation";
+    pub const ICON_CURSOR: &'static str = "resources/scenes/shared/icon_cursor.png";
+    pub const ICON_CURSOR_ANIMATION: &'static str = "resources/scenes/shared/icon_cursor.animation";
     pub const SCROLLBAR_THUMB: &'static str = "resources/scenes/shared/scrollbar.png";
     pub const UI_NINE_PATCHES: &'static str = "resources/scenes/shared/ui_nine_patches.png";
     pub const UI_NINE_PATCHES_ANIMATION: &'static str =

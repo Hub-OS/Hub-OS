@@ -1,0 +1,6 @@
+animation state="DEFAULT"
+frame duration="12f" x="0" y="0" w="20" h="16" originx="3" originy="1"
+frame duration="12f" x="0" y="17" w="20" h="16" originx="3" originy="1"
+
+animation state="SELECTED_FRAME"
+frame x="21" y="0" w="14" h="14"

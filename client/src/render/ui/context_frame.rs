@@ -76,6 +76,10 @@ impl ContextFrame {
         top_left
     }
 
+    pub fn inner_size(&self) -> Vec2 {
+        self.inner_size
+    }
+
     fn resolve_outer_size(&mut self) {
         // apply inner size
         self.outer_size = self.inner_size;

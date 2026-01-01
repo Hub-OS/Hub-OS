@@ -1,6 +1,7 @@
 mod battle_banner_popup;
 mod block_preview;
 mod card_preview;
+mod card_properties_menu;
 mod card_recipe_animation;
 mod card_select_ui;
 mod clock;
@@ -52,6 +53,7 @@ mod ui_layout;
 pub use battle_banner_popup::*;
 pub use block_preview::*;
 pub use card_preview::*;
+pub use card_properties_menu::*;
 pub use card_recipe_animation::*;
 pub use card_select_ui::*;
 pub use clock::*;
