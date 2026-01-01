@@ -1,6 +1,6 @@
 use super::*;
-use crate::render::ui::{PackageListing, PackagePreviewData};
 use crate::render::FrameTime;
+use crate::render::ui::{PackageListing, PackagePreviewData};
 use serde::Deserialize;
 use std::sync::Arc;
 
@@ -28,7 +28,7 @@ pub struct StatusPackage {
     pub name: Arc<str>,
     pub long_name: Arc<str>,
     pub description: Arc<str>,
-    pub flag_name: String,
+    pub flag_name: Arc<str>,
     pub mutual_exclusions: Vec<String>,
     pub blocked_by: Vec<String>,
     pub blocks_flags: Vec<String>,
@@ -87,7 +87,7 @@ impl Package for StatusPackage {
             meta.long_name.into()
         };
         package.description = meta.description.into();
-        package.flag_name = meta.flag_name;
+        package.flag_name = meta.flag_name.into();
         package.mutual_exclusions = meta.mutual_exclusions;
         package.blocked_by = meta.blocked_by;
         package.blocks_flags = meta.blocks_flags;

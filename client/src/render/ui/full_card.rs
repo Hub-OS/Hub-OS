@@ -50,7 +50,7 @@ impl FullCard {
             .packages(PackageNamespace::Local)
             .flat_map(|package| {
                 Some((
-                    Uncased::from(package.flag_name.clone()),
+                    Uncased::from(package.flag_name.to_string()),
                     assets.new_sprite(game_io, package.icon_texture_path.as_ref()?),
                 ))
             })

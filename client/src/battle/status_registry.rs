@@ -1,6 +1,6 @@
 use super::BattleCallback;
 use crate::bindable::{EntityId, HitFlag, HitFlags};
-use crate::lua_api::{create_status_table, BattleVmManager, HIT_FLAG_TABLE};
+use crate::lua_api::{BattleVmManager, HIT_FLAG_TABLE, create_status_table};
 use crate::packages::{Package, PackageInfo, PackageNamespace};
 use crate::render::FrameTime;
 use crate::resources::Globals;
@@ -8,13 +8,14 @@ use crate::structures::VecSet;
 use framework::prelude::GameIO;
 use packets::structures::{PackageCategory, PackageId};
 use std::collections::HashMap;
+use std::sync::Arc;
 
 const STATUS_LIMIT: HitFlags = 32;
 
 pub struct RegisteredStatus {
     pub package_id: PackageId,
     pub namespace: PackageNamespace,
-    pub name: String,
+    pub name: Arc<str>,
     pub flag: HitFlags,
     pub durations: Vec<FrameTime>,
     pub constructor: BattleCallback<(EntityId, bool)>,
@@ -184,7 +185,7 @@ impl StatusRegistry {
     pub fn resolve_flag(&self, s: &str) -> Option<HitFlags> {
         self.list
             .iter()
-            .find(|item| item.name == s)
+            .find(|item| &*item.name == s)
             .map(|item| item.flag)
     }
 
