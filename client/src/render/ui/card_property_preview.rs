@@ -96,16 +96,19 @@ impl CardPropertyPreview {
 
             displayed_hit_props.insert(flag.as_str());
 
+            // resolve wrap
+            if status_offset.x + self.status_step.x > status_bounds.width {
+                status_offset.x = 0.0;
+                status_offset.y += self.status_step.y;
+            }
+
+            // render
             let position = status_start + status_offset;
             sprite.set_position(position);
             self.displayed_sprites.push(sprite);
 
+            // update position for the next render
             status_offset.x += self.status_step.x;
-
-            if status_offset.x > status_bounds.width {
-                status_offset.x = 0.0;
-                status_offset.y += self.status_step.y;
-            }
         }
 
         // start a new line
@@ -137,16 +140,19 @@ impl CardPropertyPreview {
                 continue;
             };
 
+            // resolve wrap
+            if status_offset.x + self.status_step.x > status_bounds.width {
+                status_offset.x = 0.0;
+                status_offset.y += self.status_step.y;
+            }
+
+            // render
             let position = status_start + status_offset;
             sprite.set_position(position);
             self.displayed_sprites.push(sprite);
 
+            // update position for the next render
             status_offset.x += self.status_step.x;
-
-            if status_offset.x > status_bounds.width {
-                status_offset.x = 0.0;
-                status_offset.y += self.status_step.y;
-            }
         }
 
         // draw static properties
