@@ -1,4 +1,5 @@
 use crate::bindable::CardClass;
+use crate::bindable::Element;
 use crate::bindable::SpriteColorMode;
 use crate::packages::*;
 use crate::render::ui::*;
@@ -583,6 +584,9 @@ fn apply_filters(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
                     let properties = &package.card_properties;
 
                     match filter {
+                        CardPropertyFilter::Element(Element::None) => {
+                            properties.element == Element::None
+                        }
                         CardPropertyFilter::Element(element) => {
                             properties.element == *element
                                 || properties.secondary_element == *element
