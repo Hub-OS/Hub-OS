@@ -107,8 +107,8 @@ impl FullCard {
     }
 
     pub fn set_card(&mut self, game_io: &GameIO, card: Option<Card>) {
-        let package = card.as_ref().and_then(|card| package(game_io, card));
-        self.card_property_preview.set_package(package);
+        let id = card.as_ref().map(|card| &card.package_id);
+        self.card_property_preview.set_package(game_io, id);
 
         self.previous_card = self.current_card.take();
         self.current_card = card;

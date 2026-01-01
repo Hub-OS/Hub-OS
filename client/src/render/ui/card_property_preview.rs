@@ -3,6 +3,7 @@ use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
 use std::collections::HashMap;
+use std::collections::HashSet;
 use uncased::{Uncased, UncasedStr};
 
 /// The back of a card
@@ -56,38 +57,89 @@ impl CardPropertyPreview {
         }
     }
 
-    pub fn set_package(&mut self, package: Option<&CardPackage>) {
+    fn resolve_status_sprite(&mut self, flag: &str) -> Option<Sprite> {
+        if self.status_animator.has_state(flag) {
+            // use built in sprite, prioritized for resource packs
+            self.status_animator.set_state(flag);
+            self.status_animator.apply(&mut self.status_sprite);
+            return Some(self.status_sprite.clone());
+        }
+
+        // use package sprite
+        let uncased_flag = <&UncasedStr>::from(flag);
+        self.status_sprite_map.get(uncased_flag).cloned()
+    }
+
+    pub fn set_package(&mut self, game_io: &GameIO, id: Option<&PackageId>) {
         self.displayed_sprites.clear();
 
-        let Some(package) = package else {
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        let Some(package) =
+            id.and_then(|id| globals.card_packages.package(PackageNamespace::Local, id))
+        else {
             return;
         };
 
         let properties = &package.card_properties;
+
+        let mut displayed_hit_props = HashSet::new();
 
         let status_bounds = self.status_bounds;
         let status_start = status_bounds.top_left();
         let mut status_offset = Vec2::ZERO;
 
         for flag in &properties.hit_flags {
-            let uncased_flag = <&UncasedStr>::from(flag.as_str());
+            let Some(mut sprite) = self.resolve_status_sprite(flag) else {
+                continue;
+            };
 
-            if self.status_animator.has_state(flag) {
-                // use built in sprite, prioritized for resource packs
-                self.status_animator.set_state(flag);
-                self.status_animator.apply(&mut self.status_sprite);
+            displayed_hit_props.insert(flag.as_str());
 
-                let position = status_start + status_offset;
-                self.status_sprite.set_position(position);
-                self.displayed_sprites.push(self.status_sprite.clone());
-            } else if let Some(sprite) = self.status_sprite_map.get_mut(uncased_flag) {
-                // use package sprite
-                let position = status_start + status_offset;
-                sprite.set_position(position);
-                self.displayed_sprites.push(sprite.clone());
-            } else {
+            let position = status_start + status_offset;
+            sprite.set_position(position);
+            self.displayed_sprites.push(sprite);
+
+            status_offset.x += self.status_step.x;
+
+            if status_offset.x > status_bounds.width {
+                status_offset.x = 0.0;
+                status_offset.y += self.status_step.y;
+            }
+        }
+
+        // start a new line
+        if status_offset.x > 0.0 {
+            status_offset.x = 0.0;
+            status_offset.y += self.status_step.y;
+        }
+
+        // render flags that aren't directly listed
+        for (category, dep_id) in &package.package_info.requirements {
+            if *category != PackageCategory::Status {
                 continue;
             }
+
+            let Some(status_package) = globals
+                .status_packages
+                .package(PackageNamespace::Local, dep_id)
+            else {
+                continue;
+            };
+
+            let flag = &*status_package.flag_name;
+
+            if !displayed_hit_props.insert(flag) {
+                continue;
+            }
+
+            let Some(mut sprite) = self.resolve_status_sprite(flag) else {
+                continue;
+            };
+
+            let position = status_start + status_offset;
+            sprite.set_position(position);
+            self.displayed_sprites.push(sprite);
 
             status_offset.x += self.status_step.x;
 
