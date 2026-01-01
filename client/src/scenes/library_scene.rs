@@ -85,7 +85,7 @@ impl LibraryScene {
             next_scene: NextScene::None,
         });
 
-        scene.update_preview();
+        scene.update_preview(game_io);
 
         scene
     }
@@ -104,7 +104,7 @@ impl LibraryScene {
         scroll_tracker.handle_vertical_input(&self.ui_input_tracker);
 
         if original_index != scroll_tracker.selected_index() {
-            self.update_preview();
+            self.update_preview(game_io);
 
             let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.sfx.cursor_move);
@@ -161,14 +161,14 @@ impl LibraryScene {
         }
     }
 
-    fn update_preview(&mut self) {
+    fn update_preview(&mut self, game_io: &GameIO) {
         let page = self.page_tracker.active_page();
         let active_dock = &mut self.docks[page];
 
         let selected_index = active_dock.scroll_tracker.selected_index();
 
         let card = active_dock.cards.get(selected_index).cloned();
-        self.card_preview.set_card(card);
+        self.card_preview.set_card(game_io, card);
 
         let display_recipes = active_dock.card_class == CardClass::Recipe;
         self.card_preview.set_display_recipes(display_recipes);
@@ -201,7 +201,7 @@ impl Scene for LibraryScene {
         self.page_tracker.update();
 
         if previously_scrolling && !self.page_tracker.animating() {
-            self.update_preview();
+            self.update_preview(game_io);
         }
 
         // input

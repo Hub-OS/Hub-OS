@@ -513,7 +513,7 @@ fn handle_events(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
         Event::Search(search_text) => {
             scene.name_filter = search_text.to_lowercase();
             apply_filters(scene, game_io);
-            scene.pack_dock.update_preview();
+            scene.pack_dock.update_preview(game_io);
         }
     }
 }
@@ -631,7 +631,7 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
     scroll_tracker.handle_vertical_input(&scene.ui_input_tracker);
 
     if original_index != scroll_tracker.selected_index() {
-        active_dock.update_preview();
+        active_dock.update_preview(game_io);
         scene.confirm_interrupted = true;
 
         let globals = game_io.resource::<Globals>().unwrap();
@@ -890,7 +890,7 @@ fn handle_namespace_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO
     scene.ns_filter = i;
     scene.name_filter = Default::default();
     apply_filters(scene, game_io);
-    scene.pack_dock.update_preview();
+    scene.pack_dock.update_preview(game_io);
 }
 
 fn handle_properties_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
@@ -910,7 +910,7 @@ fn handle_properties_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameI
 
     if !scene.properties_menu.is_open() {
         apply_filters(scene, game_io);
-        scene.pack_dock.update_preview();
+        scene.pack_dock.update_preview(game_io);
     }
 }
 
@@ -967,7 +967,7 @@ fn handle_sort_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
     // blanks should always be at the bottom
     card_slots.sort_by_key(|item| !item.is_some());
 
-    dock.update_preview();
+    dock.update_preview(game_io);
 }
 
 fn move_in_bulk(scene: &mut DeckEditorScene, game_io: &GameIO) {
@@ -985,8 +985,8 @@ fn move_in_bulk(scene: &mut DeckEditorScene, game_io: &GameIO) {
     if success {
         globals.audio.play_sound(&globals.sfx.page_turn);
         scene.deck_dock.validate(game_io, &scene.deck_restrictions);
-        scene.pack_dock.update_preview();
-        scene.deck_dock.update_preview();
+        scene.pack_dock.update_preview(game_io);
+        scene.deck_dock.update_preview(game_io);
     } else {
         globals.audio.play_sound(&globals.sfx.cursor_error);
     }
@@ -1227,8 +1227,8 @@ fn inter_dock_swap(
 
     transfer_to_pack_cleanup(scene, stored_index);
     scene.deck_dock.validate(game_io, &scene.deck_restrictions);
-    scene.deck_dock.update_preview();
-    scene.pack_dock.update_preview();
+    scene.deck_dock.update_preview(game_io);
+    scene.pack_dock.update_preview(game_io);
 
     Ok(())
 }
@@ -1327,8 +1327,8 @@ fn transfer_to_deck(
     }
 
     scene.deck_dock.validate(game_io, &scene.deck_restrictions);
-    scene.deck_dock.update_preview();
-    scene.pack_dock.update_preview();
+    scene.deck_dock.update_preview(game_io);
+    scene.pack_dock.update_preview(game_io);
 
     Ok(empty_index)
 }
@@ -1341,7 +1341,7 @@ fn transfer_to_pack(
     let card = scene.deck_dock.card_slots.get_mut(from_index)?.take()?.card;
 
     scene.deck_dock.validate(game_io, &scene.deck_restrictions);
-    scene.deck_dock.update_preview();
+    scene.deck_dock.update_preview(game_io);
 
     let pack_slots = &mut scene.pack_dock.card_slots;
 
@@ -1470,7 +1470,7 @@ impl Dock {
             page_arrow_offset,
         };
 
-        dock.update_preview();
+        dock.update_preview(game_io);
 
         dock
     }
@@ -1503,7 +1503,7 @@ impl Dock {
         self.card_count = total_cards;
     }
 
-    fn update_preview(&mut self) {
+    fn update_preview(&mut self, game_io: &GameIO) {
         let selected_index = self.scroll_tracker.selected_index();
 
         let card = self
@@ -1511,7 +1511,7 @@ impl Dock {
             .get(selected_index)
             .and_then(|item| item.as_ref().map(|item| item.card.clone()));
 
-        self.card_preview.set_card(card);
+        self.card_preview.set_card(game_io, card);
     }
 
     fn draw(
