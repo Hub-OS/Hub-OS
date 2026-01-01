@@ -1,0 +1,11 @@
+element-none = None
+element-fire = Fire
+element-aqua = Aqua
+element-elec = Elec
+element-wood = Wood
+element-sword = Sword
+element-wind = Wind
+element-cursor = Cursor
+element-summon = Summon
+element-plus = Plus
+element-break = Break
