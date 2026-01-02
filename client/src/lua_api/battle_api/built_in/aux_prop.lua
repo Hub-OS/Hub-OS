@@ -11,6 +11,7 @@ function AuxProp.new()
 end
 
 local req_list = {
+  "require_chance",
   "require_interval",
   "require_hit_element",
   "require_hit_element_is_weakness",

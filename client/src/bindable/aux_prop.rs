@@ -4,11 +4,12 @@ use super::{
 };
 use crate::battle::{
     ActionQueue, ActionType, ActionTypes, AttackContext, BattleCallback, Character, EmotionWindow,
-    Entity, Player, SharedBattleResources,
+    Entity, Player, SharedBattleResources, SimulationRng,
 };
 use crate::lua_api::{VM_INDEX_REGISTRY_KEY, create_action_table};
 use crate::render::FrameTime;
 use packets::structures::Emotion;
+use rand::Rng;
 use std::ops::{Range, RangeInclusive};
 
 #[derive(Clone, Debug)]
@@ -69,6 +70,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for AuxVariable {
 
 #[derive(Clone)]
 pub enum AuxRequirement {
+    Chance(f32),
     Interval(FrameTime),
     HitElement(Element),
     HitElementIsWeakness,
@@ -123,7 +125,7 @@ impl AuxRequirement {
 
     fn priority(&self) -> usize {
         match self {
-            AuxRequirement::Interval(_) => Self::TIMER_PRIORITY, // TIMER
+            AuxRequirement::Chance(_) | AuxRequirement::Interval(_) => Self::TIMER_PRIORITY, // TIMER
             AuxRequirement::HitElement(_)
             | AuxRequirement::HitElementIsWeakness
             | AuxRequirement::HitFlags(_)
@@ -173,6 +175,7 @@ impl AuxRequirement {
         let name_str = name.to_str()?;
 
         let requirement = match name_str {
+            "require_chance" => AuxRequirement::Chance(table.get(2)?),
             "require_interval" => AuxRequirement::Interval(table.get(2)?),
             "require_hit_element" => AuxRequirement::HitElement(table.get(2)?),
             "require_hit_element_is_weakness" => AuxRequirement::HitElementIsWeakness,
@@ -532,12 +535,18 @@ impl AuxProp {
         self.activated = true;
     }
 
-    pub fn reset_tests(&mut self) {
+    pub fn reset_tests(&mut self, rng: &mut SimulationRng) {
         for (requirement, state) in &mut self.requirements {
             *state = RequirementState::default();
 
-            // we should always consider these as tested
-            state.tested = matches!(requirement, AuxRequirement::ContextStart);
+            match requirement {
+                AuxRequirement::Chance(chance) => {
+                    state.tested = true;
+                    state.passed = rng.random_range(0.0..1.0) < *chance;
+                }
+                AuxRequirement::ContextStart => state.tested = true,
+                _ => state.tested = false,
+            }
         }
 
         self.activated = false;

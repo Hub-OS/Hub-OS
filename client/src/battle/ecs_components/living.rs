@@ -142,7 +142,7 @@ impl Living {
             // reset tests for next run
             for aux_prop in living.aux_props.values_mut() {
                 if filter(aux_prop) {
-                    aux_prop.reset_tests();
+                    aux_prop.reset_tests(&mut simulation.rng);
                 }
             }
         }
