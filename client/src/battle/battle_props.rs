@@ -257,9 +257,14 @@ impl BattleMeta {
             .packages(PackageNamespace::BuiltIn)
             .map(|package| package.package_info.triplet());
 
-        let triplet_iter = encounter_triplet_iter
-            .chain(status_triplet_iter)
-            .chain(tile_state_triplet_iter);
+        let mut built_in_dependencies = status_triplet_iter
+            .chain(tile_state_triplet_iter)
+            .collect::<Vec<_>>();
+
+        // maintain order to avoid desyncs
+        built_in_dependencies.sort_by_cached_key(|(_, _, id)| id.clone());
+
+        let triplet_iter = encounter_triplet_iter.chain(built_in_dependencies);
 
         globals.package_dependency_iter(triplet_iter)
     }
