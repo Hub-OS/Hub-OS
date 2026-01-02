@@ -15,3 +15,4 @@ battle-success-banner = SUCESSO
 battle-failed-banner = FRACASSO
 battle-time-up-banner = TEMPO ESGOTADO!
 battle-over-banner = BATALHA ENCERRADA
+battle-waiting = Waiting...
