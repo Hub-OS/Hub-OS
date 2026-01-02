@@ -234,7 +234,7 @@ impl Deck {
 
             // read name
             let name_start = count_end + 1;
-            let name_len = text[name_start..]
+            let name_len = line[name_start..]
                 .grapheme_indices(true)
                 .nth(8)
                 .map(|(i, _)| i)
@@ -242,8 +242,8 @@ impl Deck {
 
             let name_end = name_start + name_len;
 
-            if line.len() < name_end + 1 {
-                // must have room for the name and a space for the next read
+            if !line.get(name_end..).is_some_and(|s| s.starts_with(' ')) {
+                // must start with a space for the next read
                 return None;
             }
 
@@ -269,22 +269,37 @@ impl Deck {
 
 #[cfg(test)]
 mod test {
-    use crate::saves::Deck;
+    use crate::saves::*;
+
+    fn new_card(id: &str, code: &str) -> Card {
+        Card {
+            package_id: id.into(),
+            code: code.to_string(),
+        }
+    }
 
     #[test]
     fn import() {
-        const PROTO_MAN_EX: &str = "2 ProtoMn B BattleNetwork6.Class02.Mega.005.ProtoEX";
+        const DECK: &str = "\
+2 ProtoMn B BattleNetwork6.Class02.Mega.005.ProtoEX
+1 EraseMan * BattleNetwork6.Class02.Mega.G16.EraseMan
+1 EraseMn K BattleNetwork6.Class02.Mega.G17.EraseMnEX
+1 EraseMn K BattleNetwork6.Class02.Mega.G18.EraseMnSP
+1 EraseMnΩ K LDR100.card.Navi.11.EraseMnΩ
+1 EraseMn * LDR100.card.Navi.12.EraseMnRV";
 
-        let deck = Deck::import_string(PROTO_MAN_EX.to_string()).unwrap();
+        let deck = Deck::import_string(DECK.to_string()).unwrap();
 
-        for card in &deck.cards {
-            assert_eq!(card.code.as_str(), "B");
-            assert_eq!(
-                card.package_id.as_str(),
-                "BattleNetwork6.Class02.Mega.005.ProtoEX"
-            );
-        }
+        let expected_cards = vec![
+            new_card("BattleNetwork6.Class02.Mega.005.ProtoEX", "B"),
+            new_card("BattleNetwork6.Class02.Mega.005.ProtoEX", "B"),
+            new_card("BattleNetwork6.Class02.Mega.G16.EraseMan", "*"),
+            new_card("BattleNetwork6.Class02.Mega.G17.EraseMnEX", "K"),
+            new_card("BattleNetwork6.Class02.Mega.G18.EraseMnSP", "K"),
+            new_card("LDR100.card.Navi.11.EraseMnΩ", "K"),
+            new_card("LDR100.card.Navi.12.EraseMnRV", "*"),
+        ];
 
-        assert_eq!(deck.cards.len(), 2)
+        assert_eq!(deck.cards, expected_cards);
     }
 }

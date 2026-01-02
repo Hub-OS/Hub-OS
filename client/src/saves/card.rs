@@ -13,6 +13,12 @@ pub struct Card {
     pub code: String,
 }
 
+impl std::fmt::Debug for Card {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} {}", self.package_id, self.code)
+    }
+}
+
 impl Card {
     pub fn draw_recipe_preview(
         &self,
