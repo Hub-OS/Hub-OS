@@ -2,11 +2,12 @@ use crate::resources::ResourcePaths;
 use crate::saves::Config;
 use fluent_templates::Loader;
 use framework::input::Button;
+use std::borrow::Cow;
 use std::collections::HashMap;
 
 pub use fluent_templates::fluent_bundle::FluentValue;
 
-pub type TranslationArgs<'key, 'value> = Vec<(&'key str, crate::FluentValue<'value>)>;
+pub type TranslationArgs<'value> = Vec<(&'static str, crate::FluentValue<'value>)>;
 
 pub struct Translations {
     language: fluent_templates::LanguageIdentifier,
@@ -73,22 +74,12 @@ impl Translations {
     }
 
     pub fn translate_with_args(&self, text_key: &str, args: TranslationArgs) -> String {
-        let args = if args.is_empty() {
-            None
-        } else {
-            Some(HashMap::<&str, FluentValue>::from_iter(args))
-        };
+        let args = HashMap::<Cow<'static, str>, FluentValue>::from_iter(
+            args.into_iter().map(|(key, value)| (key.into(), value)),
+        );
 
-        match self
-            .loader
-            .lookup_single_language(&self.language, text_key, args.as_ref())
-        {
-            Ok(s) => s,
-            Err(err) => {
-                log::error!("{err}");
-                text_key.to_string()
-            }
-        }
+        self.loader
+            .lookup_with_args(&self.language, text_key, &args)
     }
 
     pub fn button_key(button: Button) -> &'static str {
