@@ -250,7 +250,7 @@ impl PackagePreview {
                     self.sprites.push(sprite);
                 } else if matches!(class, CardClass::Recipe) {
                     let mut text = Text::new(game_io, FontName::Thick);
-                    text.text = String::from("P.A.");
+                    text.text = Globals::from_resources(game_io).translate("card-class-recipe");
 
                     let text_size = text.measure().size;
                     text.style.bounds += image_bounds.center() - text_size * 0.5;
