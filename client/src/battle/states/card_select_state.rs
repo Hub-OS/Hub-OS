@@ -274,8 +274,6 @@ impl State for CardSelectState {
             self.complete(game_io, resources, simulation);
         }
 
-        self.dark_card_effects(game_io, resources, simulation);
-
         self.time += 1;
         self.ui.advance_time();
     }
@@ -948,6 +946,10 @@ impl CardSelectState {
 
         for (sfx, behavior) in pending_sfx {
             simulation.play_sound_with_behavior(game_io, sfx, behavior);
+        }
+
+        if selection.local {
+            self.dark_card_effects(game_io, resources, simulation);
         }
     }
 
