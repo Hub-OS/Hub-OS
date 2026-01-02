@@ -1,7 +1,7 @@
 use crate::battle::*;
 use crate::bindable::SpriteColorMode;
 use crate::packages::PackageNamespace;
-use crate::render::ui::{FontName, TextStyle, Textbox, TextboxMessage, TextboxQuestion};
+use crate::render::ui::{Textbox, TextboxMessage, TextboxQuestion};
 use crate::render::*;
 use crate::resources::*;
 use crate::saves::{
@@ -1208,6 +1208,8 @@ impl Scene for BattleScene {
 
         #[cfg(not(feature = "record_every_frame"))]
         if self.playback_multiplier > 1 {
+            use crate::render::ui::{FontName, TextStyle};
+
             let text = format!("{}X", self.playback_multiplier);
             let mut text_style = TextStyle::new_monospace(game_io, FontName::Code);
             text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
