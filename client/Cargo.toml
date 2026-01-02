@@ -76,4 +76,6 @@ framework = { git = "https://github.com/Hub-OS/framework", features = [
 minreq = { version = "2", features = ["https"] }
 
 [features]
+default = []
 record_simulation_flow = []
+record_every_frame = []

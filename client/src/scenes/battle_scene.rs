@@ -351,7 +351,7 @@ impl BattleScene {
         }
     }
 
-    fn handle_packets(&mut self, game_io: &GameIO) {
+    fn handle_packets(&mut self, game_io: &mut GameIO) {
         let mut packets = Vec::new();
         let mut pending_removal = Vec::new();
 
@@ -768,7 +768,7 @@ impl BattleScene {
         }
     }
 
-    fn resimulate(&mut self, game_io: &GameIO, start_time: FrameTime) {
+    fn resimulate(&mut self, game_io: &mut GameIO, start_time: FrameTime) {
         let local_time = self.simulation.time;
 
         if start_time >= local_time {
@@ -804,7 +804,7 @@ impl BattleScene {
         self.resimulating = false;
     }
 
-    fn rewind(&mut self, game_io: &GameIO, mut steps: usize) {
+    fn rewind(&mut self, game_io: &mut GameIO, mut steps: usize) {
         // taking an extra step back as we'll resimulate one step forward again
         // this ensures the snapshot is popped as repeated self.rollback(1) has no effect
         if !self.already_snapped {
@@ -854,7 +854,7 @@ impl BattleScene {
         self.already_snapped = true;
     }
 
-    fn simulate(&mut self, game_io: &GameIO) {
+    fn simulate(&mut self, game_io: &mut GameIO) {
         if !self.already_snapped {
             self.resources.vm_manager.snap();
 
@@ -914,6 +914,53 @@ impl BattleScene {
                 }
             }
         }
+
+        #[cfg(feature = "record_every_frame")]
+        self.record_frame(game_io);
+    }
+
+    #[cfg(feature = "record_every_frame")]
+    fn record_frame(&mut self, game_io: &mut GameIO) {
+        let mut capture_pass = CapturePass::new(game_io, Some("Capture"), RESOLUTION_F.as_uvec2());
+        let mut render_pass = capture_pass.create_render_pass();
+
+        self.draw(game_io, &mut render_pass);
+
+        render_pass.flush();
+
+        let frame_number = self.simulation.time;
+        let image_future = capture_pass.capture(game_io);
+
+        game_io
+            .spawn_local_task(async move {
+                let Some(image) = image_future.await else {
+                    log::warn!("Failed to capture frame {frame_number}");
+                    return;
+                };
+
+                // maybe we shouldn't use a thread and just block to avoid writing too fast
+                std::thread::spawn(move || {
+                    let capture_folder = "./_capture";
+
+                    let _ = std::fs::create_dir(capture_folder);
+                    let path = format!("./{capture_folder}/{frame_number}.png");
+
+                    let file = match std::fs::File::create(&path) {
+                        Ok(file) => file,
+                        Err(e) => {
+                            log::error!("Failed to save capture to {path:?}: {e}");
+                            return;
+                        }
+                    };
+
+                    let png_encoder = image::codecs::png::PngEncoder::new(file);
+
+                    if let Err(e) = image.write_with_encoder(png_encoder) {
+                        log::error!("Failed to save capture to {path:?}: {e}");
+                    }
+                });
+            })
+            .detach();
     }
 
     fn detect_debug_hotkeys(&mut self, game_io: &mut GameIO) {
@@ -958,9 +1005,7 @@ impl BattleScene {
             .unwrap_or_default()
     }
 
-    fn core_update(&mut self, game_io: &GameIO) {
-        let input_util = InputUtil::new(game_io);
-
+    fn core_update(&mut self, game_io: &mut GameIO) {
         // replay rollbacks
         loop {
             let Some(playback_flow) = &mut self.playback_flow else {
@@ -985,6 +1030,8 @@ impl BattleScene {
             playback_flow.current_step += 1;
         }
 
+        let mut input_util = InputUtil::new(game_io);
+
         let mut can_simulate = if self.is_playing_back_recording {
             // simulate as long as we have input
             self.remaining_replay_buffer() > 0
@@ -997,6 +1044,7 @@ impl BattleScene {
         if self.frame_by_frame_debug {
             if input_util.was_just_pressed(Input::RewindFrame) && !self.is_playing_back_recording {
                 self.rewind(game_io, 1);
+                input_util = InputUtil::new(game_io)
             }
 
             can_simulate &= input_util.was_just_pressed(Input::AdvanceFrame);
@@ -1158,6 +1206,7 @@ impl Scene for BattleScene {
         self.resources
             .draw_fade_sprite(&mut sprite_queue, fade_color);
 
+        #[cfg(not(feature = "record_every_frame"))]
         if self.playback_multiplier > 1 {
             let text = format!("{}X", self.playback_multiplier);
             let mut text_style = TextStyle::new_monospace(game_io, FontName::Code);
