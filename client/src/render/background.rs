@@ -1,5 +1,5 @@
 use super::*;
-use crate::resources::{AssetManager, Globals, ResourcePaths, RESOLUTION_F};
+use crate::resources::{AssetManager, Globals, RESOLUTION_F, ResourcePaths};
 use framework::prelude::*;
 use std::sync::Arc;
 
@@ -91,11 +91,7 @@ impl Background {
             Err(i) => {
                 // Err path gives us an insertion index
                 // we want to use the background before that index
-                if i == 0 {
-                    backgrounds.len() - 1
-                } else {
-                    i - 1
-                }
+                if i == 0 { backgrounds.len() - 1 } else { i - 1 }
             }
         };
 
@@ -158,8 +154,6 @@ impl Background {
 
     #[allow(clippy::result_large_err)]
     fn randomized(game_io: &GameIO, animator_path: &str) -> Result<Self, Animator> {
-        use rand::seq::IteratorRandom;
-
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
@@ -167,13 +161,22 @@ impl Background {
         animator.set_state("DEFAULT");
 
         let frame_0 = animator.frame(0).cloned().unwrap_or_default();
-        let Some(background) = frame_0
+
+        let path_list: Vec<_> = frame_0
             .points
             .iter()
             .map(|(path, _)| path)
             .filter(|path| *path != "VELOCITY")
-            .choose(&mut rand::rng())
-        else {
+            .collect();
+
+        let background_index = if cfg!(feature = "record_every_frame") || path_list.is_empty() {
+            0
+        } else {
+            use rand::Rng;
+            rand::rng().random_range(0..path_list.len())
+        };
+
+        let Some(background) = path_list.get(background_index) else {
             return Err(animator);
         };
 
