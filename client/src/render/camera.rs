@@ -1,7 +1,6 @@
 use super::FrameTime;
 use crate::resources::*;
 use framework::prelude::*;
-use rand::Rng;
 
 #[derive(Default, Clone, Copy, Debug)]
 pub enum CameraMotion {
@@ -203,7 +202,10 @@ impl Camera {
         let scale = self.zoom_interpolator.step(|a, b| a.abs_diff_eq(b, 0.01));
         self.internal_camera.set_scale(scale);
 
+        #[cfg(not(feature = "record_every_frame"))]
         if self.shake_elapsed <= self.shake_duration {
+            use rand::Rng;
+
             let progress = self.shake_elapsed as f32 / self.shake_duration as f32;
 
             // Drop off to zero by end of shake
