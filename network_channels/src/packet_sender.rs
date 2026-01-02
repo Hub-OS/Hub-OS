@@ -35,7 +35,6 @@ pub struct PacketSender<ChannelLabel: Label> {
     stored_packets: Vec<StoredPacket<ChannelLabel>>,
     last_receive_time: Instant,
     estimated_rtt: Duration,
-    retry_delay: Duration,
     rtt_resend_factor: f32,
     mtu: u16,
     bytes_per_sec: f32,
@@ -70,7 +69,6 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
             last_receive_time: now,
             rtt_resend_factor: config.rtt_resend_factor,
             estimated_rtt: config.initial_rtt,
-            retry_delay: config.initial_rtt.mul_f32(config.rtt_resend_factor),
             mtu: config.mtu,
             bytes_per_sec: config.initial_bytes_per_second as _,
             max_bytes_per_sec: config
@@ -209,7 +207,9 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                             };
 
                             if sending {
-                                stored_packet.next_retry = now + self.retry_delay;
+                                let retry_delay =
+                                    self.estimated_rtt.mul_f32(self.rtt_resend_factor);
+                                stored_packet.next_retry = now + retry_delay;
                                 stored_packet.attempts = 1
                             }
 
@@ -255,10 +255,6 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
         let rtt_sample = time - send_time;
         self.estimated_rtt = self.estimated_rtt.mul_f32(A_FLIPPED) + rtt_sample.mul_f32(A);
 
-        // update retry delay
-        let new_delay = self.estimated_rtt.mul_f32(self.rtt_resend_factor);
-        self.retry_delay = self.retry_delay.min(new_delay);
-
         // try speeding up
         self.successfully_sent += acked_packet.bytes.len();
 
@@ -282,6 +278,11 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
     fn resend_old(&mut self, now: Instant, send: &mut dyn FnMut(&[u8])) {
         let mut slowing = false;
 
+        let retry_delay = self.estimated_rtt.mul_f32(self.rtt_resend_factor);
+
+        let scaled_attempts = (3.0 / self.rtt_resend_factor).ceil();
+        let max_attempts_before_slow = (scaled_attempts.clamp(0.0, u8::MAX as _) as u8).max(3);
+
         for packet in &mut self.stored_packets {
             if packet.next_retry > now {
                 continue;
@@ -292,7 +293,7 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                 break;
             }
 
-            if packet.attempts >= 3 {
+            if packet.attempts >= max_attempts_before_slow {
                 slowing = true;
                 // avoid sending more packets
                 // as we're possibly flooding the network and need to slow down
@@ -306,7 +307,7 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                 .saturating_sub(packet.bytes.len());
 
             send(&packet.bytes);
-            packet.next_retry = now + self.retry_delay;
+            packet.next_retry = now + retry_delay;
 
             if packet.send_time.is_none() {
                 packet.send_time = Some(now);
