@@ -1192,20 +1192,13 @@ impl BattleSimulation {
     }
 
     pub fn render_preview(&mut self, game_io: &GameIO) -> RecordedPreview {
-        let graphics = game_io.graphics().clone();
-
-        let device = graphics.device();
-        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            label: Some("Recording Preview"),
-        });
-
-        // build render target and pass
-        let render_target = RenderTarget::new(&graphics, UVec2::new(72, 64));
-        let mut render_pass = RenderPass::new(&mut encoder, &render_target);
+        let mut capture_pass =
+            CapturePass::new(game_io, Some("Recording Preview"), UVec2::new(72, 64));
+        let mut render_pass = capture_pass.create_render_pass();
 
         // build camera
         let mut camera = Camera::new(game_io);
-        let render_size = render_target.size().as_vec2();
+        let render_size = render_pass.target_size().as_vec2();
         camera.set_scale(RESOLUTION_F / render_size);
 
         // resolve and sort entities to render
@@ -1303,45 +1296,7 @@ impl BattleSimulation {
         // complete render
         render_pass.consume_queue(sprite_queue);
         render_pass.flush();
-
-        // convert texture to rgba
-        const FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba8UnormSrgb;
-
-        let converted_target =
-            RenderTarget::new_with_format(&graphics, render_target.size(), FORMAT);
-
-        let blitter = wgpu::util::TextureBlitter::new(device, FORMAT);
-        blitter.copy(
-            device,
-            &mut encoder,
-            render_target.texture().view(),
-            converted_target.texture().view(),
-        );
-
-        // submit
-        let command_buffer = encoder.finish();
-
-        let queue = game_io.graphics().queue();
-        queue.submit([command_buffer]);
-
-        // capture render
-        let (sender, receiver) = flume::unbounded();
-
-        queue.on_submitted_work_done(move || {
-            let _ = sender.send(());
-        });
-
-        game_io.spawn_local_task(async move {
-            // wait for render to complete
-            let _ = receiver.recv_async().await;
-
-            // request bytes
-            let bytes = converted_target.texture().read_bytes(&graphics).await;
-
-            // add metadata for later usage
-            let size = converted_target.size();
-            image::ImageBuffer::<image::Rgba<u8>, Vec<u8>>::from_vec(size.x, size.y, bytes)
-        })
+        game_io.spawn_local_task(capture_pass.capture(game_io))
     }
 
     #[cfg(debug_assertions)]
