@@ -13,7 +13,7 @@ pub struct CommandPalette<T: Copy + 'static> {
 
 impl<T: Copy + 'static> CommandPalette<T> {
     pub fn new(game_io: &GameIO, label_translation_key: &str) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         Self {
             frame: ContextFrame::new(game_io, globals.translate(label_translation_key)),
@@ -61,7 +61,7 @@ impl<T: Copy + 'static> CommandPalette<T> {
 
         if input_util.was_just_pressed(Input::Cancel) {
             // closed
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
             self.open = false;
@@ -74,12 +74,12 @@ impl<T: Copy + 'static> CommandPalette<T> {
         self.scroll_tracker.handle_vertical_input(ui_input_tracker);
 
         if prev_index != self.scroll_tracker.selected_index() {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_move);
         }
 
         if input_util.was_just_pressed(Input::Confirm) {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_select);
 
             self.options

@@ -95,7 +95,7 @@ impl RepoPackageUpdater {
 
         match event {
             Event::ReceivedListing(listing) => {
-                let globals = game_io.resource_mut::<Globals>().unwrap();
+                let globals = Globals::from_resources_mut(game_io);
 
                 for (category, id) in &listing.dependencies {
                     if self.ignoring_installed_dependencies
@@ -184,7 +184,7 @@ impl RepoPackageUpdater {
             return;
         };
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let repo = globals.config.package_repo.clone();
         let encoded_id = uri_encode(id.as_str());
@@ -240,7 +240,7 @@ impl RepoPackageUpdater {
             return;
         };
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let repo = globals.config.package_repo.clone();
         let encoded_id = uri_encode(id.as_str());
 
@@ -269,7 +269,7 @@ impl RepoPackageUpdater {
         let category = *category;
 
         // reload package
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = Globals::from_resources_mut(game_io);
         let path = globals.resolve_package_download_path(category, install_id);
 
         globals.unload_package(category, PackageNamespace::Local, install_id);

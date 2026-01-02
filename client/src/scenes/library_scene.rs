@@ -24,7 +24,7 @@ pub struct LibraryScene {
 
 impl LibraryScene {
     pub fn new(game_io: &GameIO) -> Box<Self> {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let mut camera = Camera::new(game_io);
@@ -106,7 +106,7 @@ impl LibraryScene {
         if original_index != scroll_tracker.selected_index() {
             self.update_preview(game_io);
 
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_move);
         }
 
@@ -116,14 +116,14 @@ impl LibraryScene {
         if input_util.was_just_pressed(Input::Special) {
             self.card_preview.toggle_flipped();
 
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_select);
         }
 
         if !self.card_preview.flipped() && input_util.was_just_pressed(Input::Confirm) {
             self.card_preview.cycle_recipe();
 
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_move);
         }
 
@@ -133,7 +133,7 @@ impl LibraryScene {
         // leaving scene
         if input_util.was_just_pressed(Input::Option2) {
             // view card package
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             let dock = &self.docks[self.page_tracker.active_page()];
 
             if let Some(card) = dock.cards.get(dock.scroll_tracker.selected_index()) {
@@ -156,7 +156,7 @@ impl LibraryScene {
             let transition = crate::transitions::new_scene_pop(game_io);
             self.next_scene = NextScene::new_pop().with_transition(transition);
 
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_cancel);
         }
     }
@@ -257,7 +257,7 @@ impl Dock {
         available_packages: &[PackageId],
         card_class: CardClass,
     ) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         // cards
@@ -352,7 +352,7 @@ impl Dock {
     }
 
     fn retain_existing(&mut self, game_io: &GameIO) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         self.cards.retain(|card| {
             globals
                 .card_packages

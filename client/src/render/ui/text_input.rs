@@ -30,7 +30,7 @@ pub struct TextInput {
 
 impl TextInput {
     pub fn new(game_io: &GameIO, font: FontName) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         Self {
             view_offset: Vec2::ZERO,
@@ -169,7 +169,7 @@ impl UiNode for TextInput {
         if !self.active {
             if focused && (self.init_active || input_util.was_just_pressed(Input::Confirm)) {
                 if !self.silent {
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
                     globals.audio.play_sound(&globals.sfx.cursor_select);
                 }
 
@@ -212,7 +212,7 @@ impl UiNode for TextInput {
             input.end_text_input();
 
             if !self.silent {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 globals.audio.play_sound(&globals.sfx.cursor_move);
             }
 

@@ -87,7 +87,7 @@ impl Deck {
             return;
         }
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let mut non_giga_vec = Vec::new();
         // Cycle every card past the required 10 to count non-gigas
@@ -147,7 +147,7 @@ impl Deck {
         restrictions: &Restrictions,
         ns: PackageNamespace,
     ) -> Vec<PackageId> {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let mut results = Vec::new();
 
         for card in &self.cards {
@@ -175,7 +175,7 @@ impl Deck {
 
     pub fn export_string(&self, game_io: &GameIO) -> String {
         // condense cards
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let card_packages = &globals.card_packages;
         let mut card_map = HashMap::new();
 

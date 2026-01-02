@@ -3,11 +3,11 @@ use super::{BattleSimulation, Entity, Living, SharedBattleResources};
 use crate::battle::EmotionWindow;
 use crate::bindable::{DefensePriority, EntityId, HitFlag, HitProperties, Team};
 use crate::lua_api::{
-    create_entity_table, DEFENSE_FN, DEFENSE_TABLE, FILTER_HIT_PROPS_FN, REPLACE_FN,
+    DEFENSE_FN, DEFENSE_TABLE, FILTER_HIT_PROPS_FN, REPLACE_FN, create_entity_table,
 };
-use crate::render::ui::{FontName, TextStyle};
 use crate::render::SpriteColorQueue;
-use crate::resources::{Globals, BATTLE_INFO_SHADOW_COLOR, RESOLUTION_F};
+use crate::render::ui::{FontName, TextStyle};
+use crate::resources::{BATTLE_INFO_SHADOW_COLOR, Globals, RESOLUTION_F};
 use framework::prelude::GameIO;
 use rollback_mlua::prelude::{LuaFunction, LuaRegistryKey, LuaResult, LuaTable};
 use std::cell::RefCell;
@@ -157,7 +157,7 @@ impl DefenseRule {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
-        let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
+        let lua_api = &Globals::from_resources(game_io).battle_api;
 
         let context = RefCell::new(BattleScriptContext {
             vm_index: self.vm_index,
@@ -271,7 +271,7 @@ impl Defense {
         defense_rules: &[DefenseRule],
         collision_only: bool,
     ) {
-        let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
+        let lua_api = &Globals::from_resources(game_io).battle_api;
 
         for defense_rule in defense_rules {
             if defense_rule.collision_only != collision_only {
@@ -324,7 +324,7 @@ impl Defense {
         props: &mut HitProperties,
         defense_rules: &[DefenseRule],
     ) {
-        let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
+        let lua_api = &Globals::from_resources(game_io).battle_api;
         let no_counter = props.flags & HitFlag::NO_COUNTER;
 
         for defense_rule in defense_rules {

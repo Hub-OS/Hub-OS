@@ -27,7 +27,7 @@ impl<'a> CardPreview<'a> {
     }
 
     pub fn draw_title(&self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let package_manager = &globals.card_packages;
         let name = package_manager
             .package_or_fallback(self.namespace, &self.card.package_id)
@@ -45,7 +45,7 @@ impl<'a> CardPreview<'a> {
     }
 
     pub fn draw(&self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
         let package_manager = &globals.card_packages;
 
@@ -138,7 +138,7 @@ impl<'a> CardPreview<'a> {
 
             if !can_boost {
                 // underline non boostable chips
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
 
                 let mut line = globals.assets.new_sprite(game_io, ResourcePaths::PIXEL);
                 line.set_position(label.bounds.position() + Vec2::new(0.0, damage_size.y + 1.0));

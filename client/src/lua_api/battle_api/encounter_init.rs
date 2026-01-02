@@ -18,7 +18,7 @@ const BATTLE_END_LISTENERS: &str = "#battle_end_listeners";
 const EXTERNAL_LISTENERS: &str = "#external_listeners";
 
 pub fn encounter_init(api_ctx: BattleScriptContext, data: Option<&str>) {
-    let globals = api_ctx.game_io.resource::<Globals>().unwrap();
+    let globals = Globals::from_resources(api_ctx.game_io);
     let battle_api = &globals.battle_api;
 
     let vms = api_ctx.resources.vm_manager.vms();
@@ -142,7 +142,7 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
         let animation_path = absolute_path(lua, animation_path)?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
-        let globals = api_ctx.game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(api_ctx.game_io);
         let assets = &globals.assets;
 
         let animator = Animator::load_new(assets, &animation_path);
@@ -168,7 +168,7 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let game_io = api_ctx.game_io;
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         if api_ctx.simulation.time > 0 {
             return Err(encounter_method_called_after_start());
@@ -230,7 +230,7 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
             let simulation = &mut api_ctx.simulation;
             let game_io = &api_ctx.game_io;
 
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             let texture = globals.assets.texture(game_io, &texture_path);
             let animator = Animator::load_new(&globals.assets, &animation_path);
 
@@ -513,7 +513,7 @@ pub fn call_callbacks(
         simulation,
     });
 
-    let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
+    let lua_api = &Globals::from_resources(game_io).battle_api;
 
     lua_api.inject_dynamic(lua, &api_ctx, |lua| {
         let table: rollback_mlua::Table = lua.globals().get(ENCOUNTER_TABLE)?;

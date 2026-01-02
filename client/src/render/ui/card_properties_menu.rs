@@ -65,7 +65,7 @@ pub struct CardPropertiesMenu {
 
 impl CardPropertiesMenu {
     pub fn new(game_io: &GameIO) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let mut statuses = IndexMap::new();
@@ -216,7 +216,7 @@ impl CardPropertiesMenu {
 
         if input_util.was_just_pressed(Input::Cancel) {
             // closed
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
             self.open = false;
@@ -247,7 +247,7 @@ impl CardPropertiesMenu {
         if prev_v_index != self.v_scroll_tracker.selected_index()
             || prev_h_index != self.h_scroll_tracker.selected_index()
         {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_move);
 
             self.resolve_hovered_item(game_io);
@@ -255,7 +255,7 @@ impl CardPropertiesMenu {
 
         if input_util.was_just_pressed(Input::Confirm) {
             // selection
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_select);
 
             if let Some(filter) = &self.hovered_item {
@@ -286,7 +286,7 @@ impl CardPropertiesMenu {
             }
         };
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         self.hovered_text = self
             .hovered_item

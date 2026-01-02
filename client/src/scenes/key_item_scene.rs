@@ -45,7 +45,7 @@ impl KeyItemsScene {
             .collect();
 
         // layout
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
         let mut ui_animator = Animator::load_new(assets, ResourcePaths::KEY_ITEMS_UI_ANIMATION);
         ui_animator.set_state("DEFAULT");
@@ -141,7 +141,7 @@ impl Scene for KeyItemsScene {
         self.ui_input_tracker.update(game_io);
 
         if self.ui_input_tracker.pulsed(Input::Cancel) {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
             let transition = crate::transitions::new_scene_pop(game_io);
@@ -180,7 +180,7 @@ impl Scene for KeyItemsScene {
 
         if v_index_changed || h_index_changed {
             // sfx
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_move);
 
             // update textbox

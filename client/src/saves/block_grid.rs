@@ -77,7 +77,7 @@ impl BlockGrid {
         game_io: &GameIO,
         block: InstalledBlock,
     ) -> Option<Vec<(usize, usize)>> {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let Some(package) = globals
             .augment_packages
@@ -194,7 +194,7 @@ impl BlockGrid {
         &'a self,
         game_io: &'a GameIO,
     ) -> impl Iterator<Item = &'a AugmentPackage> {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         self.blocks
             .iter()
@@ -210,7 +210,7 @@ impl BlockGrid {
         &self,
         game_io: &'a GameIO,
     ) -> impl Iterator<Item = (&'a AugmentPackage, usize)> + use<'a> {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let augment_packages = &globals.augment_packages;
 
         let mut list = Vec::new();

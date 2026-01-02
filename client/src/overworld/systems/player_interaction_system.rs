@@ -84,7 +84,7 @@ pub fn player_interaction_debug_render(
     area: &OverworldArea,
     sprite_queue: &mut SpriteColorQueue,
 ) {
-    let globals = game_io.resource::<Globals>().unwrap();
+    let globals = Globals::from_resources(game_io);
 
     if !globals.debug_visible {
         return;

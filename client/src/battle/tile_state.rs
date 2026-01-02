@@ -4,7 +4,7 @@ use crate::bindable::{Element, EntityId, Team};
 use crate::lua_api::create_custom_tile_state_table;
 use crate::packages::{PackageInfo, PackageNamespace};
 use crate::render::{Animator, FrameTime};
-use crate::resources::{AssetManager, Globals, ResourcePaths, BROKEN_LIFETIME};
+use crate::resources::{AssetManager, BROKEN_LIFETIME, Globals, ResourcePaths};
 use framework::prelude::{GameIO, Texture};
 use packets::structures::PackageCategory;
 use std::sync::Arc;
@@ -181,7 +181,7 @@ impl TileState {
     pub fn create_registry(game_io: &GameIO) -> Vec<TileState> {
         let mut registry = Vec::new();
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
         let texture = globals.assets.texture(game_io, ResourcePaths::BATTLE_TILES);
 
@@ -234,7 +234,7 @@ impl TileState {
 
                 if tile.reservations().is_empty() {
                     if !simulation.is_resimulation {
-                        let globals = game_io.resource::<Globals>().unwrap();
+                        let globals = Globals::from_resources(game_io);
                         globals.audio.play_sound(&globals.sfx.tile_break);
                     }
 
@@ -267,7 +267,7 @@ impl TileState {
         resources: &SharedBattleResources,
         dependencies: &[(&PackageInfo, PackageNamespace)],
     ) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
         let packages = &globals.tile_state_packages;
 

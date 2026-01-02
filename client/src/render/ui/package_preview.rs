@@ -78,7 +78,7 @@ impl PackagePreview {
         let image_sprite = if listing.local {
             Some(
                 Self::resolve_local_preview_image(game_io, &listing).unwrap_or_else(|| {
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
                     let assets = &globals.assets;
                     assets.new_sprite(game_io, ResourcePaths::BLANK)
                 }),
@@ -100,7 +100,7 @@ impl PackagePreview {
     }
 
     fn resolve_local_preview_image(game_io: &GameIO, listing: &PackageListing) -> Option<Sprite> {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
         let ns = PackageNamespace::Local;
 
@@ -155,11 +155,11 @@ impl PackagePreview {
         self.image_requested = true;
 
         if !self.listing.preview_data.has_image() {
-            let assets = &game_io.resource::<Globals>().unwrap().assets;
+            let assets = &Globals::from_resources(game_io).assets;
             self.image_sprite = Some(assets.new_sprite(game_io, ResourcePaths::BLANK));
         }
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let repo = globals.config.package_repo.clone();
         let encoded_id = uri_encode(self.listing.id.as_str());
@@ -195,7 +195,7 @@ impl PackagePreview {
         let sprite = if let Ok(texture) = Texture::load_from_memory(game_io, &bytes) {
             Sprite::new(game_io, texture)
         } else {
-            let assets = &game_io.resource::<Globals>().unwrap().assets;
+            let assets = &Globals::from_resources(game_io).assets;
             assets.new_sprite(game_io, ResourcePaths::BLANK)
         };
 
@@ -208,7 +208,7 @@ impl PackagePreview {
         self.text.clear();
         self.dirty = false;
 
-        let assets = &game_io.resource::<Globals>().unwrap().assets;
+        let assets = &Globals::from_resources(game_io).assets;
 
         let mut animator = Animator::load_new(assets, ResourcePaths::PACKAGE_PREVIEW_ANIMATION)
             .with_state("DEFAULT");
@@ -288,7 +288,7 @@ impl PackagePreview {
 
                 if !*can_boost {
                     // underline non boostable chips
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
 
                     let mut sprite = globals.assets.new_sprite(game_io, ResourcePaths::PIXEL);
                     sprite.set_position(
@@ -374,7 +374,7 @@ impl PackagePreview {
             PackagePreviewData::Augment {
                 slot: Some(slot), ..
             } => {
-                let assets = &game_io.resource::<Globals>().unwrap().assets;
+                let assets = &Globals::from_resources(game_io).assets;
                 let mut sprite = assets.new_sprite(game_io, ResourcePaths::PACKAGE_PREVIEW);
 
                 let mut animator =

@@ -159,7 +159,7 @@ impl ScrollableList {
             self.scroll_tracker.handle_vertical_input(ui_input_tracker);
 
             if self.scroll_tracker.selected_index() != previous_index {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 globals.audio.play_sound(&globals.sfx.cursor_move);
             }
         }

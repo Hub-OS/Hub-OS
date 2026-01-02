@@ -33,7 +33,7 @@ impl Bbs {
         on_close: impl Fn() + 'static,
     ) -> Self {
         let mut scroll_tracker = ScrollTracker::new(game_io, 8);
-        let assets = &game_io.resource::<Globals>().unwrap().assets;
+        let assets = &Globals::from_resources(game_io).assets;
 
         let mut animator = Animator::load_new(assets, ResourcePaths::OVERWORLD_BBS_ANIMATION);
         let mut bg_sprite = assets.new_sprite(game_io, ResourcePaths::OVERWORLD_BBS);
@@ -173,7 +173,7 @@ impl Menu for Bbs {
     }
 
     fn handle_input(&mut self, game_io: &mut GameIO, _: &mut OverworldArea, _: &mut Textbox) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         self.ui_input_tracker.update(game_io);
 

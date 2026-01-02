@@ -159,7 +159,7 @@ impl State for CardSelectState {
 
             // sfx
             if !pre_confirmed {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 simulation.play_sound(game_io, &globals.sfx.card_select_open);
             }
 
@@ -451,7 +451,7 @@ impl State for CardSelectState {
                 let wait_time = self.time - selection.confirm_time;
 
                 if (wait_time / 30) % 2 == 0 {
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
                     let text = globals.translate("battle-waiting");
 
                     let mut style = TextStyle::new(game_io, FontName::Thick);
@@ -535,7 +535,7 @@ impl CardSelectState {
 
                     // sfx
                     if selection.local {
-                        let globals = game_io.resource::<Globals>().unwrap();
+                        let globals = Globals::from_resources(game_io);
                         simulation.play_sound(game_io, &globals.sfx.form_select);
                     }
 
@@ -615,7 +615,7 @@ impl CardSelectState {
             selection.visible = !selection.visible;
 
             if selection.local {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 simulation.play_sound(game_io, &globals.sfx.card_select_toggle);
             }
         }
@@ -645,7 +645,7 @@ impl CardSelectState {
             return;
         };
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let mut pending_sfx = Vec::new();
 
         let selection = &mut self.player_selections[player.index];
@@ -791,7 +791,7 @@ impl CardSelectState {
         let input = &simulation.inputs[player_index];
         let selection = &mut self.player_selections[player_index];
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let previous_item = resolve_selected_item(player, hand, selection);
 
         if input.pulsed(Input::End) || previous_item == SelectedItem::None {
@@ -989,7 +989,7 @@ impl CardSelectState {
             return;
         };
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let selection = &mut self.player_selections[player.index];
         let uses_default_audio = button.uses_default_audio;
 
@@ -1022,7 +1022,7 @@ impl CardSelectState {
             return;
         };
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let local = player.index == simulation.local_player_index;
         let mut applied = false;
 
@@ -1215,7 +1215,7 @@ impl CardSelectState {
 
             for index in 0..card_view_size {
                 let (card, namespace) = &hand.deck[index];
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
 
                 let card_packages = &globals.card_packages;
 
@@ -1264,7 +1264,7 @@ impl CardSelectState {
 
         let (card, namespace) = &hand.deck[deck_index];
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let card_packages = &globals.card_packages;
 
@@ -1273,7 +1273,7 @@ impl CardSelectState {
             .is_some_and(|package| package.card_properties.card_class == CardClass::Dark);
 
         if is_dark {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
 
             resources.ui_fade_color.set(Color::new(0.0, 0.0, 0.0, 0.5));
 

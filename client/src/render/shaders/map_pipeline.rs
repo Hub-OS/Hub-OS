@@ -80,7 +80,7 @@ impl<'a> MapTileSpriteQueue<'a> {
         let buffer_resource = BufferResource::new(game_io, bytemuck::cast_slice(&[tile_uniforms]));
         let uniforms = [camera.as_binding(), buffer_resource.as_binding()];
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let pipeline = &globals.map_pipeline.tile_pipeline;
 
         Self {
@@ -127,7 +127,7 @@ pub struct MapSpriteQueue<'a> {
 
 impl<'a> MapSpriteQueue<'a> {
     pub fn new(game_io: &'a GameIO, camera: &Camera) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let pipeline = &globals.map_pipeline.edge_pipeline;
         let uniforms = [camera.as_binding()];
 

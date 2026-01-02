@@ -46,7 +46,7 @@ impl OverworldPlayerData {
     }
 
     pub fn process_boosts(&mut self, game_io: &GameIO) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let global_save = &globals.global_save;
         let restrictions = &globals.restrictions;

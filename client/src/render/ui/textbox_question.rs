@@ -23,7 +23,7 @@ pub struct TextboxQuestion {
 
 impl TextboxQuestion {
     pub fn new(game_io: &GameIO, message: String, callback: impl FnOnce(bool) + 'static) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let response_start = message.len() + 1;
         let yes_string = globals.translate("navigation-yes");
@@ -89,21 +89,21 @@ impl TextboxInterface for TextboxQuestion {
         self.input_tracker.update(game_io);
 
         if self.input_tracker.pulsed(Input::Left) || self.input_tracker.pulsed(Input::Right) {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_move);
 
             self.selection = !self.selection;
         }
 
         if input_util.was_just_pressed(Input::Confirm) {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_select);
 
             self.complete = true;
         }
 
         if input_util.was_just_pressed(Input::Cancel) {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
             self.selection = false;

@@ -227,7 +227,7 @@ impl GlobalSave {
     pub fn player_package<'a>(&self, game_io: &'a GameIO) -> Option<&'a PlayerPackage> {
         let player_id = &self.selected_character;
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         globals
             .player_packages
@@ -258,7 +258,7 @@ impl GlobalSave {
     ) -> impl Iterator<Item = (&'a AugmentPackage, usize)> + 'a {
         const NAMESPACE: PackageNamespace = PackageNamespace::Local;
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let global_save = &globals.global_save;
         let restrictions = &globals.restrictions;
 

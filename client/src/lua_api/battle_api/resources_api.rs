@@ -12,7 +12,7 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
         // cache the texture
         let api_ctx = api_ctx.borrow();
         let game_io = api_ctx.game_io;
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         globals.assets.texture(game_io, &path);
 
         // pass the string right back since passing pointers is not safe
@@ -25,7 +25,7 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
         // cache the sound
         let api_ctx = api_ctx.borrow();
         let game_io = &api_ctx.game_io;
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         globals.assets.audio(game_io, &path);
 
         lua.pack_multi(path)
@@ -41,7 +41,7 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
         let simulation = &api_ctx.simulation;
 
         if !simulation.is_resimulation || matches!(behavior, AudioBehavior::EndLoop) {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             let sound_buffer = globals.assets.audio(game_io, &path);
             let audio = &globals.audio;
 
@@ -69,7 +69,7 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
         if player.is_some_and(|player| player.index == simulation.local_player_index)
             && (!simulation.is_resimulation || matches!(behavior, AudioBehavior::EndLoop))
         {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             let sound_buffer = globals.assets.audio(game_io, &path);
             let audio = &globals.audio;
 
@@ -101,7 +101,7 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
         let resources = &api_ctx.resources;
         let simulation = &api_ctx.simulation;
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let sound_buffer = globals.assets.audio(game_io, &path);
         simulation.play_music(game_io, resources, &sound_buffer, loops);
 

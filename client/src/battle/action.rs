@@ -142,7 +142,7 @@ impl Action {
             simulation,
         });
 
-        let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
+        let lua_api = &Globals::from_resources(game_io).battle_api;
         let mut id: Option<GenerationalIndex> = None;
 
         lua_api.inject_dynamic(lua, &api_ctx, |lua| {

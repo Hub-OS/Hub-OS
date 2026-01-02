@@ -11,7 +11,7 @@ pub struct GridCursor {
 
 impl GridCursor {
     pub fn new(game_io: &GameIO) -> Self {
-        let assets = &game_io.resource::<Globals>().unwrap().assets;
+        let assets = &Globals::from_resources(game_io).assets;
 
         let animator = Animator::load_new(assets, ResourcePaths::BLOCKS_UI_ANIMATION)
             .with_state("TEXTBOX_CURSOR")

@@ -67,7 +67,7 @@ impl Player {
         card_charge_sprite_index: TreeIndex,
         attack_charge_sprite_index: TreeIndex,
     ) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         Self {

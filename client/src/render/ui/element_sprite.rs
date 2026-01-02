@@ -8,7 +8,7 @@ pub struct ElementSprite;
 impl ElementSprite {
     #[allow(clippy::new_ret_no_self)]
     pub fn new(game_io: &GameIO, element: Element) -> Sprite {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let mut sprite = assets.new_sprite(game_io, ResourcePaths::ELEMENTS);
@@ -19,7 +19,7 @@ impl ElementSprite {
     }
 
     pub fn new_node(game_io: &GameIO, element: Element) -> SpriteNode {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let mut sprite_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);

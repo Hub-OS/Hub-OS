@@ -20,7 +20,7 @@ impl CardDamageResolver {
         namespace: PackageNamespace,
         package_id: &PackageId,
     ) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let Some(card_package) = globals
             .card_packages
             .package_or_fallback(namespace, package_id)
@@ -57,7 +57,7 @@ impl CardDamageResolver {
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
     ) -> i32 {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let Some(vm_index) = self.vm_index else {
             return self.default_damage;
         };

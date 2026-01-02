@@ -131,7 +131,7 @@ pub struct BlocksScene {
 
 impl BlocksScene {
     pub fn new(game_io: &GameIO) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         // installed blocks
@@ -289,7 +289,7 @@ impl BlocksScene {
     fn update_invalid(&mut self, game_io: &GameIO) {
         self.tracked_invalid.clear();
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let restrictions = &globals.restrictions;
 
         // test ownership
@@ -368,7 +368,7 @@ impl BlocksScene {
         match self.state {
             State::GridSelection { x, y } => {
                 if let Some(block) = self.grid.get_block((x, y)) {
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
                     let packages = &globals.augment_packages;
                     let package = packages
                         .package(PackageNamespace::Local, &block.package_id)
@@ -390,7 +390,7 @@ impl BlocksScene {
                 let index = self.scroll_tracker.selected_index();
 
                 if let Some(list_item) = self.list.get(index) {
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
                     let block_color = list_item
                         .colors
                         .get(list_item.selected_color)
@@ -438,7 +438,7 @@ impl BlocksScene {
             State::Applying => match self.arrow.status() {
                 GridArrowStatus::Block { position, progress } => {
                     let block_name = if let Some(block) = self.grid.get_block(position) {
-                        let globals = game_io.resource::<Globals>().unwrap();
+                        let globals = Globals::from_resources(game_io);
                         let package = globals
                             .augment_packages
                             .package(PackageNamespace::Local, &block.package_id)
@@ -463,7 +463,7 @@ impl BlocksScene {
     }
 
     fn handle_input(&mut self, game_io: &mut GameIO) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let prev_state = self.state;
         let prev_held = self.held_block.is_some();
@@ -583,7 +583,7 @@ impl BlocksScene {
                             globals.audio.play_sound(&globals.sfx.customize_start);
 
                             // save blocks
-                            let globals = game_io.resource_mut::<Globals>().unwrap();
+                            let globals = Globals::from_resources_mut(game_io);
                             let global_save = &mut globals.global_save;
 
                             global_save.installed_blocks.insert(
@@ -852,7 +852,7 @@ impl BlocksScene {
                 }
             }
             Err(index) => {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 let package = globals
                     .augment_packages
                     .package(PackageNamespace::Local, &block.package_id)
@@ -934,7 +934,7 @@ impl BlocksScene {
         while let Ok(event) = self.event_receiver.try_recv() {
             match event {
                 Event::Leave => {
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
                     globals.audio.pop_music_stack();
                     globals.audio.restart_music();
 
@@ -976,7 +976,7 @@ impl Scene for BlocksScene {
         self.update_colors();
         self.update_invalid(game_io);
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         globals.audio.push_music_stack();
     }
 
@@ -994,7 +994,7 @@ impl Scene for BlocksScene {
         if !game_io.is_in_transition() && !self.textbox.is_open() {
             self.handle_input(game_io);
 
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             if !globals.audio.is_music_playing() {
                 globals.audio.play_music(&globals.music.customize, true);
             }
@@ -1005,7 +1005,7 @@ impl Scene for BlocksScene {
     }
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         self.background.draw(game_io, render_pass);
 
@@ -1304,7 +1304,7 @@ impl ColorSelector {
             .set_selected_index(list_item.selected_color);
 
         // load previews
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let package = globals
             .augment_packages
             .package(PackageNamespace::Local, &list_item.id)
@@ -1350,12 +1350,12 @@ impl ColorSelector {
             return;
         }
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         globals.audio.play_sound(&globals.sfx.cursor_move);
     }
 
     fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         // shade behind the selector

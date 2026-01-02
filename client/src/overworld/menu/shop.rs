@@ -55,7 +55,7 @@ impl Shop {
         on_leave: impl Fn() + 'static,
         on_close: impl Fn() + 'static,
     ) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let mut animator = Animator::load_new(assets, ResourcePaths::OVERWORLD_SHOP_ANIMATION);
@@ -287,7 +287,7 @@ impl Menu for Shop {
 
         self.idle_cursor = false;
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let audio = &globals.audio;
 
         let previous_index = self.scroll_tracker.selected_index();

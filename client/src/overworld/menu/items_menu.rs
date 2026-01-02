@@ -35,7 +35,7 @@ pub struct ItemsMenu {
 
 impl ItemsMenu {
     pub fn new(game_io: &GameIO, area: &OverworldArea, on_select: impl Fn(&str) + 'static) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         // buttons nine patch
@@ -225,7 +225,7 @@ impl Menu for ItemsMenu {
         area: &mut OverworldArea,
         _textbox: &mut Textbox,
     ) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let input_util = InputUtil::new(game_io);
 
         if input_util.was_just_pressed(Input::Cancel) {

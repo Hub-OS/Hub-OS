@@ -12,7 +12,7 @@ impl PostProcessAdjust {
         let device = game_io.graphics().device();
         let shader = device.create_shader_module(include_wgsl!("post_process_adjust.wgsl"));
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         Self {
             config_resource: StructResource::new(game_io, globals.post_process_adjust_config),
@@ -39,7 +39,7 @@ impl PostProcess for PostProcessAdjust {
     }
 
     fn update(&mut self, game_io: &GameIO) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         if *self.config_resource.value() != globals.post_process_adjust_config {
             self.config_resource = StructResource::new(game_io, globals.post_process_adjust_config);

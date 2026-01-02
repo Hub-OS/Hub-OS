@@ -1,7 +1,7 @@
 use crate::bindable::SpriteColorMode;
 use crate::render::ui::{FontName, TextStyle};
 use crate::render::{Camera, SpriteColorQueue};
-use crate::resources::{AssetManager, Globals, ResourcePaths, RESOLUTION_F};
+use crate::resources::{AssetManager, Globals, RESOLUTION_F, ResourcePaths};
 use framework::prelude::*;
 use std::collections::VecDeque;
 
@@ -39,7 +39,7 @@ impl DebugOverlay {
         }
 
         if input.was_key_just_pressed(Key::N) {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             let mut namespaces = globals.namespaces().collect::<Vec<_>>();
             namespaces.sort();
 
@@ -79,7 +79,7 @@ impl GameOverlay for DebugOverlay {
         let toggling_debug =
             input.was_key_released(Key::F3) && self.last_key_pressed == Some(Key::F3);
 
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = Globals::from_resources_mut(game_io);
 
         if toggling_debug {
             globals.debug_visible = !globals.debug_visible;
@@ -89,7 +89,7 @@ impl GameOverlay for DebugOverlay {
     }
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         if !globals.debug_visible {
             return;

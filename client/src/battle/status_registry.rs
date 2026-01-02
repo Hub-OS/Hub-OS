@@ -60,7 +60,7 @@ impl StatusRegistry {
         vm_manager: &BattleVmManager,
         dependencies: &[(&PackageInfo, PackageNamespace)],
     ) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let packages = &globals.status_packages;
 
         for (info, namespace) in dependencies {

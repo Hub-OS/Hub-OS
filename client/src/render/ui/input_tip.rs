@@ -12,7 +12,7 @@ pub struct InputTip {
 
 impl InputTip {
     pub fn new(game_io: &GameIO, input: Input, action_key: &str, top_right: Vec2) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         Self {
             label: globals.translate(input.translation_key()).to_uppercase() + ":",

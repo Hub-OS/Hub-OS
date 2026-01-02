@@ -276,7 +276,7 @@ impl<'a> SpriteColorQueue<'a> {
         let shader_effect = SpriteShaderEffect::Default;
         let uniforms = [camera.as_binding()];
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let pipeline_collection = &globals.sprite_pipeline_collection;
         let pipeline = pipeline_collection.pipeline_for_config(shader_effect, false, color_mode);
 
@@ -347,7 +347,7 @@ impl<'a> SpriteColorQueue<'a> {
 
             if requires_shader_change {
                 // need to swap render pipelines
-                let globals = self.game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(self.game_io);
                 let pipeline_collection = &globals.sprite_pipeline_collection;
                 let pipeline = pipeline_collection.pipeline_for_config(
                     self.shader_effect,

@@ -40,7 +40,7 @@ impl SupportingService {
 
 impl GameService for SupportingService {
     fn pre_update(&mut self, game_io: &mut GameIO) {
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = Globals::from_resources_mut(game_io);
 
         // handle internal resolution and snap resize
         let internal_resolution = globals.internal_resolution;
@@ -76,7 +76,7 @@ impl GameService for SupportingService {
 
         // save recording
         if game_io.input().is_key_down(Key::F3) && game_io.input().was_key_just_pressed(Key::S) {
-            let globals = game_io.resource_mut::<Globals>().unwrap();
+            let globals = Globals::from_resources_mut(game_io);
 
             if let Some((props, recording, preview)) = globals.battle_recording.take() {
                 recording.save(game_io, &props, preview);
@@ -88,7 +88,7 @@ impl GameService for SupportingService {
 
     fn post_update(&mut self, game_io: &mut GameIO) {
         let suspended = game_io.suspended();
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = Globals::from_resources_mut(game_io);
 
         globals.audio.set_suspended(suspended);
         globals.audio.drop_empty_sinks();

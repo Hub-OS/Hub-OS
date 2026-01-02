@@ -13,7 +13,7 @@ pub fn inject_require_api(lua_api: &mut BattleLuaApi) {
         let path: String = lua.unpack_multi(params)?;
 
         let api_ctx = api_ctx.borrow();
-        let globals = api_ctx.game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(api_ctx.game_io);
 
         let path = {
             // try to resolve from library packages

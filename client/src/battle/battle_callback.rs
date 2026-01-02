@@ -33,9 +33,9 @@ where
 {
     pub fn new(
         callback: impl Fn(&GameIO, &SharedBattleResources, &mut BattleSimulation, P) -> R
-            + Sync
-            + Send
-            + 'static,
+        + Sync
+        + Send
+        + 'static,
     ) -> Self {
         Self {
             callback: Arc::new(callback),
@@ -100,7 +100,7 @@ where
                     simulation,
                 });
 
-                let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
+                let lua_api = &Globals::from_resources(game_io).battle_api;
 
                 let mut result = Default::default();
 

@@ -16,7 +16,7 @@ pub struct PlayerHealthUi {
 
 impl PlayerHealthUi {
     pub fn new(game_io: &GameIO) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         // use animation to load placement information

@@ -36,7 +36,7 @@ pub struct BootThread {
 impl BootThread {
     pub fn spawn(game_io: &GameIO) -> flume::Receiver<BootEvent> {
         let (sender, receiver) = flume::unbounded();
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = globals.assets.clone();
 
         std::thread::spawn(move || {

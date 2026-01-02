@@ -40,7 +40,7 @@ impl Scene for BattleInitScene {
     fn enter(&mut self, game_io: &mut GameIO) {
         self.start_instant = Instant::now();
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         globals.audio.stop_music();
         globals.audio.play_sound(&globals.sfx.battle_transition);

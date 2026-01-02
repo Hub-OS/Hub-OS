@@ -107,7 +107,7 @@ impl PlayerForm {
                 shine_position.offset += Vec2::new(0.0, -entity.height * 0.5);
 
                 // play revert sfx
-                let sfx = &game_io.resource::<Globals>().unwrap().sfx;
+                let sfx = &Globals::from_resources(game_io).sfx;
                 simulation.play_sound(game_io, &sfx.form_deactivate);
 
                 // actual shine creation as indicated above

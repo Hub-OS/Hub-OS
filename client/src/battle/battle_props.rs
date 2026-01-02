@@ -60,7 +60,7 @@ impl PlayerSetup {
         &'a self,
         game_io: &'b GameIO,
     ) -> impl Iterator<Item = &'b AugmentPackage> + 'a {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let augment_packages = &globals.augment_packages;
         let namespace = self.namespace();
 
@@ -70,7 +70,7 @@ impl PlayerSetup {
     }
 
     pub fn from_globals(game_io: &GameIO) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let global_save = &globals.global_save;
         let restrictions = &globals.restrictions;
         let mut deck_restrictions = restrictions.base_deck_restrictions();
@@ -153,7 +153,7 @@ impl PlayerSetup {
     }
 
     pub fn player_package<'a>(&self, game_io: &'a GameIO) -> Option<&'a PlayerPackage> {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         globals
             .player_packages
@@ -241,7 +241,7 @@ impl BattleMeta {
         &self,
         game_io: &'a GameIO,
     ) -> Vec<(&'a PackageInfo, PackageNamespace)> {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let encounter_triplet_iter = std::iter::once(self.encounter_package(game_io))
             .flatten()
@@ -274,7 +274,7 @@ impl BattleMeta {
         &self,
         game_io: &'a GameIO,
     ) -> Vec<(&'a PackageInfo, PackageNamespace)> {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let triplet_iter = self
             .player_setups
@@ -285,7 +285,7 @@ impl BattleMeta {
     }
 
     pub fn encounter_package<'a>(&self, game_io: &'a GameIO) -> Option<&'a EncounterPackage> {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let (ns, id) = self.encounter_package_pair.as_ref()?;
         globals.encounter_packages.package_or_fallback(*ns, id)
@@ -304,7 +304,7 @@ impl BattleMeta {
     }
 
     pub fn try_load_recording(&self, game_io: &mut GameIO) -> Option<BattleRecording> {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         // load recording

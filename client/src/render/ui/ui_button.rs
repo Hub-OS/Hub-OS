@@ -12,7 +12,7 @@ pub struct UiButton<'a, T> {
 
 impl UiButton<'_, Text> {
     pub fn new_translated(game_io: &GameIO, font: FontName, text_key: &str) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         Self::new(
             Text::new(game_io, font)
@@ -68,7 +68,7 @@ where
         let input_util = InputUtil::new(game_io);
 
         if input_util.was_just_pressed(Input::Confirm) {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_select);
 
             (self.activate_callback)();

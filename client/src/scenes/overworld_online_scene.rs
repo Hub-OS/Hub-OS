@@ -127,7 +127,7 @@ impl OverworldOnlineScene {
     }
 
     pub fn start_connection(&mut self, game_io: &GameIO, data: Option<String>) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let global_save = &globals.global_save;
 
         let send_packet = &self.send_packet;
@@ -158,7 +158,7 @@ impl OverworldOnlineScene {
         game_io: &mut GameIO,
         package_list: Vec<(String, PackageCategory, PackageId, FileHash)>,
     ) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let namespace = PackageNamespace::Local;
 
         for (remote_path, category, package_id, file_hash) in package_list {
@@ -203,7 +203,7 @@ impl OverworldOnlineScene {
     }
 
     pub fn send_preferences(&mut self, game_io: &GameIO) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let send_packet = &self.send_packet;
         send_packet(
@@ -215,7 +215,7 @@ impl OverworldOnlineScene {
     }
 
     pub fn send_boosts(&mut self, game_io: &GameIO) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let global_save = &globals.global_save;
 
         let blocks = global_save.active_blocks().to_vec();
@@ -240,7 +240,7 @@ impl OverworldOnlineScene {
     }
 
     pub fn send_avatar_data(&mut self, game_io: &GameIO) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let global_save = &globals.global_save;
         let player_package = global_save.player_package(game_io).unwrap();
 
@@ -304,7 +304,7 @@ impl OverworldOnlineScene {
         }
 
         if self.packet_receiver.is_disconnected() {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
 
             self.area
                 .event_sender
@@ -333,7 +333,7 @@ impl OverworldOnlineScene {
                 // handled in initial_connect_scene
             }
             ServerPacket::Authorize { address, data } => {
-                let globals = game_io.resource_mut::<Globals>().unwrap();
+                let globals = Globals::from_resources_mut(game_io);
                 let subscription = globals.network.subscribe_to_server(address);
 
                 let origin_address = address_parsing::strip_data(&self.server_address).to_string();
@@ -467,7 +467,7 @@ impl OverworldOnlineScene {
                 });
             }
             ServerPacket::Kick { reason } => {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 self.area
                     .event_sender
                     .send(OverworldEvent::Disconnected {
@@ -579,7 +579,7 @@ impl OverworldOnlineScene {
             } => {
                 let card = Card { package_id, code };
 
-                let globals = game_io.resource_mut::<Globals>().unwrap();
+                let globals = Globals::from_resources_mut(game_io);
                 globals.restrictions.add_card(card, count);
             }
             ServerPacket::AddBlock {
@@ -587,21 +587,21 @@ impl OverworldOnlineScene {
                 color,
                 count,
             } => {
-                let globals = game_io.resource_mut::<Globals>().unwrap();
+                let globals = Globals::from_resources_mut(game_io);
                 globals.restrictions.add_block(package_id, color, count);
             }
             ServerPacket::EnablePlayableCharacter {
                 package_id,
                 enabled,
             } => {
-                let globals = game_io.resource_mut::<Globals>().unwrap();
+                let globals = Globals::from_resources_mut(game_io);
                 let restrictions = &mut globals.restrictions;
                 restrictions.enable_player_character(package_id, enabled);
             }
             ServerPacket::PlaySound { path } => {
                 if self.area.visible {
                     let sound = self.assets.audio(game_io, &path);
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
                     globals.audio.play_sound(&sound);
                 }
             }
@@ -994,7 +994,7 @@ impl OverworldOnlineScene {
                 }
             }
             ServerPacket::ReferServer { name, address } => {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 let index = globals.global_save.server_list.len() + 1;
                 let name = Some(name);
                 let address = Some(address);
@@ -1017,7 +1017,7 @@ impl OverworldOnlineScene {
                 package_id,
                 options,
             } => {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
 
                 let ignore = options.unless_installed
                     && PackageCategory::iter().any(|category| {
@@ -1058,7 +1058,7 @@ impl OverworldOnlineScene {
                 let namespace = PackageNamespace::Server;
 
                 if !self.loaded_zips.contains_key(&package_path) {
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
 
                     let bytes = self.assets.binary(&package_path);
                     let hash = FileHash::hash(&bytes);
@@ -1066,7 +1066,7 @@ impl OverworldOnlineScene {
                     globals.assets.load_virtual_zip(game_io, hash, bytes);
                     self.loaded_zips.insert(package_path.clone(), hash);
 
-                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    let globals = Globals::from_resources_mut(game_io);
 
                     if let Some(package_info) =
                         globals.load_virtual_package(category, namespace, hash)
@@ -1078,7 +1078,7 @@ impl OverworldOnlineScene {
                 };
             }
             ServerPacket::Restrictions { restrictions_path } => {
-                let globals = game_io.resource_mut::<Globals>().unwrap();
+                let globals = Globals::from_resources_mut(game_io);
                 let restrictions = &mut globals.restrictions;
 
                 let restrictions_text = restrictions_path
@@ -1092,7 +1092,7 @@ impl OverworldOnlineScene {
                 package_path,
                 data,
             } => {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
 
                 if let Some(package_id) = self.encounter_packages.get(&package_path) {
                     let encounter_package = Some((PackageNamespace::Server, package_id.clone()));
@@ -1727,7 +1727,7 @@ impl OverworldOnlineScene {
             self.menu_manager.use_player_avatar(game_io);
             let event_sender = self.area.event_sender.clone();
 
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             let message = globals.translate("server-leave-question");
 
             let interface = TextboxQuestion::new(game_io, message, move |response| {
@@ -1850,7 +1850,7 @@ impl OverworldOnlineScene {
             return;
         }
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         if !globals.audio.is_music_playing() {
             globals.audio.restart_music();

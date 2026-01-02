@@ -31,7 +31,7 @@ pub enum BattleBannerMessage {
 
 impl BattleBannerMessage {
     fn resolve_text(self, game_io: &GameIO) -> Rc<str> {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let text = match self {
             BattleBannerMessage::TurnStart => globals.translate("battle-turn-start-banner"),

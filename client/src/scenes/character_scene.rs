@@ -51,7 +51,7 @@ impl CharacterScene {
     }
 
     fn load_pages(&mut self, game_io: &GameIO) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let mut ui_animator = Animator::load_new(assets, ResourcePaths::CHARACTER_UI_ANIMATION);
@@ -106,7 +106,7 @@ impl CharacterScene {
         let input_util = InputUtil::new(game_io);
 
         if input_util.was_just_pressed(Input::Cancel) {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
             let transition = crate::transitions::new_scene_pop(game_io);
@@ -121,7 +121,7 @@ impl Scene for CharacterScene {
     }
 
     fn enter(&mut self, game_io: &mut GameIO) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let selected_id = &globals.global_save.selected_character;
         let player_package = globals
             .player_packages
@@ -207,7 +207,7 @@ struct StatusData<'a> {
 
 impl<'a> StatusData<'a> {
     fn new(game_io: &'a GameIO) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let global_save = &globals.global_save;
         let player_package = global_save.player_package(game_io).unwrap();
 
@@ -270,7 +270,7 @@ impl StatusPage {
         mut page_sprite: Sprite,
         data: &StatusData,
     ) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let mut page = Self {
             text: Vec::new(),
@@ -298,7 +298,7 @@ impl StatusPage {
         }
 
         if let Some(point) = ui_animator.point("PLAYER") {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
 
             let player_resources = PlayerFallbackResources::resolve(game_io, data.player_package);
             let root_palette = player_resources.base.palette_path.clone();
@@ -452,7 +452,7 @@ impl StatusPage {
         }
 
         if scrolled {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_move);
         }
     }

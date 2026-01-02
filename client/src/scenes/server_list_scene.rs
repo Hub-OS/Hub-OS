@@ -41,7 +41,7 @@ pub struct ServerListScene {
 
 impl ServerListScene {
     pub fn new(game_io: &GameIO) -> Box<Self> {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let mut ui_animator = Animator::load_new(assets, ResourcePaths::SERVER_LIST_UI_ANIMATION);
@@ -150,7 +150,7 @@ impl ServerListScene {
     fn update_server_list(&mut self, game_io: &mut GameIO) {
         use packets::address_parsing::strip_data;
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let server_list = &globals.global_save.server_list;
 
         for (i, server_info) in server_list.iter().enumerate() {
@@ -186,7 +186,7 @@ impl ServerListScene {
             .map(|(address, _)| address.clone());
 
         if let Some(address) = next_address.clone() {
-            let globals = game_io.resource_mut::<Globals>().unwrap();
+            let globals = Globals::from_resources_mut(game_io);
             let subscription = globals.network.subscribe_to_server(address.clone());
 
             let task = game_io.spawn_local_task(async {
@@ -226,7 +226,7 @@ impl ServerListScene {
     }
 
     fn update_context_menu_options(&mut self, game_io: &GameIO) {
-        let global_save = &game_io.resource::<Globals>().unwrap().global_save;
+        let global_save = &Globals::from_resources(game_io).global_save;
 
         if global_save.server_list.is_empty() {
             self.context_menu
@@ -279,7 +279,7 @@ impl ServerListScene {
                 self.context_menu.close();
 
                 let selected_index = self.scroll_tracker.selected_index();
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 let global_save = &globals.global_save;
                 let server_name = &global_save.server_list[selected_index].name;
 
@@ -304,7 +304,7 @@ impl ServerListScene {
         while let Ok(event) = self.event_receiver.try_recv() {
             match event {
                 Event::Delete => {
-                    let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
+                    let global_save = &mut Globals::from_resources_mut(game_io).global_save;
                     let selected_index = self.scroll_tracker.selected_index();
 
                     global_save.server_list.remove(selected_index);
@@ -328,7 +328,7 @@ impl Scene for ServerListScene {
         self.context_menu.close();
 
         // clean up music after we've left every server
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = Globals::from_resources_mut(game_io);
 
         globals.audio.truncate_music_stack(self.music_stack_len);
 
@@ -380,12 +380,12 @@ impl Scene for ServerListScene {
             .handle_vertical_input(&self.ui_input_tracker);
 
         if self.scroll_tracker.selected_index() != old_index {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_move);
         }
 
         if self.ui_input_tracker.pulsed(Input::Option) {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_select);
 
             // forget index to prevent issues from new servers shifting items around
@@ -394,7 +394,7 @@ impl Scene for ServerListScene {
         }
 
         if !self.statuses.is_empty() && self.ui_input_tracker.pulsed(Input::Confirm) {
-            let globals = game_io.resource_mut::<Globals>().unwrap();
+            let globals = Globals::from_resources_mut(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_select);
 
             if let Some(index) = self.scroll_tracker.forget_index() {
@@ -404,7 +404,7 @@ impl Scene for ServerListScene {
                 globals.global_save.server_list.swap(index, selected_index);
                 globals.global_save.save();
             } else {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 let server_list = &globals.global_save.server_list;
                 let server_info = &server_list[self.scroll_tracker.selected_index()];
                 let server_name = &server_info.name;
@@ -432,7 +432,7 @@ impl Scene for ServerListScene {
                 }
             }
         } else if self.ui_input_tracker.pulsed(Input::Cancel) {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
 
             if self.scroll_tracker.remembered_index().is_some() {
                 globals.audio.play_sound(&globals.sfx.cursor_cancel);
@@ -471,7 +471,7 @@ impl Scene for ServerListScene {
         let mut y = list_start.y;
 
         for i in self.scroll_tracker.view_range() {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             let server_list = &globals.global_save.server_list;
 
             let name = &server_list[i].name;

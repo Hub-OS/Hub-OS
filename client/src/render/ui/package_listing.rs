@@ -338,7 +338,7 @@ impl UiNode for PackageListing {
             .preview_data
             .category()
             .map(|category| {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 globals
                     .package_info(category, PackageNamespace::Local, &self.id)
                     .is_some()
@@ -347,7 +347,7 @@ impl UiNode for PackageListing {
 
         let state = if is_installed { "INSTALLED" } else { "INSTALL" };
 
-        let assets = &game_io.resource::<Globals>().unwrap().assets;
+        let assets = &Globals::from_resources(game_io).assets;
         let mut status_sprite = assets.new_sprite(game_io, ResourcePaths::INSTALL_STATUS);
         Animator::load_new(assets, ResourcePaths::INSTALL_STATUS_ANIMATION)
             .with_state(state)
@@ -373,7 +373,7 @@ impl UiNode for PackageListing {
 }
 
 fn create_category_sprite(game_io: &GameIO, bounds: Rect, state: &str) -> Sprite {
-    let assets = &game_io.resource::<Globals>().unwrap().assets;
+    let assets = &Globals::from_resources(game_io).assets;
 
     let mut category_sprite = assets.new_sprite(game_io, ResourcePaths::PACKAGE_ICON);
 

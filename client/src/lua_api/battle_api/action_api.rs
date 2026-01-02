@@ -48,7 +48,7 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
                 return Err(unmarked_dependency());
             }
 
-            let globals = api_ctx.game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(api_ctx.game_io);
             let card_packages = &globals.card_packages;
 
             let mut card_properties = if let Some(package) =

@@ -2116,7 +2116,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             };
             let ns = *namespace;
 
-            let globals = api_ctx.game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(api_ctx.game_io);
             let card_packages = &globals.card_packages;
 
             let mut card_properties =
@@ -2385,7 +2385,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             return Err(entity_not_found());
         }
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let package_id = PackageId::from(augment_id);
         let vms = api_ctx.resources.vm_manager.vms();
         let namespace = vms[api_ctx.vm_index].preferred_namespace();

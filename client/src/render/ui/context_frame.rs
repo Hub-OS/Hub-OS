@@ -17,7 +17,7 @@ pub struct ContextFrame {
 
 impl ContextFrame {
     pub fn new(game_io: &GameIO, label: String) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         // resources
@@ -145,7 +145,7 @@ impl ContextFrame {
         sprite_queue: &mut SpriteColorQueue,
         scroll_tracker: &ScrollTracker,
     ) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let mut arrow_sprite = assets.new_sprite(game_io, ResourcePaths::MORE_ARROWS);

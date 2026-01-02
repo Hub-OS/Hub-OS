@@ -247,7 +247,7 @@ impl IntroState {
 
         action.execute_callback = Some(BattleCallback::new(move |game_io, _, simulation, _| {
             // play a sound to start
-            let sfx = &game_io.resource::<Globals>().unwrap().sfx;
+            let sfx = &Globals::from_resources(game_io).sfx;
             simulation.play_sound(game_io, &sfx.appear);
 
             // create action step now that we know our start time

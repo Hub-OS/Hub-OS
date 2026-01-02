@@ -46,7 +46,7 @@ impl PackageUpdatesScene {
         game_io: &GameIO,
         requires_update: Vec<(PackageCategory, PackageId, FileHash)>,
     ) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         // layout
@@ -104,7 +104,7 @@ impl PackageUpdatesScene {
         event_sender: &flume::Sender<Event>,
         requires_update: &[(PackageCategory, PackageId, FileHash)],
     ) -> Vec<Box<dyn UiNode>> {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         requires_update
             .iter()
@@ -130,7 +130,7 @@ impl PackageUpdatesScene {
         event_sender: &flume::Sender<Event>,
         bounds: Rect,
     ) -> UiLayout {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let ui_texture = assets.texture(game_io, ResourcePaths::UI_NINE_PATCHES);
@@ -202,7 +202,7 @@ impl PackageUpdatesScene {
                 self.next_scene = NextScene::new_pop().with_transition(transition);
             }
 
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_cancel);
         }
     }
@@ -290,7 +290,7 @@ impl PackageUpdatesScene {
         self.prev_updated = usize::MAX;
 
         // clear cached assets
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         globals.assets.clear_local_mod_assets();
 
         // update player avatar
@@ -330,7 +330,7 @@ impl Scene for PackageUpdatesScene {
         self.textbox.use_navigation_avatar(game_io);
 
         // update list in case a package was individually updated or deleted
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         self.requires_update = std::mem::take(&mut self.requires_update)
             .into_iter()
             .filter(|(category, id, hash)| {

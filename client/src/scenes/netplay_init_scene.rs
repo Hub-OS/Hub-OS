@@ -107,7 +107,7 @@ impl NetplayInitScene {
 
         log::debug!("Assigned player index {local_index}");
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let network = &globals.network;
 
         let remote_index_map: Vec<_> = remote_players.iter().map(|info| info.index).collect();
@@ -384,7 +384,7 @@ impl NetplayInitScene {
                 if !connection.spectating {
                     connection.received_package_list = true;
 
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
 
                     // track what needs to be loaded once downloaded
                     let load_list: Vec<_> = packages
@@ -436,11 +436,11 @@ impl NetplayInitScene {
                 log::debug!("Received zip for {hash}");
 
                 if self.missing_packages.remove(&hash) {
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
                     let assets = &globals.assets;
                     assets.load_virtual_zip(game_io, hash, data);
 
-                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    let globals = Globals::from_resources_mut(game_io);
 
                     for connection in &mut self.player_connections {
                         if let Some(category) = connection.load_map.remove(&hash) {
@@ -561,7 +561,7 @@ impl NetplayInitScene {
 
     fn broadcast_package_list(&mut self, game_io: &GameIO) {
         let player_setup = PlayerSetup::from_globals(game_io);
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let packages = globals
             .package_dependency_iter(player_setup.direct_dependency_triplets(game_io))
@@ -609,7 +609,7 @@ impl NetplayInitScene {
             }
 
             for hash in pending_upload {
-                let assets = &game_io.resource::<Globals>().unwrap().assets;
+                let assets = &Globals::from_resources(game_io).assets;
 
                 let data = assets.virtual_zip_bytes(&hash).unwrap_or_else(|| {
                     let path = format!("{mod_cache_folder}{hash}.zip");
@@ -629,7 +629,7 @@ impl NetplayInitScene {
             let connection_index = connection.player_setup.index;
 
             for hash in connection.requested_packages.take().unwrap() {
-                let assets = &game_io.resource::<Globals>().unwrap().assets;
+                let assets = &Globals::from_resources(game_io).assets;
 
                 let data = assets.virtual_zip_bytes(&hash).unwrap_or_else(|| {
                     let path = format!("{mod_cache_folder}{hash}.zip");
@@ -666,7 +666,7 @@ impl NetplayInitScene {
             let player_ns = PackageNamespace::Netplay(index as u8);
 
             // build worklist
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             work_list.extend(globals.packages(player_ns).map(|info| info.id.clone()));
 
             if work_list.is_empty() {
@@ -689,7 +689,7 @@ impl NetplayInitScene {
             }
 
             // reload anything depending on these mods in the private namespace
-            let globals = game_io.resource_mut::<Globals>().unwrap();
+            let globals = Globals::from_resources_mut(game_io);
 
             while let Some(id) = work_list.pop() {
                 let Some(dependents) = reverse_dependency_map.remove(&id) else {
@@ -775,7 +775,7 @@ impl NetplayInitScene {
                 if !game_io.is_in_transition() {
                     self.finalize_peer_dependency_trees(game_io);
 
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
 
                     // clean up zips
                     globals.assets.remove_unused_virtual_zips();
@@ -880,7 +880,7 @@ impl Scene for NetplayInitScene {
     }
 
     fn enter(&mut self, game_io: &mut GameIO) {
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = Globals::from_resources_mut(game_io);
 
         globals.audio.stop_music();
         globals.audio.play_sound(&globals.sfx.battle_transition);

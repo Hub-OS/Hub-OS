@@ -86,7 +86,7 @@ impl ServerAssetManager {
         // setup texture map
         let mut textures = HashMap::new();
 
-        let local_assets = &game_io.resource::<Globals>().unwrap().assets;
+        let local_assets = &Globals::from_resources(game_io).assets;
         textures.insert(
             ResourcePaths::BLANK.to_string(),
             local_assets.texture(game_io, ResourcePaths::BLANK),

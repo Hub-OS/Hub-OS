@@ -94,7 +94,7 @@ pub struct ConfigScene {
 
 impl ConfigScene {
     pub fn new(game_io: &GameIO) -> Box<Self> {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         // cursor
@@ -173,7 +173,7 @@ impl ConfigScene {
         event_sender: flume::Sender<Event>,
         start: Vec2,
     ) -> UiLayout {
-        let assets = &game_io.resource::<Globals>().unwrap().assets;
+        let assets = &Globals::from_resources(game_io).assets;
         let ui_texture = assets.texture(game_io, ResourcePaths::UI_NINE_PATCHES);
         let ui_animator = Animator::load_new(assets, ResourcePaths::UI_NINE_PATCHES_ANIMATION);
         let button_9patch = build_9patch!(game_io, ui_texture, &ui_animator, "BUTTON");
@@ -350,7 +350,7 @@ impl ConfigScene {
                     config.internal_resolution = value;
 
                     if confirmed {
-                        let globals = game_io.resource_mut::<Globals>().unwrap();
+                        let globals = Globals::from_resources_mut(game_io);
                         globals.internal_resolution = value;
                     }
                 },
@@ -397,7 +397,7 @@ impl ConfigScene {
                 |game_io, mut config| {
                     config.snap_resize = !config.snap_resize;
 
-                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    let globals = Globals::from_resources_mut(game_io);
                     globals.snap_resize = config.snap_resize;
 
                     config.snap_resize
@@ -419,7 +419,7 @@ impl ConfigScene {
                     config.borrow().brightness,
                     config.clone(),
                     |game_io, mut config, value| {
-                        let globals = game_io.resource_mut::<Globals>().unwrap();
+                        let globals = Globals::from_resources_mut(game_io);
 
                         config.brightness = value;
                         globals.post_process_adjust_config =
@@ -437,7 +437,7 @@ impl ConfigScene {
                 config.borrow().saturation,
                 config.clone(),
                 |game_io, mut config, value| {
-                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    let globals = Globals::from_resources_mut(game_io);
 
                     config.saturation = value;
                     globals.post_process_adjust_config =
@@ -454,7 +454,7 @@ impl ConfigScene {
                     config.borrow().ghosting,
                     config.clone(),
                     |game_io, mut config, value| {
-                        let globals = game_io.resource_mut::<Globals>().unwrap();
+                        let globals = Globals::from_resources_mut(game_io);
 
                         config.ghosting = value;
                         globals.post_process_ghosting = value as f32 * 0.01;
@@ -480,7 +480,7 @@ impl ConfigScene {
                     ),
                 ],
                 |game_io, mut config, value, _| {
-                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    let globals = Globals::from_resources_mut(game_io);
 
                     config.color_blindness = value;
                     globals.post_process_color_blindness = value;
@@ -495,7 +495,7 @@ impl ConfigScene {
                 config.borrow().language.clone(),
                 config.clone(),
                 |game_io, value| {
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
 
                     value
                         .as_ref()
@@ -503,7 +503,7 @@ impl ConfigScene {
                         .unwrap_or(globals.translate("config-language-auto"))
                 },
                 |game_io, value, right| {
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
                     let locales = globals.translations.locales();
 
                     let new_identifier = if let Some(value_string) = value {
@@ -547,7 +547,7 @@ impl ConfigScene {
                     config.borrow().music,
                     config.clone(),
                     |game_io, mut config, value| {
-                        let globals = game_io.resource_mut::<Globals>().unwrap();
+                        let globals = Globals::from_resources_mut(game_io);
                         let audio = &mut globals.audio;
 
                         config.music = value;
@@ -564,7 +564,7 @@ impl ConfigScene {
                 config.borrow().sfx,
                 config.clone(),
                 |game_io, mut config, value| {
-                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    let globals = Globals::from_resources_mut(game_io);
                     let audio = &mut globals.audio;
 
                     config.sfx = value;
@@ -582,7 +582,7 @@ impl ConfigScene {
                 |game_io, mut config| {
                     config.mute_music = !config.mute_music;
 
-                    let audio = &mut game_io.resource_mut::<Globals>().unwrap().audio;
+                    let audio = &mut Globals::from_resources_mut(game_io).audio;
                     audio.set_music_volume(config.music_volume());
 
                     config.mute_music
@@ -596,7 +596,7 @@ impl ConfigScene {
                 |game_io, mut config| {
                     config.mute_sfx = !config.mute_sfx;
 
-                    let audio = &mut game_io.resource_mut::<Globals>().unwrap().audio;
+                    let audio = &mut Globals::from_resources_mut(game_io).audio;
                     audio.set_sfx_volume(config.sfx_volume());
 
                     config.mute_sfx
@@ -634,7 +634,7 @@ impl ConfigScene {
                     .unwrap_or_default()
                 },
                 |game_io, mut config, value| {
-                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    let globals = Globals::from_resources_mut(game_io);
                     globals.audio.use_device(value);
 
                     config.audio_device.clone_from(value);
@@ -664,7 +664,7 @@ impl ConfigScene {
                     config.key_bindings = Config::default_key_bindings(config.key_style);
 
                     if confirmed {
-                        let globals = game_io.resource_mut::<Globals>().unwrap();
+                        let globals = Globals::from_resources_mut(game_io);
                         globals.config.key_bindings = config.key_bindings.clone();
                     }
                 },
@@ -821,12 +821,12 @@ impl Scene for ConfigScene {
     fn enter(&mut self, game_io: &mut GameIO) {
         self.textbox.use_navigation_avatar(game_io);
 
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = Globals::from_resources_mut(game_io);
         globals.editing_config = true;
     }
 
     fn exit(&mut self, game_io: &mut GameIO) {
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = Globals::from_resources_mut(game_io);
         globals.editing_config = false;
     }
 
@@ -863,7 +863,7 @@ impl Scene for ConfigScene {
 
 impl ConfigScene {
     fn handle_events(&mut self, game_io: &mut GameIO) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         if self.opened_virtual_controller_editor && !globals.editing_virtual_controller {
             self.opened_virtual_controller_editor = false;
@@ -874,14 +874,14 @@ impl ConfigScene {
         }
 
         while let Ok(event) = self.event_receiver.try_recv() {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
 
             match event {
                 Event::CategoryChange(category) => {
                     let children =
                         Self::generate_submenu(game_io, &self.config, category, &self.event_sender);
 
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
                     let label = globals.translate(category.translation_key());
                     self.secondary_layout.set_label(label.to_uppercase());
                     self.secondary_layout.set_children(children);
@@ -891,18 +891,18 @@ impl ConfigScene {
                     self.secondary_layout.set_focused(true);
                 }
                 Event::ApplyKeyBinds => {
-                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    let globals = Globals::from_resources_mut(game_io);
                     globals.config.key_bindings = self.config.borrow().key_bindings.clone();
                 }
                 Event::OpenBindingContextMenu(sender) => {
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
                     globals.audio.play_sound(&globals.sfx.cursor_select);
 
                     self.context_menu.open();
                     self.context_sender = Some(sender);
                 }
                 Event::EditVirtualControllerLayout => {
-                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    let globals = Globals::from_resources_mut(game_io);
                     globals.editing_virtual_controller = true;
                     self.opened_virtual_controller_editor = true;
                 }
@@ -913,7 +913,7 @@ impl ConfigScene {
                             let _ = event_sender.send(Event::ChangeNickname { name });
                         }
                     })
-                    .with_str(&game_io.resource::<Globals>().unwrap().global_save.nickname)
+                    .with_str(&Globals::from_resources(game_io).global_save.nickname)
                     .with_filter(|grapheme| grapheme != "\n" && grapheme != "\t")
                     .with_character_limit(8);
 
@@ -921,7 +921,7 @@ impl ConfigScene {
                     self.textbox.open();
                 }
                 Event::ChangeNickname { name } => {
-                    let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
+                    let global_save = &mut Globals::from_resources_mut(game_io).global_save;
                     global_save.nickname = name;
                     global_save.nickname_time = GlobalSave::current_time();
                     global_save.save();
@@ -932,7 +932,7 @@ impl ConfigScene {
                     self.next_scene = NextScene::new_push(scene).with_transition(transition);
                 }
                 Event::ClearCache => {
-                    let globals = &mut game_io.resource::<Globals>().unwrap();
+                    let globals = &mut Globals::from_resources(game_io);
 
                     let message = if !globals.connected_to_server {
                         match std::fs::remove_dir_all(ResourcePaths::server_cache_folder()) {
@@ -962,7 +962,7 @@ impl ConfigScene {
                     self.next_scene = NextScene::new_push(scene).with_transition(transition);
                 }
                 Event::UpdatePackages => {
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
                     let request = globals.request_latest_hashes();
                     let event_sender = self.event_sender.clone();
                     let (doorstop, doorstop_key) = TextboxDoorstop::new();
@@ -984,7 +984,7 @@ impl ConfigScene {
                         .detach();
                 }
                 Event::ReceivedLatestHashes(results) => {
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
 
                     let requires_update: Vec<_> = results
                         .into_iter()
@@ -1050,7 +1050,7 @@ impl ConfigScene {
                     self.textbox.open();
                 }
                 Event::SaveLastBattle => {
-                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    let globals = Globals::from_resources_mut(game_io);
 
                     if let Some((props, recording, preview)) = globals.battle_recording.take() {
                         // notify the player
@@ -1090,7 +1090,7 @@ impl ConfigScene {
                     self.next_scene = NextScene::new_push(scene).with_transition(transition);
                 }
                 Event::Leave { save } => {
-                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    let globals = Globals::from_resources_mut(game_io);
 
                     if save {
                         let mut new_config = self.config.borrow_mut();
@@ -1238,7 +1238,7 @@ impl ConfigScene {
         let input_util = InputUtil::new(game_io);
 
         if input_util.was_just_pressed(Input::Right) {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_select);
 
             self.primary_layout.set_focused(false);
@@ -1251,7 +1251,7 @@ impl ConfigScene {
             return;
         }
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let config = self.config.borrow();
 
         if *config == globals.config && self.key_bindings_backup == config.key_bindings {
@@ -1302,7 +1302,7 @@ impl ConfigScene {
         let input_util = InputUtil::new(game_io);
 
         if input_util.was_just_pressed(Input::Left) || input_util.was_just_pressed(Input::Cancel) {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
             self.primary_layout.set_focused(true);

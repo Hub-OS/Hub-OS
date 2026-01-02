@@ -29,7 +29,7 @@ impl Card {
         scale: f32,
         recipe_index: usize,
     ) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let package_manager = &globals.card_packages;
 
         let Some(package) = package_manager.package_or_fallback(namespace, &self.package_id) else {
@@ -124,7 +124,7 @@ impl Card {
         position: Vec2,
         color: Color,
     ) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
         let package_manager = &globals.card_packages;
 

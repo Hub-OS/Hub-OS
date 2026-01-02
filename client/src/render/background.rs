@@ -39,13 +39,13 @@ impl Background {
     }
 
     pub fn load_static(game_io: &GameIO, texture_path: &str) -> Self {
-        let assets = &game_io.resource::<Globals>().unwrap().assets;
+        let assets = &Globals::from_resources(game_io).assets;
         let sprite = assets.new_sprite(game_io, texture_path);
         Self::new_static(sprite)
     }
 
     pub fn new_blank(game_io: &GameIO) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         Self {
@@ -60,7 +60,7 @@ impl Background {
     pub fn new_main_menu(game_io: &GameIO) -> Self {
         use chrono::Timelike;
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let mut animator = Animator::load_new(assets, ResourcePaths::MAIN_MENU_BG_ANIMATION);
@@ -109,7 +109,7 @@ impl Background {
     }
 
     pub fn new_sub_scene(game_io: &GameIO) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let animator = Animator::load_new(assets, ResourcePaths::SUB_SCENE_ANIMATION);
@@ -119,7 +119,7 @@ impl Background {
     }
 
     pub fn new_character_scene(game_io: &GameIO) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let animator = Animator::load_new(assets, ResourcePaths::SUB_SCENE_ANIMATION)
@@ -133,7 +133,7 @@ impl Background {
         match Self::randomized(game_io, ResourcePaths::BATTLE_BG_ANIMATION) {
             Ok(background) => background,
             Err(animator) => {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 let assets = &globals.assets;
                 let background_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_BG);
                 Self::new(animator, background_sprite)
@@ -142,7 +142,7 @@ impl Background {
     }
 
     pub fn new_credits(game_io: &GameIO) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let animator = Animator::load_new(assets, ResourcePaths::CREDITS_BG_ANIMATION)
@@ -154,7 +154,7 @@ impl Background {
 
     #[allow(clippy::result_large_err)]
     fn randomized(game_io: &GameIO, animator_path: &str) -> Result<Self, Animator> {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let mut animator = Animator::load_new(assets, animator_path);
@@ -228,7 +228,7 @@ impl Background {
     }
 
     pub fn draw(&self, game_io: &GameIO, render_pass: &mut RenderPass) {
-        let pipeline = &game_io.resource::<Globals>().unwrap().background_pipeline;
+        let pipeline = &Globals::from_resources(game_io).background_pipeline;
         let mut queue = BackgroundQueue::new(game_io, pipeline);
 
         queue.draw_background(self);

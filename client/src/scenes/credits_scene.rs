@@ -114,7 +114,7 @@ impl CreditsScene {
         let mut camera = Camera::new(game_io);
         camera.snap(RESOLUTION_F * 0.5);
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         Self {
             camera,
@@ -171,7 +171,7 @@ impl CreditsScene {
         self.top_name = 0;
 
         if let Some((header_key, _)) = SECTIONS.get(self.section_index) {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
 
             self.header_text = if header_key.is_empty() {
                 String::new()
@@ -225,7 +225,7 @@ impl Scene for CreditsScene {
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
 
         // draw a backdrop to make text more clear
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         // let assets = &globals.assets;
 
         // let mut backdrop = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
@@ -329,7 +329,7 @@ struct CreditsFun {
 
 impl CreditsFun {
     pub fn new(game_io: &GameIO) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let mut character_pool: Vec<_> = globals
             .player_packages
@@ -359,7 +359,7 @@ impl CreditsFun {
         entities: &mut hecs::World,
         package_id: PackageId,
     ) -> hecs::Entity {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let package = globals
@@ -378,7 +378,7 @@ impl CreditsFun {
     }
 
     fn animate(&mut self, game_io: &GameIO, entity: hecs::Entity, key_frames: Vec<ActorKeyFrame>) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let mut property_animator = ActorPropertyAnimator::new();
@@ -400,7 +400,7 @@ impl CreditsFun {
     }
 
     fn systems(&mut self, game_io: &GameIO) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         crate::overworld::system_update_animation(&mut self.entities);

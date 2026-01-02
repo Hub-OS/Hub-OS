@@ -76,7 +76,7 @@ pub struct Textbox {
 
 impl Textbox {
     fn new(game_io: &GameIO, texture_path: &str, animation_path: &str) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let mut animator = Animator::load_new(assets, animation_path);
@@ -275,13 +275,13 @@ impl Textbox {
     }
 
     pub fn use_blank_avatar(&mut self, game_io: &GameIO) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         self.set_next_avatar(game_io, &globals.assets, Default::default());
     }
 
     pub fn use_navigation_avatar(&mut self, game_io: &GameIO) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let Some(player_package) = globals.global_save.player_package(game_io) else {
             self.set_next_avatar(
@@ -500,7 +500,7 @@ impl Textbox {
             || self.effect_processor.char_delay == 0;
 
         if !silent_char {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.text_blip);
         }
 

@@ -36,14 +36,14 @@ impl Tip {
 
         let tip = tips.choose(&mut rand::rng()).unwrap();
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let message = tip.create_message(game_io).into();
         let prefixed_message = globals.translate_with_args("tip-prefixed", vec![("tip", message)]);
         log::info!("{prefixed_message}");
     }
 
     pub fn create_message(&self, game_io: &GameIO) -> String {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         match self {
             Tip::ChangeDisplayName => globals.translate("tip-change-display-name"),

@@ -27,7 +27,7 @@ pub struct BattleSelectScene {
 
 impl BattleSelectScene {
     pub fn new(game_io: &GameIO) -> Box<Self> {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         // layout
@@ -86,7 +86,7 @@ impl BattleSelectScene {
         let selected_index = self.scroll_tracker.selected_index();
         let package_id = &self.package_ids[selected_index];
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let encounter_manager = &globals.encounter_packages;
 
         let package = encounter_manager
@@ -111,7 +111,7 @@ impl BattleSelectScene {
     }
 
     fn handle_music(&self, game_io: &GameIO) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         if !globals.audio.is_music_playing() {
             globals.audio.restart_music();
@@ -126,7 +126,7 @@ impl Scene for BattleSelectScene {
 
     fn enter(&mut self, game_io: &mut GameIO) {
         // reload package list
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let encounter_manager = &globals.encounter_packages;
         let mut package_ids: Vec<_> = encounter_manager
             .package_ids(PackageNamespace::Local)
@@ -173,7 +173,7 @@ impl Scene for BattleSelectScene {
         let index = self.scroll_tracker.selected_index();
 
         if prev_index != index {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_move);
 
             self.update_title(game_io);
@@ -196,7 +196,7 @@ impl Scene for BattleSelectScene {
 
         if input_tracker.pulsed(Input::Option) && !self.package_ids.is_empty() {
             // description
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
 
             let i = self.scroll_tracker.selected_index();
             let package_id = &self.package_ids[i];
@@ -214,7 +214,7 @@ impl Scene for BattleSelectScene {
 
         if input_tracker.pulsed(Input::Option2) && !self.package_ids.is_empty() {
             // view package
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_select);
 
             let i = self.scroll_tracker.selected_index();
@@ -231,7 +231,7 @@ impl Scene for BattleSelectScene {
 
         if self.ui_input_tracker.pulsed(Input::Cancel) {
             // leave
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
             let transition = crate::transitions::new_scene_pop(game_io);
@@ -247,7 +247,7 @@ impl Scene for BattleSelectScene {
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
 
         // draw previews
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         for (i, position) in self.scroll_tracker.iter_visible() {

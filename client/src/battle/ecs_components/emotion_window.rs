@@ -23,7 +23,7 @@ impl EmotionWindow {
         setup: &PlayerSetup,
         entity_id: EntityId,
     ) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         // load emotions assets with defaults to prevent warnings
@@ -79,7 +79,7 @@ impl EmotionWindow {
     }
 
     pub fn load_animation(&mut self, game_io: &GameIO, path: String) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         self.animator.load(&globals.assets, &path);
         self.animation_path = path.into();
 

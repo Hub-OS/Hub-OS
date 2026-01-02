@@ -19,7 +19,7 @@ pub struct CardPropertyPreview {
 
 impl CardPropertyPreview {
     pub fn new(game_io: &GameIO) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let status_sprite_map = globals
@@ -73,7 +73,7 @@ impl CardPropertyPreview {
     pub fn set_package(&mut self, game_io: &GameIO, id: Option<&PackageId>) {
         self.displayed_sprites.clear();
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let Some(package) =
             id.and_then(|id| globals.card_packages.package(PackageNamespace::Local, id))

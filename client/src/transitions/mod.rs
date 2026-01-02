@@ -45,7 +45,7 @@ pub fn new_sub_scene_pop(game_io: &GameIO) -> ColorFadeTransition {
 }
 
 pub fn flash_color(game_io: &GameIO) -> Color {
-    let globals = game_io.resource::<Globals>().unwrap();
+    let globals = Globals::from_resources(game_io);
     let brightness = globals.config.flash_brightness as f32 / 100.0;
     Color::new(brightness, brightness, brightness, 1.0)
 }

@@ -33,7 +33,7 @@ pub struct GridArrow {
 
 impl GridArrow {
     pub fn new(game_io: &GameIO) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let mut animator = Animator::load_new(assets, ResourcePaths::BLOCKS_UI_ANIMATION);

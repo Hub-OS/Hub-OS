@@ -8,7 +8,7 @@ pub struct SceneTitle {
 }
 impl SceneTitle {
     pub fn new(game_io: &GameIO, title_translation_key: &str) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let title = globals.translate(title_translation_key);
         Self { title }
     }
@@ -18,7 +18,7 @@ impl SceneTitle {
         title_translation_key: &str,
         args: TranslationArgs,
     ) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let title = globals.translate_with_args(title_translation_key, args);
         Self { title }
     }
@@ -29,7 +29,7 @@ impl SceneTitle {
         title_translation_key: &str,
         args: TranslationArgs,
     ) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         self.title = globals.translate_with_args(title_translation_key, args);
     }
 

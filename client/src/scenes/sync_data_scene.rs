@@ -57,7 +57,7 @@ pub struct SyncDataScene {
 
 impl SyncDataScene {
     pub fn new(game_io: &GameIO) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         // layout
@@ -109,7 +109,7 @@ impl SyncDataScene {
         discovered: &VecMap<SocketAddr, (Uuid, String)>,
     ) -> Vec<Box<dyn UiNode>> {
         if discovered.is_empty() {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             let message = globals.translate("sync-data-scanning-message");
 
             return vec![Box::new(
@@ -178,7 +178,7 @@ impl SyncDataScene {
         };
 
         // update textbox based on outgoing packets
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         match packet {
             SyncDataPacket::PackageList { .. } => {
@@ -216,7 +216,7 @@ impl SyncDataScene {
     fn start_connection(&mut self, game_io: &GameIO, addr: SocketAddr) {
         self.sync_comms = None;
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let subscription_future = globals.network.subscribe_to_sync_data(addr.to_string());
 
         let sender = self.event_sender.clone();
@@ -233,7 +233,7 @@ impl SyncDataScene {
     fn send_package_list(&mut self, game_io: &GameIO) {
         log::debug!("Sending package list");
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let list = globals
             .packages(PackageNamespace::Local)
             .filter(|info| info.shareable && info.hash != FileHash::ZERO)
@@ -262,7 +262,7 @@ impl SyncDataScene {
             .total_packages
             .saturating_sub(self.pending_packages.len());
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let message = globals.translate_with_args(
             "sync-data-downloading-package-message",
             vec![
@@ -277,7 +277,7 @@ impl SyncDataScene {
     }
 
     fn package_zip(game_io: &GameIO, category: PackageCategory, id: &PackageId) -> Vec<u8> {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let Some(package_info) = globals.package_info(category, PackageNamespace::Local, id) else {
             return vec![];
         };
@@ -325,7 +325,7 @@ impl SyncDataScene {
 
     fn handle_multicast_packets(&mut self, game_io: &GameIO) {
         if self.sync_comms.is_none() && self.last_broadcast.elapsed() > BROADCAST_RATE {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
 
             globals.network.send_multicast(MulticastPacket::Client {
                 name: globals.global_save.nickname.clone(),
@@ -366,7 +366,7 @@ impl SyncDataScene {
 
                             self.textbox.advance_interface(game_io);
 
-                            let globals = game_io.resource::<Globals>().unwrap();
+                            let globals = Globals::from_resources(game_io);
                             let message = globals.translate("sync-data-spider-man-pointing-error");
                             let interface = TextboxMessage::new(message);
                             self.textbox.push_interface(interface);
@@ -384,7 +384,7 @@ impl SyncDataScene {
                     // ask for permission to sync
                     let sender = self.event_sender.clone();
 
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
                     let question = globals.translate_with_args(
                         "sync-data-accept-sync-question",
                         vec![("name", addr.to_string().into())],
@@ -420,7 +420,7 @@ impl SyncDataScene {
         if self.accepted_sync && receiver.is_disconnected() {
             self.sync_comms = None;
 
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             let message = globals.translate("sync-data-disconnect-error");
             let interface = TextboxMessage::new(message);
             self.textbox.push_interface(interface);
@@ -433,7 +433,7 @@ impl SyncDataScene {
         if self.last_broadcast.elapsed() > BROADCAST_RATE {
             if let Some((_, uuid)) = self.requesting_connection_with {
                 // request sync over multicast
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 let network = &globals.network;
                 network.send_multicast(MulticastPacket::RequestSync { uuid });
             }
@@ -462,7 +462,7 @@ impl SyncDataScene {
                         self.textbox.advance_interface(game_io);
                     }
 
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
                     let message = globals.translate("sync-data-rejected-message");
                     let interface = TextboxMessage::new(message);
                     self.textbox.push_interface(interface);
@@ -479,7 +479,7 @@ impl SyncDataScene {
                 SyncDataPacket::PackageList { list } => {
                     log::debug!("Received package list");
 
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
                     self.pending_packages = list
                         .into_iter()
                         .filter(|(category, id)| {
@@ -515,7 +515,7 @@ impl SyncDataScene {
                 } => {
                     log::debug!("Received package {id:?}");
 
-                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    let globals = Globals::from_resources_mut(game_io);
                     let path = globals.resolve_package_download_path(category, &id);
 
                     packets::zip::extract_to(&zip_bytes, &path);
@@ -527,7 +527,7 @@ impl SyncDataScene {
                 SyncDataPacket::RequestSave => {
                     log::debug!("Sending save data");
 
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
 
                     let message = globals.translate("sync-data-syncing-save-message");
                     let key = self.textbox.push_doorstop_with_message(message);
@@ -542,7 +542,7 @@ impl SyncDataScene {
                 SyncDataPacket::Save { save } => {
                     log::debug!("Received save data");
 
-                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    let globals = Globals::from_resources_mut(game_io);
 
                     if let Ok(remote_save) = deserialize::<GlobalSave>(&save) {
                         if self.started_connection {
@@ -637,7 +637,7 @@ impl SyncDataScene {
                         "sync-data-complete-message"
                     };
 
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
 
                     let message = globals.translate(message_key);
                     let interface = TextboxMessage::new(message);
@@ -687,7 +687,7 @@ impl SyncDataScene {
                     self.start_connection(game_io, address);
 
                     // notify user
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
 
                     let message = globals.translate("sync-data-requesting-message");
                     let key = self.textbox.push_doorstop_with_message(message.to_string());
@@ -700,7 +700,7 @@ impl SyncDataScene {
                     self.send(game_io, SyncDataPacket::AcceptSync);
 
                     // notify user
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
 
                     let message = globals.translate("sync-data-syncing-message");
                     let key = self.textbox.push_doorstop_with_message(message.to_string());
@@ -745,7 +745,7 @@ impl Scene for SyncDataScene {
         self.list.draw(game_io, &mut sprite_queue);
 
         // draw local address
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let network_details = globals.network.details();
         let address = network_details.local_address().unwrap_or_default();
 

@@ -41,7 +41,7 @@ impl Field {
             }
         }
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let mut frame_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_TILES);
@@ -489,7 +489,7 @@ impl Field {
         // draw tile highlight separately to reduce switching shaders
         sprite_queue.set_color_mode(SpriteColorMode::Multiply);
 
-        let assets = &game_io.resource::<Globals>().unwrap().assets;
+        let assets = &Globals::from_resources(game_io).assets;
         let mut highlight_sprite = assets.new_sprite(game_io, ResourcePaths::PIXEL);
         highlight_sprite.set_color(Color::YELLOW);
         highlight_sprite.set_size(self.tile_size);

@@ -38,7 +38,7 @@ pub struct PackageScene {
 
 impl PackageScene {
     pub fn new(game_io: &GameIO, listing: PackageListing) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         // layout
@@ -152,7 +152,7 @@ impl PackageScene {
         bounds: Rect,
         listing: &PackageListing,
     ) -> UiLayout {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let installed = if let Some(category) = listing.preview_data.category() {
@@ -269,7 +269,7 @@ impl PackageScene {
         }
 
         if prev_top_index != self.list.top_index() {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_move);
         }
 
@@ -282,7 +282,7 @@ impl PackageScene {
             let transition = crate::transitions::new_sub_scene_pop(game_io);
             self.next_scene = NextScene::new_pop().with_transition(transition);
 
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_cancel);
         }
     }
@@ -324,7 +324,7 @@ impl PackageScene {
                 self.package_updater.begin(game_io, [listing.id.clone()]);
             }
             Event::Delete => {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
 
                 if globals.connected_to_server {
                     let interface = TextboxMessage::new(
@@ -361,7 +361,7 @@ impl PackageScene {
 
         self.doorstop_key.take();
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let message_key = match status {
             UpdateStatus::Idle => unreachable!(),
@@ -432,7 +432,7 @@ impl PackageScene {
             return;
         }
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let repo = &globals.config.package_repo;
         let encoded_id = uri_encode(&listing.creator);
@@ -464,7 +464,7 @@ impl PackageScene {
             return;
         };
 
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = Globals::from_resources_mut(game_io);
         let path = globals.resolve_package_download_path(category, id);
 
         globals.unload_package(category, PackageNamespace::Local, id);

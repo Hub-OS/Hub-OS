@@ -21,7 +21,7 @@ pub struct ContextMenu<T: Copy + 'static> {
 
 impl<T: Copy + 'static> ContextMenu<T> {
     pub fn new_translated(game_io: &GameIO, label_translation_key: &str, position: Vec2) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         Self::new(game_io, globals.translate(label_translation_key), position)
     }
@@ -29,7 +29,7 @@ impl<T: Copy + 'static> ContextMenu<T> {
     pub fn new(game_io: &GameIO, label: String, position: Vec2) -> Self {
         let bounds = Rect::new(position.x, position.y, RESOLUTION_F.x, RESOLUTION_F.y);
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         // cursor
@@ -151,7 +151,7 @@ impl<T: Copy + 'static> ContextMenu<T> {
     }
 
     pub fn set_and_translate_options(&mut self, game_io: &GameIO, options: &[(&str, T)]) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         self.set_options(
             game_io,
@@ -211,7 +211,7 @@ impl<T: Copy + 'static> ContextMenu<T> {
 
         if input_util.was_just_pressed(Input::Cancel) {
             // closed
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
             self.open = false;

@@ -165,7 +165,7 @@ pub struct DeckEditorScene {
 
 impl DeckEditorScene {
     pub fn new(game_io: &GameIO, deck_index: usize) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         // limits
         let global_save = &globals.global_save;
@@ -289,7 +289,7 @@ impl DeckEditorScene {
     }
 
     fn resolve_namespace_options(game_io: &GameIO) -> Vec<(String, usize)> {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let namespaces = PackageId::prefixes_for_ids(globals.card_packages.package_ids(NAMESPACE));
         let mut namespaces: Vec<_> = namespaces.into_iter().collect();
@@ -304,7 +304,7 @@ impl DeckEditorScene {
     }
 
     fn create_deck(&self, game_io: &GameIO) -> Deck {
-        let global_save = &game_io.resource::<Globals>().unwrap().global_save;
+        let global_save = &Globals::from_resources(game_io).global_save;
         let old_deck = &global_save.decks[self.deck_index];
 
         let cards = self
@@ -325,14 +325,14 @@ impl DeckEditorScene {
     }
 
     fn save_deck(&self, game_io: &mut GameIO, mut deck: Deck) {
-        let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
+        let global_save = &mut Globals::from_resources_mut(game_io).global_save;
         deck.update_time = GlobalSave::current_time();
         global_save.decks[self.deck_index] = deck;
         global_save.save();
     }
 
     fn equip_deck(&self, game_io: &mut GameIO) {
-        let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
+        let global_save = &mut Globals::from_resources_mut(game_io).global_save;
         global_save.selected_deck = self.deck_index;
         global_save.selected_deck_time = GlobalSave::current_time();
         global_save.save();
@@ -502,7 +502,7 @@ fn handle_events(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
             match mode {
                 EditorMode::Default => {}
                 EditorMode::SelectRegular => {
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
                     let message = globals.translate("deck-editor-regular-card-mode-start");
                     let interface = TextboxMessage::new(message);
                     scene.textbox.push_interface(interface);
@@ -521,7 +521,7 @@ fn handle_events(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
 
 /// only runs on chips in the pack
 fn apply_filters(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
-    let globals = game_io.resource::<Globals>().unwrap();
+    let globals = Globals::from_resources(game_io);
     let name_filter = &scene.name_filter;
 
     if scene.filtered {
@@ -638,7 +638,7 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
         active_dock.update_preview(game_io);
         scene.confirm_interrupted = true;
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         globals.audio.play_sound(&globals.sfx.cursor_move);
     }
 
@@ -667,7 +667,7 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
 
     // cancelling
     if input_util.was_just_pressed(Input::Cancel) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
         if scene.mode == EditorMode::SelectRegular {
@@ -716,7 +716,7 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
 
     // context menu
     if input_util.was_just_pressed(Input::Option) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         globals.audio.play_sound(&globals.sfx.cursor_select);
 
         if scene.page_tracker.active_page() == 0 {
@@ -728,7 +728,7 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
 
     // flip card previews
     if input_util.was_just_pressed(Input::Special) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         globals.audio.play_sound(&globals.sfx.cursor_select);
 
         scene.deck_dock.card_preview.toggle_flipped();
@@ -739,7 +739,7 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
     if scene.page_tracker.active_page() == 0 && input_util.was_released(Input::Option2) {
         let event_sender = scene.event_sender.clone();
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let message = globals.translate("deck-editor-regular-card-mode-question");
         let interface = TextboxQuestion::new(game_io, message, move |yes| {
             if yes {
@@ -833,7 +833,7 @@ fn handle_options_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
 
     // closing menu
     if input_util.was_just_pressed(Input::Option) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
         scene.pack_menu.close();
@@ -875,7 +875,7 @@ fn handle_namespace_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO
 
     // closing menu
     if input_util.was_just_pressed(Input::Option) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
         scene.namespace_menu.close();
@@ -902,7 +902,7 @@ fn handle_properties_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameI
 
     // closing menu
     if input_util.was_just_pressed(Input::Option) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
         scene.properties_menu.close();
@@ -923,7 +923,7 @@ fn handle_sort_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
 
     // closing menu
     if input_util.was_just_pressed(Input::Option) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
         scene.sort_menu.close();
@@ -949,7 +949,7 @@ fn handle_sort_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
         .map(|i| card_slots.get(i).unwrap_or(&None).clone());
 
     // sort
-    let globals = game_io.resource::<Globals>().unwrap();
+    let globals = Globals::from_resources(game_io);
     selected_option.sort_items(globals, card_slots);
 
     if scene.last_sort.take() == Some(selected_option) {
@@ -984,7 +984,7 @@ fn move_in_bulk(scene: &mut DeckEditorScene, game_io: &GameIO) {
         move_bulk_to_deck(scene, game_io).is_ok()
     };
 
-    let globals = game_io.resource::<Globals>().unwrap();
+    let globals = Globals::from_resources(game_io);
 
     if success {
         globals.audio.play_sound(&globals.sfx.page_turn);
@@ -1068,7 +1068,7 @@ fn select_card(scene: &mut DeckEditorScene, game_io: &GameIO) {
         success = false;
     }
 
-    let globals = game_io.resource::<Globals>().unwrap();
+    let globals = Globals::from_resources(game_io);
 
     if success {
         globals.audio.play_sound(&globals.sfx.cursor_select);
@@ -1078,7 +1078,7 @@ fn select_card(scene: &mut DeckEditorScene, game_io: &GameIO) {
 }
 
 fn select_regular_card(scene: &mut DeckEditorScene, game_io: &GameIO) {
-    let globals = game_io.resource::<Globals>().unwrap();
+    let globals = Globals::from_resources(game_io);
 
     let deck_dock = &mut scene.deck_dock;
     let slots = &mut deck_dock.card_slots;
@@ -1251,7 +1251,7 @@ fn transfer_to_deck(
         return Err(());
     }
 
-    let globals = game_io.resource::<Globals>().unwrap();
+    let globals = Globals::from_resources(game_io);
     let card_manager = &globals.card_packages;
     let package = card_manager
         .package(NAMESPACE, &card_item.card.package_id)
@@ -1418,7 +1418,7 @@ impl Dock {
         mut dock_sprite: Sprite,
         mut dock_animator: Animator,
     ) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         // dock
@@ -1621,7 +1621,7 @@ impl CardListItem {
         game_io: &GameIO,
         active_deck: &Deck,
     ) -> Vec<Option<CardListItem>> {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let package_manager = &globals.card_packages;
         let restrictions = &globals.restrictions;
 
@@ -1722,7 +1722,7 @@ impl CardListItem {
 
         if mode == EditorMode::SelectRegular {
             let regular_allowed = self.valid && {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 let card_packages = &globals.card_packages;
 
                 card_packages

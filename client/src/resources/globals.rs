@@ -193,6 +193,14 @@ impl Globals {
         }
     }
 
+    pub fn from_resources(game_io: &GameIO) -> &Self {
+        game_io.resource::<Globals>().unwrap()
+    }
+
+    pub fn from_resources_mut(game_io: &mut GameIO) -> &mut Self {
+        game_io.resource_mut::<Globals>().unwrap()
+    }
+
     pub fn translate(&self, text_key: &str) -> String {
         self.translations.translate(text_key)
     }

@@ -482,7 +482,7 @@ impl UiLayout {
             self.update_focus(ui_input_tracker);
 
             if old_index != self.focused_index {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 globals.audio.play_sound(&globals.sfx.cursor_move);
             }
         }

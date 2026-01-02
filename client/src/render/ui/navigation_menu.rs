@@ -119,7 +119,7 @@ pub struct NavigationMenu {
 
 impl NavigationMenu {
     pub fn new(game_io: &GameIO, items: Vec<SceneOption>) -> NavigationMenu {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         // menu assets
@@ -307,7 +307,7 @@ impl NavigationMenu {
             input_util.was_just_pressed(Input::Pause) || input_util.was_just_pressed(Input::Cancel);
 
         if self.overlay && requesting_close {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.menu_close);
             self.close();
         }
@@ -319,7 +319,7 @@ impl NavigationMenu {
             .handle_vertical_input(&self.ui_input_tracker);
 
         if prev_index != self.scroll_tracker.selected_index() {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_move);
         }
 
@@ -351,7 +351,7 @@ impl NavigationMenu {
                 }
             });
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         if let Some(scene) = scene {
             globals.audio.play_sound(&globals.sfx.cursor_select);

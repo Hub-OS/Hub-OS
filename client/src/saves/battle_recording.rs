@@ -91,7 +91,7 @@ impl BattleRecording {
 
     pub fn save(mut self, game_io: &GameIO, meta: &BattleMeta, preview: RecordedPreview) {
         let service_comm = game_io.resource::<SupportingServiceComm>().unwrap().clone();
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let nickname = globals.global_save.nickname.clone();
 
         // collect package zips
@@ -228,7 +228,7 @@ impl BattleRecording {
     }
 
     pub fn load_packages(&self, game_io: &mut GameIO, ignored_package_ids: Vec<PackageId>) {
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = Globals::from_resources_mut(game_io);
         let mod_cache_folder = ResourcePaths::mod_cache_folder();
 
         // unload old packages
@@ -244,7 +244,7 @@ impl BattleRecording {
         // load zips
         for &(category, namespace, hash) in &self.required_packages {
             // load zip if it's not already loaded
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             let assets = &globals.assets;
 
             if !assets.contains_virtual_zip(&hash)
@@ -254,7 +254,7 @@ impl BattleRecording {
             }
 
             // load package through virtual zip
-            let globals = game_io.resource_mut::<Globals>().unwrap();
+            let globals = Globals::from_resources_mut(game_io);
             let package_info = globals.load_virtual_package(category, namespace, hash);
 
             // unloading ignored packages
@@ -278,16 +278,16 @@ impl BattleRecording {
                 let hash = package_info.hash;
                 let zip_path = format!("{}{}.zip", &mod_cache_folder, hash);
 
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 let bytes = globals.assets.binary(&zip_path);
                 globals.assets.load_virtual_zip(game_io, hash, bytes);
 
-                let globals = game_io.resource_mut::<Globals>().unwrap();
+                let globals = Globals::from_resources_mut(game_io);
                 globals.load_virtual_package(category, namespace, hash);
             }
         }
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         globals.assets.remove_unused_virtual_zips();
     }
 }

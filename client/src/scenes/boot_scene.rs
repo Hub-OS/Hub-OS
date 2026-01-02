@@ -30,7 +30,7 @@ impl BootScene {
     pub fn new(game_io: &GameIO, log_receiver: flume::Receiver<LogRecord>) -> BootScene {
         Tip::log_random(game_io);
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         // ui
@@ -107,7 +107,7 @@ impl BootScene {
             return;
         }
 
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = Globals::from_resources_mut(game_io);
 
         while let Ok(message) = self.event_receiver.try_recv() {
             match message {
@@ -209,7 +209,7 @@ impl Scene for BootScene {
 
         // transfer to the next scene
         if self.done && input_util.latest_input().is_some() {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.start_game);
 
             self.transfer(game_io);

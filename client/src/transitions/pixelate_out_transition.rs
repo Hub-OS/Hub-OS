@@ -77,7 +77,7 @@ impl SceneTransition for PixelateTransition {
         subpass.flush();
 
         // render transition
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let mut sprite_queue =

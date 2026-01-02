@@ -27,7 +27,7 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
         |game_io, lua, form, path: String| {
             let path = absolute_path(lua, path)?;
 
-            let assets = &game_io.resource::<Globals>().unwrap().assets;
+            let assets = &Globals::from_resources(game_io).assets;
             form.mug_texture = Some(assets.texture(game_io, &path));
 
             Ok(())

@@ -1,5 +1,5 @@
 use crate::render::*;
-use crate::resources::{AssetManager, Globals, ResourcePaths, RESOLUTION_F};
+use crate::resources::{AssetManager, Globals, RESOLUTION_F, ResourcePaths};
 use framework::prelude::{GameIO, Rect, Sprite, Vec2};
 
 #[derive(Clone)]
@@ -17,7 +17,7 @@ impl TurnGauge {
     pub const DEFAULT_MAX_TIME: FrameTime = 512;
 
     pub fn new(game_io: &GameIO) -> Self {
-        let assets = &game_io.resource::<Globals>().unwrap().assets;
+        let assets = &Globals::from_resources(game_io).assets;
 
         let sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_TURN_GAUGE);
         let mut container_sprite = sprite.clone();

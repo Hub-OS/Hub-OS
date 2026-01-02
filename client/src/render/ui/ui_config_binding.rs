@@ -54,7 +54,7 @@ impl UiConfigBinding {
         config: Rc<RefCell<Config>>,
         binds_keyboard: bool,
     ) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let mut ui = Self {
             input,
@@ -148,7 +148,7 @@ impl UiConfigBinding {
                 return None;
             }
 
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
 
             let text = buttons
                 .iter()
@@ -273,7 +273,7 @@ impl UiNode for UiConfigBinding {
 
             // begin new binding
             if input_util.was_just_pressed(Input::Confirm) {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 globals.audio.play_sound(&globals.sfx.cursor_select);
 
                 self.binding_state = Some(Box::new(BindingState {
@@ -302,7 +302,7 @@ impl UiNode for UiConfigBinding {
                 self.binding_state = None;
             }
         } else {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             let latest_button = game_io.input().latest_button();
             let latest_button = latest_button.or(globals.emulated_input.latest_button());
 

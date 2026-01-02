@@ -62,7 +62,7 @@ pub struct OverworldMenuManager {
 
 impl OverworldMenuManager {
     pub fn new(game_io: &GameIO) -> Self {
-        let assets = &game_io.resource::<Globals>().unwrap().assets;
+        let assets = &Globals::from_resources(game_io).assets;
         let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::PIXEL);
         fade_sprite.set_color(Color::BLACK);
         fade_sprite.set_size(RESOLUTION_F);
@@ -543,7 +543,7 @@ impl OverworldMenuManager {
             let input_util = InputUtil::new(game_io);
 
             if handle_input && input_util.was_just_pressed(Input::Pause) {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 globals.audio.play_sound(&globals.sfx.card_select_open);
                 self.navigation_menu.open();
             }

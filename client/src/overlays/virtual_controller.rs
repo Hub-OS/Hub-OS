@@ -96,7 +96,7 @@ pub struct VirtualController {
 
 impl VirtualController {
     pub fn new(game_io: &mut GameIO) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let sprite = assets.new_sprite(game_io, ResourcePaths::VIRTUAL_CONTROLLER);
@@ -191,7 +191,7 @@ impl VirtualController {
     }
 
     fn accept_input_update(&mut self, game_io: &mut GameIO) {
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = Globals::from_resources_mut(game_io);
 
         let mut pressed_something = false;
 
@@ -322,7 +322,7 @@ impl VirtualController {
         game_io: &mut GameIO,
         callback: impl Fn(&mut Vec2),
     ) {
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = Globals::from_resources_mut(game_io);
 
         for selected_button in &self.selected_buttons {
             let Some(position) = globals
@@ -359,7 +359,7 @@ impl VirtualController {
                 continue;
             }
 
-            let globals = game_io.resource_mut::<Globals>().unwrap();
+            let globals = Globals::from_resources_mut(game_io);
             let Some(position) = globals.config.virtual_input_positions.get_mut(button) else {
                 continue;
             };
@@ -385,7 +385,7 @@ impl VirtualController {
         base_bounds.width += patch_left + self.nine_patch.right_width();
         base_bounds.height += patch_top + self.nine_patch.bottom_height();
 
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = Globals::from_resources_mut(game_io);
         let config = &mut globals.config;
 
         if !self.selected_buttons.is_empty() {
@@ -535,7 +535,7 @@ impl VirtualController {
 
         let input = game_io.input();
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let previously_visible = globals.global_save.virtual_controller_visible;
 
         let new_visible = if previously_visible {
@@ -547,7 +547,7 @@ impl VirtualController {
         };
 
         if new_visible != previously_visible {
-            let globals = game_io.resource_mut::<Globals>().unwrap();
+            let globals = Globals::from_resources_mut(game_io);
             globals.global_save.virtual_controller_visible = new_visible;
             globals.global_save.save();
         }
@@ -558,7 +558,7 @@ impl GameOverlay for VirtualController {
     fn pre_update(&mut self, game_io: &mut GameIO) {
         // update camera
         let window_size = game_io.window().size().as_vec2();
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let y_relative_scale =
             window_size.y / RESOLUTION_F.y * globals.config.virtual_controller_scale;
 
@@ -574,7 +574,7 @@ impl GameOverlay for VirtualController {
         self.update_touch_positions(game_io);
 
         // update buttons
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = Globals::from_resources_mut(game_io);
         let config = &globals.config;
         let camera_bounds = self.camera.bounds();
 
@@ -652,7 +652,7 @@ impl GameOverlay for VirtualController {
             return;
         }
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         if !globals.global_save.virtual_controller_visible {
             return;

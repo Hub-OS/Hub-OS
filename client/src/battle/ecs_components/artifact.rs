@@ -75,7 +75,7 @@ impl Artifact {
         );
 
         let spawn_callback = BattleCallback::new(|game_io, _, simulation, _| {
-            simulation.play_sound(game_io, &game_io.resource::<Globals>().unwrap().sfx.explode);
+            simulation.play_sound(game_io, &Globals::from_resources(game_io).sfx.explode);
         });
 
         let _ = simulation
@@ -103,7 +103,7 @@ impl Artifact {
         );
 
         let spawn_callback = BattleCallback::new(|game_io, _, simulation, _| {
-            simulation.play_sound(game_io, &game_io.resource::<Globals>().unwrap().sfx.trap);
+            simulation.play_sound(game_io, &Globals::from_resources(game_io).sfx.trap);
         });
 
         let _ = simulation

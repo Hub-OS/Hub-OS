@@ -84,7 +84,7 @@ impl DeckListScene {
     pub fn new(game_io: &mut GameIO) -> Box<Self> {
         move_selected_deck(game_io);
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let mut camera = Camera::new(game_io);
@@ -205,7 +205,7 @@ impl DeckListScene {
 }
 
 fn move_selected_deck(game_io: &mut GameIO) {
-    let globals = game_io.resource_mut::<Globals>().unwrap();
+    let globals = Globals::from_resources_mut(game_io);
     let save = &mut globals.global_save;
 
     if save.selected_deck == 0 {
@@ -223,7 +223,7 @@ impl Scene for DeckListScene {
     }
 
     fn enter(&mut self, game_io: &mut GameIO) {
-        let global_save = &game_io.resource::<Globals>().unwrap().global_save;
+        let global_save = &Globals::from_resources(game_io).global_save;
         let decks = &global_save.decks;
 
         self.deck_scroll_tracker.set_total_items(decks.len());
@@ -240,7 +240,7 @@ impl Scene for DeckListScene {
                 self.deck_restrictions
                     .validate_deck(game_io, PackageNamespace::Local, deck);
         } else {
-            let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
+            let global_save = &mut Globals::from_resources_mut(game_io).global_save;
 
             // make sure there's always at least one deck
             global_save.selected_deck = 0;
@@ -273,7 +273,7 @@ impl Scene for DeckListScene {
     }
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let global_save = &globals.global_save;
 
         // draw background
@@ -370,7 +370,7 @@ impl Scene for DeckListScene {
 }
 
 fn handle_events(scene: &mut DeckListScene, game_io: &mut GameIO) {
-    let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
+    let global_save = &mut Globals::from_resources_mut(game_io).global_save;
 
     match scene.event_receiver.try_recv() {
         Ok(Event::Rename(name)) => {
@@ -424,7 +424,7 @@ fn handle_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
         return;
     }
 
-    let globals = game_io.resource::<Globals>().unwrap();
+    let globals = Globals::from_resources(game_io);
 
     // deck scroll
     let decks = &globals.global_save.decks;
@@ -444,7 +444,7 @@ fn handle_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
         let deck_index = scene.deck_scroll_tracker.selected_index();
 
         if previous_deck_index != deck_index {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_move);
 
             let count = decks[deck_index].cards.len();
@@ -472,7 +472,7 @@ fn handle_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
     }
 
     if previous_card_index != scene.card_scroll_tracker.selected_index() {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         globals.audio.play_sound(&globals.sfx.cursor_move);
     }
 
@@ -480,7 +480,7 @@ fn handle_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
     let input_util = InputUtil::new(game_io);
 
     if input_util.was_just_pressed(Input::Cancel) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
         let transition = crate::transitions::new_scene_pop(game_io);
@@ -489,7 +489,7 @@ fn handle_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
     }
 
     if input_util.was_just_pressed(Input::Confirm) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         globals.audio.play_sound(&globals.sfx.cursor_select);
 
         let context_menu = &mut scene.context_menu;
@@ -509,7 +509,7 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
         return;
     };
 
-    let globals = game_io.resource_mut::<Globals>().unwrap();
+    let globals = Globals::from_resources_mut(game_io);
 
     match selection {
         DeckOption::Edit => {
@@ -576,14 +576,14 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
             global_save.save();
         }
         DeckOption::Export => {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
 
             let index = scene.deck_scroll_tracker.selected_index();
             let deck = &globals.global_save.decks[index];
             let text = deck.export_string(game_io);
             let copied = game_io.input_mut().set_clipboard_text(text);
 
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             let message = if copied {
                 globals.translate("deck-list-copied-to-clipboard")
             } else {
@@ -601,7 +601,7 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
             let text = game_io.input_mut().request_clipboard_text();
 
             if let Some(mut deck) = Deck::import_string(text) {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
 
                 deck.name = globals.translate("deck-list-new-deck-name");
 
@@ -615,7 +615,7 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
                 scene.card_scroll_tracker.set_total_items(deck.cards.len());
 
                 // save deck
-                let globals = game_io.resource_mut::<Globals>().unwrap();
+                let globals = Globals::from_resources_mut(game_io);
                 let decks = &mut globals.global_save.decks;
                 decks.insert(insert_index, deck);
 
@@ -623,7 +623,7 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
                 scene.deck_scroll_tracker.set_total_items(decks.len());
                 scene.deck_scroll_tracker.set_selected_index(insert_index);
             } else {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
 
                 let message = globals.translate("deck-list-import-failed");
                 let textbox_interface = TextboxMessage::new(message);
@@ -664,7 +664,7 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
 }
 
 fn create_new_deck(scene: &mut DeckListScene, game_io: &mut GameIO) {
-    let globals = game_io.resource_mut::<Globals>().unwrap();
+    let globals = Globals::from_resources_mut(game_io);
     let name = globals.translate("deck-list-new-deck-name");
 
     let global_save = &mut globals.global_save;

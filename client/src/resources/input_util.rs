@@ -12,7 +12,7 @@ pub struct InputUtil<'a> {
 
 impl<'a> InputUtil<'a> {
     pub fn new(game_io: &'a GameIO) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         Self {
             input_manager: game_io.input(),

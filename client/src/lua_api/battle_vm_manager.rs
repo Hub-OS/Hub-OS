@@ -107,7 +107,7 @@ impl BattleVmManager {
         package_info: &PackageInfo,
         namespace: PackageNamespace,
     ) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let lua = rollback_mlua::Lua::new_rollback(BATTLE_VM_MEMORY, INPUT_BUFFER_LIMIT);
         lua.load_from_std_lib(

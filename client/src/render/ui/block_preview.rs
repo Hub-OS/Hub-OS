@@ -16,7 +16,7 @@ impl BlockPreview {
     pub fn new(game_io: &GameIO, color: BlockColor, is_flat: bool, shape: [bool; 25]) -> Self {
         let mut sprites = Vec::new();
 
-        let assets = &game_io.resource::<Globals>().unwrap().assets;
+        let assets = &Globals::from_resources(game_io).assets;
 
         let mut sprite = assets.new_sprite(game_io, ResourcePaths::BLOCKS_UI);
         let mut animator = Animator::load_new(assets, ResourcePaths::BLOCKS_PREVIEW_ANIMATION);
@@ -61,7 +61,7 @@ impl BlockPreview {
     }
 
     pub fn add_multi_color_indicator(&mut self, game_io: &GameIO) {
-        let assets = &game_io.resource::<Globals>().unwrap().assets;
+        let assets = &Globals::from_resources(game_io).assets;
 
         let mut animator = Animator::load_new(assets, ResourcePaths::BLOCKS_PREVIEW_ANIMATION);
         let mut sprite = assets.new_sprite(game_io, ResourcePaths::BLOCKS_UI);

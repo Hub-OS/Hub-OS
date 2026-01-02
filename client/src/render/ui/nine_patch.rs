@@ -20,7 +20,7 @@ pub struct NinePatch {
 
 impl NinePatch {
     pub fn new(game_io: &GameIO) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         Self {
             sprite: globals.assets.new_sprite(game_io, ResourcePaths::BLANK),

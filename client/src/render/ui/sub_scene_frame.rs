@@ -12,7 +12,7 @@ pub struct SubSceneFrame {
 
 impl SubSceneFrame {
     pub fn new(game_io: &GameIO) -> Self {
-        let assets = &game_io.resource::<Globals>().unwrap().assets;
+        let assets = &Globals::from_resources(game_io).assets;
 
         let mut animator = Animator::load_new(assets, ResourcePaths::SUB_SCENE_ANIMATION);
         let mut sprite = assets.new_sprite(game_io, ResourcePaths::SUB_SCENE);

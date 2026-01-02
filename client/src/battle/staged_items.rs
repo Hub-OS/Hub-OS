@@ -128,7 +128,7 @@ impl StagedItems {
         resources: &'a SharedBattleResources,
         deck: &'a [(Card, PackageNamespace)],
     ) -> impl DoubleEndedIterator<Item = CardProperties> + 'a {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let card_packages = &globals.card_packages;
         let status_registry = &resources.status_registry;
 
@@ -198,7 +198,7 @@ impl StagedItems {
         start: Vec2,
         step: Vec2,
     ) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let mut sprite = assets.new_sprite(game_io, ResourcePaths::BLANK);

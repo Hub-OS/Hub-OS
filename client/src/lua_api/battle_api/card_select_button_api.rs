@@ -219,7 +219,7 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
             let button = button_mut_from_table(simulation, &table).ok_or_else(button_not_found)?;
 
             let game_io = api_ctx.game_io;
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             let packages = &globals.card_packages;
 
             let namespace = card_props.namespace.unwrap_or_default();

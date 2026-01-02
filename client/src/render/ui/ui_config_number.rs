@@ -36,7 +36,7 @@ impl UiConfigNumber {
         config: Rc<RefCell<Config>>,
         callback: Box<dyn Fn(&mut GameIO, RefMut<Config>, u8) + 'static>,
     ) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         Self {
             label: globals.translate(label_translation_key),
@@ -169,7 +169,7 @@ impl UiNode for UiConfigNumber {
         if !self.is_locking_focus() {
             if confirm {
                 // focus, play sfx, update, and continue
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 globals.audio.play_sound(&globals.sfx.cursor_select);
 
                 self.locked_state = Some(Box::new(LockedState {
@@ -179,13 +179,13 @@ impl UiNode for UiConfigNumber {
             }
         } else if confirm {
             // unfocus and play sfx
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_select);
 
             self.locked_state = None;
         } else if input_util.was_just_pressed(Input::Cancel) {
             // unfocus, undo, and play sfx
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
             if let Some(locked_state) = self.locked_state.take() {
@@ -244,7 +244,7 @@ impl UiNode for UiConfigNumber {
         }
 
         // update visual
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         self.value_text =
             Self::generate_value_text(globals, self.value_translation_key, self.value);
 
@@ -252,7 +252,7 @@ impl UiNode for UiConfigNumber {
 
         // play sfx after callback in case the sfx volume is adjusted
         if self.auditory_feedback {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_move);
         }
     }

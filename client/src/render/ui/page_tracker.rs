@@ -95,7 +95,7 @@ impl PageTracker {
         }
 
         if self.active_page != original_page {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.page_turn);
         }
     }

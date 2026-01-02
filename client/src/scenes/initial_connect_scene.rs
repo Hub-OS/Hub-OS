@@ -32,7 +32,7 @@ pub struct InitialConnectScene {
 
 impl InitialConnectScene {
     pub fn new(game_io: &GameIO, address: String, data: Option<String>, animate: bool) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let (event_sender, event_receiver) = flume::unbounded();
@@ -104,7 +104,7 @@ impl InitialConnectScene {
                     version_id,
                     version_iteration,
                 } => {
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
 
                     if version_id != packets::VERSION_ID
                         || version_iteration != packets::VERSION_ITERATION
@@ -179,7 +179,7 @@ impl Scene for InitialConnectScene {
     }
 
     fn enter(&mut self, game_io: &mut GameIO) {
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = Globals::from_resources_mut(game_io);
         globals.connected_to_server = true;
     }
 
@@ -209,7 +209,7 @@ impl Scene for InitialConnectScene {
                     ));
                 }
                 Event::Failed { reason } => {
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
                     let message = match reason {
                         Some(reason) => globals
                             .translate_with_args("server-kicked", vec![("reason", reason.into())]),
@@ -228,7 +228,7 @@ impl Scene for InitialConnectScene {
         }
 
         if self.bg_animator.is_complete() && self.success {
-            let globals = game_io.resource_mut::<Globals>().unwrap();
+            let globals = Globals::from_resources_mut(game_io);
             globals.remove_namespace(PackageNamespace::Server);
 
             // reset restrictions before applying deferred packets
@@ -240,7 +240,7 @@ impl Scene for InitialConnectScene {
                 online_scene.handle_packet(game_io, packet);
             }
 
-            let globals = game_io.resource_mut::<Globals>().unwrap();
+            let globals = Globals::from_resources_mut(game_io);
             globals.assets.remove_unused_virtual_zips();
 
             // move to the network scene if we can and the animator completed

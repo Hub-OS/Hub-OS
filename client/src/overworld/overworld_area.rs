@@ -30,7 +30,7 @@ pub struct OverworldArea {
 
 impl OverworldArea {
     pub fn new(game_io: &GameIO) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let mut entities = hecs::World::new();
@@ -201,7 +201,7 @@ impl OverworldArea {
     }
 
     fn handle_player_changes(&mut self, game_io: &GameIO) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let global_save = &globals.global_save;
         let player_package = global_save.player_package(game_io).unwrap();
 
@@ -313,7 +313,7 @@ impl OverworldArea {
         text_style.bounds.y -= 2.0;
 
         // draw bg
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let mut bg_sprite = assets.new_sprite(game_io, ResourcePaths::PIXEL);
@@ -357,7 +357,7 @@ impl OverworldArea {
 
         // draw fade
         if self.world_camera.lens_tint().a != 0.0 {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             let assets = &globals.assets;
 
             let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::PIXEL);

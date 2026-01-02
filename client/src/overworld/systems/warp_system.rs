@@ -52,7 +52,7 @@ pub fn system_warp(game_io: &mut GameIO, area: &mut OverworldArea) {
             warp_position.y += object_data.size.y * 0.5;
 
             // begin poll task
-            let globals = game_io.resource_mut::<Globals>().unwrap();
+            let globals = Globals::from_resources_mut(game_io);
             let subscription = globals.network.subscribe_to_server(address.clone());
 
             let poll_task = game_io.spawn_local_task(async move {
@@ -67,7 +67,7 @@ pub fn system_warp(game_io: &mut GameIO, area: &mut OverworldArea) {
                 let event_sender = area.event_sender.clone();
                 let player_entity = area.player_data.entity;
 
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 let fail_message = globals.translate("server-warp-failed");
 
                 game_io

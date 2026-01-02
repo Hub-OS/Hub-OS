@@ -27,7 +27,7 @@ pub struct FullCard {
 
 impl FullCard {
     pub fn new(game_io: &GameIO, position: Vec2) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         // card
@@ -212,7 +212,7 @@ impl FullCard {
 }
 
 fn package<'a>(game_io: &'a GameIO, card: &Card) -> Option<&'a CardPackage> {
-    let globals = game_io.resource::<Globals>().unwrap();
+    let globals = Globals::from_resources(game_io);
     let package_manager = &globals.card_packages;
 
     package_manager.package_or_fallback(PackageNamespace::Local, &card.package_id)

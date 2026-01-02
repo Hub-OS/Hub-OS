@@ -40,7 +40,7 @@ pub struct SharedBattleResources {
 
 impl SharedBattleResources {
     pub fn new(game_io: &GameIO, meta: &BattleMeta) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let (event_sender, event_receiver) = flume::unbounded();
@@ -108,7 +108,7 @@ impl SharedBattleResources {
         // sort by namespace, ensuring proper load order
         dependencies.sort_by_key(|(_, ns)| *ns);
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         // load recipes
         for setup in &meta.player_setups {

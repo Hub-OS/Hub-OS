@@ -188,7 +188,7 @@ impl BattleState {
             return;
         }
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let audio = &globals.audio;
         let sfx = &globals.sfx.low_hp;
 
@@ -218,7 +218,7 @@ impl BattleState {
 
         if previously_incomplete {
             // just completed, play a sfx
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             simulation.play_sound(game_io, &globals.sfx.turn_gauge);
         }
 

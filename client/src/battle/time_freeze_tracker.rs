@@ -451,13 +451,13 @@ impl TimeFreezeTracker {
         match action_freeze_state {
             ActionFreezeState::FadeIn => {
                 if state_just_started {
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
                     simulation.play_sound(game_io, &globals.sfx.time_freeze);
                 }
             }
             ActionFreezeState::Countered => {
                 if state_just_started {
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
                     globals.audio.play_sound(&globals.sfx.trap);
                 }
             }
@@ -661,7 +661,7 @@ impl TimeFreezeTracker {
             let width_multiplier =
                 inverse_lerp!(ActionFreezeState::COUNTER_DURATION, 0, state_elapsed_time);
 
-            let assets = &game_io.resource::<Globals>().unwrap().assets;
+            let assets = &Globals::from_resources(game_io).assets;
             let mut sprite = assets.new_sprite(game_io, ResourcePaths::PIXEL);
             sprite.set_width(BAR_WIDTH * width_multiplier);
             sprite.set_height(2.0);
@@ -698,7 +698,7 @@ impl TimeFreezeTracker {
         alert_animator.sync_time(state_elapsed_time - 1);
 
         if !alert_animator.is_complete() {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             let assets = &globals.assets;
 
             let mut alert_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_ALERT);

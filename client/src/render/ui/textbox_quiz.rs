@@ -60,13 +60,13 @@ impl TextboxQuiz {
         }
 
         if self.selection != old_selection {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_move);
             self.update_cursor(text_style);
         }
 
         if input_util.was_just_pressed(Input::Confirm) {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_select);
 
             self.complete = true;

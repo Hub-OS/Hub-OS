@@ -489,7 +489,7 @@ fn parse_text_style<'lua>(
                 .cloned()
                 .unwrap_or_else(move || {
                     // create a new glyph map
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
                     let assets = &globals.assets;
 
                     let glyph_atlas = Arc::new(GlyphAtlas::new(

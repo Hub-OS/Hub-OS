@@ -45,7 +45,7 @@ impl PostProcessColorBlindness {
         let shader =
             device.create_shader_module(include_wgsl!("post_process_color_blindness.wgsl"));
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let selection = globals.post_process_color_blindness;
 
         Self {
@@ -78,7 +78,7 @@ impl PostProcess for PostProcessColorBlindness {
     }
 
     fn update(&mut self, game_io: &GameIO) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let selection = globals.post_process_color_blindness;
 
         if self.selection != selection {

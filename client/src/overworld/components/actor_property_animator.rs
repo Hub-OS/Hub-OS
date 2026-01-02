@@ -162,7 +162,7 @@ impl ActorPropertyAnimator {
                     let first_frame = &state.key_frames[0];
 
                     if property_animator.audio_enabled && first_frame.time_point == 0.0 {
-                        let globals = game_io.resource::<Globals>().unwrap();
+                        let globals = Globals::from_resources(game_io);
 
                         if let ActorProperty::SoundEffect(path) = &first_frame.property {
                             let sfx = assets.audio(game_io, path);
@@ -290,7 +290,7 @@ impl ActorPropertyAnimator {
                         {
                             let sfx = assets.audio(game_io, active_string_value);
 
-                            let globals = game_io.resource::<Globals>().unwrap();
+                            let globals = Globals::from_resources(game_io);
                             globals.audio.play_sound(&sfx);
                         }
                     }
@@ -298,7 +298,7 @@ impl ActorPropertyAnimator {
                         if property_animator.audio_enabled && !active_string_value.is_empty() {
                             let sfx = assets.audio(game_io, active_string_value);
 
-                            let globals = game_io.resource::<Globals>().unwrap();
+                            let globals = Globals::from_resources(game_io);
                             let audio = &globals.audio;
 
                             audio.play_sound_with_behavior(&sfx, AudioBehavior::NoOverlap);

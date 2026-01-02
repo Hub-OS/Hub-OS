@@ -14,7 +14,7 @@ impl PostProcessGhosting {
         let device = game_io.graphics().device();
         let shader = device.create_shader_module(include_wgsl!("post_process_ghosting.wgsl"));
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let opacity_resource = StructResource::new(game_io, globals.post_process_ghosting);
         let active_target = RenderTarget::new(game_io, UVec2::new(1, 1));
@@ -49,7 +49,7 @@ impl PostProcess for PostProcessGhosting {
     }
 
     fn update(&mut self, game_io: &GameIO) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         if *self.ghosting_resource.value() != globals.post_process_ghosting {
             self.ghosting_resource = StructResource::new(game_io, globals.post_process_ghosting);

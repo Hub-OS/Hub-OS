@@ -131,12 +131,12 @@ impl AttackCharge {
         if self.charging {
             // charging
             if play_sfx && self.charging_time == Self::CHARGE_DELAY {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 globals.audio.play_sound(&globals.sfx.attack_charging);
             }
 
             if play_sfx && self.charging_time == self.max_charge_time + Self::CHARGE_DELAY {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 globals.audio.play_sound(&globals.sfx.attack_charged);
             }
 

@@ -105,7 +105,7 @@ impl Restrictions {
     pub fn card_count(&self, game_io: &GameIO, card: &Card) -> usize {
         if self.owned_cards.is_empty() {
             // use package info
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             let card_packages = &globals.card_packages;
 
             card_packages
@@ -127,7 +127,7 @@ impl Restrictions {
     pub fn block_count(&self, game_io: &GameIO, id: &PackageId, color: BlockColor) -> usize {
         if self.owned_blocks.is_empty() {
             // use package info
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             let augment_packages = &globals.augment_packages;
 
             augment_packages
@@ -193,7 +193,7 @@ impl Restrictions {
     ) -> bool {
         let package_id = triplet.2.clone();
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let deps = globals.package_dependency_iter(std::iter::once(triplet));
 
         // test hashes while tracking dependencies
@@ -226,7 +226,7 @@ impl Restrictions {
         namespace: PackageNamespace,
         iter: impl Iterator<Item = &'b InstalledBlock> + 'a,
     ) -> impl Iterator<Item = &'b InstalledBlock> + 'a {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let augment_packages = &globals.augment_packages;
 
         let blocks: Vec<_> = iter.collect();

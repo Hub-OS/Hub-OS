@@ -242,7 +242,7 @@ impl CardPackage {
         namespace: PackageNamespace,
         package_id: &PackageId,
     ) -> (Arc<Texture>, &'a str) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
         let package_manager = &globals.card_packages;
 
@@ -262,7 +262,7 @@ impl CardPackage {
         game_io: &'a GameIO,
         package_id: &PackageId,
     ) -> (Arc<Texture>, &'a str) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
         let package_manager = &globals.card_packages;
         let ns = PackageNamespace::Local;

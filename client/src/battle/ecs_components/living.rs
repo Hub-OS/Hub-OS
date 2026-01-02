@@ -353,7 +353,7 @@ impl Living {
 
                         // play counter sfx if the attack was caused by the local player
                         if simulation.local_player_id == aggressor_id {
-                            let globals = game_io.resource::<Globals>().unwrap();
+                            let globals = Globals::from_resources(game_io);
                             simulation.play_sound(game_io, &globals.sfx.counter_hit);
                         }
                     });
@@ -378,7 +378,7 @@ impl Living {
             .unwrap();
 
         if play_hurt_sfx && !simulation.is_resimulation {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
 
             if simulation.local_player_id == entity_id {
                 globals.audio.play_sound(&globals.sfx.hurt);

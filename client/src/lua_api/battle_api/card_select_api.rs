@@ -51,7 +51,7 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
             .map(|path| -> rollback_mlua::Result<Box<str>> { Ok(absolute_path(lua, path)?.into()) })
             .transpose()?;
         let texture = texture_path.as_ref().map(|path| {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             let assets = &globals.assets;
             assets.texture(game_io, path)
         });
@@ -63,7 +63,7 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
         let texture_path: String = lua.unpack_multi(params)?;
         let texture_path: Box<str> = absolute_path(lua, texture_path)?.into();
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
         let texture = assets.texture(game_io, &texture_path);
 

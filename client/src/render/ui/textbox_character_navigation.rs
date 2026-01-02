@@ -16,7 +16,7 @@ pub struct TextboxCharacterNavigation {
 
 impl TextboxCharacterNavigation {
     pub fn new(game_io: &GameIO, callback: impl Fn(usize) + 'static) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         Self {
             text: format!(
@@ -53,12 +53,12 @@ impl TextboxCharacterNavigation {
         self.selection %= TOTAL_OPTIONS;
 
         if self.selection != old_selection {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_move);
         }
 
         if input_util.was_just_pressed(Input::Confirm) {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_select);
 
             (self.callback)(self.selection);

@@ -61,7 +61,7 @@ pub struct CharacterSelectScene {
 
 impl CharacterSelectScene {
     pub fn new(game_io: &GameIO) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
         let character_id = &globals.global_save.selected_character;
         let player_package = Self::get_player_package(game_io, character_id);
@@ -165,7 +165,7 @@ impl CharacterSelectScene {
     }
 
     fn collect_package_ids(game_io: &GameIO) -> Vec<&PackageId> {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let mut package_ids: Vec<_> = globals
             .player_packages
             .package_ids(PackageNamespace::Local)
@@ -195,7 +195,7 @@ impl CharacterSelectScene {
     }
 
     fn get_player_package<'a>(game_io: &'a GameIO, character_id: &PackageId) -> &'a PlayerPackage {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         globals
             .player_packages
@@ -204,7 +204,7 @@ impl CharacterSelectScene {
     }
 
     fn load_character_sprite(game_io: &GameIO, player_package: &PlayerPackage) -> Sprite {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let mut sprite = assets.new_sprite(game_io, &player_package.preview_texture_path);
@@ -272,7 +272,7 @@ impl CharacterSelectScene {
 
         // update sprite and play sfx
         if v_selection_changed || h_selection_changed {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_move);
 
             self.update_selected_character(game_io);
@@ -286,7 +286,7 @@ impl CharacterSelectScene {
         let input_util = InputUtil::new(game_io);
 
         if input_util.was_just_pressed(Input::Option) {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
 
             let package_id = self.selected_package_id();
             let player_packages = &globals.player_packages;
@@ -306,7 +306,7 @@ impl CharacterSelectScene {
         }
 
         if input_util.was_just_pressed(Input::Option2) {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_select);
 
             let package_id = self.selected_package_id();
@@ -324,7 +324,7 @@ impl CharacterSelectScene {
 
         // test select
         if input_util.was_just_pressed(Input::Confirm) {
-            let globals = game_io.resource_mut::<Globals>().unwrap();
+            let globals = Globals::from_resources_mut(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_select);
 
             self.v_scroll_tracker.remember_index();
@@ -355,7 +355,7 @@ impl CharacterSelectScene {
         let input_util = InputUtil::new(game_io);
 
         if input_util.was_just_pressed(Input::Cancel) {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
             let transition = crate::transitions::new_sub_scene_pop(game_io);
@@ -375,7 +375,7 @@ impl Scene for CharacterSelectScene {
             return;
         }
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let player_packages = &globals.player_packages;
         let player_package = player_packages.package(
@@ -388,7 +388,7 @@ impl Scene for CharacterSelectScene {
             if let Some(&package_id) = Self::collect_package_ids(game_io).first() {
                 let package_id = package_id.clone();
 
-                let globals = game_io.resource_mut::<Globals>().unwrap();
+                let globals = Globals::from_resources_mut(game_io);
                 globals.global_save.selected_character = package_id.clone();
                 globals.global_save.save();
             }
@@ -452,7 +452,7 @@ impl Scene for CharacterSelectScene {
         sprite_queue.draw_sprite(&self.preview_sprite);
 
         // draw rows
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let saved_package_id = &globals.global_save.selected_character;
         let v_index = self.v_scroll_tracker.selected_index();
         let h_index = self.h_scroll_tracker.selected_index();
@@ -534,7 +534,7 @@ struct IconRow {
 
 impl IconRow {
     fn new<'a>(game_io: &GameIO, package_ids: impl Iterator<Item = &'a PackageId>) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let restrictions = &globals.restrictions;
         let player_packages = &globals.player_packages;
 
@@ -592,7 +592,7 @@ impl IconRow {
     }
 
     fn load_icon(game_io: &GameIO, info: &CompactPackageInfo) -> Sprite {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let mut sprite = assets.new_sprite(game_io, &info.texture_path);

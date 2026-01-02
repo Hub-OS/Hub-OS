@@ -72,7 +72,7 @@ impl SlotUi {
         part_name: &str,
         offset: Vec2,
     ) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let mut sprite = assets.new_sprite(game_io, ResourcePaths::SWITCH_DRIVE_UI);
@@ -202,7 +202,7 @@ pub struct ManageSwitchDriveScene {
 
 impl ManageSwitchDriveScene {
     pub fn new(game_io: &GameIO) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
         let global_save = &globals.global_save;
 
@@ -325,7 +325,7 @@ impl ManageSwitchDriveScene {
 
         // actual placement
         // save drive parts
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = Globals::from_resources_mut(game_io);
         let global_save = &mut globals.global_save;
 
         let Some(package) = globals
@@ -381,7 +381,7 @@ impl ManageSwitchDriveScene {
     fn request_leave(&mut self, game_io: &GameIO) {
         let event_sender = self.event_sender.clone();
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let question = TextboxQuestion::new(
             game_io,
@@ -398,7 +398,7 @@ impl ManageSwitchDriveScene {
     }
 
     fn handle_input(&mut self, game_io: &mut GameIO) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let prev_state = self.state;
         let prev_slot_index = self.equipment_scroll_tracker.selected_index();
@@ -420,13 +420,13 @@ impl ManageSwitchDriveScene {
                     let slot = SwitchDriveSlot::from_usize(index);
                     self.equipment_map[slot].set_selected(true);
 
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
 
                     globals.audio.play_sound(&globals.sfx.cursor_select);
                 } else if self.input_tracker.pulsed(Input::Confirm) {
                     // handle confirm
                     let success = self.add_drive_part(game_io, prev_list_index);
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
 
                     if success {
                         globals.audio.play_sound(&globals.sfx.cursor_select);
@@ -547,7 +547,7 @@ impl ManageSwitchDriveScene {
 
             if !state_changed {
                 // changing state already plays sfx
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 globals.audio.play_sound(&globals.sfx.cursor_move);
             }
         }
@@ -555,7 +555,7 @@ impl ManageSwitchDriveScene {
 
     fn update_selection_ui(&mut self, game_io: &GameIO) {
         let selected_slot_index = self.equipment_scroll_tracker.selected_index();
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let selected_slot = match self.state {
             State::ListSelection => {
@@ -591,7 +591,7 @@ impl ManageSwitchDriveScene {
                 Event::RemoveSwitchDrive => {
                     let selected_index = self.equipment_scroll_tracker.selected_index();
 
-                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    let globals = Globals::from_resources_mut(game_io);
                     let global_save = &mut globals.global_save;
 
                     let slot = SwitchDriveSlot::from_usize(selected_index);
@@ -621,7 +621,7 @@ impl ManageSwitchDriveScene {
                         });
                 }
                 Event::ApplyFilter(filter) => {
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
                     self.package_ids = collect_drive_package_ids(game_io, globals, filter);
 
                     self.state = State::ListSelection;
@@ -643,7 +643,7 @@ impl Scene for ManageSwitchDriveScene {
 
     fn destroy(&mut self, game_io: &mut GameIO) {
         // save on exit
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = Globals::from_resources_mut(game_io);
         let global_save = &mut globals.global_save;
 
         global_save.character_update_times.insert(
@@ -685,7 +685,7 @@ impl Scene for ManageSwitchDriveScene {
     }
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         self.background.draw(game_io, render_pass);
 

@@ -46,7 +46,7 @@ impl CardSelectUi {
     pub fn new(game_io: &GameIO) -> Self {
         let mut sprites = Tree::new(SpriteNode::new(game_io, SpriteColorMode::Multiply));
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
         let mut animator = Animator::load_new(assets, ResourcePaths::BATTLE_CARD_SELECT_ANIMATION);
         let recycled_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_CARD_SELECT);
@@ -213,7 +213,7 @@ impl CardSelectUi {
     }
 
     pub fn update_card_frame(&mut self, game_io: &GameIO, hand: &PlayerHand, card_index: usize) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let (card, namespace) = &hand.deck[card_index];
 
         let card_packages = &globals.card_packages;

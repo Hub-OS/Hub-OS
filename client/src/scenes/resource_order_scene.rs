@@ -46,7 +46,7 @@ pub struct ResourceOrderScene {
 
 impl ResourceOrderScene {
     pub fn new(game_io: &mut GameIO) -> Self {
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = Globals::from_resources_mut(game_io);
         let assets = &globals.assets;
 
         // load layout
@@ -82,7 +82,7 @@ impl ResourceOrderScene {
         list_bounds.height -= list_padding.y * 2.0;
 
         // resolve packages
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = Globals::from_resources_mut(game_io);
         let packages = &globals.resource_packages;
 
         let global_save = &mut globals.global_save;
@@ -159,7 +159,7 @@ impl ResourceOrderScene {
             return;
         }
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         // handle cancel request
         if self.ui_input_tracker.pulsed(Input::Cancel) {
@@ -282,7 +282,7 @@ impl ResourceOrderScene {
         match event {
             Event::SaveResponse { save } => {
                 if save {
-                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    let globals = Globals::from_resources_mut(game_io);
 
                     globals.global_save.resource_package_order = self.collect_order();
                     globals.global_save.resource_order_time = GlobalSave::current_time();

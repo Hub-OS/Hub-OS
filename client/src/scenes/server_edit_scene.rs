@@ -43,7 +43,7 @@ pub struct ServerEditScene {
 
 impl ServerEditScene {
     pub fn new(game_io: &GameIO, edit_prop: ServerEditProp) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let server_info = match &edit_prop {
             ServerEditProp::Edit(index) => globals.global_save.server_list[*index].clone(),
@@ -268,14 +268,14 @@ impl Scene for ServerEditScene {
 
         if !self.ui_layout.is_focus_locked() {
             if input_util.was_just_pressed(Input::End) {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 globals.audio.play_sound(&globals.sfx.cursor_move);
 
                 self.ui_layout.set_focused_index(Some(self.save_handle));
             }
 
             if input_util.was_just_pressed(Input::Cancel) {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
                 leaving = true;
@@ -292,7 +292,7 @@ impl Scene for ServerEditScene {
                 UiMessage::AddressUpdated(address) => self.server_info.address = address,
                 UiMessage::Cancel => leaving = true,
                 UiMessage::Save => {
-                    let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
+                    let global_save = &mut Globals::from_resources_mut(game_io).global_save;
 
                     self.server_info.update_time = GlobalSave::current_time();
 

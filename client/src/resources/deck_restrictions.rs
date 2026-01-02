@@ -91,7 +91,7 @@ impl DeckRestrictions {
             return false;
         };
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let Some(package) = globals.card_packages.package(namespace, &card.package_id) else {
             return false;
@@ -169,7 +169,7 @@ impl<'a> DeckValidator<'a> {
         namespace: PackageNamespace,
         deck_restrictions: &'a DeckRestrictions,
     ) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         Self {
             game_io,

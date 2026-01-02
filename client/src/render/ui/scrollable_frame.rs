@@ -16,7 +16,7 @@ pub struct ScrollableFrame {
 
 impl ScrollableFrame {
     pub fn new(game_io: &GameIO, bounds: Rect) -> Self {
-        let assets = &game_io.resource::<Globals>().unwrap().assets;
+        let assets = &Globals::from_resources(game_io).assets;
         let mut animator = Animator::load_new(assets, ResourcePaths::UI_NINE_PATCHES_ANIMATION);
 
         // label

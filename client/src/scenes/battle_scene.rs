@@ -95,7 +95,7 @@ impl BattleScene {
         } else {
             // remove recording namespaces to prevent interference with other namespaces
             // recording namespaces have precedence over other namespaces
-            let globals = game_io.resource_mut::<Globals>().unwrap();
+            let globals = Globals::from_resources_mut(game_io);
             globals.remove_namespace(PackageNamespace::RecordingServer);
 
             // prevent unused netplay packages from overriding local packages
@@ -228,7 +228,7 @@ impl BattleScene {
                     self.textbox.open();
                 }
                 BattleEvent::DescribeCard(ns, package_id) => {
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
 
                     let Some(package) = globals.card_packages.package_or_fallback(ns, &package_id)
                     else {
@@ -255,7 +255,7 @@ impl BattleScene {
                     if can_run {
                         // confirm
                         let event_sender = self.resources.event_sender.clone();
-                        let globals = game_io.resource::<Globals>().unwrap();
+                        let globals = Globals::from_resources(game_io);
                         let text = globals.translate("battle-run-question");
 
                         let interface = TextboxQuestion::new(game_io, text, move |yes| {
@@ -267,7 +267,7 @@ impl BattleScene {
                         self.textbox.push_interface(interface);
                     } else {
                         // can't run
-                        let globals = game_io.resource::<Globals>().unwrap();
+                        let globals = Globals::from_resources(game_io);
                         let text = globals.translate("battle-run-disabled-message");
                         let interface = TextboxMessage::new(text);
 
@@ -288,7 +288,7 @@ impl BattleScene {
                         "battle-run-failed"
                     };
 
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
                     let message =
                         String::from("\x01...\x01") + globals.translate(message_key).as_str();
 
@@ -529,7 +529,7 @@ impl BattleScene {
             .local_index
             .map(|index| self.player_controllers[index].buffer.len())
             .unwrap_or_else(|| {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 globals.config.input_delay as usize
             });
 
@@ -993,7 +993,7 @@ impl BattleScene {
         }
 
         // clean up music stack
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         globals.audio.pop_music_stack();
     }
 
@@ -1108,12 +1108,12 @@ impl Scene for BattleScene {
     }
 
     fn enter(&mut self, game_io: &mut GameIO) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         globals.audio.push_music_stack();
     }
 
     fn destroy(&mut self, game_io: &mut GameIO) {
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = Globals::from_resources_mut(game_io);
 
         // save player memory, must occur before the recording eats setups
         if let Some(setup) = self.meta.player_setups.iter().find(|s| s.local) {
@@ -1220,7 +1220,7 @@ impl Scene for BattleScene {
         }
 
         if self.is_playing_back_recording {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             let assets = &globals.assets;
 
             let mut progress_sprite = assets.new_sprite(game_io, ResourcePaths::PIXEL);

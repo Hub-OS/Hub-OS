@@ -21,7 +21,7 @@ impl UiConfigToggle {
         config: Rc<RefCell<Config>>,
         callback: impl Fn(&mut GameIO, RefMut<Config>) -> bool + 'static,
     ) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         Self {
             label: globals.translate(label_translation_key),
@@ -72,7 +72,7 @@ impl UiNode for UiConfigToggle {
         let original_value = self.value;
         self.value = (self.callback)(game_io, self.config.borrow_mut());
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         if self.value == original_value {
             // toggle failed

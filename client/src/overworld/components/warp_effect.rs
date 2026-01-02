@@ -91,7 +91,7 @@ impl WarpEffect {
             return;
         }
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         // play sfx
         let screen_position = area.map.world_3d_to_screen(position);

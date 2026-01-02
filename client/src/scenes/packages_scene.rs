@@ -103,7 +103,7 @@ pub struct PackagesScene {
 
 impl PackagesScene {
     pub fn new(game_io: &GameIO, initial_category: CategoryFilter) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         // cursor
@@ -195,7 +195,7 @@ impl PackagesScene {
     }
 
     fn request_local(&mut self, game_io: &GameIO) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let category_filter = self.category_filter.package_category();
 
         let mut new_listings: Vec<_> = globals
@@ -223,7 +223,7 @@ impl PackagesScene {
     }
 
     fn request_remote(&mut self, game_io: &GameIO, skip: usize) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let repo = globals.config.package_repo.clone();
 
         let mut uri = format!("{repo}/api/mods?skip={skip}&limit={PACKAGES_PER_REQUEST}");
@@ -274,7 +274,7 @@ impl PackagesScene {
         event_sender: flume::Sender<Event>,
         sidebar_bounds: Rect,
     ) -> UiLayout {
-        let assets = &game_io.resource::<Globals>().unwrap().assets;
+        let assets = &Globals::from_resources(game_io).assets;
         let ui_texture = assets.texture(game_io, ResourcePaths::UI_NINE_PATCHES);
         let ui_animator = Animator::load_new(assets, ResourcePaths::UI_NINE_PATCHES_ANIMATION);
         let button_9patch = build_9patch!(game_io, ui_texture, &ui_animator, "BUTTON");
@@ -344,13 +344,13 @@ impl PackagesScene {
             self.sidebar.set_focused(true);
             self.list.set_focused(false);
 
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_cancel);
         } else if input_util.was_just_pressed(Input::Right) && self.sidebar.focused() {
             self.sidebar.set_focused(false);
             self.list.set_focused(true);
 
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_select);
         }
 
@@ -362,7 +362,7 @@ impl PackagesScene {
                 self.sidebar.set_focused(true);
                 self.list.set_focused(false);
 
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 globals.audio.play_sound(&globals.sfx.cursor_cancel);
             }
         }
@@ -396,7 +396,7 @@ impl PackagesScene {
     }
 
     fn leave(&mut self, game_io: &GameIO) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         let transition = crate::transitions::new_sub_scene_pop(game_io);
         self.next_scene = NextScene::new_pop().with_transition(transition);

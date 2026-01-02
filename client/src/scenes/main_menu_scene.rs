@@ -21,7 +21,7 @@ struct CharacterData {
 
 impl CharacterData {
     fn init_selected_player(game_io: &mut GameIO) {
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = Globals::from_resources_mut(game_io);
 
         let player_packages = &globals.player_packages;
         let player_package = player_packages.package(
@@ -65,7 +65,7 @@ impl CharacterData {
     fn load(game_io: &mut GameIO, text_style: &TextStyle) -> Self {
         Self::init_selected_player(game_io);
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let player_id = &globals.global_save.selected_character;
         let assets = &globals.assets;
 
@@ -126,7 +126,7 @@ pub struct MainMenuScene {
 
 impl MainMenuScene {
     pub fn new(game_io: &mut GameIO) -> MainMenuScene {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         // layout
@@ -147,7 +147,7 @@ impl MainMenuScene {
         let mut textbox = Textbox::new_navigation(game_io);
 
         if !character_data.loaded {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             let initial_setup_message = globals.translate("initial-setup-message");
 
             textbox.use_navigation_avatar(game_io);
@@ -200,7 +200,7 @@ impl Scene for MainMenuScene {
         self.textbox.use_navigation_avatar(game_io);
 
         // can't be on a server if the player is viewing the main menu
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = Globals::from_resources_mut(game_io);
         globals.connected_to_server = false;
 
         // update the background if it's necessary
@@ -223,7 +223,7 @@ impl Scene for MainMenuScene {
         }
 
         // music
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         if !game_io.is_in_transition() && !globals.audio.is_music_playing() {
             globals.audio.play_music(&globals.music.main_menu, true);
@@ -258,7 +258,7 @@ impl Scene for MainMenuScene {
         let input_util = InputUtil::new(game_io);
 
         if input_util.was_just_pressed(Input::Cancel) {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             let event_sender = self.event_sender.clone();
             let message = globals.translate("navigation-quit-question");
             let interface = TextboxQuestion::new(game_io, message, move |yes| {

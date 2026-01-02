@@ -135,7 +135,7 @@ impl CardRecipeAnimation {
         character.next_card_mutation = Some(0);
 
         // apply recipes
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let card_packages = &globals.card_packages;
         let status_registry = &resources.status_registry;
 
@@ -179,7 +179,7 @@ impl CardRecipeAnimation {
             State::DisplayCard => {
                 if self.time == 1 {
                     if local && self.changes_contain_index(self.visible_card_count) {
-                        let globals = game_io.resource::<Globals>().unwrap();
+                        let globals = Globals::from_resources(game_io);
                         simulation.play_sound(game_io, &globals.sfx.indicate);
                     }
 
@@ -190,7 +190,7 @@ impl CardRecipeAnimation {
             }
             State::DisplayChanges => {
                 if local && self.time == 1 {
-                    let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = Globals::from_resources(game_io);
                     simulation.play_sound(game_io, &globals.sfx.craft);
                 }
             }
@@ -301,7 +301,7 @@ impl CardRecipeAnimation {
                 }
             }
             State::DisplayChanges => {
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = Globals::from_resources(game_io);
                 let card_packages = &globals.card_packages;
 
                 let relevant_color = match self.time / 16 % 4 {
@@ -346,7 +346,7 @@ impl CardRecipeAnimation {
         }
 
         // display label
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
         let mut label_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_RECIPE);
         resources.recipe_animator.apply(&mut label_sprite);

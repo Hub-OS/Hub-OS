@@ -66,7 +66,7 @@ impl BattleSimulation {
         let mut camera = Camera::new(game_io);
         camera.snap(BATTLE_CAMERA_OFFSET);
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::PIXEL);
@@ -192,7 +192,7 @@ impl BattleSimulation {
 
     pub fn play_sound(&self, game_io: &GameIO, sound_buffer: &SoundBuffer) {
         if !self.is_resimulation {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(sound_buffer);
         }
     }
@@ -204,14 +204,14 @@ impl BattleSimulation {
         behavior: AudioBehavior,
     ) {
         if !self.is_resimulation {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             let audio = &globals.audio;
             audio.play_sound_with_behavior(sound_buffer, behavior);
         }
     }
 
     pub fn stop_music(&self, game_io: &GameIO, resources: &SharedBattleResources) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         if globals.audio.music_stack_len() != resources.music_stack_depth {
             return;
@@ -227,7 +227,7 @@ impl BattleSimulation {
         sound_buffer: &SoundBuffer,
         loops: bool,
     ) {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         if globals.audio.music_stack_len() != resources.music_stack_depth {
             return;
@@ -870,7 +870,7 @@ impl BattleSimulation {
             simulation: self,
         });
 
-        let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
+        let lua_api = &Globals::from_resources(game_io).battle_api;
 
         lua_api.inject_dynamic(lua, &api_ctx, move |lua| {
             let params = param_generator(lua)?;
@@ -903,7 +903,7 @@ impl BattleSimulation {
         // store whether the player's team flips the perspective into a shorter variable
         let perspective_flipped = self.local_team.flips_perspective();
 
-        let assets = &game_io.resource::<Globals>().unwrap().assets;
+        let assets = &Globals::from_resources(game_io).assets;
 
         // draw background
         self.background.draw(game_io, render_pass);

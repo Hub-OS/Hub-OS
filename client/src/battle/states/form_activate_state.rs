@@ -196,7 +196,7 @@ impl FormActivateState {
         }
 
         // play sfx
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         simulation.play_sound(game_io, &globals.sfx.shine);
         simulation.play_sound(game_io, &globals.sfx.form_activate);
     }

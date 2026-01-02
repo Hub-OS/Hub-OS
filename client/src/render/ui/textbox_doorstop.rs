@@ -33,7 +33,7 @@ impl TextboxDoorstop {
         text_key: &str,
         args: TranslationArgs,
     ) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         self.text = globals.translate_with_args(text_key, args);
         self
     }

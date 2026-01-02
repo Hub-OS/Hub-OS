@@ -39,7 +39,7 @@ pub struct TextStyle {
 
 impl TextStyle {
     pub fn new(game_io: &GameIO, font: FontName) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
 
         Self::new_with_atlas(globals.glyph_atlas.clone(), font)
     }
@@ -75,7 +75,7 @@ impl TextStyle {
         let glyph_atlas = if let Some(paths) = blueprint.custom_atlas {
             assets.glyph_atlas(game_io, &paths.texture, &paths.animation)
         } else {
-            let globals = game_io.resource::<Globals>().unwrap();
+            let globals = Globals::from_resources(game_io);
             globals.glyph_atlas.clone()
         };
 

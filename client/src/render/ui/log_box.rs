@@ -24,7 +24,7 @@ impl LogBox {
         let mut text_style = TextStyle::new(game_io, FontName::Thin);
         text_style.scale = Vec2::new(0.5, 0.5);
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let tip_prefix = globals.translate_with_args("tip-prefixed", vec![("tip", "".into())]);
 
         Self {

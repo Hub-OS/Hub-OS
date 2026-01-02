@@ -119,7 +119,7 @@ impl Scene for FontTestScene {
         text_style.line_spacing = 2.0;
 
         // render lines
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
         let mut line_sprite = assets.new_sprite(game_io, ResourcePaths::PIXEL);
 
