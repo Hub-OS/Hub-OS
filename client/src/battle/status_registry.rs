@@ -10,7 +10,7 @@ use packets::structures::{PackageCategory, PackageId};
 use std::collections::HashMap;
 use std::sync::Arc;
 
-const STATUS_LIMIT: HitFlags = 32;
+const STATUS_LIMIT: HitFlags = 60;
 
 pub struct RegisteredStatus {
     pub package_id: PackageId,
