@@ -19,7 +19,7 @@ impl Default for Config {
             max_bytes_per_second: None,
             bytes_per_second_increase_factor: 1.25,
             bytes_per_second_slow_factor: 0.5,
-            rtt_resend_factor: 0.5,
+            rtt_resend_factor: 1.0,
             initial_rtt: Duration::from_millis(500),
         }
     }
