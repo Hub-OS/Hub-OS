@@ -39,7 +39,7 @@ serde = { version = "1.0", features = ["derive"] }
 strum = { version = "0.26", features = ["derive"] }
 taffy = "0.3"
 unicode-segmentation = { workspace = true }
-clap = { version = "4.3", features = ["derive"] }
+clap = { workspace = true }
 unicode_categories = "0.1"
 flate2 = "1.0"
 bimap = "0.6"
@@ -63,7 +63,7 @@ sys-locale = "0.3.2"
 fluent-langneg = "0.14.1"
 fluent-resmgr = "0.0.8"
 dasp_sample = "0.11.0"
-image = { version = "0.24", default-features = false, features = ["png"] }
+image = { workspace = true }
 
 [target.'cfg(not(target_os = "android"))'.dependencies]
 minreq = { version = "2", features = ["https-native"] }

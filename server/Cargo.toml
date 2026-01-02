@@ -12,7 +12,7 @@ smol = { workspace = true }
 futures = { workspace = true }
 isahc = "1.7"
 mlua = { version = "0.9", features = ["vendored", "lua54"] }
-clap = { version = "4.3", features = ["derive"] }
+clap = { workspace = true }
 roxmltree = "0.19"
 itertools = "0.12"
 rand = "0.8"

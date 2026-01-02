@@ -25,3 +25,5 @@ futures = { version = "0.3", default-features = false, features = [
   "async-await"
 ] }
 unicode-segmentation = "1.10"
+image = { version = "0.24", default-features = false, features = ["png"] }
+clap = { version = "4.3", features = ["derive"] }

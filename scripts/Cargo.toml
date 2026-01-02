@@ -6,3 +6,5 @@ license = "GPL-3.0"
 
 [dependencies]
 fs_extra = "1.2"
+clap = { workspace = true }
+image = { workspace = true }
