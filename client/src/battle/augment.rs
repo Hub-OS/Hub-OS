@@ -1,6 +1,7 @@
 use super::{BattleCallback, BattleSimulation, Player, PlayerOverridables, SharedBattleResources};
 use crate::bindable::EntityId;
-use crate::packages::AugmentPackage;
+use crate::lua_api::create_augment_table;
+use crate::packages::{AugmentPackage, PackageNamespace};
 use crate::structures::GenerationalIndex;
 use framework::prelude::GameIO;
 use packets::structures::PackageId;
@@ -40,6 +41,92 @@ impl From<(&AugmentPackage, usize)> for Augment {
 }
 
 impl Augment {
+    pub fn boost(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        id: EntityId,
+        package: &AugmentPackage,
+        namespace: PackageNamespace,
+        level_boost: i32,
+    ) {
+        let entities = &mut simulation.entities;
+
+        let Ok(player) = entities.query_one_mut::<&mut Player>(id.into()) else {
+            log::error!("Augment::boost() called with invalid entity?");
+            return;
+        };
+
+        let boost_order = player.augments.len();
+        let mut augment_iter = player.augments.iter_mut();
+        let existing_augment =
+            augment_iter.find(|(_, augment)| augment.package_id == package.package_info.id);
+
+        if let Some((index, augment)) = existing_augment {
+            // boost existing augment
+            let updated_level = (augment.level as i32 + level_boost).clamp(0, 100);
+            augment.level = updated_level as u8;
+            let prev_order = augment.boost_order;
+            augment.boost_order = boost_order;
+
+            // adjust boost order for other augments
+            for augment in player.augments.values_mut() {
+                if augment.boost_order > prev_order {
+                    augment.boost_order -= 1;
+                }
+            }
+
+            if player.form_boost_order > prev_order {
+                player.form_boost_order -= 1;
+            }
+
+            if updated_level == 0 {
+                // delete
+                Augment::delete(game_io, resources, simulation, id, index);
+            }
+
+            return;
+        }
+
+        if level_boost <= 0 {
+            return;
+        }
+
+        // create
+        let package_info = &package.package_info;
+
+        let vm_manager = &resources.vm_manager;
+
+        let mut augment = Augment::from((package, level_boost as usize));
+        augment.boost_order = boost_order;
+
+        let index = player.augments.insert(augment);
+
+        let Ok(vm_index) = vm_manager.find_vm(&package_info.id, namespace) else {
+            return;
+        };
+
+        let vms = vm_manager.vms();
+        let lua = &vms[vm_index].lua;
+        let has_init = lua
+            .globals()
+            .contains_key("augment_init")
+            .unwrap_or_default();
+
+        if !has_init {
+            return;
+        }
+
+        let result =
+            simulation.call_global(game_io, resources, vm_index, "augment_init", move |lua| {
+                create_augment_table(lua, id, index)
+            });
+
+        if let Err(e) = result {
+            log::error!("{e}");
+        }
+    }
+
     pub fn delete(
         game_io: &GameIO,
         resources: &SharedBattleResources,

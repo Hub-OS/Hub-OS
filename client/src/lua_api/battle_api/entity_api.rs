@@ -2380,78 +2380,29 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         let simulation = &mut api_ctx.simulation;
         let entities = &mut simulation.entities;
 
-        let player = entities
-            .query_one_mut::<&mut Player>(id.into())
-            .map_err(|_| entity_not_found())?;
-
-        let boost_order = player.augments.len();
-        let mut augment_iter = player.augments.iter_mut();
-        let existing_augment =
-            augment_iter.find(|(_, augment)| augment.package_id.as_str() == augment_id);
-
-        if let Some((index, augment)) = existing_augment {
-            let updated_level = (augment.level as i32 + level_boost).clamp(0, 100);
-            augment.level = updated_level as u8;
-            let prev_order = augment.boost_order;
-            augment.boost_order = boost_order;
-
-            // adjust boost order for other augments
-            for augment in player.augments.values_mut() {
-                if augment.boost_order > prev_order {
-                    augment.boost_order -= 1;
-                }
-            }
-
-            if player.form_boost_order > prev_order {
-                player.form_boost_order -= 1;
-            }
-
-            if updated_level == 0 {
-                // delete
-                Augment::delete(game_io, resources, simulation, id, index);
-            }
-        } else if level_boost > 0 {
-            // create
-            let globals = game_io.resource::<Globals>().unwrap();
-            let package_id = PackageId::from(augment_id);
-            let vms = api_ctx.resources.vm_manager.vms();
-            let namespace = vms[api_ctx.vm_index].preferred_namespace();
-            let package = globals
-                .augment_packages
-                .package_or_fallback(namespace, &package_id)
-                .ok_or_else(|| package_not_loaded(&package_id))?;
-
-            let package_info = &package.package_info;
-
-            let vm_manager = &resources.vm_manager;
-            let vm_index = vm_manager.find_vm(&package_info.id, namespace)?;
-
-            let mut augment = Augment::from((package, level_boost as usize));
-            augment.boost_order = boost_order;
-
-            let index = player.augments.insert(augment);
-
-            let vms = vm_manager.vms();
-            let lua = &vms[vm_index].lua;
-            let has_init = lua
-                .globals()
-                .contains_key("augment_init")
-                .unwrap_or_default();
-
-            if has_init {
-                let result = simulation.call_global(
-                    game_io,
-                    resources,
-                    vm_index,
-                    "augment_init",
-                    move |lua| create_augment_table(lua, id, index),
-                );
-
-                if let Err(e) = result {
-                    log::error!("{e}");
-                }
-            }
+        // ensure player
+        if entities.satisfies::<&Player>(id.into()) != Ok(true) {
+            return Err(entity_not_found());
         }
+
+        let globals = game_io.resource::<Globals>().unwrap();
+        let package_id = PackageId::from(augment_id);
+        let vms = api_ctx.resources.vm_manager.vms();
+        let namespace = vms[api_ctx.vm_index].preferred_namespace();
+        let package = globals
+            .augment_packages
+            .package_or_fallback(namespace, &package_id)
+            .ok_or_else(|| package_not_loaded(&package_id))?;
+
+        Augment::boost(
+            game_io,
+            resources,
+            simulation,
+            id,
+            package,
+            namespace,
+            level_boost,
+        );
 
         lua.pack_multi(())
     });

@@ -253,35 +253,9 @@ impl Player {
 
         // init blocks
         for (package, level) in augment_iter {
-            let package_info = &package.package_info;
-            let vm_manager = &resources.vm_manager;
-            let vm_index = vm_manager.find_vm(&package_info.id, namespace)?;
-
-            let player = simulation
-                .entities
-                .query_one_mut::<&mut Player>(id.into())
-                .unwrap();
-            let mut augment = Augment::from((package, level));
-            augment.boost_order = player.augments.len();
-            let index = player.augments.insert(augment);
-
-            let vms = resources.vm_manager.vms();
-            let lua = &vms[vm_index].lua;
-            let lua_globals = lua.globals();
-            let has_init = lua_globals.contains_key("augment_init").unwrap_or_default();
-
-            if !has_init {
-                continue;
-            }
-
-            let result =
-                simulation.call_global(game_io, resources, vm_index, "augment_init", move |lua| {
-                    crate::lua_api::create_augment_table(lua, id, index)
-                });
-
-            if let Err(e) = result {
-                log::error!("{e}");
-            }
+            Augment::boost(
+                game_io, resources, simulation, id, package, namespace, level as _,
+            );
         }
 
         Ok(id)
