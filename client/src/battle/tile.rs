@@ -1,4 +1,4 @@
-use super::{Action, ActionQueue, Entity, TileState};
+use super::{Action, ActionQueue, Entity, Player, TileState};
 use crate::bindable::*;
 use crate::render::FrameTime;
 use crate::resources::{TEMP_TEAM_DURATION, TILE_FLICKER_DURATION};
@@ -65,7 +65,7 @@ impl Tile {
         self.original_team
     }
 
-    pub fn set_team(&mut self, team: Team, direction: Direction) {
+    pub fn set_team(&mut self, entities: &mut hecs::World, team: Team, direction: Direction) {
         if team == Team::Unset {
             return;
         }
@@ -78,7 +78,7 @@ impl Tile {
             return;
         }
 
-        if !self.reservations.is_empty() || self.immutable_team {
+        if self.has_claim_blocking_reservation(entities, team) || self.immutable_team {
             return;
         }
 
@@ -91,6 +91,17 @@ impl Tile {
         } else if self.team_reclaim_timer == 0 {
             self.team_reclaim_timer = TEMP_TEAM_DURATION;
         }
+    }
+
+    pub fn has_claim_blocking_reservation(&self, entities: &mut hecs::World, team: Team) -> bool {
+        self.reservations().iter().any(|id| {
+            let Ok((entity, _)) = entities.query_one_mut::<(&Entity, &Player)>((*id).into()) else {
+                // most reservations should block
+                return true;
+            };
+            // player reservations must be from an opposing team
+            entity.team != team
+        })
     }
 
     pub fn team_reclaim_timer(&self) -> FrameTime {

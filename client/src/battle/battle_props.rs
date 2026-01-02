@@ -371,7 +371,8 @@ impl BattleProps {
             encounter_init(context, self.meta.data.as_deref());
         }
 
-        simulation.field.initialize_uninitialized();
+        let entities = &mut simulation.entities;
+        simulation.field.initialize_uninitialized(entities);
 
         self.simulation_and_resources = Some((simulation, resources));
     }

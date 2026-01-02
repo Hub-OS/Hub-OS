@@ -164,7 +164,7 @@ impl Field {
         }
     }
 
-    pub fn initialize_uninitialized(&mut self) {
+    pub fn initialize_uninitialized(&mut self, entities: &mut hecs::World) {
         for row in 0..self.rows {
             for col in 0..self.cols {
                 let tile = &mut self.tiles[row * self.cols + col];
@@ -181,7 +181,7 @@ impl Field {
                 }
 
                 if tile.team() == Team::Unset {
-                    tile.set_team(team, tile.direction());
+                    tile.set_team(entities, team, tile.direction());
                 }
 
                 if !matches!(tile.direction(), Direction::Left | Direction::Right) {
@@ -201,7 +201,7 @@ impl Field {
         }
     }
 
-    fn sync_team_timers(&mut self, time_frozen: bool) {
+    fn sync_team_timers(&mut self, entities: &mut hecs::World, time_frozen: bool) {
         #[derive(Clone, Copy)]
         struct TeamState {
             timer: FrameTime,
@@ -229,7 +229,8 @@ impl Field {
                 let team_state = &mut team_states[team as usize];
 
                 // test reservation blocking
-                team_state.has_reservation |= !tile.reservations().is_empty();
+                team_state.has_reservation |=
+                    tile.has_claim_blocking_reservation(entities, tile.original_team());
 
                 let timer = tile.team_reclaim_timer();
 
@@ -296,9 +297,10 @@ impl Field {
         simulation: &mut BattleSimulation,
     ) {
         let time_frozen = simulation.time_freeze_tracker.time_is_frozen();
+        let entities = &mut simulation.entities;
 
         simulation.field.reset_highlight();
-        simulation.field.sync_team_timers(time_frozen);
+        simulation.field.sync_team_timers(entities, time_frozen);
 
         if time_frozen {
             return;

@@ -326,7 +326,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let current_tile_state = simulation.tile_states.get(tile.state_index()).unwrap();
 
         if !current_tile_state.blocks_team_change || tile.team() == Team::Unset {
-            tile.set_team(team, direction);
+            tile.set_team(&mut simulation.entities, team, direction);
         }
 
         lua.pack_multi(())
