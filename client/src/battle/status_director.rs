@@ -62,6 +62,8 @@ impl StatusDirector {
 
     pub fn add_immunity(&mut self, hit_flags: HitFlags) {
         self.immunity |= hit_flags;
+
+        self.remove_statuses(hit_flags);
     }
 
     pub fn immunities(&self) -> HitFlags {
@@ -345,48 +347,27 @@ impl StatusDirector {
             .map(|status| status.lifetime)
     }
 
-    pub fn remove_statuses(&mut self, mut status_flags: HitFlags) {
-        let mut i = 0;
-
-        loop {
-            if status_flags == 0 {
-                break;
+    pub fn remove_statuses(&mut self, status_flags: HitFlags) {
+        for status in self.statuses.iter_mut() {
+            if status.status_flag & status_flags == 0 {
+                continue;
             }
 
-            if status_flags & 1 == 1 {
-                self.remove_status(1 << i);
-            }
-
-            status_flags >>= 1;
-
-            i += 1;
-        }
-    }
-
-    fn remove_status(&mut self, status_flag: HitFlags) {
-        let status_search = self
-            .statuses
-            .iter_mut()
-            .find(|status| status.status_flag == status_flag);
-
-        if let Some(status) = status_search {
             status.remaining_time = 0;
             status.lifetime = 0;
         }
 
-        let new_status_search = self
-            .new_statuses
-            .iter()
-            .position(|status| status.status_flag == status_flag);
+        self.new_statuses
+            .retain(|status| status.status_flag & status_flags == 0);
 
-        if let Some(index) = new_status_search {
-            self.new_statuses.remove(index);
-        }
-
-        if status_flag == HitFlag::DRAG {
+        if status_flags & HitFlag::DRAG != 0 {
             self.drag = None;
             self.remaining_drag_lockout = 0;
         }
+    }
+
+    fn remove_status(&mut self, status_flag: HitFlags) {
+        self.remove_statuses(status_flag);
     }
 
     fn take_new_statuses(&mut self) -> Vec<(HitFlags, bool)> {
