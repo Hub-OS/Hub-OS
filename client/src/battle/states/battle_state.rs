@@ -1307,8 +1307,8 @@ impl BattleState {
 
                 use rand::Rng;
                 entity.movement_offset += Vec2::new(
-                    rand::rng().random_range(-1..=1) as _,
-                    rand::rng().random_range(-1..=1) as _,
+                    simulation.rng.random_range(-1..=1) as _,
+                    simulation.rng.random_range(-1..=1) as _,
                 );
             }
         }
