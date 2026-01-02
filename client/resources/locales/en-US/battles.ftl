@@ -17,3 +17,5 @@ battle-success-banner = SUCCESS
 battle-failed-banner = FAILED
 battle-time-up-banner = TIME UP!
 battle-over-banner = BATTLE OVER
+
+battle-waiting = Waiting...

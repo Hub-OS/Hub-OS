@@ -451,16 +451,17 @@ impl State for CardSelectState {
                 let wait_time = self.time - selection.confirm_time;
 
                 if (wait_time / 30) % 2 == 0 {
-                    const TEXT: &str = "Waiting...";
+                    let globals = game_io.resource::<Globals>().unwrap();
+                    let text = globals.translate("battle-waiting");
 
                     let mut style = TextStyle::new(game_io, FontName::Thick);
                     style.shadow_color = TEXT_DARK_SHADOW_COLOR;
 
-                    let metrics = style.measure(TEXT);
+                    let metrics = style.measure(&text);
                     let position = Vec2::new((RESOLUTION_F.x - metrics.size.x) * 0.5, MARGIN_TOP);
 
                     style.bounds.set_position(position);
-                    style.draw(game_io, sprite_queue, TEXT);
+                    style.draw(game_io, sprite_queue, &text);
                 }
             }
         }
