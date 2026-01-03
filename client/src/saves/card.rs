@@ -183,17 +183,17 @@ impl Card {
             label.bounds.set_position(CODE_OFFSET + position);
             label.color = Color::WHITE;
             label.draw(game_io, sprite_queue, &self.code);
-
-            // limit
-            label.font = FontName::Code;
-            label.bounds.set_position(LIMIT_OFFSET + position);
-            let text = format!("{limit:>2}");
-            label.color = Color::from((247, 214, 99, 255));
-            label.draw(game_io, sprite_queue, &text);
-
-            label.bounds.set_position(LIM_OFFSET + position);
-            label.color = Color::WHITE;
-            label.draw(game_io, sprite_queue, "LM");
         }
+
+        // limit
+        label.font = FontName::Code;
+        label.bounds.set_position(LIMIT_OFFSET + position);
+        let text = format!("{limit:>2}");
+        label.color = Color::from((247, 214, 99, 255));
+        label.draw(game_io, sprite_queue, &text);
+
+        label.bounds.set_position(LIM_OFFSET + position);
+        label.color = Color::WHITE;
+        label.draw(game_io, sprite_queue, "LM");
     }
 }
