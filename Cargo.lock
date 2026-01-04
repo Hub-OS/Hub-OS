@@ -80,7 +80,7 @@ dependencies = [
 [[package]]
 name = "android"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#53d70818e88f3932859db4a5e96dd7d41000c666"
+source = "git+https://github.com/Hub-OS/framework#62dae598328a98d444b9350cf0b5f0a6ca143241"
 dependencies = [
  "android-activity",
  "jni",
@@ -125,7 +125,7 @@ checksum = "e999941b234f3131b00bc13c22d06e8c5ff726d1b6318ac7eb276997bbb4fef0"
 [[package]]
 name = "android_game_loop"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#53d70818e88f3932859db4a5e96dd7d41000c666"
+source = "git+https://github.com/Hub-OS/framework#62dae598328a98d444b9350cf0b5f0a6ca143241"
 dependencies = [
  "android",
  "android-activity",
@@ -601,7 +601,7 @@ checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 [[package]]
 name = "cfg_macros"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#53d70818e88f3932859db4a5e96dd7d41000c666"
+source = "git+https://github.com/Hub-OS/framework#62dae598328a98d444b9350cf0b5f0a6ca143241"
 
 [[package]]
 name = "chrono"
@@ -1381,7 +1381,7 @@ dependencies = [
 [[package]]
 name = "framework"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#53d70818e88f3932859db4a5e96dd7d41000c666"
+source = "git+https://github.com/Hub-OS/framework#62dae598328a98d444b9350cf0b5f0a6ca143241"
 dependencies = [
  "android_game_loop",
  "cfg_macros",
@@ -1396,7 +1396,7 @@ dependencies = [
 [[package]]
 name = "framework_core"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#53d70818e88f3932859db4a5e96dd7d41000c666"
+source = "git+https://github.com/Hub-OS/framework#62dae598328a98d444b9350cf0b5f0a6ca143241"
 dependencies = [
  "anyhow",
  "async-executor",
@@ -1833,7 +1833,7 @@ dependencies = [
 
 [[package]]
 name = "hub_os"
-version = "0.86.0"
+version = "0.86.1"
 dependencies = [
  "anyhow",
  "base64",
@@ -1891,7 +1891,7 @@ dependencies = [
 
 [[package]]
 name = "hub_os_android"
-version = "0.86.0"
+version = "0.86.1"
 dependencies = [
  "hub_os",
  "packets",
@@ -1899,7 +1899,7 @@ dependencies = [
 
 [[package]]
 name = "hub_os_server"
-version = "0.86.0"
+version = "0.86.1"
 dependencies = [
  "clap",
  "flate2",
@@ -2128,7 +2128,7 @@ dependencies = [
 [[package]]
 name = "input"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#53d70818e88f3932859db4a5e96dd7d41000c666"
+source = "git+https://github.com/Hub-OS/framework#62dae598328a98d444b9350cf0b5f0a6ca143241"
 dependencies = [
  "math",
  "strum 0.25.0",
@@ -2408,7 +2408,7 @@ checksum = "34080505efa8e45a4b816c349525ebe327ceaa8559756f0356cba97ef3bf7432"
 [[package]]
 name = "logging"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#53d70818e88f3932859db4a5e96dd7d41000c666"
+source = "git+https://github.com/Hub-OS/framework#62dae598328a98d444b9350cf0b5f0a6ca143241"
 dependencies = [
  "backtrace",
  "cfg_macros",
@@ -2459,7 +2459,7 @@ dependencies = [
 [[package]]
 name = "math"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#53d70818e88f3932859db4a5e96dd7d41000c666"
+source = "git+https://github.com/Hub-OS/framework#62dae598328a98d444b9350cf0b5f0a6ca143241"
 dependencies = [
  "bytemuck",
  "glam",
@@ -4026,7 +4026,7 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 
 [[package]]
 name = "structures"
-version = "0.86.0"
+version = "0.86.1"
 
 [[package]]
 name = "strum"
@@ -4729,7 +4729,7 @@ dependencies = [
 [[package]]
 name = "wasm_forward"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#53d70818e88f3932859db4a5e96dd7d41000c666"
+source = "git+https://github.com/Hub-OS/framework#62dae598328a98d444b9350cf0b5f0a6ca143241"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
@@ -5585,7 +5585,7 @@ dependencies = [
 [[package]]
 name = "winit_game_loop"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#53d70818e88f3932859db4a5e96dd7d41000c666"
+source = "git+https://github.com/Hub-OS/framework#62dae598328a98d444b9350cf0b5f0a6ca143241"
 dependencies = [
  "android",
  "anyhow",
