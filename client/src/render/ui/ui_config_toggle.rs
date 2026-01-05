@@ -47,7 +47,13 @@ impl UiNode for UiConfigToggle {
         text_style.draw(game_io, sprite_queue, &self.label);
 
         // draw value
-        let text = if self.value { "true" } else { "false" };
+        let translation_key = if self.value {
+            "config-value-true"
+        } else {
+            "config-value-false"
+        };
+
+        let text = &Globals::from_resources(game_io).translate(translation_key);
         let metrics = text_style.measure(text);
         text_style.bounds.x += bounds.width - metrics.size.x - 1.0;
 

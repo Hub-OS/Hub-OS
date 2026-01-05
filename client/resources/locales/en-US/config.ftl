@@ -82,6 +82,8 @@ config-visit-discord-label = Discord
 config-visit-website-label = Website
 config-view-third-party-licenses-label = Third Party Licenses
 
+config-value-true = On
+config-value-false = Off
 config-percentage = {$value}%
 
 config-save-changes-question = Save changes?
