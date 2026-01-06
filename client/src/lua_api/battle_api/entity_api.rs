@@ -1327,9 +1327,35 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
     getter::<&Living, _>(lua_api, "health", |living: &Living, lua, _: ()| {
         lua.pack_multi(living.health)
     });
-    setter(lua_api, "set_health", |living: &mut Living, _, health| {
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "set_health", |api_ctx, lua, params| {
+        let (table, health): (rollback_mlua::Table, i32) = lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let simulation = &mut *api_ctx.simulation;
+
+        // query the entity for the error
+        let entities = &mut simulation.entities;
+        let living = entities
+            .query_one_mut::<&mut Living>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let initializing_health = living.max_health == 0;
+        let prev_health = living.health;
+
         living.set_health(health);
-        Ok(())
+
+        // track changes
+        if initializing_health {
+            return lua.pack_multi(());
+        }
+
+        let hp_diff = living.health - prev_health;
+        HpChanges::track_direct_change(simulation, id, hp_diff);
+
+        lua.pack_multi(())
     });
 
     setter(

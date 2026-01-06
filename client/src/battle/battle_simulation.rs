@@ -59,6 +59,8 @@ pub struct BattleSimulation {
     pub local_team: Team,
     pub progress: BattleProgress,
     pub is_resimulation: bool,
+    // extra
+    pub hp_particles: Vec<HpParticle>,
 }
 
 impl BattleSimulation {
@@ -112,6 +114,8 @@ impl BattleSimulation {
             local_team: Team::Unset,
             progress: BattleProgress::Initializing,
             is_resimulation: false,
+            // extra
+            hp_particles: Default::default(),
         }
     }
 
@@ -144,7 +148,7 @@ impl BattleSimulation {
         }
 
         clone_component!(Artifact, Character, Living, Obstacle, Player, Spell);
-        clone_component!(EntityName, HpDisplay, EmotionWindow);
+        clone_component!(EntityName, HpDisplay, HpChanges, EmotionWindow);
         clone_component!(EntityShadow, EntityShadowHidden, HpDisplay);
         clone_component!(PlayerHand, PackageNamespace);
         clone_component!(ActionQueue, AttackContext, Movement, LocalComponents);
@@ -187,6 +191,7 @@ impl BattleSimulation {
             local_team: self.local_team,
             progress: self.progress,
             is_resimulation: self.is_resimulation,
+            hp_particles: self.hp_particles.clone(),
         }
     }
 
@@ -365,6 +370,8 @@ impl BattleSimulation {
         self.update_ui();
 
         self.field.update_animations();
+
+        HpParticle::update(game_io, self);
 
         self.time += 1;
     }
@@ -1143,6 +1150,10 @@ impl BattleSimulation {
                     )
                 }
             }
+        }
+
+        for particle in &self.hp_particles {
+            particle.draw(game_io, &mut sprite_queue, self.time, perspective_flipped);
         }
 
         render_pass.consume_queue(sprite_queue);

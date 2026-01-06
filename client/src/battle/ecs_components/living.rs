@@ -390,7 +390,8 @@ impl Living {
         }
 
         // apply post hit aux props
-        let mut health_modifier = 0;
+        let mut drained: i32 = 0;
+        let mut healed: i32 = 0;
         let mut modified_total_damage = total_damage;
 
         for aux_prop in Living::post_hit_aux_props(&mut living.aux_props) {
@@ -413,8 +414,8 @@ impl Living {
 
                     modified_total_damage = (modified_total_damage - result.max(0)).max(0);
                 }
-                AuxEffect::DrainHP(drain) => health_modifier -= drain,
-                AuxEffect::RecoverHP(recover) => health_modifier += recover,
+                AuxEffect::DrainHP(drain) => drained += drain,
+                AuxEffect::RecoverHP(recover) => healed += recover,
                 AuxEffect::None => {}
                 _ => log::error!("Engine error: Unexpected AuxEffect!"),
             }
@@ -432,7 +433,8 @@ impl Living {
         }
 
         // apply damage and health modifier
-        living.set_health(living.health - total_damage + health_modifier);
+        let prev_health = living.health;
+        living.set_health(living.health - total_damage - drained + healed);
 
         // handle intangibility
         if living.intangibility.is_retangible() {
@@ -444,6 +446,26 @@ impl Living {
         }
 
         simulation.call_pending_callbacks(game_io, resources);
+
+        // track hp changes for displaying particles
+        if prev_health != 0 {
+            if drained < 0 {
+                healed += -drained;
+            }
+            if healed < 0 {
+                drained += -healed;
+            }
+
+            if healed > 0 {
+                HpChanges::track_source(simulation, entity_id, HpChangeSource::Heal, healed);
+            }
+            if total_damage > 0 {
+                HpChanges::track_source(simulation, entity_id, HpChangeSource::Hit, total_damage);
+            }
+            if drained > 0 {
+                HpChanges::track_source(simulation, entity_id, HpChangeSource::Drain, drained);
+            }
+        }
     }
 
     pub fn cancel_actions_for_drag(

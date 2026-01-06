@@ -1,6 +1,6 @@
 use crate::render::PostProcessColorBlindness;
 use crate::resources::{
-    AssetManager, Input, ResourcePaths, DEFAULT_INPUT_DELAY, DEFAULT_PACKAGE_REPO, MAX_VOLUME,
+    AssetManager, DEFAULT_INPUT_DELAY, DEFAULT_PACKAGE_REPO, Input, MAX_VOLUME, ResourcePaths,
 };
 use framework::cfg_macros::{cfg_android, cfg_desktop_and_web};
 use framework::input::{Button, Key};
@@ -37,6 +37,9 @@ pub struct Config {
     pub brightness: u8,
     pub saturation: u8,
     pub ghosting: u8,
+    pub hit_numbers: bool,
+    pub heal_numbers: bool,
+    pub drain_numbers: bool,
     pub color_blindness: u8,
     pub music: u8,
     pub sfx: u8,
@@ -312,6 +315,9 @@ impl Default for Config {
             brightness: 100,
             saturation: 100,
             ghosting: 0,
+            hit_numbers: false,
+            heal_numbers: false,
+            drain_numbers: false,
             color_blindness: PostProcessColorBlindness::TOTAL_OPTIONS,
             music: MAX_VOLUME / 2,
             sfx: MAX_VOLUME / 2,
@@ -349,6 +355,9 @@ impl From<&str> for Config {
             brightness: 100,
             saturation: 100,
             ghosting: 0,
+            hit_numbers: false,
+            heal_numbers: false,
+            drain_numbers: false,
             color_blindness: PostProcessColorBlindness::TOTAL_OPTIONS,
             music: MAX_VOLUME,
             sfx: MAX_VOLUME,
@@ -397,6 +406,9 @@ impl From<&str> for Config {
             config.brightness = parse_or(properties.get("Brightness"), 100);
             config.saturation = parse_or(properties.get("Saturation"), 100);
             config.ghosting = parse_or_default(properties.get("Ghosting"));
+            config.hit_numbers = parse_or_default(properties.get("HitParticles"));
+            config.heal_numbers = parse_or_default(properties.get("HealParticles"));
+            config.drain_numbers = parse_or_default(properties.get("DrainParticles"));
             config.color_blindness = parse_or(
                 properties.get("ColorBlindness"),
                 PostProcessColorBlindness::TOTAL_OPTIONS,
@@ -523,6 +535,9 @@ impl std::fmt::Display for Config {
         writeln!(f, "Brightness = {}", self.brightness)?;
         writeln!(f, "Saturation = {}", self.saturation)?;
         writeln!(f, "Ghosting = {}", self.ghosting)?;
+        writeln!(f, "HitParticles = {}", self.hit_numbers)?;
+        writeln!(f, "HealParticles = {}", self.heal_numbers)?;
+        writeln!(f, "DrainParticles = {}", self.drain_numbers)?;
         writeln!(f, "ColorBlindness = {}", self.color_blindness)?;
 
         writeln!(f, "[Audio]")?;

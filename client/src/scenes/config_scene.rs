@@ -465,6 +465,36 @@ impl ConfigScene {
                 )
                 .with_upper_bound(98),
             ),
+            Box::new(UiConfigToggle::new(
+                game_io,
+                "config-hit-numbers-label",
+                config.borrow().hit_numbers,
+                config.clone(),
+                |_, mut config| {
+                    config.hit_numbers = !config.hit_numbers;
+                    config.hit_numbers
+                },
+            )),
+            Box::new(UiConfigToggle::new(
+                game_io,
+                "config-heal-numbers-label",
+                config.borrow().heal_numbers,
+                config.clone(),
+                |_, mut config| {
+                    config.heal_numbers = !config.heal_numbers;
+                    config.heal_numbers
+                },
+            )),
+            Box::new(UiConfigToggle::new(
+                game_io,
+                "config-drain-numbers-label",
+                config.borrow().drain_numbers,
+                config.clone(),
+                |_, mut config| {
+                    config.drain_numbers = !config.drain_numbers;
+                    config.drain_numbers
+                },
+            )),
             Box::new(UiConfigCycle::new(
                 game_io,
                 "config-color-sim-label",
