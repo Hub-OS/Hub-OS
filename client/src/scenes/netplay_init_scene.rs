@@ -389,6 +389,7 @@ impl NetplayInitScene {
                     // track what needs to be loaded once downloaded
                     let load_list: Vec<_> = packages
                         .into_iter()
+                        .filter(|(category, _, _)| *category != PackageCategory::Character)
                         .filter(|(category, id, hash)| {
                             globals
                                 .package_or_fallback_info(*category, PackageNamespace::Local, id)
@@ -461,6 +462,10 @@ impl NetplayInitScene {
                 } else if self.fallback_sender_receiver.is_none() {
                     log::error!("Received data for package that wasn't requested: {hash}");
                     self.stage = ConnectionStage::Failed;
+                }
+
+                if !self.missing_packages.is_empty() {
+                    log::debug!("Still missing {} packages", self.missing_packages.len());
                 }
             }
             NetplayPacketData::Ready => {
