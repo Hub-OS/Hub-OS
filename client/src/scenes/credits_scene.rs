@@ -571,8 +571,8 @@ impl CreditsFun {
         }
 
         const FIRST_SWITCH: FrameTime = section_end_frame(5) - FADE_IN_TIME * 2 / 3;
-        const SECOND_SWITCH: FrameTime = section_end_frame(8) - FADE_IN_TIME / 2;
-        const THIRD_SWITCH: FrameTime = section_end_frame(9) - FADE_IN_TIME / 2;
+        const SECOND_SWITCH: FrameTime = section_end_frame(9) - FADE_IN_TIME / 2;
+        const THIRD_SWITCH: FrameTime = section_end_frame(10) - FADE_IN_TIME / 2;
 
         match time {
             1 => {
