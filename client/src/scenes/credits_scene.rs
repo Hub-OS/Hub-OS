@@ -322,7 +322,7 @@ impl Scene for CreditsScene {
 
 struct CreditsFun {
     entities: hecs::World,
-    main_character: hecs::Entity,
+    main_character: Option<hecs::Entity>,
     character_pool: Vec<PackageId>,
     used_pool: Vec<PackageId>,
 }
@@ -358,23 +358,24 @@ impl CreditsFun {
         game_io: &GameIO,
         entities: &mut hecs::World,
         package_id: PackageId,
-    ) -> hecs::Entity {
+    ) -> Option<hecs::Entity> {
         let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
         let package = globals
             .player_packages
-            .package(PackageNamespace::Local, &package_id)
-            .unwrap();
+            .package(PackageNamespace::Local, &package_id)?;
 
-        entities.spawn((
+        let entity = entities.spawn((
             assets.new_sprite(game_io, &package.overworld_paths.texture),
             Animator::load_new(assets, &package.overworld_paths.animation),
             MovementAnimator::new(),
             Vec3::new(-5000.0, 0.0, 0.0), // place somewhere offscreen
             Direction::Down,
             package_id,
-        ))
+        ));
+
+        Some(entity)
     }
 
     fn animate(&mut self, game_io: &GameIO, entity: hecs::Entity, key_frames: Vec<ActorKeyFrame>) {
@@ -415,7 +416,7 @@ impl CreditsFun {
             .entities
             .query_mut::<hecs::Without<(), &ActorPropertyAnimator>>()
         {
-            if id != self.main_character {
+            if self.main_character != Some(id) {
                 pending_despawn.push(id);
             }
         }
@@ -460,19 +461,23 @@ impl CreditsFun {
         self.character_pool.pop()
     }
 
-    fn spawn_random_character_or_fallback(&mut self, game_io: &GameIO) -> hecs::Entity {
+    fn spawn_random_character_or_fallback(&mut self, game_io: &GameIO) -> Option<hecs::Entity> {
         self.pull_character()
-            .map(|package_id| Self::spawn_character(game_io, &mut self.entities, package_id))
-            .unwrap_or(self.main_character)
+            .and_then(|package_id| Self::spawn_character(game_io, &mut self.entities, package_id))
+            .or(self.main_character)
     }
 
     fn animate_simple_movement(
         &mut self,
         game_io: &GameIO,
-        entity: hecs::Entity,
+        entity: Option<hecs::Entity>,
         start: Vec2,
         offsets: &[(Vec2, Direction, f32)],
     ) {
+        let Some(entity) = entity else {
+            return;
+        };
+
         let mut key_frames = Vec::with_capacity(offsets.len() + 1);
 
         key_frames.push(ActorKeyFrame {
