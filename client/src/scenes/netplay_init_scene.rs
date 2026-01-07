@@ -556,6 +556,18 @@ impl NetplayInitScene {
             }
         }
 
+        let setups = &mut props.meta.player_setups;
+
+        if config.spectators.contains(&self.local_index)
+            && let Some(i) = setups.iter().position(|setup| setup.local)
+        {
+            // clear player setup to avoid desyncs while spectating from dependencies loading
+            let setup = setups.remove(i);
+            let mut replacement_setup = PlayerSetup::new_empty(setup.index, true);
+            replacement_setup.buffer = setup.buffer;
+            setups.push(replacement_setup);
+        }
+
         self.spectating = config.spectators.contains(&self.local_index);
     }
 
