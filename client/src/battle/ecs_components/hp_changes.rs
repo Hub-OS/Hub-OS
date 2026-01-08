@@ -254,7 +254,7 @@ impl HpParticle {
             position.x *= -1.0;
         }
 
-        text_style.bounds += self.position - text_style.measure(&text).size * 0.5;
+        text_style.bounds += position - text_style.measure(&text).size * 0.5;
 
         // render
         text_style.draw(game_io, sprite_queue, &text);
