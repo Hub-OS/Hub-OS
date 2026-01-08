@@ -223,6 +223,7 @@ impl BattleScene {
         while let Ok(event) = self.resources.event_receiver.try_recv() {
             match event {
                 BattleEvent::Description(description) => {
+                    self.textbox.use_blank_avatar(game_io);
                     let interface = TextboxMessage::new(description.to_string());
                     self.textbox.push_interface(interface);
                     self.textbox.open();
