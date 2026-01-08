@@ -107,6 +107,7 @@ impl DeckRestrictions {
         namespace: PackageNamespace,
         cards: impl Iterator<Item = &'a Card>,
     ) -> DeckValidity {
+        let card_packages = &Globals::from_resources(game_io).card_packages;
         let mut deck_validator = DeckValidator::new(game_io, namespace, self);
         let mut invalid_cards = HashSet::<Card>::new();
 
@@ -115,9 +116,18 @@ impl DeckRestrictions {
         deck_validator.process_cards(&cards);
 
         for &card in &cards {
-            if !deck_validator.is_card_valid(card) {
-                invalid_cards.insert(card.clone());
+            if deck_validator.is_card_valid(card) {
+                continue;
             }
+
+            if card_packages
+                .package_or_fallback(namespace, &card.package_id)
+                .is_some()
+            {
+                continue;
+            }
+
+            invalid_cards.insert(card.clone());
         }
 
         DeckValidity {

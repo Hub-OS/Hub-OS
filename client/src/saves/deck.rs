@@ -87,16 +87,19 @@ impl Deck {
             return;
         }
 
-        let globals = Globals::from_resources(game_io);
-
-        let mut non_giga_vec = Vec::new();
         // Cycle every card past the required 10 to count non-gigas
+        let globals = Globals::from_resources(game_io);
+        let mut non_giga_vec = Vec::new();
+
         for i in 10..self.cards.len() {
-            let non_giga_card = &self.cards[i];
+            let card = &self.cards[i];
             let Some(package) = globals
                 .card_packages
-                .package_or_fallback(namespace, &non_giga_card.package_id)
+                .package_or_fallback(namespace, &card.package_id)
             else {
+                if !card.package_id.is_blank() {
+                    log::error!("Possible desync: Missing {:?}", card.package_id);
+                }
                 continue;
             };
             if package.card_properties.card_class == CardClass::Giga {
