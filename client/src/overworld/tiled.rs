@@ -404,10 +404,21 @@ fn parse_tile_metas(tileset_element: &roxmltree::Node, tileset: Rc<Tileset>) -> 
 
         let mut tile_meta = TileMeta::new(tileset.clone(), tile_id as u32);
 
+        let get_or_fallback = |key| {
+            let direct_value = custom_properties.get(key);
+
+            if direct_value.is_empty() {
+                tileset.custom_properties.get(key)
+            } else {
+                direct_value
+            }
+        };
+
         tile_meta.drawing_offset = tileset.drawing_offset;
         tile_meta.alignment_offset = tileset.alignment_offset;
         tile_meta.tile_class = tile_class;
-        tile_meta.shadow = TileShadow::from(custom_properties.get("shadow"));
+        tile_meta.minimap = get_or_fallback("minimap") != "false";
+        tile_meta.shadow = TileShadow::from(get_or_fallback("shadow"));
         tile_meta.direction = Direction::from(custom_properties.get("direction"));
         tile_meta.custom_properties = custom_properties;
         tile_meta.collision_shapes = collision_shapes;

@@ -6,7 +6,7 @@ use crate::render::{
     Animator, Background, Camera, FrameTime, MapSpriteQueue, MapTileSpriteQueue, MapTileUniforms,
     SpriteColorQueue,
 };
-use crate::resources::{AssetManager, Globals, Input, InputUtil, ResourcePaths, RESOLUTION_F};
+use crate::resources::{AssetManager, Globals, Input, InputUtil, RESOLUTION_F, ResourcePaths};
 use framework::{prelude::*, wgpu};
 use packets::structures::Direction;
 
@@ -109,6 +109,10 @@ impl MapMenu {
 
             map.iterate_visible_tiles(game_io, &camera, i, |sprite, tile_meta, _, tile_pos| {
                 if i > 0 && map.ignore_tile_above(tile_pos.into(), (i - 1) as _) {
+                    return;
+                }
+
+                if !tile_meta.minimap {
                     return;
                 }
 
