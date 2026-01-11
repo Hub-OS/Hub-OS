@@ -417,7 +417,7 @@ impl StatusDirector {
         }
 
         // apply new statuses as long as there's no drag lockout
-        status_director.apply_new_statuses(registry);
+        status_director.apply_new_statuses(registry, entity.time_frozen);
 
         // status destructors
         callbacks.extend(status_director.take_ready_destructors());
@@ -458,10 +458,15 @@ impl StatusDirector {
         }
     }
 
-    fn apply_new_statuses(&mut self, registry: &StatusRegistry) {
+    fn apply_new_statuses(&mut self, registry: &StatusRegistry, reapplying: bool) {
         self.resolve_conflicts(registry);
 
         self.new_statuses.retain(|status| {
+            if reapplying && !status.reapplied {
+                // ignore for now
+                return true;
+            }
+
             let status_flag = status.status_flag;
 
             let status_search = self
