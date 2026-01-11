@@ -645,7 +645,7 @@ impl NetplayInitScene {
             let connection = &mut self.player_connections[i];
             let connection_index = connection.player_setup.index;
 
-            for hash in connection.requested_packages.take().unwrap() {
+            for hash in connection.requested_packages.take().unwrap_or_default() {
                 let assets = &Globals::from_resources(game_io).assets;
 
                 let data = assets.virtual_zip_bytes(&hash).unwrap_or_else(|| {
