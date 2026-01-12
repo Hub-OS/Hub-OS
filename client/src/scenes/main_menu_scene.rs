@@ -226,7 +226,7 @@ impl Scene for MainMenuScene {
         let globals = Globals::from_resources(game_io);
 
         if !game_io.is_in_transition() && !globals.audio.is_music_playing() {
-            globals.audio.play_music(&globals.music.main_menu, true);
+            globals.audio.pick_music(&globals.music.main_menu, true);
         }
 
         // update background

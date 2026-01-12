@@ -83,22 +83,26 @@ impl BootThread {
 
             progress += 1;
 
-            if !path.ends_with("/") {
-                // not a directory, load directly
-                return vec![self.assets.non_midi_audio(path)];
+            let mut files = Vec::new();
+
+            // load file directly
+            let direct_file_path = path.to_string() + ".ogg";
+
+            if std::fs::exists(&direct_file_path).is_ok_and(|v| v) {
+                files.push(self.assets.non_midi_audio(&direct_file_path));
             }
 
-            // load all audio in a directory without overwriting cached audio from resource packs
-            for dir in std::fs::read_dir(path).iter_mut().flatten().flatten() {
-                let track_path = path.to_string() + &dir.file_name().to_string_lossy();
+            // load all audio in the matching directory without overwriting cached audio from resource packs
+            let dir_path = path.to_string() + ResourcePaths::SEPARATOR;
+
+            for dir in std::fs::read_dir(&dir_path).iter_mut().flatten().flatten() {
+                let track_path = dir_path.clone() + &dir.file_name().to_string_lossy();
                 self.assets.non_midi_audio(&track_path);
             }
 
             // resolve from loaded audio matching the path
-            let mut files = Vec::new();
-
             self.assets.for_each_loaded_audio(|key, sound_buffer| {
-                if key.starts_with(path) {
+                if key.starts_with(&dir_path) {
                     files.push(sound_buffer.clone());
                 }
             });

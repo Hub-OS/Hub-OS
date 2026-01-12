@@ -995,8 +995,9 @@ impl Scene for BlocksScene {
             self.handle_input(game_io);
 
             let globals = Globals::from_resources(game_io);
+
             if !globals.audio.is_music_playing() {
-                globals.audio.play_music(&globals.music.customize, true);
+                globals.audio.pick_music(&globals.music.customize, true);
             }
         }
 

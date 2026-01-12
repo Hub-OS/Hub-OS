@@ -1857,16 +1857,24 @@ impl OverworldOnlineScene {
         }
 
         let music_path = self.area.map.music_path();
+        let current_music = globals.audio.current_music();
 
-        let sound_buffer = if music_path.is_empty() {
-            globals.music.overworld.clone()
+        if music_path.is_empty() {
+            // try to play default music
+            let playing_default_music =
+                current_music.is_some_and(|b| globals.music.overworld.contains(&b));
+
+            if !playing_default_music {
+                globals.audio.pick_music(&globals.music.overworld, true);
+            }
         } else {
-            self.assets.audio(game_io, music_path)
-        };
+            // try to play map music
+            let sound_buffer = self.assets.audio(game_io, music_path);
 
-        if globals.audio.current_music().as_ref() != Some(&sound_buffer) {
-            globals.audio.play_music(&sound_buffer, true);
-        }
+            if current_music.as_ref() != Some(&sound_buffer) {
+                globals.audio.play_music(&sound_buffer, true);
+            }
+        };
     }
 }
 

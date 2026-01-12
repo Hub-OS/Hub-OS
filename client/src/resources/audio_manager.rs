@@ -159,6 +159,14 @@ impl AudioManager {
         stack.pop();
     }
 
+    pub fn pick_music(&self, buffers: &[SoundBuffer], loops: bool) {
+        use rand::seq::IndexedRandom;
+
+        if let Some(buffer) = buffers.choose(&mut rand::rng()) {
+            self.play_music(buffer, loops);
+        }
+    }
+
     pub fn play_music(&self, buffer: &SoundBuffer, loops: bool) {
         let Some(stream) = self.stream.as_ref() else {
             return;
