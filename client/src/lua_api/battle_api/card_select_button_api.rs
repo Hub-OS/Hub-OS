@@ -1,5 +1,5 @@
 use super::animation_api::create_animation_table;
-use super::errors::{animator_not_found, button_not_found, component_not_found, sprite_not_found};
+use super::errors::{animator_not_found, button_not_found, sprite_not_found};
 use super::sprite_api::create_sprite_table;
 use super::{BattleLuaApi, CARD_SELECT_BUTTON_TABLE, SELECTION_CHANGE_FN, USE_FN};
 use crate::battle::{BattleCallback, BattleSimulation, CardSelectButton, CardSelectButtonPath};
@@ -317,7 +317,7 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
 
 fn deleted_test(table: &rollback_mlua::Table) -> rollback_mlua::Result<()> {
     if table.contains_key("#deleted")? {
-        return Err(component_not_found());
+        return Err(button_not_found());
     }
 
     Ok(())
