@@ -251,7 +251,10 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
         move |api_ctx, lua, params| {
             let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
-            deleted_test(&table)?;
+            if table.contains_key("#deleted")? {
+                // already deleted
+                return lua.pack_multi(());
+            }
 
             table.set("#deleted", true)?;
 
