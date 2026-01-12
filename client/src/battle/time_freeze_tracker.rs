@@ -242,8 +242,8 @@ impl TimeFreezeTracker {
         self.animation_queue.push_back((begin_callback, duration));
     }
 
-    pub fn last_team(&self) -> Option<Team> {
-        self.action_chain.last().map(|t| t.team)
+    pub fn current_user(&self) -> Option<(EntityId, Team)> {
+        self.action_chain.last().map(|t| (t.entity, t.team))
     }
 
     /// Returns true if an Action has enough time to counter if it enters the queue this frame
@@ -517,13 +517,21 @@ impl TimeFreezeTracker {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
-        let last_team = simulation.time_freeze_tracker.last_team().unwrap();
+        let Some((current_entity_id, current_team)) = simulation.time_freeze_tracker.current_user()
+        else {
+            return;
+        };
+
+        let current_entity_id: hecs::Entity = current_entity_id.into();
 
         type Query<'a> = (&'a Entity, &'a Player, &'a Character);
         let entities = &mut simulation.entities;
 
         for (id, (entity, player, character)) in entities.query_mut::<Query>() {
-            if entity.deleted || entity.team == last_team {
+            if entity.deleted
+                || id == current_entity_id
+                || (entity.team == current_team && current_team != Team::Other)
+            {
                 // can't counter
                 // can't counter a card from the same team
                 continue;
