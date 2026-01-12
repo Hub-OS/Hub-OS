@@ -126,7 +126,7 @@ impl HpParticle {
     }
 
     fn hold_duration(&self) -> FrameTime {
-        (8 + self.abs_change as FrameTime / 2).min(120)
+        (8 + self.abs_change as FrameTime / 2).min(100)
     }
 
     pub fn is_complete(&self, time: FrameTime) -> bool {
