@@ -571,7 +571,9 @@ impl BattleState {
                         continue;
                     }
 
-                    if attack_box.attacker_id == entity_id {
+                    if attack_box.attacker_id == entity_id
+                        || attack_box.props.context.aggressor == entity_id
+                    {
                         // can't hit self
                         continue;
                     }
