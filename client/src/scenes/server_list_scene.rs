@@ -56,7 +56,7 @@ impl ServerListScene {
         let scrollable_frame = ScrollableFrame::new(game_io, frame_bounds);
 
         // scroll tracker
-        let cursor_start = scrollable_frame.body_bounds().top_left() + Vec2::new(0.0, 5.0);
+        let cursor_start = scrollable_frame.body_bounds().top_left() + Vec2::new(-5.0, 2.0);
 
         let mut scroll_tracker = ScrollTracker::new(game_io, 7);
         scroll_tracker.define_cursor(cursor_start, 16.0);
@@ -465,7 +465,7 @@ impl Scene for ServerListScene {
 
         const HEIGHT: f32 = 16.0;
         const INDICATOR_LEFT_MARGIN: f32 = 210.0;
-        const TEXT_OFFSET: Vec2 = Vec2::new(10.0, 3.0);
+        const TEXT_OFFSET: Vec2 = Vec2::new(5.0, 0.0);
 
         let list_start = self.scrollable_frame.body_bounds().top_left();
         let mut y = list_start.y;

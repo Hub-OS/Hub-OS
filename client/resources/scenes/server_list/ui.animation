@@ -7,14 +7,14 @@ point label="CONTEXT_MENU" x="147" y="27"
 point label="MENU_TIP_TOP_RIGHT" x="228" y="145"
 
 animation state="ONLINE_BADGE"
-frame duration="0f" x="24" y="0" w="7" h="7" originx="0" originy="-6" flipx="0" flipy="0"
+frame duration="0f" x="24" y="0" w="7" h="7" originx="0" originy="-3" flipx="0" flipy="0"
 
 animation state="ERROR_BADGE"
-frame duration="0f" x="16" y="0" w="7" h="7" originx="0" originy="-6" flipx="0" flipy="0"
+frame duration="0f" x="16" y="0" w="7" h="7" originx="0" originy="-3" flipx="0" flipy="0"
 
 animation state="PENDING_BADGE"
-frame duration="18f" x="0" y="0" w="7" h="7" originx="0" originy="-6" flipx="0" flipy="0"
-frame duration="18f" x="8" y="0" w="7" h="7" originx="0" originy="-6" flipx="0" flipy="0"
+frame duration="18f" x="0" y="0" w="7" h="7" originx="0" originy="-3" flipx="0" flipy="0"
+frame duration="18f" x="8" y="0" w="7" h="7" originx="0" originy="-3" flipx="0" flipy="0"
 
 animation state="OFFLINE_BADGE"
-frame duration="50f" x="0" y="0" w="7" h="7" originx="0" originy="-6" flipx="0" flipy="0"
+frame duration="50f" x="0" y="0" w="7" h="7" originx="0" originy="-3" flipx="0" flipy="0"
