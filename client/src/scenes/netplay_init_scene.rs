@@ -654,6 +654,7 @@ impl NetplayInitScene {
                     assets.binary(&path)
                 });
 
+                log::debug!("Sending {hash}");
                 self.send(connection_index, NetplayPacketData::PackageZip { data });
             }
         }
@@ -991,6 +992,7 @@ async fn punch_holes(
 
     let mut hello_stream = futures::stream::select_all(hello_streams);
     let mut total_responses = 0;
+    let mut total_hello = 0;
 
     // if we receive anything from the fallback future we'll switch to it
     let fallback_stream = fallback_sender_receiver.1.stream().skip_while(|packet| {
@@ -1018,17 +1020,14 @@ async fn punch_holes(
                                 index: local_index,
                                 data: NetplayPacketData::HelloAck
                             });
+
+                            total_hello += 1;
                         }
                     }
                     NetplayPacketData::HelloAck => {
                         log::debug!("Received HelloAck");
 
                         total_responses += 1;
-
-                        if total_responses == senders_and_receivers.len() {
-                            // received a response from everyone, looks like we all support hole punching
-                            return true;
-                        }
                     }
                     _ => {
                         let name: &'static str = (&packet.data).into();
@@ -1036,6 +1035,13 @@ async fn punch_holes(
 
                         log::error!("Expecting Hello or HelloAck during hole punching phase, received: {name} from {index}");
                     }
+                }
+
+                let total_expected = senders_and_receivers.len();
+
+                if total_hello == total_expected && total_responses == total_expected {
+                    // responded and received a response from everyone, looks like we all support hole punching
+                    return true;
                 }
             }
             packet = fallback_stream.select_next_some() => {
