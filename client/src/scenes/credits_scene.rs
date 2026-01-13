@@ -42,6 +42,7 @@ const SECTIONS: &[(&str, &[&str])] = &[
             "Region Locking",
             "Sefaia",
             "Tim (Tchomp)",
+            "timinatoor",
             "Void.ExE",
         ],
     ),
