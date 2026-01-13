@@ -113,7 +113,7 @@ impl Action {
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
         namespace: PackageNamespace,
-        card_props: &CardProperties,
+        mut card_props: CardProperties,
     ) -> Option<GenerationalIndex> {
         let package_id = &card_props.package_id;
 
@@ -122,6 +122,7 @@ impl Action {
         }
 
         let namespace = card_props.namespace.unwrap_or(namespace);
+        card_props.namespace = Some(namespace);
 
         let Ok(vm_index) = resources.vm_manager.find_vm(package_id, namespace) else {
             log::error!("Failed to find vm for {package_id} with namespace: {namespace:?}");
@@ -150,7 +151,7 @@ impl Action {
 
             // init card action
             let entity_table = create_entity_table(lua, entity_id)?;
-            let lua_card_props = card_props.into_lua(lua)?;
+            let lua_card_props = (&card_props).into_lua(lua)?;
 
             let optional_table = match card_init
                 .call::<_, Option<rollback_mlua::Table>>((entity_table, lua_card_props))
@@ -173,7 +174,7 @@ impl Action {
 
         if let Some(action) = simulation.actions.get_mut(index) {
             // set card properties on the card action
-            action.properties = card_props.clone();
+            action.properties = card_props;
         } else {
             return None;
         };

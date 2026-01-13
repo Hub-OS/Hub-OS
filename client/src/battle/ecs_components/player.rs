@@ -742,12 +742,7 @@ impl Player {
             let namespace = *namespace;
 
             Action::create_from_card_properties(
-                game_io,
-                resources,
-                simulation,
-                entity_id,
-                namespace,
-                &card_props,
+                game_io, resources, simulation, entity_id, namespace, card_props,
             )
         };
 

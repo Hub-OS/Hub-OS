@@ -208,12 +208,7 @@ impl Character {
         let namespace = *namespace;
         let card_props = character.cards.pop().unwrap();
         let action_index = Action::create_from_card_properties(
-            game_io,
-            resources,
-            simulation,
-            entity_id,
-            namespace,
-            &card_props,
+            game_io, resources, simulation, entity_id, namespace, card_props,
         );
 
         // spawn a poof if there's no action

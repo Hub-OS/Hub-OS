@@ -134,7 +134,7 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
             api_ctx.simulation,
             entity_id,
             namespace,
-            &card_props,
+            card_props,
         );
 
         let optional_table = action_index
