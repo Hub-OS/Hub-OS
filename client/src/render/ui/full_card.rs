@@ -88,6 +88,10 @@ impl FullCard {
         self.display_recipes = enabled;
     }
 
+    pub fn displays_recipes(&self) -> bool {
+        self.display_recipes
+    }
+
     pub fn position(&self) -> Vec2 {
         self.position
     }

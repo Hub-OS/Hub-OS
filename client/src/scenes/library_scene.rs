@@ -120,7 +120,10 @@ impl LibraryScene {
             globals.audio.play_sound(&globals.sfx.cursor_select);
         }
 
-        if !self.card_preview.flipped() && input_util.was_just_pressed(Input::Confirm) {
+        if !self.card_preview.flipped()
+            && self.card_preview.displays_recipes()
+            && input_util.was_just_pressed(Input::Confirm)
+        {
             self.card_preview.cycle_recipe();
 
             let globals = Globals::from_resources(game_io);
