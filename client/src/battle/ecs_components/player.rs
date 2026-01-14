@@ -153,13 +153,16 @@ impl Player {
 
         // resolve health boost
         // todo: move to Augment?
+        let drive_package_iter = setup.drives_augment_iter(game_io);
+        let drive_iter = drive_package_iter.into_iter().map(|package| (package, 1));
+
         let grid = BlockGrid::new(namespace).with_blocks(game_io, blocks);
+        let grid_iter = grid.augments(game_io);
 
-        // Iterator<Item = &AugmentPackage>
-        let drive_packages = setup.drives_augment_iter(game_io).collect::<Vec<_>>();
+        let augments: Vec<_> = grid_iter.chain(drive_iter).collect();
 
-        let health_boost = grid.augments(game_io).fold(0, |acc, (package, level)| {
-            acc + package.health_boost * level as i32
+        let health_boost = augments.iter().fold(0, |acc, (package, level)| {
+            acc + package.health_boost * *level as i32
         });
 
         living.max_health = setup.base_health + health_boost;
@@ -241,18 +244,8 @@ impl Player {
             simulation.call_pending_callbacks(game_io, resources);
         }
 
-        // Iterator<Item = (&AugmentPackage, usize)>
-        let drive_package_iter = drive_packages.into_iter().map(|package| (package, 1));
-
-        // Iterator<Item = (&AugmentPackage, usize)>
-        let grid_iter = grid.augments(game_io);
-
-        // Iterator<Item = (&AugmentPackage, usize)>
-        // ^ i think it's usize at least
-        let augment_iter = grid_iter.chain(drive_package_iter);
-
-        // init blocks
-        for (package, level) in augment_iter {
+        // init augments
+        for (package, level) in augments {
             Augment::boost(
                 game_io, resources, simulation, id, package, namespace, level as _,
             );
