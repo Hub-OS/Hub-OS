@@ -812,34 +812,41 @@ impl Player {
         }
 
         // handle movement
-        let confused = (living.status_director).remaining_status_time(HitFlag::CONFUSE) > 0;
+        let direction_callback =
+            PlayerOverridables::flat_map_for(player, |callbacks| callbacks.movement_input.clone())
+                .next();
 
-        let mut x_offset = input.is_down(Input::Right) as i32 - input.is_down(Input::Left) as i32;
+        let player_index = player.index;
+        let team = entity.team;
 
-        if entity.team == Team::Blue {
-            // flipped perspective
-            x_offset = -x_offset;
-        }
+        let direction = direction_callback
+            .and_then(|callback| callback.call(game_io, resources, simulation, ()))
+            .unwrap_or_else(|| {
+                let input = &simulation.inputs[player_index];
+                let mut x_offset =
+                    input.is_down(Input::Right) as i32 - input.is_down(Input::Left) as i32;
 
-        if confused {
-            x_offset = -x_offset;
-        }
+                if team == Team::Blue {
+                    // flipped perspective
+                    x_offset = -x_offset;
+                }
 
-        let mut y_offset = input.is_down(Input::Down) as i32 - input.is_down(Input::Up) as i32;
+                let y_offset = input.is_down(Input::Down) as i32 - input.is_down(Input::Up) as i32;
 
-        if confused {
-            y_offset = -y_offset;
-        }
-
-        let direction = Direction::from_i32_vector((x_offset, y_offset));
+                Direction::from_i32_vector((x_offset, y_offset))
+            });
 
         if direction == Direction::None {
             return;
         }
 
+        let entities = &mut simulation.entities;
+        let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
+            return;
+        };
+
         let movement_callback =
-            PlayerOverridables::flat_map_mut_for(player, |callbacks| callbacks.movement.clone())
-                .next();
+            PlayerOverridables::flat_map_for(player, |callbacks| callbacks.movement.clone()).next();
 
         if let Some(callback) = movement_callback {
             callback.call(game_io, resources, simulation, direction);

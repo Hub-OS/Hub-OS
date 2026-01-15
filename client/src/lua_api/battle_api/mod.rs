@@ -121,6 +121,7 @@ const COLLISION_FN: &str = "on_collision_func";
 const ATTACK_FN: &str = "on_attack_func";
 
 // players
+const MOVEMENT_INPUT_FN: &str = "movement_input_func";
 const MOVEMENT_FN: &str = "movement_func";
 const CHARGE_TIMING_FN: &str = "calculate_charge_time_func";
 const NORMAL_ATTACK_FN: &str = "normal_attack_func";

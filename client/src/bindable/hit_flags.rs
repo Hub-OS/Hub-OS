@@ -22,8 +22,7 @@ pub mod HitFlag {
     pub const FLASH: HitFlags = 1 << 8;
     pub const PARALYZE: HitFlags = 1 << 9;
     pub const BLIND: HitFlags = 1 << 10;
-    pub const CONFUSE: HitFlags = 1 << 11;
-    pub const NEXT_SHIFT: HitFlags = 12;
+    pub const NEXT_SHIFT: HitFlags = 11;
 
     pub const BAKED: [HitFlags; 8] = [
         RETAIN_INTANGIBLE,
@@ -52,14 +51,12 @@ pub mod HitFlag {
             "PierceGround" => PIERCE_GROUND,
             "Paralyze" => PARALYZE,
             "Blind" => BLIND,
-            "Confuse" => CONFUSE,
             _ => status_registry.resolve_flag(s).unwrap_or(NONE),
         }
     }
 
     pub fn status_animation_state(flag: HitFlags) -> &'static str {
         match flag {
-            CONFUSE => "CONFUSE",
             BLIND => "BLIND",
             _ => "",
         }
@@ -67,7 +64,6 @@ pub mod HitFlag {
 
     pub fn status_sprite_position(flag: HitFlags, height: f32) -> Vec2 {
         match flag {
-            CONFUSE => Vec2::new(0.0, -height),
             BLIND => Vec2::new(0.0, -height),
             _ => Vec2::ZERO,
         }

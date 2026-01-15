@@ -73,6 +73,7 @@ pub struct PlayerOverridables {
     pub special_attack: Option<BattleCallback<(), Option<GenerationalIndex>>>,
     pub calculate_card_charge_time: Option<BattleCallback<CardProperties, Option<FrameTime>>>,
     pub charged_card: Option<BattleCallback<CardProperties, Option<GenerationalIndex>>>,
+    pub movement_input: Option<BattleCallback<(), Option<Direction>>>,
     pub movement: Option<BattleCallback<Direction>>,
 }
 

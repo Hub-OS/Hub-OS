@@ -267,7 +267,6 @@ impl StatusDirector {
         sprite_tree: &mut Tree<SpriteNode>,
     ) {
         self.update_status_sprite(game_io, resources, entity, sprite_tree, HitFlag::BLIND);
-        self.update_status_sprite(game_io, resources, entity, sprite_tree, HitFlag::CONFUSE);
     }
 
     fn update_status_sprite(

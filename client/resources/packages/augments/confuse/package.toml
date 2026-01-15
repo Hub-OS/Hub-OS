@@ -1,0 +1,5 @@
+[package]
+category = "augment"
+id = "dev.hubos.Augments.Confuse"
+name = "Confusion Augment"
+priority = true

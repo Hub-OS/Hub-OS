@@ -7,3 +7,6 @@ mutual_exclusions = ["Freeze", "Paralyze"]
 blocks_actions = false
 blocks_mobility = false
 durations = [480]
+
+[dependencies]
+augments = ["dev.hubos.Augments.Confuse"]

@@ -1,14 +1,15 @@
 use super::errors::{entity_not_found, form_not_found};
 use super::{
-    create_card_select_button_and_table, BattleLuaApi, ACTIVATE_FN, CARD_CHARGE_TIMING_FN,
-    CHARGED_ATTACK_FN, CHARGED_CARD_FN, CHARGE_TIMING_FN, DEACTIVATE_FN, DESELECT_FN, MOVEMENT_FN,
-    NORMAL_ATTACK_FN, PLAYER_FORM_TABLE, SELECT_FN, SPECIAL_ATTACK_FN, UPDATE_FN,
+    ACTIVATE_FN, BattleLuaApi, CARD_CHARGE_TIMING_FN, CHARGE_TIMING_FN, CHARGED_ATTACK_FN,
+    CHARGED_CARD_FN, DEACTIVATE_FN, DESELECT_FN, MOVEMENT_FN, NORMAL_ATTACK_FN, PLAYER_FORM_TABLE,
+    SELECT_FN, SPECIAL_ATTACK_FN, UPDATE_FN, create_card_select_button_and_table,
 };
 use crate::battle::{
     BattleCallback, CardSelectButton, CardSelectButtonPath, Player, PlayerForm,
     PlayerOverridableFlags,
 };
 use crate::bindable::EntityId;
+use crate::lua_api::battle_api::MOVEMENT_INPUT_FN;
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::resources::{AssetManager, Globals};
 use framework::common::GameIO;
@@ -233,6 +234,13 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
         CHARGED_CARD_FN,
         |form| &mut form.overridables.charged_card,
         |lua, form_table, card_props| lua.pack_multi((form_table, card_props)),
+    );
+
+    callback_setter(
+        lua_api,
+        MOVEMENT_INPUT_FN,
+        |form| &mut form.overridables.movement_input,
+        |lua, form_table, _| lua.pack_multi(form_table),
     );
 
     callback_setter(

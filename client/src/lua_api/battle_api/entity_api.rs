@@ -2601,6 +2601,13 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
 
     optional_callback_setter(
         lua_api,
+        MOVEMENT_INPUT_FN,
+        |player: &mut Player| &mut player.overridables.movement_input,
+        |lua, table, _| lua.pack_multi(table),
+    );
+
+    optional_callback_setter(
+        lua_api,
         MOVEMENT_FN,
         |player: &mut Player| &mut player.overridables.movement,
         |lua, table, direction| lua.pack_multi((table, direction)),

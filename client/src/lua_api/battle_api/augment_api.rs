@@ -1,11 +1,12 @@
 use super::errors::{augment_not_found, entity_not_found};
 use super::{
-    create_card_select_button_and_table, create_entity_table, BattleLuaApi, AUGMENT_TABLE,
-    CARD_CHARGE_TIMING_FN, CHARGED_ATTACK_FN, CHARGED_CARD_FN, CHARGE_TIMING_FN, DELETE_FN,
-    MOVEMENT_FN, NORMAL_ATTACK_FN, SPECIAL_ATTACK_FN,
+    AUGMENT_TABLE, BattleLuaApi, CARD_CHARGE_TIMING_FN, CHARGE_TIMING_FN, CHARGED_ATTACK_FN,
+    CHARGED_CARD_FN, DELETE_FN, MOVEMENT_FN, NORMAL_ATTACK_FN, SPECIAL_ATTACK_FN,
+    create_card_select_button_and_table, create_entity_table,
 };
 use crate::battle::{Augment, BattleCallback, CardSelectButton, CardSelectButtonPath, Player};
 use crate::bindable::{EntityId, GenerationalIndex};
+use crate::lua_api::battle_api::MOVEMENT_INPUT_FN;
 use crate::lua_api::helpers::inherit_metatable;
 
 pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
@@ -175,6 +176,13 @@ pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
         CHARGED_CARD_FN,
         |augment: &mut Augment| &mut augment.overridables.charged_card,
         |lua, table, card_props| lua.pack_multi((table, card_props)),
+    );
+
+    callback_setter(
+        lua_api,
+        MOVEMENT_INPUT_FN,
+        |augment: &mut Augment| &mut augment.overridables.movement_input,
+        |lua, table, _| lua.pack_multi(table),
     );
 
     callback_setter(
