@@ -1147,16 +1147,22 @@ fn dock_internal_swap(
         if index == selected_index {
             let pack_index = transfer_to_pack(scene, game_io, index);
             transfer_to_pack_cleanup(scene, pack_index);
+            scene.pack_dock.update_preview(game_io);
+            scene.deck_dock.update_preview(game_io);
         } else {
             scene.deck_dock.card_slots.swap(selected_index, index);
+            scene.deck_dock.update_preview(game_io);
         }
     } else {
         let selected_index = scene.pack_dock.scroll_tracker.selected_index();
 
         if index == selected_index {
             transfer_to_deck(scene, game_io, index)?;
+            scene.deck_dock.update_preview(game_io);
+            scene.pack_dock.update_preview(game_io);
         } else {
             scene.pack_dock.card_slots.swap(selected_index, index);
+            scene.pack_dock.update_preview(game_io);
         }
     }
 
