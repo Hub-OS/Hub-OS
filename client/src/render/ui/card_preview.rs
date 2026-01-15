@@ -126,7 +126,7 @@ impl<'a> CardPreview<'a> {
             let text = if conceal_damage {
                 "???"
             } else {
-                &format!("{damage:>3}")
+                &damage.to_string()
             };
 
             let damage_size = label.measure(text).size;

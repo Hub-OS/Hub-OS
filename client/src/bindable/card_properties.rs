@@ -174,7 +174,7 @@ impl<L, F> CardProperties<L, F> {
         // damage
         if self.damage > 0 {
             text_style.color = Color::WHITE;
-            let text = format!("{:>3}", self.damage);
+            let text = self.damage.to_string();
 
             let damage_size = text_style.measure(&text).size;
             let damage_offset = DAMAGE_OFFSET + Vec2::new(-damage_size.x, 0.0);
