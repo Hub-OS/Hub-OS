@@ -30,6 +30,7 @@ pub enum CardRecipe {
     },
     MixSequence {
         mix: Vec<(CardRecipeIdType, String)>,
+        ordered: bool,
     },
 }
 
@@ -49,7 +50,12 @@ impl CardRecipe {
                 }
             }
 
-            return Some(Self::MixSequence { mix });
+            let ordered = recipe
+                .get("ordered")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(true);
+
+            return Some(Self::MixSequence { mix, ordered });
         }
 
         if let Some(list) = recipe.get("codes").and_then(|v| v.as_array()) {
@@ -105,24 +111,39 @@ impl CardRecipes {
         let data = self.namespace_map.entry(namespace).or_default();
         let tracking = data.tracked_output.entry(info.id.clone()).or_default();
 
-        for recipe in &package.recipes {
-            let key = match recipe {
-                CardRecipe::CodeSequence { id, .. } => id.clone(),
-                CardRecipe::MixSequence { mix: sequence } => {
-                    let Some((_, id)) = sequence.first() else {
-                        return;
-                    };
-
-                    id.clone()
-                }
-            };
-
-            let recipe_list = data.recipes.entry(key.clone()).or_default();
+        let mut push = |start_id: String, recipe: &CardRecipe| {
+            let recipe_list = data.recipes.entry(start_id.clone()).or_default();
             recipe_list.push((info.id.clone(), recipe.clone(), package.limit));
             recipe_list.sort_by(|(a, ..), (b, ..)| a.cmp(b));
 
-            // track recipes associated to output
-            tracking.insert(key);
+            tracking.insert(start_id);
+        };
+
+        for recipe in &package.recipes {
+            match recipe {
+                CardRecipe::CodeSequence { id, .. } => {
+                    push(id.clone(), recipe);
+                }
+                CardRecipe::MixSequence {
+                    mix: sequence,
+                    ordered,
+                } => {
+                    if *ordered {
+                        if let Some((_, id)) = sequence.first() {
+                            push(id.clone(), recipe);
+                        }
+                    } else {
+                        // add all unique cards as a potential start if this works in any order
+                        let mut added = HashSet::new();
+
+                        for (_, id) in sequence {
+                            if added.insert(id) {
+                                push(id.clone(), recipe);
+                            }
+                        }
+                    }
+                }
+            };
         }
     }
 
@@ -245,7 +266,7 @@ impl CardRecipes {
 
                         recipe_len = codes.len();
                     }
-                    CardRecipe::MixSequence { mix } => {
+                    CardRecipe::MixSequence { mix, ordered } => {
                         if mix.len() < recipe_len {
                             // already found a better match
                             continue;
@@ -256,12 +277,35 @@ impl CardRecipes {
                             continue;
                         }
 
-                        for (card, (id_type, id)) in remaining_cards.iter().zip(mix) {
-                            let test_id = id_type.resolve_test_fn();
+                        if *ordered {
+                            for (card, (id_type, id)) in remaining_cards.iter().zip(mix) {
+                                let test_id = id_type.resolve_test_fn();
 
-                            if !test_id(id.as_str(), card) {
-                                // card doesn't match id, fail recipe
-                                continue 'recipe_loop;
+                                if !test_id(id.as_str(), card) {
+                                    // card doesn't match id, fail recipe
+                                    continue 'recipe_loop;
+                                }
+                            }
+                        } else {
+                            let mut still_required: Vec<_> = mix.iter().collect();
+
+                            for card in remaining_cards.iter() {
+                                let Some(index) =
+                                    still_required.iter().position(|(id_type, id)| {
+                                        let test_id = id_type.resolve_test_fn();
+                                        test_id(id.as_str(), card)
+                                    })
+                                else {
+                                    // couldn't find a match, fail recipe
+                                    continue 'recipe_loop;
+                                };
+
+                                still_required.swap_remove(index);
+
+                                if still_required.is_empty() {
+                                    // completed
+                                    break;
+                                }
                             }
                         }
 

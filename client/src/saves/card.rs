@@ -90,7 +90,7 @@ impl Card {
                     line_position.y += line_height;
                 }
             }
-            CardRecipe::MixSequence { mix } => {
+            CardRecipe::MixSequence { mix, .. } => {
                 for (id_type, id) in mix {
                     let name = fetch_ingredient_name(package_manager, namespace, *id_type, id);
 
