@@ -750,7 +750,7 @@ impl TimeFreezeTracker {
             return;
         };
 
-        if blind_filter.is_some_and(|team| team != tracker.team) {
+        if blind_filter.is_some_and(|team| !team.is_allied(tracker.team)) {
             return;
         }
 

@@ -22,6 +22,10 @@ impl Team {
             _ => self,
         }
     }
+
+    pub fn is_allied(self, other: Self) -> bool {
+        self == other && self != Team::Other
+    }
 }
 
 impl<'lua> rollback_mlua::FromLua<'lua> for Team {
@@ -38,7 +42,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for Team {
                     from: lua_value.type_name(),
                     to: "Team",
                     message: None,
-                })
+                });
             }
         };
 

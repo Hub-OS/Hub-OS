@@ -133,7 +133,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
     getter::<&Entity, _>(lua_api, "is_team", |entity: &Entity, lua, team| {
-        lua.pack_multi(entity.team == team)
+        lua.pack_multi(entity.team.is_allied(team))
     });
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "set_owner", |api_ctx, lua, params| {

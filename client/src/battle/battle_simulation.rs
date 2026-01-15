@@ -934,7 +934,7 @@ impl BattleSimulation {
 
         // filter characters + obstacles for blindness
         for (id, entity) in self.entities.query_mut::<hecs::With<&Entity, &Living>>() {
-            if blind_filter.is_some() && blind_filter != Some(entity.team) {
+            if blind_filter.is_some_and(|team| !entity.team.is_allied(team)) {
                 continue;
             }
 
@@ -1049,7 +1049,7 @@ impl BattleSimulation {
                     continue;
                 }
 
-                if blind_filter.is_some() && blind_filter != Some(entity.team) {
+                if blind_filter.is_some_and(|team| !entity.team.is_allied(team)) {
                     // blindness filter
                     continue;
                 }
@@ -1096,7 +1096,7 @@ impl BattleSimulation {
                     continue;
                 }
 
-                if blind_filter.is_some() && blind_filter != Some(entity.team) {
+                if blind_filter.is_some_and(|team| !entity.team.is_allied(team)) {
                     // blindness filter
                     continue;
                 }

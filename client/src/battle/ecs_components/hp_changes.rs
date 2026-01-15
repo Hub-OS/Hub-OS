@@ -182,7 +182,7 @@ impl HpParticle {
 
         for (_, (entity, changes)) in entities.query_mut::<(&Entity, &mut HpChanges)>() {
             // only spawn particles for entities that are visible
-            if entity.on_field && blind_filter.is_none_or(|team| entity.team == team) {
+            if entity.on_field && blind_filter.is_none_or(|team| entity.team.is_allied(team)) {
                 try_spawn(entity, HpChangeSource::Hit, changes.hit);
                 try_spawn(entity, HpChangeSource::Heal, changes.heal);
                 try_spawn(entity, HpChangeSource::Drain, changes.drain);
