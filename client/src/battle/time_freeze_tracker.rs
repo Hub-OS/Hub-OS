@@ -650,12 +650,14 @@ impl TimeFreezeTracker {
 
         // draw action name and damage
         let default_card_props = CardProperties::default();
-        let card_props =
-            if action.properties.conceal && simulation.local_team != tracked_action.team {
-                &default_card_props
-            } else {
-                &action.properties
-            };
+        let card_props = if action.properties.conceal
+            && !simulation.local_team.is_allied(tracked_action.team)
+            && simulation.local_player_id != tracked_action.entity
+        {
+            &default_card_props
+        } else {
+            &action.properties
+        };
 
         let action_summary_scale = Vec2::new(1.0, summary_scale_y);
         card_props.draw_summary(game_io, sprite_queue, position, action_summary_scale, true);
