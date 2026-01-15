@@ -625,7 +625,14 @@ impl BattleState {
             for aux_prop in aux_props.filter(|a| a.effect().executes_pre_hit()) {
                 let time_frozen = simulation.time_freeze_tracker.time_is_frozen();
                 aux_prop.process_time(time_frozen, simulation.battle_time);
-                aux_prop.process_body(emotion_window, player, character, entity, action_queue);
+                aux_prop.process_body(
+                    emotion_window,
+                    &living.status_director,
+                    player,
+                    character,
+                    entity,
+                    action_queue,
+                );
 
                 for (_, hit_props) in &living.pending_defense {
                     aux_prop.process_hit(entity, living.health, living.max_health, hit_props);

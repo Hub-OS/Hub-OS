@@ -184,7 +184,14 @@ impl Living {
             // thus can't depend on their own timers
             let time_frozen = simulation.time_freeze_tracker.time_is_frozen();
             aux_prop.process_time(time_frozen, simulation.battle_time);
-            aux_prop.process_body(emotion_window, player, character, entity, action_queue);
+            aux_prop.process_body(
+                emotion_window,
+                &living.status_director,
+                player,
+                character,
+                entity,
+                action_queue,
+            );
 
             for (hit_props, _) in &hit_prop_list {
                 aux_prop.process_hit(entity, living.health, living.max_health, hit_props);
@@ -656,7 +663,14 @@ impl Living {
                     continue;
                 }
 
-                aux_prop.process_body(emotion_window, player, character, entity, action_queue);
+                aux_prop.process_body(
+                    emotion_window,
+                    &living.status_director,
+                    player,
+                    character,
+                    entity,
+                    action_queue,
+                );
                 aux_prop.process_card(Some(&action.properties));
 
                 if !aux_prop.passed_all_tests() {
@@ -916,6 +930,7 @@ impl Living {
         for aux_prop in aux_props {
             aux_prop.process_body(
                 emotion_window,
+                &living.status_director,
                 player,
                 character,
                 entity,

@@ -42,6 +42,8 @@ local req_list = {
   "require_card_time_freeze",
   "require_card_tag",
   "require_card_not_tag",
+  "require_statuses",
+  "require_statuses_absent",
   "require_projected_health_threshold",
   "require_projected_health",
   "require_health_threshold",

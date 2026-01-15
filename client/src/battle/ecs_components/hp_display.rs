@@ -58,7 +58,14 @@ impl HpDisplay {
                 .any(|(_, aux_prop)| {
                     // clone to avoid modifying the original
                     let mut aux_prop = aux_prop.clone();
-                    aux_prop.process_body(emotion_window, player, character, entity, action_queue);
+                    aux_prop.process_body(
+                        emotion_window,
+                        &living.status_director,
+                        player,
+                        character,
+                        entity,
+                        action_queue,
+                    );
                     aux_prop.process_health_calculations(living.health, living.max_health, 0);
 
                     aux_prop.passed_non_time_tests()

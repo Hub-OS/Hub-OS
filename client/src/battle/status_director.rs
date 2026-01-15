@@ -332,6 +332,12 @@ impl StatusDirector {
         }
     }
 
+    pub fn applied_status_flags(&self) -> HitFlags {
+        self.statuses
+            .iter()
+            .fold(0, |acc, status| status.status_flag | acc)
+    }
+
     pub fn remaining_status_time(&self, status_flag: HitFlags) -> FrameTime {
         self.statuses
             .iter()
