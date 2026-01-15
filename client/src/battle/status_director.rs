@@ -1,10 +1,9 @@
-use super::{BattleCallback, Entity, SharedBattleResources, StatusRegistry};
+use super::{BattleCallback, Entity, StatusRegistry};
 use crate::battle::{Living, Movement};
-use crate::bindable::{Drag, EntityId, HitFlag, HitFlags, SpriteColorMode};
-use crate::render::{AnimatorLoopMode, FrameTime, SpriteNode, TreeIndex};
+use crate::bindable::{Drag, EntityId, HitFlag, HitFlags};
+use crate::render::FrameTime;
 use crate::resources::DRAG_LOCKOUT;
-use crate::structures::{Tree, VecMap};
-use framework::prelude::GameIO;
+use crate::structures::VecMap;
 use packets::structures::Direction;
 
 #[derive(Clone)]
@@ -22,7 +21,6 @@ pub struct StatusDirector {
     statuses: Vec<AppliedStatus>,
     new_statuses: Vec<AppliedStatus>,
     ready_destructors: Vec<BattleCallback>,
-    status_sprites: Vec<(HitFlags, TreeIndex)>,
     drag: Option<Drag>,
     remaining_drag_lockout: u8,
     remaining_shake: u8,
@@ -241,94 +239,6 @@ impl StatusDirector {
             && self.statuses.iter().any(|status| {
                 registry.immobilizing_flags() & status.status_flag != 0 && status.remaining_time > 0
             })
-    }
-
-    pub fn take_status_sprites(&mut self, status_flags: HitFlags) -> Vec<(HitFlags, TreeIndex)> {
-        let mut old_sprites = std::mem::take(&mut self.status_sprites);
-
-        old_sprites.retain(|&(flag, index)| {
-            let retain = status_flags & flag != 0;
-
-            if !retain {
-                self.status_sprites.push((flag, index));
-            }
-
-            retain
-        });
-
-        old_sprites
-    }
-
-    pub fn update_status_sprites(
-        &mut self,
-        game_io: &GameIO,
-        resources: &SharedBattleResources,
-        entity: &mut Entity,
-        sprite_tree: &mut Tree<SpriteNode>,
-    ) {
-        self.update_status_sprite(game_io, resources, entity, sprite_tree, HitFlag::BLIND);
-    }
-
-    fn update_status_sprite(
-        &mut self,
-        game_io: &GameIO,
-        resources: &SharedBattleResources,
-        entity: &mut Entity,
-        sprite_tree: &mut Tree<SpriteNode>,
-        status_flag: HitFlags,
-    ) {
-        let existing_index = self.status_sprite_index(status_flag);
-
-        let Some(lifetime) = self.status_lifetime(status_flag) else {
-            if let Some(sprite_index) = existing_index {
-                sprite_tree.remove(sprite_index);
-                self.forget_status_sprite(status_flag);
-            }
-            return;
-        };
-
-        let index = existing_index.unwrap_or_else(|| {
-            let mut sprite_node = SpriteNode::new(game_io, SpriteColorMode::Add);
-            let texture = resources.statuses_texture.clone();
-            sprite_node.set_texture_direct(texture);
-
-            let index = sprite_tree.insert_root_child(sprite_node);
-            self.status_sprites.push((status_flag, index));
-            index
-        });
-
-        let alpha = sprite_tree.root().color().a;
-
-        let sprite_node = &mut sprite_tree[index];
-        let animator = &mut *resources.statuses_animator.borrow_mut();
-        let state = HitFlag::status_animation_state(status_flag);
-
-        if animator.current_state() != Some(state) {
-            animator.set_state(state);
-            animator.set_loop_mode(AnimatorLoopMode::Loop);
-        }
-
-        animator.sync_time(lifetime);
-        sprite_node.apply_animation(animator);
-        sprite_node.set_offset(HitFlag::status_sprite_position(status_flag, entity.height));
-        sprite_node.set_alpha(alpha);
-    }
-
-    fn status_sprite_index(&self, status_flag: HitFlags) -> Option<TreeIndex> {
-        self.status_sprites
-            .iter()
-            .find(|(flag, _)| *flag == status_flag)
-            .map(|(_, index)| *index)
-    }
-
-    fn forget_status_sprite(&mut self, status_flag: HitFlags) {
-        if let Some(index) = self
-            .status_sprites
-            .iter()
-            .position(|(flag, _)| *flag == status_flag)
-        {
-            self.status_sprites.remove(index);
-        }
     }
 
     pub fn applied_status_flags(&self) -> HitFlags {

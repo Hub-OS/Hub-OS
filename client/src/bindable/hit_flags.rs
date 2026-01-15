@@ -3,10 +3,8 @@ pub type HitFlags = i64;
 // simulating an enum here, could use a better solution
 #[allow(non_snake_case)]
 pub mod HitFlag {
-    use crate::battle::StatusRegistry;
-
     use super::HitFlags;
-    use framework::prelude::Vec2;
+    use crate::battle::StatusRegistry;
 
     pub const ALL: HitFlags = !0;
     pub const NONE: HitFlags = 0;
@@ -52,20 +50,6 @@ pub mod HitFlag {
             "Paralyze" => PARALYZE,
             "Blind" => BLIND,
             _ => status_registry.resolve_flag(s).unwrap_or(NONE),
-        }
-    }
-
-    pub fn status_animation_state(flag: HitFlags) -> &'static str {
-        match flag {
-            BLIND => "BLIND",
-            _ => "",
-        }
-    }
-
-    pub fn status_sprite_position(flag: HitFlags, height: f32) -> Vec2 {
-        match flag {
-            BLIND => Vec2::new(0.0, -height),
-            _ => Vec2::ZERO,
         }
     }
 }

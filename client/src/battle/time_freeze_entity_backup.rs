@@ -62,16 +62,6 @@ impl TimeFreezeEntityBackup {
                 let take_flags = !HitFlag::KEEP_IN_FREEZE;
                 let status_director = &mut living.status_director;
 
-                let status_sprites = status_director.take_status_sprites(take_flags);
-
-                if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index)
-                {
-                    // delete old status sprites
-                    for (_, index) in status_sprites {
-                        sprite_tree.remove(index);
-                    }
-                }
-
                 // track old statuses
                 let mut statuses: Vec<_> = status_director
                     .applied()

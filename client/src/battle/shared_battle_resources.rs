@@ -9,7 +9,7 @@ use crate::resources::{AssetManager, Globals, ResourcePaths};
 use crate::scenes::BattleEvent;
 use crate::{CardRecipes, RESOLUTION_F};
 use framework::math::Rect;
-use framework::prelude::{Color, GameIO, Sprite, Texture};
+use framework::prelude::{Color, GameIO, Sprite};
 use packets::structures::PackageCategory;
 use std::borrow::Cow;
 use std::cell::{Cell, RefCell};
@@ -21,8 +21,6 @@ pub struct SharedBattleResources {
     pub config: RefCell<BattleConfig>,
     pub vm_manager: BattleVmManager,
     pub status_registry: StatusRegistry,
-    pub statuses_texture: Arc<Texture>,
-    pub statuses_animator: RefCell<Animator>,
     pub recipe_animator: Animator,
     pub recipes: CardRecipes,
     pub alert_animator: RefCell<Animator>,
@@ -55,11 +53,6 @@ impl SharedBattleResources {
             config: RefCell::new(BattleConfig::new(globals, meta.player_count)),
             vm_manager: BattleVmManager::new(),
             status_registry: StatusRegistry::new(),
-            statuses_texture: assets.texture(game_io, ResourcePaths::BATTLE_STATUSES),
-            statuses_animator: RefCell::new(Animator::load_new(
-                assets,
-                ResourcePaths::BATTLE_STATUSES_ANIMATION,
-            )),
             recipe_animator: Animator::load_new(assets, ResourcePaths::BATTLE_RECIPE_ANIMATION)
                 .with_state("DEFAULT"),
             recipes: CardRecipes::default(),

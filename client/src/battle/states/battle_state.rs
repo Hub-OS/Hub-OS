@@ -111,7 +111,7 @@ impl State for BattleState {
 
         simulation.call_pending_callbacks(game_io, resources);
 
-        self.apply_status_vfx(game_io, resources, simulation);
+        self.apply_status_vfx(simulation);
 
         if self.end_timer.is_none() && !simulation.time_freeze_tracker.time_is_frozen() {
             // only update the time statistic if the battle is still going for the local player
@@ -1286,12 +1286,7 @@ impl BattleState {
         simulation.call_pending_callbacks(game_io, resources);
     }
 
-    fn apply_status_vfx(
-        &self,
-        game_io: &GameIO,
-        shared_assets: &SharedBattleResources,
-        simulation: &mut BattleSimulation,
-    ) {
+    fn apply_status_vfx(&self, simulation: &mut BattleSimulation) {
         let entities = &mut simulation.entities;
 
         for (_, (entity, living)) in entities.query_mut::<(&mut Entity, &mut Living)>() {
@@ -1307,8 +1302,6 @@ impl BattleState {
                 root_node.set_color(Color::WHITE);
                 root_node.set_color_mode(SpriteColorMode::Add);
             }
-
-            status_director.update_status_sprites(game_io, shared_assets, entity, sprite_tree);
 
             let remaining_shake = status_director.remaining_shake();
             if remaining_shake > 0 {
