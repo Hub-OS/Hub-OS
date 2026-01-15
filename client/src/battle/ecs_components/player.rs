@@ -812,15 +812,17 @@ impl Player {
         }
 
         // handle movement
-        let direction_callback =
+        let direction_callbacks: Vec<_> =
             PlayerOverridables::flat_map_for(player, |callbacks| callbacks.movement_input.clone())
-                .next();
+                .collect();
 
         let player_index = player.index;
         let team = entity.team;
 
-        let direction = direction_callback
-            .and_then(|callback| callback.call(game_io, resources, simulation, ()))
+        let direction = direction_callbacks
+            .into_iter()
+            .flat_map(|callback| callback.call(game_io, resources, simulation, ()))
+            .next()
             .unwrap_or_else(|| {
                 let input = &simulation.inputs[player_index];
                 let mut x_offset =
