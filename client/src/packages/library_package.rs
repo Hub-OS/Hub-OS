@@ -18,6 +18,7 @@ struct LibraryMeta {
     long_name: String,
     description: String,
     preview_texture_path: String,
+    tags: Vec<String>,
 }
 
 #[derive(Default, Clone)]
@@ -69,6 +70,8 @@ impl Package for LibraryPackage {
                 return package;
             }
         };
+
+        package.package_info.tags = meta.tags.into_iter().map(|s| s.into()).collect();
 
         if meta.category != "library" && meta.category != "pack" {
             log::error!(

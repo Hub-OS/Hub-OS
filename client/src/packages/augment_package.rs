@@ -3,7 +3,6 @@ use crate::bindable::BlockColor;
 use crate::bindable::SwitchDriveSlot;
 use crate::render::ui::{PackageListing, PackagePreviewData};
 use serde::Deserialize;
-use std::borrow::Cow;
 use std::sync::Arc;
 
 #[derive(Deserialize, Default)]
@@ -24,7 +23,7 @@ struct AugmentMeta {
     dark_boost: i8,
     deck_boost: i8,
     hand_size_boost: i8,
-    tags: Vec<Cow<'static, str>>,
+    tags: Vec<String>,
 
     // switch drive specific
     slot: Option<SwitchDriveSlot>,
@@ -55,7 +54,6 @@ pub struct AugmentPackage {
     pub deck_boost: i8,
     pub hand_size_boost: i8,
     pub priority: bool,
-    pub tags: Vec<Cow<'static, str>>,
 
     // switch drive specific
     pub slot: Option<SwitchDriveSlot>,
@@ -129,6 +127,8 @@ impl Package for AugmentPackage {
             }
         };
 
+        package.package_info.tags = meta.tags.into_iter().map(|s| s.into()).collect();
+
         if meta.category != "augment" {
             log::error!(
                 "Missing `category = \"augment\"` in {:?}",
@@ -154,7 +154,6 @@ impl Package for AugmentPackage {
         package.deck_boost = meta.deck_boost;
         package.hand_size_boost = meta.hand_size_boost;
         package.priority = meta.priority.unwrap_or_default();
-        package.tags = meta.tags;
 
         // switch drive specific
         package.slot = meta.slot;
@@ -169,10 +168,15 @@ impl Package for AugmentPackage {
 
         // block tags
         if package.has_shape {
-            package.tags.push(Cow::Borrowed("BLOCK"));
+            static BLOCK_TAG: std::sync::LazyLock<Arc<str>> =
+                std::sync::LazyLock::new(|| Arc::from("BLOCK"));
+            static FLAT_BLOCK_TAG: std::sync::LazyLock<Arc<str>> =
+                std::sync::LazyLock::new(|| Arc::from("BLOCK"));
+
+            package.package_info.tags.push(BLOCK_TAG.clone());
 
             if package.is_flat {
-                package.tags.push(Cow::Borrowed("FLAT_BLOCK"));
+                package.package_info.tags.push(FLAT_BLOCK_TAG.clone());
             }
         }
 

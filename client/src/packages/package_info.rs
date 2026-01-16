@@ -1,6 +1,7 @@
 use super::*;
 use crate::resources::{AssetManager, LocalAssetManager, ResourcePaths};
 use packets::structures::FileHash;
+use std::sync::Arc;
 
 pub struct ChildPackageInfo {
     pub parent_type: PackageCategory,
@@ -13,6 +14,7 @@ pub struct ChildPackageInfo {
 pub struct PackageInfo {
     pub id: PackageId,
     pub hash: FileHash,
+    pub tags: Vec<Arc<str>>,
     pub shareable: bool,
     pub category: PackageCategory,
     pub namespace: PackageNamespace,
@@ -29,6 +31,7 @@ impl Default for PackageInfo {
         Self {
             id: Default::default(),
             hash: Default::default(),
+            tags: Default::default(),
             shareable: true,
             category: Default::default(),
             namespace: Default::default(),
@@ -43,6 +46,10 @@ impl Default for PackageInfo {
 }
 
 impl PackageInfo {
+    pub fn has_tag(&self, tag: &str) -> bool {
+        self.tags.iter().any(|t| &**t == tag)
+    }
+
     pub fn local_only(&self) -> bool {
         matches!(
             self.category,

@@ -13,6 +13,7 @@ struct EncounterMeta {
     preview_texture_path: String,
     recording_path: Option<String>,
     recording_overrides: Vec<PackageId>,
+    tags: Vec<String>,
 }
 
 #[derive(Default, Clone)]
@@ -60,6 +61,8 @@ impl Package for EncounterPackage {
                 return package;
             }
         };
+
+        package.package_info.tags = meta.tags.into_iter().map(|s| s.into()).collect();
 
         if meta.category != "encounter" {
             log::error!(

@@ -1,7 +1,7 @@
 use super::{Package, PackageInfo};
 use crate::bindable::Element;
-use crate::render::ui::{PackageListing, PackagePreviewData};
 use crate::render::FrameTime;
+use crate::render::ui::{PackageListing, PackagePreviewData};
 use serde::Deserialize;
 use std::sync::Arc;
 
@@ -20,6 +20,7 @@ struct TileStateMeta {
     hide_body: bool,
     hole: bool,
     cleanser_element: String,
+    tags: Vec<String>,
 }
 
 pub struct TileStatePackage {
@@ -79,6 +80,8 @@ impl Package for TileStatePackage {
                 return package;
             }
         };
+
+        package.package_info.tags = meta.tags.into_iter().map(|s| s.into()).collect();
 
         if meta.category != "tile_state" {
             log::error!(

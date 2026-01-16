@@ -5,11 +5,11 @@ use crate::packages::{AugmentPackage, PackageNamespace};
 use crate::structures::GenerationalIndex;
 use framework::prelude::GameIO;
 use packets::structures::PackageId;
-use std::borrow::Cow;
 
 #[derive(Clone)]
 pub struct Augment {
     pub package_id: PackageId,
+    pub namespace: PackageNamespace,
     pub level: u8,
     pub attack_boost: i8,
     pub rapid_boost: i8,
@@ -17,7 +17,6 @@ pub struct Augment {
     pub hand_size_boost: i8,
     pub priority: bool,
     pub boost_order: usize,
-    pub tags: Vec<Cow<'static, str>>,
     pub overridables: PlayerOverridables,
     pub delete_callback: Option<BattleCallback>,
 }
@@ -26,6 +25,7 @@ impl From<(&AugmentPackage, usize)> for Augment {
     fn from((package, level): (&AugmentPackage, usize)) -> Self {
         Self {
             package_id: package.package_info.id.clone(),
+            namespace: package.package_info.namespace,
             level: level as u8,
             attack_boost: package.attack_boost,
             rapid_boost: package.rapid_boost,
@@ -33,7 +33,6 @@ impl From<(&AugmentPackage, usize)> for Augment {
             hand_size_boost: package.hand_size_boost,
             priority: package.priority,
             boost_order: 0,
-            tags: package.tags.clone(),
             overridables: PlayerOverridables::default(),
             delete_callback: None,
         }

@@ -10,7 +10,9 @@ use std::collections::{HashMap, HashSet};
 pub struct Restrictions {
     hash_whitelist: HashSet<FileHash>,
     id_whitelist: HashSet<PackageId>,
+    tag_whitelist: HashSet<String>,
     id_blacklist: HashSet<PackageId>,
+    tag_blacklist: HashSet<String>,
     base_deck_restrictions: DeckRestrictions,
     owned_cards: HashMap<Card, usize>,
     owned_blocks: HashMap<(Cow<'static, PackageId>, BlockColor), usize>,
@@ -37,12 +39,12 @@ impl Restrictions {
             .unwrap_or_default();
 
         // [packages]
-        let mut packages_table = root_table.remove("packages").and_then(|value| match value {
+        let packages_table = root_table.remove("packages").and_then(|value| match value {
             toml::Value::Table(table) => Some(table),
             _ => None,
         });
 
-        let file_hashset_mapper = |mut value: toml::Value| {
+        let file_hash_set_mapper = |mut value: toml::Value| {
             value.as_array_mut().map(|array| {
                 let values = std::mem::take(array);
 
@@ -53,7 +55,7 @@ impl Restrictions {
             })
         };
 
-        let package_id_mapper = |mut value: toml::Value| {
+        let id_hash_set_mapper = |mut value: toml::Value| {
             value.as_array_mut().map(|array| {
                 let values = std::mem::take(array);
 
@@ -64,30 +66,77 @@ impl Restrictions {
             })
         };
 
-        // packages.hash_whitelist
-        self.hash_whitelist = packages_table
-            .as_mut()
-            .and_then(|packages_table| packages_table.remove("hash_whitelist"))
-            .and_then(file_hashset_mapper)
-            .unwrap_or_default();
+        let string_hash_set_mapper = |mut value: toml::Value| {
+            value.as_array_mut().map(|array| {
+                let values = std::mem::take(array);
 
-        // packages.id_whitelist
-        self.id_whitelist = packages_table
-            .as_mut()
-            .and_then(|packages_table| packages_table.remove("id_whitelist"))
-            .and_then(package_id_mapper)
-            .unwrap_or_default();
+                values
+                    .into_iter()
+                    .flat_map(|value| value.as_str().map(String::from))
+                    .collect::<HashSet<String>>()
+            })
+        };
 
-        // packages.id_blacklist
-        self.id_blacklist = packages_table
-            .and_then(|mut packages_table| packages_table.remove("id_blacklist"))
-            .and_then(package_id_mapper)
-            .unwrap_or_default();
+        if let Some(mut packages_table) = packages_table {
+            // packages.hash_whitelist
+            self.hash_whitelist = packages_table
+                .remove("hash_whitelist")
+                .and_then(file_hash_set_mapper)
+                .unwrap_or_default();
+
+            // packages.id_whitelist
+            self.id_whitelist = packages_table
+                .remove("id_whitelist")
+                .and_then(id_hash_set_mapper)
+                .unwrap_or_default();
+
+            // packages.tag_whitelist
+            self.tag_blacklist = packages_table
+                .remove("tag_whitelist")
+                .and_then(string_hash_set_mapper)
+                .unwrap_or_default();
+
+            // packages.id_blacklist
+            self.id_blacklist = packages_table
+                .remove("id_blacklist")
+                .and_then(id_hash_set_mapper)
+                .unwrap_or_default();
+
+            // packages.tag_blacklist
+            self.tag_blacklist = packages_table
+                .remove("tag_blacklist")
+                .and_then(string_hash_set_mapper)
+                .unwrap_or_default();
+        }
     }
 
     fn is_package_allowed(&self, info: &PackageInfo) -> bool {
-        (self.id_whitelist.is_empty() || self.id_whitelist.contains(&info.id))
-            && (self.id_blacklist.is_empty() || !self.id_blacklist.contains(&info.id))
+        if !self.id_blacklist.is_empty() && self.id_blacklist.contains(&info.id) {
+            // directly blacklisted
+            return false;
+        }
+
+        if !self.tag_blacklist.is_empty() && tag_overlap(info, &self.tag_blacklist) {
+            // tag blacklisted
+            return false;
+        }
+
+        if self.id_whitelist.is_empty() && self.tag_whitelist.is_empty() {
+            // no whitelist, everything is allowed
+            return true;
+        }
+
+        if !self.id_whitelist.is_empty() && self.id_whitelist.contains(&info.id) {
+            // id whitelisted
+            return true;
+        }
+
+        if !self.tag_whitelist.is_empty() && tag_overlap(info, &self.tag_whitelist) {
+            // tag whitelisted
+            return true;
+        }
+
+        false
     }
 
     pub fn base_deck_restrictions(&self) -> DeckRestrictions {
@@ -261,4 +310,8 @@ impl Restrictions {
             self.validate_package_tree(game_io, augment.package_info.triplet())
         })
     }
+}
+
+fn tag_overlap(info: &PackageInfo, tag_hash_set: &HashSet<String>) -> bool {
+    info.tags.iter().any(|tag| tag_hash_set.contains(&**tag))
 }

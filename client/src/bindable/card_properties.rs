@@ -9,6 +9,7 @@ use crate::resources::BATTLE_INFO_SHADOW_COLOR;
 use crate::structures::{Tree, VecMap};
 use framework::prelude::{Color, GameIO, Vec2};
 use std::borrow::Cow;
+use std::sync::Arc;
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct CardProperties<L = HitFlags, D = VecMap<HitFlags, FrameTime>> {
@@ -31,7 +32,7 @@ pub struct CardProperties<L = HitFlags, D = VecMap<HitFlags, FrameTime>> {
     pub prevent_time_freeze_counter: bool,
     pub conceal: bool,
     pub dynamic_damage: bool,
-    pub tags: Vec<String>,
+    pub tags: Vec<Arc<str>>,
 }
 
 impl<L: Default, F: Default> Default for CardProperties<L, F> {
@@ -288,7 +289,12 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CardProperties {
                 .unwrap_or_default(),
             conceal: table.get("conceal").unwrap_or_default(),
             dynamic_damage: table.get("dynamic_damage").unwrap_or_default(),
-            tags: table.get("tags").unwrap_or_default(),
+            tags: table
+                .get::<_, Vec<String>>("tags")
+                .unwrap_or_default()
+                .into_iter()
+                .map(|tag| tag.into())
+                .collect(),
         })
     }
 }
@@ -351,7 +357,7 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for &CardProperties {
 
         table.set(
             "tags",
-            lua.create_sequence_from(self.tags.iter().map(String::as_str))?,
+            lua.create_sequence_from(self.tags.iter().map(|s| &**s))?,
         )?;
 
         Ok(rollback_mlua::Value::Table(table))

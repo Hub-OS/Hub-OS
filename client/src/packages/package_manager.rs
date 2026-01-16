@@ -189,6 +189,7 @@ impl<T: Package> PackageManager<T> {
         Some(PackageInfo {
             id: PackageId::new_blank(),
             hash: FileHash::ZERO,
+            tags: Default::default(),
             shareable: true,
             category: self.package_category,
             namespace,

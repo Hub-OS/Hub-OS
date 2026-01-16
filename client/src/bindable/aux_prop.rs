@@ -665,9 +665,11 @@ impl AuxProp {
                 AuxRequirement::CardTimeFreeze(time_freeze) => {
                     card.is_some_and(|card| card.time_freeze == *time_freeze)
                 }
-                AuxRequirement::CardTag(tag) => card.is_some_and(|card| card.tags.contains(tag)),
+                AuxRequirement::CardTag(tag) => {
+                    card.is_some_and(|card| card.tags.iter().any(|s| **s == *tag))
+                }
                 AuxRequirement::CardNotTag(tag) => {
-                    card.is_some_and(|card| !card.tags.contains(tag))
+                    card.is_some_and(|card| !card.tags.iter().any(|s| **s == *tag))
                 }
                 AuxRequirement::Statuses(flags) => {
                     status_director.applied_status_flags() & *flags == *flags
@@ -718,9 +720,11 @@ impl AuxProp {
                 AuxRequirement::CardTimeFreeze(time_freeze) => {
                     card.is_some_and(|card| card.time_freeze == *time_freeze)
                 }
-                AuxRequirement::CardTag(tag) => card.is_some_and(|card| card.tags.contains(tag)),
+                AuxRequirement::CardTag(tag) => {
+                    card.is_some_and(|card| card.tags.iter().any(|s| **s == *tag))
+                }
                 AuxRequirement::CardNotTag(tag) => {
-                    card.is_some_and(|card| !card.tags.contains(tag))
+                    card.is_some_and(|card| !card.tags.iter().any(|s| **s == *tag))
                 }
                 _ => continue,
             };

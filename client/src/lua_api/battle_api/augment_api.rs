@@ -8,6 +8,7 @@ use crate::battle::{Augment, BattleCallback, CardSelectButton, CardSelectButtonP
 use crate::bindable::{EntityId, GenerationalIndex};
 use crate::lua_api::battle_api::MOVEMENT_INPUT_FN;
 use crate::lua_api::helpers::inherit_metatable;
+use crate::resources::Globals;
 
 pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
     getter(lua_api, "id", |augment, _, _: ()| {
@@ -24,8 +25,30 @@ pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(create_entity_table(lua, id)?)
     });
 
-    getter(lua_api, "has_tag", |augment, _, tag: String| {
-        Ok(augment.tags.iter().any(|t| *t == tag))
+    lua_api.add_dynamic_function(AUGMENT_TABLE, "has_tag", |api_ctx, lua, params| {
+        let (table, tag): (rollback_mlua::Table, rollback_mlua::String) =
+            lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+        let index: GenerationalIndex = table.raw_get("#index")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let entities = &mut api_ctx.simulation.entities;
+
+        let player = entities
+            .query_one_mut::<&Player>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let augment = player.augments.get(index).ok_or_else(augment_not_found)?;
+
+        let globals = Globals::from_resources(api_ctx.game_io);
+
+        let ns = augment.namespace;
+        if let Some(package) = globals.augment_packages.package(ns, &augment.package_id) {
+            return lua.pack_multi(package.package_info.has_tag(tag.to_str()?));
+        }
+
+        lua.pack_multi(false)
     });
 
     lua_api.add_dynamic_function(AUGMENT_TABLE, "deleted", |api_ctx, lua, params| {

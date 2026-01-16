@@ -19,6 +19,7 @@ struct StatusMeta {
     blocks_actions: bool,
     blocks_mobility: bool,
     durations: Vec<FrameTime>,
+    tags: Vec<String>,
 }
 
 #[derive(Default, Clone)]
@@ -69,6 +70,8 @@ impl Package for StatusPackage {
                 return package;
             }
         };
+
+        package.package_info.tags = meta.tags.into_iter().map(|s| s.into()).collect();
 
         if meta.category != "status" {
             log::error!(

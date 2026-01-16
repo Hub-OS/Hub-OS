@@ -26,6 +26,7 @@ struct PlayerMeta {
     mugshot_animation_path: String,
     emotions_texture_path: String,
     emotions_animation_path: String,
+    tags: Vec<String>,
 }
 
 #[derive(Default, Clone)]
@@ -87,6 +88,8 @@ impl Package for PlayerPackage {
                 return package;
             }
         };
+
+        package.package_info.tags = meta.tags.into_iter().map(|s| s.into()).collect();
 
         if meta.category != "player" {
             log::error!(

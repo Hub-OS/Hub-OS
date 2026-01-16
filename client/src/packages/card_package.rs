@@ -147,6 +147,8 @@ impl Package for CardPackage {
             }
         };
 
+        package.package_info.tags = meta.tags.into_iter().map(|s| s.into()).collect();
+
         if meta.category != "card" {
             log::error!(
                 "Missing `category = \"card\"` in {:?}",
@@ -197,7 +199,7 @@ impl Package for CardPackage {
         package.card_properties.prevent_time_freeze_counter = meta.prevent_time_freeze_counter;
         package.card_properties.conceal = meta.conceal;
         package.card_properties.dynamic_damage = meta.dynamic_damage;
-        package.card_properties.tags = meta.tags;
+        package.card_properties.tags = package.package_info.tags.clone();
 
         // default for regular_allowed is based on card class
         let card_class = package.card_properties.card_class;
