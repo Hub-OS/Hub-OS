@@ -971,6 +971,11 @@ impl BattleState {
                 .unwrap();
 
             if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
+                // hide card charges from opponents
+                let allied_with_local = entity.team.is_allied(simulation.local_team);
+                player.card_charge.set_visible(allied_with_local);
+
+                // update sprites
                 player.card_charge.update_sprite(sprite_tree);
                 player.attack_charge.update_sprite(sprite_tree);
             }

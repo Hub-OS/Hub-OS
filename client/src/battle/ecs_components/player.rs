@@ -493,8 +493,8 @@ impl Player {
 
         // update AttackCharge structs
         let entities = &mut simulation.entities;
-        let (player, character) = entities
-            .query_one_mut::<(&mut Player, &mut Character)>(entity_id.into())
+        let (entity, player, character) = entities
+            .query_one_mut::<(&Entity, &mut Player, &mut Character)>(entity_id.into())
             .unwrap();
 
         if card_charge_time.is_none() {
@@ -548,7 +548,10 @@ impl Player {
         } else if card_charge_time.is_none() && input.was_just_pressed(Input::UseCard) {
             Some(false)
         } else {
-            player.card_charge.update(game_io, play_sfx)
+            player.card_charge.update(
+                game_io,
+                play_sfx && entity.team.is_allied(simulation.local_team),
+            )
         };
 
         let attack_fired = player.attack_charge.update(game_io, play_sfx);

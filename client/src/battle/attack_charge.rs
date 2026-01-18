@@ -5,6 +5,7 @@ use framework::prelude::{Color, GameIO, Vec2};
 
 #[derive(Clone)]
 pub struct AttackCharge {
+    visible: bool,
     charging: bool,
     charging_time: FrameTime,
     max_charge_time: FrameTime,
@@ -18,6 +19,7 @@ impl AttackCharge {
 
     pub fn new(assets: &LocalAssetManager, sprite_index: TreeIndex, animation_path: &str) -> Self {
         Self {
+            visible: true,
             charging: false,
             charging_time: 0,
             max_charge_time: 0,
@@ -54,6 +56,11 @@ impl AttackCharge {
 
     pub fn color(&self) -> Color {
         self.color
+    }
+
+    /// Overrides normal visibility, used to hide this sprite from opponents
+    pub fn set_visible(&mut self, visible: bool) {
+        self.visible = visible;
     }
 
     pub fn has_charge(&self) -> bool {
@@ -107,22 +114,26 @@ impl AttackCharge {
 
         self.animator.update();
 
-        if self.charging_time == Self::CHARGE_DELAY {
-            // charging
-            self.animator.set_state("CHARGING");
-            self.animator.set_loop_mode(AnimatorLoopMode::Loop);
-            sprite_node.set_color(Color::BLACK);
-            sprite_node.set_visible(true);
-        }
-
-        if self.charging_time == self.max_charge_time + Self::CHARGE_DELAY {
+        if self.charging_time >= self.max_charge_time + Self::CHARGE_DELAY {
             // charged
-            self.animator.set_state("CHARGED");
-            self.animator.set_loop_mode(AnimatorLoopMode::Loop);
+            if self.animator.current_state() != Some("CHARGED") {
+                self.animator.set_state("CHARGED");
+                self.animator.set_loop_mode(AnimatorLoopMode::Loop);
+            }
+
             sprite_node.set_color(self.color);
+        } else {
+            // charging
+            if self.animator.current_state() != Some("CHARGING") {
+                self.animator.set_state("CHARGING");
+                self.animator.set_loop_mode(AnimatorLoopMode::Loop);
+            }
+
+            sprite_node.set_color(Color::BLACK);
         }
 
         sprite_node.apply_animation(&self.animator);
+        sprite_node.set_visible(self.visible);
     }
 
     pub fn update(&mut self, game_io: &GameIO, play_sfx: bool) -> Option<bool> {
