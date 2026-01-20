@@ -62,7 +62,14 @@ impl LuaPluginInterface {
         let net_ref = RefCell::new(net_ref);
 
         let script_index = self.scripts.len();
-        self.scripts.push(Lua::new());
+        // we provide access to the debug libraries
+        // and allow server creators to decide which scripts are safe to use
+        self.scripts.push(unsafe {
+            Lua::unsafe_new_with(
+                mlua::StdLib::ALL_SAFE | mlua::StdLib::DEBUG,
+                Default::default(),
+            )
+        });
         self.all_scripts.push(script_index);
 
         let lua = self.scripts.last_mut().unwrap();

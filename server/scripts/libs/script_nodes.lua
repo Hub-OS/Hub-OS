@@ -449,18 +449,38 @@ end
 
 ---@param context table
 ---@param object Net.Object
+---@param err string
+local function prefix_node_context(context, object, err)
+  if context.area_id then
+    err = tostring(err) .. "\ncontext area id: " .. context.area_id
+  end
+
+  if object.id then
+    err = err .. "\nnode object id: " .. object.id
+  end
+
+  return err
+end
+
+---@param context table
+---@param object Net.Object
 function ScriptNodes:execute_node(context, object)
   local node_type = object.type:sub(#self.NODE_TYPE_PREFIX + 1)
   local callback = self._node_types[node_type:lower()]
 
   if not callback then
     if self:is_script_node(object) then
-      error('invalid script node: "' .. object.type .. '"')
+      error(prefix_node_context(context, object, 'invalid script node: "' .. object.type .. '"'))
     else
-      error('"' .. object.type .. '" is not implemented')
+      error(prefix_node_context(context, object, '"' .. object.type .. '" is not implemented'))
     end
   else
-    callback(context, object)
+    local function error_handler(err)
+      err = prefix_node_context(context, object, err)
+      printerr(debug.traceback(err, 2))
+    end
+
+    xpcall(callback, error_handler, context, object)
   end
 end
 
@@ -471,9 +491,14 @@ function ScriptNodes:execute_node_as(node_type, context, object)
   local callback = self._node_types[node_type:lower()]
 
   if not callback then
-    error('"' .. node_type .. '" is not implemented')
+    error(prefix_node_context(context, object, '"' .. node_type .. '" is not implemented'))
   else
-    callback(context, object)
+    local function error_handler(err)
+      err = prefix_node_context(context, object, err)
+      printerr(debug.traceback(err, 2))
+    end
+
+    xpcall(callback, error_handler, context, object)
   end
 end
 
