@@ -269,6 +269,18 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
+    getter::<&Entity, _>(lua_api, "auto_reserves", |entity: &Entity, lua, _: ()| {
+        lua.pack_multi(entity.auto_reserves_tiles)
+    });
+    setter(
+        lua_api,
+        "set_auto_reserve",
+        |entity: &mut Entity, _, share: Option<bool>| {
+            entity.auto_reserves_tiles = share.unwrap_or(true);
+            Ok(())
+        },
+    );
+
     getter::<&Entity, _>(
         lua_api,
         "ignoring_negative_tile_effects",
