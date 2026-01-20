@@ -376,7 +376,7 @@ function ScriptNodes:emit_inventory_update(player_id, item_id)
 end
 
 ---Adds a listener for money changes.
----@param callback fun(player_id: Net.ActorId, item_id: string?)
+---@param callback fun(player_id: Net.ActorId)
 function ScriptNodes:on_money_update(callback)
   self._money_callbacks[#self._money_callbacks + 1] = callback
 end
