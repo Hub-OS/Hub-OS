@@ -1,6 +1,6 @@
 use super::{Character, Entity, Living, Player};
-use crate::battle::{ActionQueue, BattleSimulation, EmotionWindow};
-use crate::bindable::AuxEffect;
+use crate::battle::{ActionQueue, BattleSimulation, EmotionWindow, TileState};
+use crate::bindable::{AuxEffect, AuxPropBodyParams};
 
 #[derive(Default, Clone)]
 pub struct HpDisplay {
@@ -51,6 +51,20 @@ impl HpDisplay {
             }
 
             // special test to avoid flickering with poison like effects
+            let body_params = AuxPropBodyParams {
+                emotion_window,
+                status_director: &living.status_director,
+                player,
+                character,
+                entity,
+                action_queue,
+                tile_state: simulation
+                    .field
+                    .tile_at_mut((entity.x, entity.y))
+                    .map(|tile| tile.state_index())
+                    .unwrap_or(TileState::VOID),
+            };
+
             let has_drain = living
                 .aux_props
                 .iter()
@@ -58,14 +72,7 @@ impl HpDisplay {
                 .any(|(_, aux_prop)| {
                     // clone to avoid modifying the original
                     let mut aux_prop = aux_prop.clone();
-                    aux_prop.process_body(
-                        emotion_window,
-                        &living.status_director,
-                        player,
-                        character,
-                        entity,
-                        action_queue,
-                    );
+                    aux_prop.process_body(&body_params);
                     aux_prop.process_health_calculations(living.health, living.max_health, 0);
 
                     aux_prop.passed_non_time_tests()

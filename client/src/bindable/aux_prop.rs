@@ -82,6 +82,8 @@ pub enum AuxRequirement {
     Element(Element),
     Emotion(Emotion),
     NegativeTileInteraction,
+    TileState(usize),
+    TileStateAbsent(usize),
     ContextStart,
     Action(ActionTypes),
     ChargeTime(Comparison, FrameTime),
@@ -138,6 +140,8 @@ impl AuxRequirement {
             AuxRequirement::Element(_)
             | AuxRequirement::Emotion(_)
             | AuxRequirement::NegativeTileInteraction
+            | AuxRequirement::TileState(_)
+            | AuxRequirement::TileStateAbsent(_)
             | AuxRequirement::ContextStart
             | AuxRequirement::Action(_)
             | AuxRequirement::ChargeTime(..)
@@ -194,6 +198,8 @@ impl AuxRequirement {
             "require_element" => AuxRequirement::Element(table.get(2)?),
             "require_emotion" => AuxRequirement::Emotion(table.get(2)?),
             "require_negative_tile_interaction" => AuxRequirement::NegativeTileInteraction,
+            "require_tile_state" => AuxRequirement::TileState(table.get(2)?),
+            "require_tile_state_absent" => AuxRequirement::TileStateAbsent(table.get(2)?),
             "require_action" => AuxRequirement::Action(
                 table
                     .get::<_, Option<ActionTypes>>(2)?
@@ -451,6 +457,16 @@ struct RequirementState {
     tested: bool,
 }
 
+pub struct AuxPropBodyParams<'a> {
+    pub emotion_window: Option<&'a EmotionWindow>,
+    pub status_director: &'a StatusDirector,
+    pub player: Option<&'a Player>,
+    pub character: Option<&'a Character>,
+    pub entity: &'a Entity,
+    pub action_queue: Option<&'a ActionQueue>,
+    pub tile_state: usize,
+}
+
 #[derive(Clone)]
 pub struct AuxProp {
     requirements: Vec<(AuxRequirement, RequirementState)>,
@@ -599,25 +615,31 @@ impl AuxProp {
         }
     }
 
-    pub fn process_body(
-        &mut self,
-        emotion_window: Option<&EmotionWindow>,
-        status_director: &StatusDirector,
-        player: Option<&Player>,
-        character: Option<&Character>,
-        entity: &Entity,
-        action_queue: Option<&ActionQueue>,
-    ) {
+    pub fn process_body(&mut self, params: &AuxPropBodyParams<'_>) {
+        let AuxPropBodyParams {
+            emotion_window,
+            status_director,
+            player,
+            character,
+            entity,
+            action_queue,
+            tile_state,
+        } = params;
+
         let emotion = emotion_window.map(|emotion_window| emotion_window.emotion());
         let card = character.and_then(|character| character.cards.last());
 
         for (requirement, state) in &mut self.requirements {
             let result = match requirement {
-                AuxRequirement::Element(elem) => *elem == entity.element,
+                AuxRequirement::Element(elem) => *elem == params.entity.element,
                 AuxRequirement::Emotion(emot) => {
                     emotion.is_some_and(|emotion| emot == emotion) || *emot == Emotion::default()
                 }
                 AuxRequirement::NegativeTileInteraction => !entity.ignore_negative_tile_effects,
+                AuxRequirement::TileState(required_tile_state) => tile_state == required_tile_state,
+                AuxRequirement::TileStateAbsent(required_tile_state) => {
+                    tile_state != required_tile_state
+                }
                 AuxRequirement::ChargeTime(cmp, time) => player.is_some_and(|player| {
                     let max_charge_time = player.attack_charge.max_charge_time();
                     let charge_time = player.attack_charge.charging_time();

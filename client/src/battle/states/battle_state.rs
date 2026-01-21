@@ -622,17 +622,25 @@ impl BattleState {
 
             // fill requirements on pre hit aux props
             let aux_props = living.aux_props.values_mut();
+
+            let body_params = AuxPropBodyParams {
+                emotion_window,
+                status_director: &living.status_director,
+                player,
+                character,
+                entity,
+                action_queue,
+                tile_state: simulation
+                    .field
+                    .tile_at_mut((entity.x, entity.y))
+                    .map(|tile| tile.state_index())
+                    .unwrap_or(TileState::VOID),
+            };
+
             for aux_prop in aux_props.filter(|a| a.effect().executes_pre_hit()) {
                 let time_frozen = simulation.time_freeze_tracker.time_is_frozen();
                 aux_prop.process_time(time_frozen, simulation.battle_time);
-                aux_prop.process_body(
-                    emotion_window,
-                    &living.status_director,
-                    player,
-                    character,
-                    entity,
-                    action_queue,
-                );
+                aux_prop.process_body(&body_params);
 
                 for (_, hit_props) in &living.pending_defense {
                     aux_prop.process_hit(entity, living.health, living.max_health, hit_props);

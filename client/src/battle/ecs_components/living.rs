@@ -179,19 +179,26 @@ impl Living {
             .map(|(hit_props, _)| hit_props.damage)
             .sum();
 
+        let body_params = AuxPropBodyParams {
+            emotion_window,
+            status_director: &living.status_director,
+            player,
+            character,
+            entity,
+            action_queue,
+            tile_state: simulation
+                .field
+                .tile_at_mut((entity.x, entity.y))
+                .map(|tile| tile.state_index())
+                .unwrap_or(TileState::VOID),
+        };
+
         for aux_prop in living.aux_props.values_mut() {
             // using battle_time as auxprops can be frame temporary
             // thus can't depend on their own timers
             let time_frozen = simulation.time_freeze_tracker.time_is_frozen();
             aux_prop.process_time(time_frozen, simulation.battle_time);
-            aux_prop.process_body(
-                emotion_window,
-                &living.status_director,
-                player,
-                character,
-                entity,
-                action_queue,
-            );
+            aux_prop.process_body(&body_params);
 
             for (hit_props, _) in &hit_prop_list {
                 aux_prop.process_hit(entity, living.health, living.max_health, hit_props);
@@ -656,6 +663,20 @@ impl Living {
                 return None;
             };
 
+            let body_params = AuxPropBodyParams {
+                emotion_window,
+                status_director: &living.status_director,
+                player,
+                character,
+                entity,
+                action_queue,
+                tile_state: simulation
+                    .field
+                    .tile_at_mut((entity.x, entity.y))
+                    .map(|tile| tile.state_index())
+                    .unwrap_or(TileState::VOID),
+            };
+
             for aux_prop in living.aux_props.values_mut() {
                 if !aux_prop.effect().resolves_action() || aux_prop.activated() {
                     // skip unrelated aux_props
@@ -663,14 +684,7 @@ impl Living {
                     continue;
                 }
 
-                aux_prop.process_body(
-                    emotion_window,
-                    &living.status_director,
-                    player,
-                    character,
-                    entity,
-                    action_queue,
-                );
+                aux_prop.process_body(&body_params);
                 aux_prop.process_card(Some(&action.properties));
 
                 if !aux_prop.passed_all_tests() {
@@ -927,15 +941,22 @@ impl Living {
             .collect();
         aux_props.sort_by_key(|aux_prop| aux_prop.priority());
 
+        let body_params = AuxPropBodyParams {
+            emotion_window,
+            status_director: &living.status_director,
+            player,
+            character,
+            entity,
+            action_queue: Some(action_queue),
+            tile_state: simulation
+                .field
+                .tile_at_mut((entity.x, entity.y))
+                .map(|tile| tile.state_index())
+                .unwrap_or(TileState::VOID),
+        };
+
         for aux_prop in aux_props {
-            aux_prop.process_body(
-                emotion_window,
-                &living.status_director,
-                player,
-                character,
-                entity,
-                Some(action_queue),
-            );
+            aux_prop.process_body(&body_params);
 
             if !aux_prop.passed_all_tests() {
                 continue;
