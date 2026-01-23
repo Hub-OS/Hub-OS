@@ -1,5 +1,5 @@
-use super::lua_errors::create_area_error;
 use super::LuaApi;
+use super::lua_errors::create_area_error;
 use crate::net::map::{MapObject, MapObjectData, MapObjectSpecification, Tile};
 use structures::shapes::{Ellipse, Polygon, Rect, Shape};
 
@@ -82,7 +82,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             name: name.unwrap_or_default(),
             class: class.unwrap_or_default(),
             visible: visible.unwrap_or(true),
-            private: private.unwrap_or(true),
+            private: private.unwrap_or(false),
             x: x.unwrap_or_default(),
             y: y.unwrap_or_default(),
             layer: layer.unwrap_or_default(),
@@ -332,36 +332,38 @@ fn parse_object_data(data_table: mlua::Table) -> mlua::Result<MapObjectData> {
     let object_type: String = data_table.get("type")?;
 
     let data = match object_type.as_str() {
-    "point" => MapObjectData::Point,
-    "rect" => MapObjectData::Rect,
-    "ellipse" => MapObjectData::Ellipse,
-    "polyline" => {
-      let points = extract_points_from_table(data_table)?;
+        "point" => MapObjectData::Point,
+        "rect" => MapObjectData::Rect,
+        "ellipse" => MapObjectData::Ellipse,
+        "polyline" => {
+            let points = extract_points_from_table(data_table)?;
 
-      MapObjectData::Polyline { points }
-    }
-    "polygon" => {
-      let points = extract_points_from_table(data_table)?;
+            MapObjectData::Polyline { points }
+        }
+        "polygon" => {
+            let points = extract_points_from_table(data_table)?;
 
-      MapObjectData::Polygon { points }
-    }
-    "tile" => {
-      let flipped_horizontally: Option<bool> = data_table.get("flipped_horizontally")?;
-      let flipped_vertically: Option<bool> = data_table.get("flipped_vertically")?;
+            MapObjectData::Polygon { points }
+        }
+        "tile" => {
+            let flipped_horizontally: Option<bool> = data_table.get("flipped_horizontally")?;
+            let flipped_vertically: Option<bool> = data_table.get("flipped_vertically")?;
 
-      let tile = Tile {
-        gid: data_table.get("gid")?,
-        flipped_horizontally: flipped_horizontally.unwrap_or_default(),
-        flipped_vertically: flipped_vertically.unwrap_or_default(),
-        flipped_anti_diagonally: false,
-      };
+            let tile = Tile {
+                gid: data_table.get("gid")?,
+                flipped_horizontally: flipped_horizontally.unwrap_or_default(),
+                flipped_vertically: flipped_vertically.unwrap_or_default(),
+                flipped_anti_diagonally: false,
+            };
 
-      MapObjectData::TileObject { tile }
-    }
-    _ => return Err(mlua::Error::RuntimeError(String::from(
-      "Invalid or missing type in data param. Accepted values: \"point\", \"rect\", \"ellipse\", \"polyline\", \"polygon\", \"tile\"",
-    ))),
-  };
+            MapObjectData::TileObject { tile }
+        }
+        _ => {
+            return Err(mlua::Error::RuntimeError(String::from(
+                "Invalid or missing type in data param. Accepted values: \"point\", \"rect\", \"ellipse\", \"polyline\", \"polygon\", \"tile\"",
+            )));
+        }
+    };
 
     Ok(data)
 }
