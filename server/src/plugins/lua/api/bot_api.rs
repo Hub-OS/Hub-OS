@@ -1,8 +1,7 @@
-use packets::structures::ActorId;
-
-use super::lua_errors::{create_area_error, create_bot_error};
 use super::LuaApi;
+use super::lua_errors::{create_area_error, create_bot_error};
 use crate::net::{Actor, Direction};
+use packets::structures::ActorId;
 
 pub fn inject_dynamic(lua_api: &mut LuaApi) {
     lua_api.add_dynamic_function("Net", "list_bots", |api_ctx, lua, params| {
@@ -39,6 +38,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let texture_path: Option<String> = table.get("texture_path")?;
         let animation_path: Option<String> = table.get("animation_path")?;
         let animation: Option<String> = table.get("animation")?;
+        let loop_animation: Option<bool> = table.get("loop_animation")?;
         let x: Option<f32> = table.get("x")?;
         let y: Option<f32> = table.get("y")?;
         let z: Option<f32> = table.get("z")?;
@@ -76,7 +76,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
                 rotation: 0.0,
                 map_color: (0, 0, 0, 0),
                 current_animation: animation,
-                loop_animation: false,
+                loop_animation: loop_animation.unwrap_or(false),
                 solid: solid.unwrap_or_default(),
                 child_sprites: Vec::new(),
             };
