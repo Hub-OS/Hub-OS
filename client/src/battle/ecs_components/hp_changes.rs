@@ -180,9 +180,12 @@ impl HpParticle {
             spawned = true;
         };
 
-        for (_, (entity, changes)) in entities.query_mut::<(&Entity, &mut HpChanges)>() {
+        for (id, (entity, changes)) in entities.query_mut::<(&Entity, &mut HpChanges)>() {
             // only spawn particles for entities that are visible
-            if entity.on_field && blind_filter.is_none_or(|team| entity.team.is_allied(team)) {
+            if entity.on_field
+                && (blind_filter.is_none_or(|team| entity.team.is_allied(team))
+                    || EntityId::from(id) == simulation.local_player_id)
+            {
                 try_spawn(entity, HpChangeSource::Hit, changes.hit);
                 try_spawn(entity, HpChangeSource::Heal, changes.heal);
                 try_spawn(entity, HpChangeSource::Drain, changes.drain);

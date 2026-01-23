@@ -934,7 +934,9 @@ impl BattleSimulation {
 
         // filter characters + obstacles for blindness
         for (id, entity) in self.entities.query_mut::<hecs::With<&Entity, &Living>>() {
-            if blind_filter.is_some_and(|team| !entity.team.is_allied(team)) {
+            if blind_filter.is_some_and(|team| !entity.team.is_allied(team))
+                && EntityId::from(id) != self.local_player_id
+            {
                 continue;
             }
 
@@ -1049,7 +1051,9 @@ impl BattleSimulation {
                     continue;
                 }
 
-                if blind_filter.is_some_and(|team| !entity.team.is_allied(team)) {
+                if blind_filter.is_some_and(|team| !entity.team.is_allied(team))
+                    && EntityId::from(id) != self.local_player_id
+                {
                     // blindness filter
                     continue;
                 }
@@ -1083,7 +1087,7 @@ impl BattleSimulation {
             index_text.style.color = Color::GREEN;
             index_text.style.shadow_color = Color::BLACK;
 
-            for (_, (entity, player)) in self.entities.query_mut::<(&Entity, &Player)>() {
+            for (id, (entity, player)) in self.entities.query_mut::<(&Entity, &Player)>() {
                 if !entity.on_field {
                     continue;
                 }
@@ -1096,7 +1100,9 @@ impl BattleSimulation {
                     continue;
                 }
 
-                if blind_filter.is_some_and(|team| !entity.team.is_allied(team)) {
+                if blind_filter.is_some_and(|team| !entity.team.is_allied(team))
+                    && EntityId::from(id) != self.local_player_id
+                {
                     // blindness filter
                     continue;
                 }

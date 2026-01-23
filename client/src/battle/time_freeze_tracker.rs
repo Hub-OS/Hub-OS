@@ -752,7 +752,9 @@ impl TimeFreezeTracker {
             return;
         };
 
-        if blind_filter.is_some_and(|team| !team.is_allied(tracker.team)) {
+        if blind_filter.is_some_and(|team| !team.is_allied(tracker.team))
+            && tracker.entity != simulation.local_player_id
+        {
             return;
         }
 
