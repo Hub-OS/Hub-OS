@@ -63,6 +63,10 @@ function Async.await_all(promises)
   return values
 end
 
+local function error_handler(err)
+  printerr(debug.traceback(err, 2))
+end
+
 function Async.create_promise(task)
   local listeners = {}
   local resolved = false
@@ -73,13 +77,7 @@ function Async.create_promise(task)
     value = { ... }
 
     for _, listener in ipairs(listeners) do
-      local success, err = pcall(function()
-        listener(table.unpack(value))
-      end)
-
-      if not success then
-        printerr("runtime error: " .. tostring(err))
-      end
+      xpcall(listener, error_handler, table.unpack(value))
     end
   end
 
@@ -101,12 +99,10 @@ end
 function Async.create_scope(callback)
   return Async.create_promise(function(resolve)
     local co = coroutine.create(function()
-      local result = table.pack(pcall(callback))
+      local result = table.pack(xpcall(callback, error_handler))
 
       if result[1] then
         resolve(table.unpack(result, 2))
-      else
-        printerr(result[2])
       end
     end)
 
