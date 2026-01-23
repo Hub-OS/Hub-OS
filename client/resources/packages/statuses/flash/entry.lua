@@ -12,23 +12,40 @@ function status_init(status)
   local entity_sprite = entity:sprite()
 
   local removed_intangible_rule = false
+  local reapplying_intangible_rule = false
 
-  local intangible_rule = IntangibleRule.new()
-  intangible_rule.duration = status:remaining_time()
-  intangible_rule.on_deactivate_func = function()
-    removed_intangible_rule = true
-    entity:remove_status(Hit.Flash)
+  local function apply_rule()
+    removed_intangible_rule = false
+
+    local intangible_rule = IntangibleRule.new()
+    intangible_rule.duration = status:remaining_time()
+    intangible_rule.on_deactivate_func = function()
+      if not reapplying_intangible_rule then
+        removed_intangible_rule = true
+        entity:remove_status(Hit.Flash)
+      end
+    end
+    entity:set_intangible(true, intangible_rule)
   end
-  entity:set_intangible(true, intangible_rule)
+
+  apply_rule()
 
   -- animation
   local component = entity:create_component(Lifetime.ActiveBattle)
   local time = 0
+  local prev_remaining_time = status:remaining_time()
 
   component.on_update_func = function()
     if time // 2 % 2 == 1 then
       entity_sprite:set_color_mode(ColorMode.Multiply)
       entity_sprite:set_color(COLOR)
+    end
+
+    local remaining_time = status:remaining_time()
+
+    if remaining_time - prev_remaining_time ~= 1 and remaining_time ~= 0 then
+      reapplying_intangible_rule = true
+      apply_rule()
     end
 
     time = time + 1
