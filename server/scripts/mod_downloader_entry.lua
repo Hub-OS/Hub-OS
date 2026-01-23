@@ -6,7 +6,7 @@ local package_ids = {
   "BattleNetwork.Assets",
 }
 
-ModDownloader.download_once(package_ids)
+ModDownloader.maintain(package_ids)
 
 Net:on("player_connect", function(event)
   -- preload mods on join
