@@ -5,6 +5,7 @@ use framework::prelude::*;
 
 pub struct TextboxQuiz {
     message: String,
+    valid_options: [bool; 3],
     selection: usize,
     complete: bool,
     callback: Option<Box<dyn FnOnce(usize)>>,
@@ -16,8 +17,9 @@ impl TextboxQuiz {
     pub fn new(options: &[&str; 3], callback: impl FnOnce(usize) + 'static) -> Self {
         Self {
             message: format!("\x02  {}\n  {}\n  {}", options[0], options[1], options[2]),
-            complete: false,
+            valid_options: options.map(|s| !s.is_empty()),
             selection: 0,
+            complete: false,
             callback: Some(Box::new(callback)),
             cursor: None,
             input_tracker: UiInputTracker::new(),
@@ -43,19 +45,25 @@ impl TextboxQuiz {
 
         let old_selection = self.selection;
 
-        if self.input_tracker.pulsed(Input::Up) {
-            if self.selection == 0 {
-                self.selection = 2;
-            } else {
-                self.selection -= 1;
+        for _ in 0..2 {
+            if self.input_tracker.pulsed(Input::Up) {
+                if self.selection == 0 {
+                    self.selection = 2;
+                } else {
+                    self.selection -= 1;
+                }
             }
-        }
 
-        if self.input_tracker.pulsed(Input::Down) {
-            if self.selection == 2 {
-                self.selection = 0;
-            } else {
-                self.selection += 1;
+            if self.input_tracker.pulsed(Input::Down) {
+                if self.selection == 2 {
+                    self.selection = 0;
+                } else {
+                    self.selection += 1;
+                }
+            }
+
+            if self.valid_options.get(self.selection) == Some(&true) {
+                break;
             }
         }
 
