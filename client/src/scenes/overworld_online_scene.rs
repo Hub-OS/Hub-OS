@@ -50,8 +50,8 @@ pub struct OverworldOnlineScene {
     assets: ServerAssetManager,
     actor_id_map: BiMap<ActorId, hecs::Entity>,
     sprite_id_map: HashMap<SpriteId, hecs::Entity>,
-    excluded_actors: Vec<ActorId>,
-    excluded_objects: Vec<u32>,
+    excluded_actors: HashMap<ActorId, usize>,
+    excluded_objects: HashMap<u32, usize>,
     doorstop_key: Option<TextboxDoorstopKey>,
     encounter_packages: HashMap<String, PackageId>, // server_path -> package_id
     loaded_zips: HashMap<String, FileHash>,         // server_path -> hash
@@ -118,8 +118,8 @@ impl OverworldOnlineScene {
             assets,
             actor_id_map: BiMap::new(),
             sprite_id_map: HashMap::new(),
-            excluded_actors: Vec::new(),
-            excluded_objects: Vec::new(),
+            excluded_actors: Default::default(),
+            excluded_objects: Default::default(),
             doorstop_key: None,
             encounter_packages: HashMap::new(),
             loaded_zips: HashMap::new(),
@@ -526,7 +526,7 @@ impl OverworldOnlineScene {
                 let data = self.assets.text(&map_path);
 
                 if let Some(mut map) = load_map(game_io, &self.assets, &data) {
-                    for id in &self.excluded_objects {
+                    for id in self.excluded_objects.keys() {
                         let Some(entity) = map.get_object_entity(*id) else {
                             continue;
                         };
@@ -606,49 +606,53 @@ impl OverworldOnlineScene {
                 }
             }
             ServerPacket::ExcludeObject { id } => {
-                if !self.excluded_objects.contains(&id) {
-                    let map = &mut self.area.map;
+                let exclude_count = self.excluded_objects.entry(id).or_default();
+                *exclude_count += 1;
 
-                    if let Some(entity) = map.get_object_entity(id) {
-                        let object_entities = map.object_entities_mut();
+                let map = &mut self.area.map;
 
-                        Excluded::increment(object_entities, entity);
-                    }
-
-                    self.excluded_objects.push(id);
+                if *exclude_count == 1
+                    && let Some(entity) = map.get_object_entity(id)
+                {
+                    Excluded::increment(map.object_entities_mut(), entity);
                 }
             }
             ServerPacket::IncludeObject { id } => {
-                if let Some(index) = self.excluded_objects.iter().position(|v| *v == id) {
+                let exclude_count = self.excluded_objects.entry(id).or_insert(1);
+                *exclude_count -= 1;
+
+                if *exclude_count == 0 {
                     let map = &mut self.area.map;
 
                     if let Some(entity) = map.get_object_entity(id) {
-                        let object_entities = map.object_entities_mut();
-
-                        Excluded::decrement(object_entities, entity);
+                        Excluded::decrement(map.object_entities_mut(), entity);
                     }
 
-                    self.excluded_objects.remove(index);
+                    self.excluded_objects.remove(&id);
                 }
             }
             ServerPacket::ExcludeActor { actor_id } => {
-                if !self.excluded_actors.contains(&actor_id) {
-                    if let Some(entity) = self.actor_id_map.get_by_left(&actor_id) {
-                        let entities = &mut self.area.entities;
-                        Excluded::increment(entities, *entity);
-                    }
+                let exclude_count = self.excluded_actors.entry(actor_id).or_default();
+                *exclude_count += 1;
 
-                    self.excluded_actors.push(actor_id);
+                if *exclude_count == 1
+                    && let Some(entity) = self.actor_id_map.get_by_left(&actor_id)
+                {
+                    let entities = &mut self.area.entities;
+                    Excluded::increment(entities, *entity);
                 }
             }
             ServerPacket::IncludeActor { actor_id } => {
-                if let Some(index) = self.excluded_actors.iter().position(|v| *v == actor_id) {
+                let exclude_count = self.excluded_actors.entry(actor_id).or_insert(1);
+                *exclude_count -= 1;
+
+                if *exclude_count == 0 {
                     if let Some(entity) = self.actor_id_map.get_by_left(&actor_id) {
                         let entities = &mut self.area.entities;
                         Excluded::decrement(entities, *entity);
                     }
 
-                    self.excluded_actors.remove(index);
+                    self.excluded_actors.remove(&actor_id);
                 }
             }
             ServerPacket::MoveCamera {
@@ -1224,9 +1228,9 @@ impl OverworldOnlineScene {
                         .spawn_player_actor(game_io, texture, animator, position);
 
                     // mark as excluded as it was marked before spawn
-                    if self.excluded_actors.contains(&actor_id) {
+                    if self.excluded_actors.contains_key(&actor_id) {
                         let entities = &mut self.area.entities;
-                        Excluded::increment(entities, entity)
+                        Excluded::increment(entities, entity);
                     }
 
                     entity
@@ -1277,7 +1281,7 @@ impl OverworldOnlineScene {
                         }
                     }
 
-                    if warp_in && !self.excluded_actors.contains(&actor_id) {
+                    if warp_in && !self.excluded_actors.contains_key(&actor_id) {
                         // create warp effect
                         WarpEffect::warp_in(
                             game_io,
@@ -1339,7 +1343,7 @@ impl OverworldOnlineScene {
                         if animating_properties {
                             interpolator.force_position(position)
                         } else if interpolator.is_movement_impossible(&self.area.map, position) {
-                            if !self.excluded_actors.contains(&actor_id) {
+                            if !self.excluded_actors.contains_key(&actor_id) {
                                 interpolator.force_position(position);
 
                                 WarpEffect::warp_full(

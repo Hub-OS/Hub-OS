@@ -40,7 +40,8 @@ pub fn system_player_interaction(game_io: &GameIO, area: &mut OverworldArea) {
     }
 
     // test actors
-    let query = entities.query_mut::<(&Vec3, &ActorCollider, &InteractableActor)>();
+    let query = entities
+        .query_mut::<hecs::Without<(&Vec3, &ActorCollider, &InteractableActor), &Excluded>>();
 
     for (_, (position, &ActorCollider { radius, .. }, InteractableActor(id))) in query {
         if (interaction_point.z - position.z).abs() >= 1.0 {

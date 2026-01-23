@@ -1,4 +1,5 @@
-use crate::overworld::{components::*, Map, ObjectData, OverworldArea};
+use crate::overworld::components::*;
+use crate::overworld::{Map, ObjectData, OverworldArea};
 use crate::render::FrameTime;
 use framework::prelude::{GameIO, Vec3Swizzles};
 
