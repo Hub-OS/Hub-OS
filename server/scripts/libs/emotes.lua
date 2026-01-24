@@ -14,6 +14,9 @@ local Emotes = {
 
   PVP = "PVP SWORDS BATTLE",
   GG = "GG",
+  GREEN_CHECK = "YES CHECK",
+  RED_X = "NO RED CROSS X",
+  POPCORN_AND_SODA = "POPCORN AND SODA",
   COB = "CORN COB POG",
   WAVE = "WAVE HELLO GOODBYE",
   THUMBS_UP = "THUMBS UP",
@@ -37,8 +40,8 @@ Emotes.MAD = Emotes.ANGRY
 Emotes.SAD = Emotes.CRYING
 Emotes.KEY = ""
 Emotes.LOL = Emotes.CRY_LAUGHING
-Emotes.YES = Emotes.THUMBS_UP
-Emotes.NO = Emotes.THUMBS_DOWN
+Emotes.YES = Emotes.GREEN_CHECK
+Emotes.NO = Emotes.RED_X
 Emotes.SPIRIT = Emotes.EVIL_GRIN
 
 return Emotes
