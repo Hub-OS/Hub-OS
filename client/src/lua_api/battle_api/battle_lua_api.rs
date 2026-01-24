@@ -403,7 +403,13 @@ impl BattleLuaApi {
 
         // call the function
         if let Err(err) = wrapped_fn(lua) {
-            log::error!("{err}");
+            let package_id = get_source_package_id(lua);
+
+            if package_id.is_empty() {
+                log::error!("{err}");
+            } else {
+                log::error!("package: {package_id}\n{err}");
+            }
         }
 
         // cleanup
