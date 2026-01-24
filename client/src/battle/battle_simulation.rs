@@ -250,8 +250,6 @@ impl BattleSimulation {
             self.local_team = entity.team;
             self.statistics.health = living.health;
         }
-
-        self.statistics.calculate_score();
     }
 
     pub fn handle_local_signals(&mut self, local_index: usize, resources: &SharedBattleResources) {

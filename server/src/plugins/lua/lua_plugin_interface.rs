@@ -840,7 +840,6 @@ impl PluginInterface for LuaPluginInterface {
                 event.set("player_id", player_id)?;
                 event.set("won", battle_stats.won)?;
                 event.set("health", battle_stats.health)?;
-                event.set("score", battle_stats.score)?;
                 event.set("time", battle_stats.time)?;
                 event.set("ran", battle_stats.ran)?;
                 event.set("emotion", battle_stats.emotion.as_str())?;
