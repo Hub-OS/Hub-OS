@@ -2581,7 +2581,7 @@ impl Net {
         });
     }
 
-    pub fn delete_sprite(&mut self, sprite_id: SpriteId) {
+    pub fn remove_sprite(&mut self, sprite_id: SpriteId) {
         self.message_sprite_aware(sprite_id, |sprite_id| ServerPacket::SpriteDeleted {
             sprite_id,
         });

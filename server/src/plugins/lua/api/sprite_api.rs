@@ -97,11 +97,11 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         lua.pack_multi(())
     });
 
-    lua_api.add_dynamic_function("Net", "delete_sprite", |api_ctx, lua, params| {
+    lua_api.add_dynamic_function("Net", "remove_sprite", |api_ctx, lua, params| {
         let sprite_id: SpriteId = lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
-        net.delete_sprite(sprite_id);
+        net.remove_sprite(sprite_id);
 
         lua.pack_multi(())
     });
