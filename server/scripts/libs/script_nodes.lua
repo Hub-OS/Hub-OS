@@ -136,17 +136,21 @@ function ScriptNodes:new_empty()
     variables:clear_area(area_id)
   end)
 
-  instancer:on_instance_removed(function(instance_id)
-    variables:clear_instance(instance_id)
+  instancer:emitter():on("instance_removed", function(event)
+    variables:clear_instance(event.instance_id)
   end)
 
-  instancer:on_area_remove(function(area_id)
-    for _, bot_id in ipairs(Net.list_bots(area_id)) do
+  instancer:emitter():on("area_instanced", function(event)
+    s:load(event.area_id)
+  end)
+
+  instancer:emitter():on("area_removed", function(event)
+    for _, bot_id in ipairs(Net.list_bots(event.area_id)) do
       s:emit_bot_remove(bot_id)
       Net.remove_bot(bot_id)
     end
 
-    s:unload(area_id)
+    s:unload(event.area_id)
   end)
 
   return s
@@ -1171,9 +1175,8 @@ function ScriptNodes:implement_area_api()
   self:implement_node("transfer to instance", function(context, object)
     local template_id = object.custom_properties.Area or context.area_id
     local instancer = self:instancer()
-    local instance_id = instancer:create_instance()
+    local instance_id = instancer:create_instance({ auto_remove = true })
     local new_area_id = instancer:clone_area_to_instance(instance_id, template_id) --[[@as string]]
-    self:load(new_area_id)
 
     local warp_in, x, y, z, direction = self:resolve_teleport_properties(object, new_area_id)
 

@@ -8,12 +8,7 @@ local TRANSFER_EVENTS = {
 ---Used to create and track instances, which contains isolated copies of areas.
 ---@class Instancer
 ---@field private _instances table<string, { areas: table<string>, player_list: Net.ActorId[] }>
----@field private _instance_create_callbacks fun(instance_id: string)[]
----@field private _instance_remove_callbacks fun(instance_id: string)[]
----@field private _area_instanced_callbacks fun(area_id: string)[]
----@field private _area_remove_callbacks fun(area_id: string)[]
----@field private _player_join_callbacks fun(player_id: Net.ActorId, area_id: string, previous_area_id: string?)[]
----@field private _player_leave_callbacks fun(player_id: Net.ActorId, previous_area_id: string?)[]
+---@field private _emitter Net.EventEmitter
 ---@field private _transfer_listeners fun()[]
 local Instancer = {
   INSTANCE_MARKER = ";instance:",
@@ -22,18 +17,12 @@ local Instancer = {
 function Instancer:new()
   ---@type table<string, { areas: table<string>, player_list: Net.ActorId[] }>
   local instances = {}
+  local emitter = Net.EventEmitter.new()
   local transfer_listeners = {}
-  local player_join_callbacks = {}
-  local player_leave_callbacks = {}
 
   local instancer = {
     _instances = instances,
-    _instance_create_callbacks = {},
-    _instance_remove_callbacks = {},
-    _area_instanced_callbacks = {},
-    _area_remove_callbacks = {},
-    _player_join_callbacks = player_join_callbacks,
-    _player_leave_callbacks = player_leave_callbacks,
+    _emitter = emitter,
     _transfer_listeners = transfer_listeners,
   }
   setmetatable(instancer, self)
@@ -85,13 +74,10 @@ function Instancer:new()
           end
         end
 
-        if #instance.player_list == 0 then
-          instancer:remove_instance(previous_instance_id)
-        end
-
-        for _, callback in ipairs(player_leave_callbacks) do
-          callback(event.player_id, previous_area)
-        end
+        emitter:emit("player_leave", {
+          player_id = event.player_id,
+          area_id = previous_area
+        })
       end
     end
 
@@ -102,9 +88,11 @@ function Instancer:new()
       if instance then
         instance.player_list[#instance.player_list + 1] = event.player_id
 
-        for _, callback in ipairs(player_join_callbacks) do
-          callback(event.player_id, current_area --[[@as string]], previous_area)
-        end
+        emitter:emit("player_join", {
+          player_id = event.player_id,
+          area_id = current_area,
+          previous_area_id = previous_area,
+        })
       end
     end
   end
@@ -117,6 +105,20 @@ function Instancer:new()
   end
 
   return instancer
+end
+
+---Events:
+--- - "instance_created", { instance_id }
+--- - "area_instanced", { area_id }
+--- - "area_removed", { area_id }
+---   - Called for each area before "instance_removed" and before deleting the area
+--- - "instance_removed", { instance_id }
+--- - "player_join", { player_id, area_id }
+---   - Called when a player joins an instance
+--- - "player_leave", { player_id, area_id, prev_area_id? }
+---   - Called when a player leaves an instance
+function Instancer:emitter()
+  return self._emitter
 end
 
 ---Reads the instance id from the area id.
@@ -152,37 +154,36 @@ function Instancer:instance_player_list(instance_id)
   end
 end
 
----Adds a player join listener, called when a player is transferred to an instance
----@param callback fun(player_id: Net.ActorId, area_id: string, previous_area_id: string)
-function Instancer:on_player_join(callback)
-  self._player_join_callbacks[#self._player_join_callbacks + 1] = callback
-end
-
----Adds a player leave listener, called when a player disconnects or is transferred out of an instance
----@param callback fun(player_id: Net.ActorId, previous_area_id: string)
-function Instancer:on_player_leave(callback)
-  self._player_leave_callbacks[#self._player_leave_callbacks + 1] = callback
-end
+---@class Instancer.InstanceOptions
+---@field auto_remove? boolean false by default, tracking may be innaccurate, areas may stay until restart if a player never joins.
 
 ---Used to create an instance, which contains isolated copies of areas.
-function Instancer:create_instance()
+---@param options Instancer.InstanceOptions?
+function Instancer:create_instance(options)
   local instance_id = tostring(Net.system_random())
   self._instances[instance_id] = {
     areas = {},
     player_list = {}
   }
 
-  for _, callback in ipairs(self._instance_create_callbacks) do
-    callback(instance_id)
+  self._emitter:emit("instance_created", { instance_id = instance_id })
+
+  if options and options.auto_remove then
+    local function cleanup()
+      local instance = self._instances[instance_id]
+
+      if not instance or #instance.player_list > 0 then
+        return
+      end
+
+      self._emitter:remove_listener("player_leave", cleanup)
+      self:remove_instance(instance_id)
+    end
+
+    self._emitter:on("player_leave", cleanup)
   end
 
   return instance_id
-end
-
----Adds :create_instance() listener
----@param callback fun(instance_id: string)
-function Instancer:on_instance_created(callback)
-  self._instance_create_callbacks[#self._instance_create_callbacks + 1] = callback
 end
 
 ---Calls :remove_area() for every area in the instance.
@@ -194,25 +195,13 @@ function Instancer:remove_instance(instance_id)
     return
   end
 
-  for _, callback in ipairs(self._instance_remove_callbacks) do
-    callback(instance_id)
-  end
-
-  self._instances[instance_id] = nil
-
   for area_id in pairs(instance.areas) do
-    for _, callback in ipairs(self._area_remove_callbacks) do
-      callback(area_id)
-    end
-
+    self._emitter:emit("area_removed", { area_id = area_id })
     Net.remove_area(area_id)
   end
-end
 
----Adds :remove_instance() listener, called before the instance is dropped and areas are removed.
----@param callback fun(instance_id: string)
-function Instancer:on_instance_removed(callback)
-  self._instance_remove_callbacks[#self._instance_remove_callbacks + 1] = callback
+  self._emitter:emit("instance_removed", { instance_id = instance_id })
+  self._instances[instance_id] = nil
 end
 
 ---@param instance_id string
@@ -242,17 +231,9 @@ function Instancer:clone_area_to_instance(instance_id, template_area_id)
   Net.clone_area(template_area_id, new_area_id)
   instance.areas[new_area_id] = true
 
-  for _, callback in ipairs(self._area_instanced_callbacks) do
-    callback(new_area_id)
-  end
+  self._emitter:emit("area_instanced", { area_id = new_area_id })
 
   return new_area_id
-end
-
----Adds a listener for instanced areas, called after the area is cloned.
----@param callback fun(area_id: string)
-function Instancer:on_area_instanced(callback)
-  self._area_instanced_callbacks[#self._area_instanced_callbacks + 1] = callback
 end
 
 ---Removes the area from the server and instancer. Removes bots left in the area after listeners are notified.
@@ -270,9 +251,7 @@ function Instancer:remove_area(area_id)
 
   instance.areas[area_id] = nil
 
-  for _, callback in ipairs(self._area_remove_callbacks) do
-    callback(area_id)
-  end
+  self._emitter:emit("area_removed", { area_id = area_id })
 
   for _, bot_id in ipairs(Net.list_bots(area_id)) do
     Net.remove_bot(bot_id)
@@ -281,12 +260,6 @@ function Instancer:remove_area(area_id)
   Net.remove_area(area_id)
 
   return true
-end
-
----Adds a :remove_area() listener, called before the area is removed from the server.
----@param callback fun(area_id: string)
-function Instancer:on_area_remove(callback)
-  self._area_remove_callbacks[#self._area_remove_callbacks + 1] = callback
 end
 
 function Instancer:destroy()
@@ -298,10 +271,7 @@ function Instancer:destroy()
 
   for _, instance in pairs(self._instances) do
     for area_id in pairs(instance.areas) do
-      for _, callback in ipairs(self._area_remove_callbacks) do
-        callback(area_id)
-      end
-
+      self._emitter:emit("area_removed", { area_id = area_id })
       Net.remove_area(area_id)
     end
   end
