@@ -28,7 +28,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             texture_path: table.get("texture_path")?,
             animation_path: table.get("animation_path").unwrap_or_default(),
             animation_state: table.get("animation").unwrap_or_default(),
-            animation_loops: true,
+            animation_loops: table.get("loop_animation").unwrap_or(false),
         };
 
         let mut net = api_ctx.net_ref.borrow_mut();
