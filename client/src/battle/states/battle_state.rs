@@ -225,6 +225,7 @@ impl BattleState {
         let config = resources.config.borrow();
 
         if config.turn_limit == Some(simulation.statistics.turns) {
+            simulation.mark_battle_end(game_io, resources, false);
             self.out_of_time = true;
             return;
         }
