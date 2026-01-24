@@ -244,11 +244,12 @@ impl BattleSimulation {
     pub fn wrap_up_statistics(&mut self) {
         let entities = &mut self.entities;
 
-        if let Ok((entity, living)) =
-            entities.query_one_mut::<(&Entity, &Living)>(self.local_player_id.into())
+        if let Ok((entity, living, emotion_window)) = entities
+            .query_one_mut::<(&Entity, &Living, &EmotionWindow)>(self.local_player_id.into())
         {
             self.local_team = entity.team;
             self.statistics.health = living.health;
+            self.statistics.emotion = emotion_window.emotion().clone();
         }
     }
 
