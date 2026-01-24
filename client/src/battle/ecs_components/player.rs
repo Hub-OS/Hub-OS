@@ -107,7 +107,6 @@ impl Player {
         simulation: &mut BattleSimulation,
         setup: &PlayerSetup,
     ) -> rollback_mlua::Result<EntityId> {
-        let local = setup.local;
         let Some(player_package) = setup.player_package(game_io) else {
             return Err(rollback_mlua::Error::runtime(
                 "Failed to load player package",
@@ -140,16 +139,6 @@ impl Player {
 
         // use preloaded package properties
         entity.element = player_package.element;
-
-        // AuxProp for hit statistics
-        let statistics_aux_prop = AuxProp::new()
-            .with_requirement(AuxRequirement::HitDamage(Comparison::GT, 0))
-            .with_callback(BattleCallback::new(move |_, _, simulation, _| {
-                if local {
-                    simulation.statistics.hits_taken += 1;
-                }
-            }));
-        living.add_aux_prop(statistics_aux_prop);
 
         // resolve health boost
         // todo: move to Augment?
@@ -859,15 +848,6 @@ impl Player {
             PlayerOverridables::default_movement(
                 game_io, resources, simulation, entity_id, direction,
             );
-        }
-
-        // movement statistics
-        if simulation.local_player_id == entity_id {
-            let entities = &mut simulation.entities;
-
-            if entities.satisfies::<&Movement>(entity_id.into()).unwrap() {
-                simulation.statistics.movements += 1;
-            }
         }
     }
 }
