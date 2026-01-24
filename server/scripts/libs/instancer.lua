@@ -8,7 +8,7 @@ local TRANSFER_EVENTS = {
 ---Used to create and track instances, which contains isolated copies of areas.
 ---@class Instancer
 ---@field private _instances table<string, { areas: table<string>, player_list: Net.ActorId[] }>
----@field private _emitter Net.EventEmitter
+---@field private _events Net.EventEmitter
 ---@field private _transfer_listeners fun()[]
 local Instancer = {
   INSTANCE_MARKER = ";instance:",
@@ -17,12 +17,12 @@ local Instancer = {
 function Instancer:new()
   ---@type table<string, { areas: table<string>, player_list: Net.ActorId[] }>
   local instances = {}
-  local emitter = Net.EventEmitter.new()
+  local events = Net.EventEmitter.new()
   local transfer_listeners = {}
 
   local instancer = {
     _instances = instances,
-    _emitter = emitter,
+    _events = events,
     _transfer_listeners = transfer_listeners,
   }
   setmetatable(instancer, self)
@@ -74,7 +74,7 @@ function Instancer:new()
           end
         end
 
-        emitter:emit("player_leave", {
+        events:emit("player_leave", {
           player_id = event.player_id,
           area_id = previous_area
         })
@@ -88,7 +88,7 @@ function Instancer:new()
       if instance then
         instance.player_list[#instance.player_list + 1] = event.player_id
 
-        emitter:emit("player_join", {
+        events:emit("player_join", {
           player_id = event.player_id,
           area_id = current_area,
           previous_area_id = previous_area,
@@ -117,8 +117,8 @@ end
 ---   - Called when a player joins an instance
 --- - "player_leave", { player_id, area_id, prev_area_id? }
 ---   - Called when a player leaves an instance
-function Instancer:emitter()
-  return self._emitter
+function Instancer:events()
+  return self._events
 end
 
 ---Reads the instance id from the area id.
@@ -166,7 +166,7 @@ function Instancer:create_instance(options)
     player_list = {}
   }
 
-  self._emitter:emit("instance_created", { instance_id = instance_id })
+  self._events:emit("instance_created", { instance_id = instance_id })
 
   if options and options.auto_remove then
     local function cleanup()
@@ -176,11 +176,11 @@ function Instancer:create_instance(options)
         return
       end
 
-      self._emitter:remove_listener("player_leave", cleanup)
+      self._events:remove_listener("player_leave", cleanup)
       self:remove_instance(instance_id)
     end
 
-    self._emitter:on("player_leave", cleanup)
+    self._events:on("player_leave", cleanup)
   end
 
   return instance_id
@@ -196,11 +196,11 @@ function Instancer:remove_instance(instance_id)
   end
 
   for area_id in pairs(instance.areas) do
-    self._emitter:emit("area_removed", { area_id = area_id })
+    self._events:emit("area_removed", { area_id = area_id })
     Net.remove_area(area_id)
   end
 
-  self._emitter:emit("instance_removed", { instance_id = instance_id })
+  self._events:emit("instance_removed", { instance_id = instance_id })
   self._instances[instance_id] = nil
 end
 
@@ -231,7 +231,7 @@ function Instancer:clone_area_to_instance(instance_id, template_area_id)
   Net.clone_area(template_area_id, new_area_id)
   instance.areas[new_area_id] = true
 
-  self._emitter:emit("area_instanced", { area_id = new_area_id })
+  self._events:emit("area_instanced", { area_id = new_area_id })
 
   return new_area_id
 end
@@ -251,7 +251,7 @@ function Instancer:remove_area(area_id)
 
   instance.areas[area_id] = nil
 
-  self._emitter:emit("area_removed", { area_id = area_id })
+  self._events:emit("area_removed", { area_id = area_id })
 
   for _, bot_id in ipairs(Net.list_bots(area_id)) do
     Net.remove_bot(bot_id)
@@ -271,7 +271,7 @@ function Instancer:destroy()
 
   for _, instance in pairs(self._instances) do
     for area_id in pairs(instance.areas) do
-      self._emitter:emit("area_removed", { area_id = area_id })
+      self._events:emit("area_removed", { area_id = area_id })
       Net.remove_area(area_id)
     end
   end

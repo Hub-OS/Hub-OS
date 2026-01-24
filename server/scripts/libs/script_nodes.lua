@@ -136,15 +136,15 @@ function ScriptNodes:new_empty()
     variables:clear_area(area_id)
   end)
 
-  instancer:emitter():on("instance_removed", function(event)
+  instancer:events():on("instance_removed", function(event)
     variables:clear_instance(event.instance_id)
   end)
 
-  instancer:emitter():on("area_instanced", function(event)
+  instancer:events():on("area_instanced", function(event)
     s:load(event.area_id)
   end)
 
-  instancer:emitter():on("area_removed", function(event)
+  instancer:events():on("area_removed", function(event)
     for _, bot_id in ipairs(Net.list_bots(event.area_id)) do
       s:emit_bot_remove(bot_id)
       Net.remove_bot(bot_id)
