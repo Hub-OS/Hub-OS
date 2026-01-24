@@ -1,12 +1,6 @@
 use super::Emotion;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct BattleSurvivor {
-    pub name: String,
-    pub health: i32,
-}
-
 #[derive(Clone, Default, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct BattleStatistics {
     pub health: i32,
@@ -15,9 +9,6 @@ pub struct BattleStatistics {
     pub ran: bool,
     pub turns: u32,
     pub score: i32,
-    pub ally_survivors: Vec<BattleSurvivor>,
-    pub enemy_survivors: Vec<BattleSurvivor>,
-    pub neutral_survivors: Vec<BattleSurvivor>,
 
     // used for score calculation
     pub boss_battle: bool,

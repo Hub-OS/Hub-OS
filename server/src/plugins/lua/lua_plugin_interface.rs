@@ -846,42 +846,6 @@ impl PluginInterface for LuaPluginInterface {
                 event.set("emotion", battle_stats.emotion.as_str())?;
                 event.set("turns", battle_stats.turns)?;
 
-                // ally list
-                let mut neutral_tables = Vec::with_capacity(battle_stats.ally_survivors.len());
-
-                for survivor in &battle_stats.ally_survivors {
-                    let table = lua.create_table()?;
-                    table.set("name", survivor.name.as_str())?;
-                    table.set("health", survivor.health)?;
-                    neutral_tables.push(table);
-                }
-
-                event.set("allies", neutral_tables)?;
-
-                // enemy list
-                let mut enemy_tables = Vec::with_capacity(battle_stats.enemy_survivors.len());
-
-                for survivor in &battle_stats.enemy_survivors {
-                    let table = lua.create_table()?;
-                    table.set("name", survivor.name.as_str())?;
-                    table.set("health", survivor.health)?;
-                    enemy_tables.push(table);
-                }
-
-                event.set("enemies", enemy_tables)?;
-
-                // neutral list
-                let mut neutral_tables = Vec::with_capacity(battle_stats.neutral_survivors.len());
-
-                for survivor in &battle_stats.neutral_survivors {
-                    let table = lua.create_table()?;
-                    table.set("name", survivor.name.as_str())?;
-                    table.set("health", survivor.health)?;
-                    neutral_tables.push(table);
-                }
-
-                event.set("neutral", neutral_tables)?;
-
                 callback.call(("battle_results", event))
             },
         );

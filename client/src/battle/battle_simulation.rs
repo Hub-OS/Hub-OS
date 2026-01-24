@@ -11,7 +11,7 @@ use crate::scenes::BattleEvent;
 use crate::structures::{DenseSlotMap, SlotMap};
 use framework::prelude::*;
 use packets::NetplaySignal;
-use packets::structures::{BattleStatistics, BattleSurvivor};
+use packets::structures::BattleStatistics;
 use rand::SeedableRng;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -249,31 +249,6 @@ impl BattleSimulation {
         {
             self.local_team = entity.team;
             self.statistics.health = living.health;
-        }
-
-        for (id, (entity, living, name)) in
-            entities.query_mut::<(&Entity, &Living, Option<&EntityName>)>()
-        {
-            let entity_id: EntityId = id.into();
-
-            if entity_id != self.local_player_id {
-                continue;
-            }
-
-            let survivor_list = if entity.team == self.local_team {
-                &mut self.statistics.ally_survivors
-            } else if entity.team != Team::Other {
-                &mut self.statistics.enemy_survivors
-            } else {
-                &mut self.statistics.neutral_survivors
-            };
-
-            let name = name.map(|n| n.0.clone()).unwrap_or_default();
-
-            survivor_list.push(BattleSurvivor {
-                name: name.to_string(),
-                health: living.health,
-            });
         }
 
         self.statistics.calculate_score();
