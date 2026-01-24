@@ -313,7 +313,7 @@ impl BattleState {
         } else if spectate_on_delete {
             // convert to spectator
             simulation.local_player_id = EntityId::default();
-        } else if automatic_battle_end {
+        } else if automatic_battle_end && simulation.local_player_id != EntityId::DANGLING {
             self.fail(game_io, resources, simulation);
             return;
         }
