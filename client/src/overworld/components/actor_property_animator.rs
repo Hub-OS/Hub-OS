@@ -265,7 +265,9 @@ impl ActorPropertyAnimator {
                     ActorPropertyId::Animation => {
                         property_animator.animating_sprite = !active_string_value.is_empty();
 
-                        if animator.current_state() != Some(active_string_value) {
+                        if animator.current_state() != Some(active_string_value)
+                            && animator.has_state(active_string_value)
+                        {
                             animator.set_state(active_string_value);
                             animator.set_loop_mode(AnimatorLoopMode::Loop);
 

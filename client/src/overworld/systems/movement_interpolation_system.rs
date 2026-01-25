@@ -1,5 +1,5 @@
-use crate::overworld::components::{ActorPropertyAnimator, MovementAnimator, MovementInterpolator};
 use crate::overworld::OverworldArea;
+use crate::overworld::components::{ActorPropertyAnimator, MovementAnimator, MovementInterpolator};
 use framework::prelude::*;
 use packets::structures::Direction;
 
