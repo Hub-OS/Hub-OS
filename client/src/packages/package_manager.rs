@@ -145,9 +145,22 @@ impl<T: Package> PackageManager<T> {
         // and provide enough details for correct output from `package_info.local_only()`
         let package_table = package_info.parse_toml(assets)?;
 
-        package_info.hash = Self::zip_and_hash(&package_info)?;
+        let package_id = self.internal_load_package(package_info, package_table)?;
 
-        self.internal_load_package(package_info, package_table)
+        let package_map = self.package_maps.get_mut(&namespace)?;
+        let package = package_map.get_mut(&package_id)?;
+
+        let Some(hash) = Self::zip_and_hash(package.package_info()) else {
+            // remove this packages since it may cause desyncs
+            // if it didn't need a hash we would've received Some(FileHash::ZERO)
+            package_map.remove(&package_id)?;
+            return None;
+        };
+
+        package.update_hash(hash);
+
+        self.package(namespace, &package_id)
+            .map(|package| package.package_info())
     }
 
     pub fn load_virtual_package(
@@ -165,12 +178,13 @@ impl<T: Package> PackageManager<T> {
         package_info.hash = hash;
 
         let package_table = package_info.parse_toml(assets)?;
-        let package_info = self.internal_load_package(package_info, package_table)?;
+        let package_id = self.internal_load_package(package_info, package_table)?;
 
         // increment usage after we're certain it's in use
         assets.add_virtual_zip_use(&hash);
 
-        Some(package_info)
+        self.package(namespace, &package_id)
+            .map(|package| package.package_info())
     }
 
     fn generate_package_info(
@@ -281,7 +295,7 @@ impl<T: Package> PackageManager<T> {
         &mut self,
         package_info: PackageInfo,
         package_table: toml::Table,
-    ) -> Option<&PackageInfo> {
+    ) -> Option<PackageId> {
         let package = T::load_new(package_info, package_table);
 
         let package_info = package.package_info();
@@ -311,9 +325,7 @@ impl<T: Package> PackageManager<T> {
             self.package_ids.push(package_id.clone());
         }
 
-        packages
-            .get(&package_id)
-            .map(|package| package.package_info())
+        Some(package_id)
     }
 
     pub fn unload_package(

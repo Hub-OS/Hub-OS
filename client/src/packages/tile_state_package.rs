@@ -2,6 +2,7 @@ use super::{Package, PackageInfo};
 use crate::bindable::Element;
 use crate::render::FrameTime;
 use crate::render::ui::{PackageListing, PackagePreviewData};
+use packets::structures::FileHash;
 use serde::Deserialize;
 use std::sync::Arc;
 
@@ -41,6 +42,10 @@ pub struct TileStatePackage {
 impl Package for TileStatePackage {
     fn package_info(&self) -> &PackageInfo {
         &self.package_info
+    }
+
+    fn update_hash(&mut self, hash: FileHash) {
+        self.package_info.hash = hash;
     }
 
     fn create_package_listing(&self) -> PackageListing {

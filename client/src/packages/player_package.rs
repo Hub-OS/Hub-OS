@@ -1,7 +1,7 @@
 use super::*;
 use crate::bindable::Element;
 use crate::render::ui::{PackageListing, PackagePreviewData};
-use packets::structures::TextureAnimPathPair;
+use packets::structures::{FileHash, TextureAnimPathPair};
 use serde::Deserialize;
 use std::sync::Arc;
 
@@ -52,6 +52,10 @@ pub struct PlayerPackage {
 impl Package for PlayerPackage {
     fn package_info(&self) -> &PackageInfo {
         &self.package_info
+    }
+
+    fn update_hash(&mut self, hash: FileHash) {
+        self.package_info.hash = hash;
     }
 
     fn create_package_listing(&self) -> PackageListing {

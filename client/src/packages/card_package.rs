@@ -6,6 +6,7 @@ use crate::render::{FrameTime, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, ResourcePaths};
 use crate::structures::VecMap;
 use framework::prelude::{GameIO, Sprite, Texture, UVec2, Vec2};
+use packets::structures::FileHash;
 use serde::Deserialize;
 use std::sync::Arc;
 
@@ -66,6 +67,10 @@ pub struct CardPackage {
 impl Package for CardPackage {
     fn package_info(&self) -> &PackageInfo {
         &self.package_info
+    }
+
+    fn update_hash(&mut self, hash: FileHash) {
+        self.package_info.hash = hash;
     }
 
     fn create_package_listing(&self) -> PackageListing {

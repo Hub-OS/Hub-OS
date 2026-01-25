@@ -1,8 +1,8 @@
 use super::*;
+use crate::ResourcePaths;
 use crate::render::ui::{PackageListing, PackagePreviewData};
 use crate::resources::LocalAssetManager;
 use crate::saves::GlobalSave;
-use crate::ResourcePaths;
 use framework::prelude::GameIO;
 use packets::structures::FileHash;
 use serde::Deserialize;
@@ -71,6 +71,10 @@ impl ResourcePackage {
 impl Package for ResourcePackage {
     fn package_info(&self) -> &PackageInfo {
         &self.package_info
+    }
+
+    fn update_hash(&mut self, hash: FileHash) {
+        self.package_info.hash = hash;
     }
 
     fn create_package_listing(&self) -> PackageListing {

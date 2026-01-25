@@ -1,5 +1,6 @@
 use super::*;
 use crate::render::ui::{PackageListing, PackagePreviewData};
+use packets::structures::FileHash;
 
 #[derive(Default, Clone)]
 pub struct CharacterPackage {
@@ -9,6 +10,10 @@ pub struct CharacterPackage {
 impl Package for CharacterPackage {
     fn package_info(&self) -> &PackageInfo {
         &self.package_info
+    }
+
+    fn update_hash(&mut self, hash: FileHash) {
+        self.package_info.hash = hash;
     }
 
     fn create_package_listing(&self) -> PackageListing {
