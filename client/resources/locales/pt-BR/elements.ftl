@@ -1,11 +1,11 @@
 element-none = Neutro
 element-fire = Fogo
 element-aqua = Água
-element-elec = Trovão
+element-elec = Elétrico
 element-wood = Natureza
 element-sword = Espada
 element-wind = Vento
-element-cursor = Mira
+element-cursor = Cursor
 element-summon = Convocar
 element-plus = Impulso
 element-break = Quebra

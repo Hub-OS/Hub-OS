@@ -80,7 +80,7 @@ blocks-scene-title = NaviCustomizer
 blocks-information-box-label = INFORMAÇÃO
 blocks-apply-label = EXECUTAR!
 blocks-option-move = Mover
-blocks-option-remove = Remove
+blocks-option-remove = Remover
 blocks-leave-question = Sair do Customizador e ir para o menu?
 blocks-success =
     OK!
