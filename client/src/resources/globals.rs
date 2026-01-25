@@ -70,6 +70,8 @@ pub struct Globals {
 
     // debug
     pub debug_visible: bool,
+    pub record_rollbacks: bool,
+    pub replay_rollbacks: bool,
 }
 
 impl Globals {
@@ -190,6 +192,8 @@ impl Globals {
 
             // debug
             debug_visible: false,
+            record_rollbacks: args.record_rollbacks,
+            replay_rollbacks: args.replay_rollbacks,
         }
     }
 

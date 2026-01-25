@@ -8,4 +8,8 @@ pub struct Args {
     pub send_budget: usize,
     #[clap(long)]
     pub data_folder: Option<String>,
+    #[clap(long)]
+    pub record_rollbacks: bool,
+    #[clap(long)]
+    pub replay_rollbacks: bool,
 }

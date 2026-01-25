@@ -50,7 +50,9 @@ pub struct BattleRecording {
 }
 
 impl BattleRecording {
-    pub fn new(meta: &BattleMeta) -> Self {
+    pub fn new(game_io: &GameIO, meta: &BattleMeta) -> Self {
+        let globals = Globals::from_resources(game_io);
+
         // clear setup buffers
         let mut setups = meta.player_setups.clone();
 
@@ -71,7 +73,7 @@ impl BattleRecording {
             package_map: Default::default(),
             required_packages: Default::default(),
             external_events: Default::default(),
-            simulation_flow: if cfg!(feature = "record_simulation_flow") {
+            simulation_flow: if globals.record_rollbacks {
                 Some(RecordedSimulationFlow::default())
             } else {
                 None

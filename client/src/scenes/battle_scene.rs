@@ -84,8 +84,11 @@ impl BattleScene {
         if let Some(mut recording) = props.meta.try_load_recording(game_io) {
             initial_external_events = std::mem::take(&mut recording.external_events);
 
-            #[cfg(feature = "record_simulation_flow")]
-            if let Some(mut recorded_flow) = recording.simulation_flow.take() {
+            let globals = Globals::from_resources(game_io);
+
+            if globals.replay_rollbacks
+                && let Some(mut recorded_flow) = recording.simulation_flow.take()
+            {
                 recorded_flow.current_step = 0;
                 playback_flow = Some(recorded_flow);
             }
@@ -126,7 +129,7 @@ impl BattleScene {
 
         // init recording struct
         let recording = if meta.recording_enabled {
-            Some(BattleRecording::new(&meta))
+            Some(BattleRecording::new(game_io, &meta))
         } else {
             None
         };
@@ -607,7 +610,6 @@ impl BattleScene {
             .iter()
             .enumerate()
             .all(|(_i, controller)| {
-                #[cfg(feature = "record_simulation_flow")]
                 if let Some(playback_flow) = &self.playback_flow {
                     let player_count = self.player_controllers.len();
                     let limit = playback_flow.get_buffer_limit(player_count, _i);
