@@ -86,11 +86,15 @@ impl BattleScene {
 
             let globals = Globals::from_resources(game_io);
 
-            if globals.replay_rollbacks
-                && let Some(mut recorded_flow) = recording.simulation_flow.take()
-            {
-                recorded_flow.current_step = 0;
-                playback_flow = Some(recorded_flow);
+            if globals.replay_rollbacks {
+                if let Some(mut recorded_flow) = recording.simulation_flow.take() {
+                    recorded_flow.current_step = 0;
+                    playback_flow = Some(recorded_flow);
+
+                    log::info!("Replaying with rollbacks");
+                } else {
+                    log::info!("No rollbacks recorded");
+                }
             }
 
             props.meta = BattleMeta::from_recording(game_io, recording);
