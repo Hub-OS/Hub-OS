@@ -331,7 +331,8 @@ impl Living {
             let countered = living.counterable
                 && !living.status_director.is_inactionable(status_registry)
                 && (hit_props.flags & HitFlag::DRAIN) == 0
-                && (hit_props.context.flags & HitFlag::NO_COUNTER) == 0;
+                && (hit_props.context.flags & HitFlag::NO_COUNTER) == 0
+                && hit_props.damage > 0;
 
             if countered {
                 // strip flashing if we've countered, to allow for a bonus hit
