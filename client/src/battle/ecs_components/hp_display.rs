@@ -54,6 +54,7 @@ impl HpDisplay {
             let body_params = AuxPropBodyParams {
                 emotion_window,
                 status_director: &living.status_director,
+                defense_rules: &living.defense_rules,
                 player,
                 character,
                 entity,

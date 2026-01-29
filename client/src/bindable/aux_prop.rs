@@ -3,9 +3,10 @@ use super::{
     HitProperties, MathExpr,
 };
 use crate::battle::{
-    ActionQueue, ActionType, ActionTypes, AttackContext, BattleCallback, Character, EmotionWindow,
-    Entity, Player, SharedBattleResources, SimulationRng, StatusDirector,
+    ActionQueue, ActionType, ActionTypes, AttackContext, BattleCallback, Character, DefenseRule,
+    EmotionWindow, Entity, Player, SharedBattleResources, SimulationRng, StatusDirector,
 };
+use crate::bindable::DefensePriority;
 use crate::lua_api::{VM_INDEX_REGISTRY_KEY, create_action_table};
 use crate::render::FrameTime;
 use packets::structures::Emotion;
@@ -81,6 +82,7 @@ pub enum AuxRequirement {
     TotalDamage(Comparison, i32),
     Element(Element),
     Emotion(Emotion),
+    Defense(DefensePriority),
     NegativeTileInteraction,
     TileState(usize),
     TileStateAbsent(usize),
@@ -139,6 +141,7 @@ impl AuxRequirement {
             | AuxRequirement::TotalDamage(_, _) => Self::HIT_PRIORITY, // HIT
             AuxRequirement::Element(_)
             | AuxRequirement::Emotion(_)
+            | AuxRequirement::Defense(_)
             | AuxRequirement::NegativeTileInteraction
             | AuxRequirement::TileState(_)
             | AuxRequirement::TileStateAbsent(_)
@@ -197,6 +200,7 @@ impl AuxRequirement {
             "require_total_damage" => AuxRequirement::TotalDamage(table.get(2)?, table.get(3)?),
             "require_element" => AuxRequirement::Element(table.get(2)?),
             "require_emotion" => AuxRequirement::Emotion(table.get(2)?),
+            "require_defense" => AuxRequirement::Defense(table.get(2)?),
             "require_negative_tile_interaction" => AuxRequirement::NegativeTileInteraction,
             "require_tile_state" => AuxRequirement::TileState(table.get(2)?),
             "require_tile_state_absent" => AuxRequirement::TileStateAbsent(table.get(2)?),
@@ -460,6 +464,7 @@ struct RequirementState {
 pub struct AuxPropBodyParams<'a> {
     pub emotion_window: Option<&'a EmotionWindow>,
     pub status_director: &'a StatusDirector,
+    pub defense_rules: &'a Vec<DefenseRule>,
     pub player: Option<&'a Player>,
     pub character: Option<&'a Character>,
     pub entity: &'a Entity,
@@ -619,6 +624,7 @@ impl AuxProp {
         let AuxPropBodyParams {
             emotion_window,
             status_director,
+            defense_rules,
             player,
             character,
             entity,
@@ -634,6 +640,9 @@ impl AuxProp {
                 AuxRequirement::Element(elem) => *elem == params.entity.element,
                 AuxRequirement::Emotion(emot) => {
                     emotion.is_some_and(|emotion| emot == emotion) || *emot == Emotion::default()
+                }
+                AuxRequirement::Defense(priority) => {
+                    defense_rules.iter().any(|d| d.priority == *priority)
                 }
                 AuxRequirement::NegativeTileInteraction => !entity.ignore_negative_tile_effects,
                 AuxRequirement::TileState(required_tile_state) => tile_state == required_tile_state,

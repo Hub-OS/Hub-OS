@@ -22,6 +22,7 @@ local req_list = {
   "require_total_damage",
   "require_element",
   "require_emotion",
+  "require_defense",
   "require_tile_state",
   "require_tile_state_absent",
   "require_negative_tile_interaction",
