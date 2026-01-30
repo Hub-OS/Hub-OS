@@ -10,8 +10,10 @@ function status_init(status)
     return
   end
 
-  entity:cancel_movement()
-  entity:cancel_actions()
+  if not status:reapplied() then
+    entity:cancel_movement()
+    entity:cancel_actions()
+  end
 
   -- set the animation immediately
   animation:set_state("CHARACTER_HIT")

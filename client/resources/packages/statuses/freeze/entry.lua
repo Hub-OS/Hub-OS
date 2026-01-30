@@ -51,8 +51,10 @@ function status_init(status)
   freeze_sprite:set_layer(-1)
 
   if entity_animation:has_state("CHARACTER_HIT") then
-    entity:cancel_movement()
-    entity:cancel_actions()
+    if not status:reapplied() then
+      entity:cancel_movement()
+      entity:cancel_actions()
+    end
 
     entity_animation:set_state("CHARACTER_HIT", { { 1, 1 } })
     entity_animation:on_complete(function()
