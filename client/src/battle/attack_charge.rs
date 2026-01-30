@@ -58,6 +58,10 @@ impl AttackCharge {
         self.color
     }
 
+    pub fn visible(&self) -> bool {
+        self.visible
+    }
+
     /// Overrides normal visibility, used to hide this sprite from opponents
     pub fn set_visible(&mut self, visible: bool) {
         self.visible = visible;
