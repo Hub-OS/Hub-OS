@@ -358,12 +358,14 @@ impl PackagesScene {
         if input_util.was_just_pressed(Input::Cancel) {
             if self.sidebar.focused() {
                 self.leave(game_io);
-            } else {
+            } else if self.list.focused() {
                 self.sidebar.set_focused(true);
                 self.list.set_focused(false);
 
                 let globals = Globals::from_resources(game_io);
                 globals.audio.play_sound(&globals.sfx.cursor_cancel);
+            } else {
+                self.sidebar.set_focused(true);
             }
         }
 
