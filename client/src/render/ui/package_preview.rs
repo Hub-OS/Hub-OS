@@ -8,6 +8,7 @@ use framework::async_task::AsyncTask;
 use framework::prelude::*;
 use packets::address_parsing::uri_encode;
 use packets::structures::{BlockColor, PackageCategory, SwitchDriveSlot};
+use std::rc::Rc;
 
 #[derive(Clone)]
 pub enum PackagePreviewData {
@@ -63,7 +64,7 @@ impl PackagePreviewData {
 }
 
 pub struct PackagePreview {
-    listing: PackageListing,
+    listing: Rc<PackageListing>,
     position: Vec2,
     image_sprite: Option<Sprite>,
     image_task: Option<AsyncTask<Option<Vec<u8>>>>,
@@ -74,7 +75,7 @@ pub struct PackagePreview {
 }
 
 impl PackagePreview {
-    pub fn new(game_io: &GameIO, listing: PackageListing) -> Self {
+    pub fn new(game_io: &GameIO, listing: Rc<PackageListing>) -> Self {
         let image_sprite = if listing.local {
             Some(
                 Self::resolve_local_preview_image(game_io, &listing).unwrap_or_else(|| {

@@ -51,6 +51,27 @@ impl<T: UiNode + 'static> IntoUiLayoutNode for T {
     }
 }
 
+pub trait ImmutableUiNode {
+    fn draw_bounded(&self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue, bounds: Rect);
+
+    fn measure_ui_size(&self, game_io: &GameIO) -> Vec2;
+}
+
+impl<T: ImmutableUiNode> UiNode for std::rc::Rc<T> {
+    fn draw_bounded(
+        &mut self,
+        game_io: &GameIO,
+        sprite_queue: &mut SpriteColorQueue,
+        bounds: Rect,
+    ) {
+        ImmutableUiNode::draw_bounded(&**self, game_io, sprite_queue, bounds);
+    }
+
+    fn measure_ui_size(&mut self, game_io: &GameIO) -> Vec2 {
+        ImmutableUiNode::measure_ui_size(&**self, game_io)
+    }
+}
+
 #[derive(Clone)]
 pub struct UiStyle {
     pub flex_direction: FlexDirection,

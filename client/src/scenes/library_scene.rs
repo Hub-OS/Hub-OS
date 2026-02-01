@@ -145,7 +145,7 @@ impl LibraryScene {
                 if let Some(package) =
                     card_packages.package(PackageNamespace::Local, &card.package_id)
                 {
-                    let scene = PackageScene::new(game_io, package.create_package_listing());
+                    let scene = PackageScene::new(game_io, package.create_package_listing().into());
                     let transition = crate::transitions::new_sub_scene(game_io);
                     self.next_scene = NextScene::new_push(scene).with_transition(transition);
 

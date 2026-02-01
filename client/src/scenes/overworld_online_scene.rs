@@ -1703,7 +1703,7 @@ impl OverworldOnlineScene {
                     self.connected = false;
                 }
                 OverworldEvent::PackageReferred(listing) => {
-                    let scene = PackageScene::new(game_io, listing);
+                    let scene = PackageScene::new(game_io, listing.into());
                     let transition = crate::transitions::new_sub_scene(game_io);
                     let next_scene = NextScene::new_push(scene).with_transition(transition);
 

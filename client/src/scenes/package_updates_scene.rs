@@ -1,3 +1,4 @@
+use super::PackageScene;
 use crate::bindable::SpriteColorMode;
 use crate::packages::{PackageNamespace, RepoPackageUpdater, UpdateStatus};
 use crate::render::ui::{
@@ -9,13 +10,12 @@ use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQ
 use crate::resources::{AssetManager, Globals, Input, InputUtil, ResourcePaths};
 use framework::prelude::{GameIO, NextScene, Rect, RenderPass, Scene, Sprite};
 use packets::structures::{FileHash, PackageCategory, PackageId};
+use std::rc::Rc;
 use taffy::style::{AlignItems, Dimension, FlexDirection, JustifyContent};
-
-use super::PackageScene;
 
 enum Event {
     ViewList,
-    ViewPackage { listing: Box<PackageListing> },
+    ViewPackage { listing: Rc<PackageListing> },
     Update,
     Leave,
 }
@@ -110,12 +110,14 @@ impl PackageUpdatesScene {
             .iter()
             .flat_map(|(category, id, _)| globals.create_package_listing(*category, id))
             .map(|listing| -> Box<dyn UiNode> {
+                let listing = Rc::from(listing);
+
                 Box::new(UiButton::new(listing.clone()).on_activate({
                     let event_sender = event_sender.clone();
 
                     move || {
                         let event = Event::ViewPackage {
-                            listing: Box::new(listing.clone()),
+                            listing: listing.clone(),
                         };
 
                         event_sender.send(event).unwrap();
@@ -219,7 +221,7 @@ impl PackageUpdatesScene {
                     self.buttons.set_focused(false);
                 }
                 Event::ViewPackage { listing } => {
-                    self.next_scene = NextScene::new_push(PackageScene::new(game_io, *listing))
+                    self.next_scene = NextScene::new_push(PackageScene::new(game_io, listing))
                         .with_transition(crate::transitions::new_sub_scene(game_io));
                 }
                 Event::Update => {

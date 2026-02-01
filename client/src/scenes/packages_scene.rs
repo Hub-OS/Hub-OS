@@ -12,6 +12,7 @@ use framework::prelude::*;
 use nom::AsChar;
 use packets::address_parsing::uri_encode;
 use packets::structures::PackageCategory;
+use std::rc::Rc;
 use strum::{EnumIter, IntoEnumIterator};
 use taffy::style::{Dimension, FlexDirection};
 
@@ -25,7 +26,7 @@ enum Event {
     OpenCategoryMenu,
     OpenLocationMenu,
     FilterName(String),
-    ViewPackage { listing: PackageListing },
+    ViewPackage { listing: Rc<PackageListing> },
 }
 
 #[derive(Default, EnumIter, Clone, Copy, PartialEq, Eq)]
@@ -292,6 +293,8 @@ impl PackagesScene {
                         .is_none()
                 })
                 .map(|listing| -> Box<dyn UiNode> {
+                    let listing = Rc::new(listing);
+
                     Box::new(UiButton::new(listing.clone()).on_activate({
                         let event_sender = self.event_sender.clone();
                         move || {

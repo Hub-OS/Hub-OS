@@ -7,6 +7,7 @@ use crate::resources::{
 };
 use framework::prelude::*;
 use packets::address_parsing::uri_encode;
+use std::rc::Rc;
 use taffy::style::{AlignItems, Dimension, FlexDirection};
 
 enum Event {
@@ -37,7 +38,7 @@ pub struct PackageScene {
 }
 
 impl PackageScene {
-    pub fn new(game_io: &GameIO, listing: PackageListing) -> Self {
+    pub fn new(game_io: &GameIO, listing: Rc<PackageListing>) -> Self {
         let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
@@ -399,7 +400,7 @@ impl PackageScene {
                 {
                     let position = self.preview.position();
                     self.preview =
-                        PackagePreview::new(game_io, new_listing).with_position(position);
+                        PackagePreview::new(game_io, new_listing.into()).with_position(position);
                 }
 
                 // update list

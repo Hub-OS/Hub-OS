@@ -1,7 +1,6 @@
-use super::{ElementSprite, FontName, TextStyle, UiNode};
 use crate::bindable::CardClass;
 use crate::packages::PackageNamespace;
-use crate::render::ui::PackagePreviewData;
+use crate::render::ui::{ElementSprite, FontName, ImmutableUiNode, PackagePreviewData, TextStyle};
 use crate::render::{Animator, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, ResourcePaths, TEXT_DARK_SHADOW_COLOR};
 use framework::prelude::*;
@@ -205,13 +204,8 @@ fn get_string_vec(table: &json::Value, key: &str) -> Vec<String> {
     .collect()
 }
 
-impl UiNode for PackageListing {
-    fn draw_bounded(
-        &mut self,
-        game_io: &GameIO,
-        sprite_queue: &mut SpriteColorQueue,
-        bounds: Rect,
-    ) {
+impl ImmutableUiNode for PackageListing {
+    fn draw_bounded(&self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue, bounds: Rect) {
         let mut used_x = 1.0;
 
         match &self.preview_data {
@@ -367,7 +361,7 @@ impl UiNode for PackageListing {
         text_style.draw(game_io, sprite_queue, &self.long_name);
     }
 
-    fn measure_ui_size(&mut self, _: &GameIO) -> Vec2 {
+    fn measure_ui_size(&self, _: &GameIO) -> Vec2 {
         Vec2::ZERO
     }
 }

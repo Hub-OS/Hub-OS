@@ -1,3 +1,4 @@
+use super::PackageScene;
 use crate::bindable::SpriteColorMode;
 use crate::packages::{Package, PackageNamespace, ResourcePackage};
 use crate::render::ui::{
@@ -9,8 +10,7 @@ use crate::resources::{DIM_TEXT_COLOR, Globals, ResourcePaths, TEXT_DARK_SHADOW_
 use crate::saves::GlobalSave;
 use framework::prelude::*;
 use packets::structures::{Input, PackageId};
-
-use super::PackageScene;
+use std::rc::Rc;
 
 #[derive(Clone, Copy)]
 enum MenuOption {
@@ -35,7 +35,7 @@ pub struct ResourceOrderScene {
     scrollable_frame: ScrollableFrame,
     scroll_tracker: ScrollTracker,
     ui_input_tracker: UiInputTracker,
-    package_order: Vec<(PackageListing, bool)>,
+    package_order: Vec<(Rc<PackageListing>, bool)>,
     moving_package: bool,
     context_menu: ContextMenu<MenuOption>,
     textbox: Textbox,
@@ -98,10 +98,10 @@ impl ResourceOrderScene {
                 .flat_map(|(id, enabled)| {
                     let package = packages.package_or_fallback(PackageNamespace::Local, id)?;
 
-                    Some((package.create_package_listing(), *enabled))
+                    Some((Rc::from(package.create_package_listing()), *enabled))
                 });
 
-        let mut package_order = vec![(ResourcePackage::default_package_listing(), true)];
+        let mut package_order = vec![(Rc::from(ResourcePackage::default_package_listing()), true)];
         package_order.extend(package_order_iter);
 
         scroll_tracker.set_total_items(package_order.len());
