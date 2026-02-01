@@ -18,7 +18,7 @@ use taffy::style::{Dimension, FlexDirection};
 
 const PACKAGES_PER_REQUEST: usize = 21;
 
-type RequestTask = AsyncTask<Vec<PackageListing>>;
+type RequestTask = AsyncTask<Vec<Rc<PackageListing>>>;
 
 #[derive(Clone)]
 enum Event {
@@ -97,6 +97,7 @@ pub struct PackagesScene {
     location_menu: ContextMenu<Location>,
     cursor_sprite: Sprite,
     cursor_animator: Animator,
+    full_list: Vec<Rc<PackageListing>>,
     list: ScrollableList,
     list_task: Option<RequestTask>,
     total_requests: usize,
@@ -177,6 +178,7 @@ impl PackagesScene {
             ),
             cursor_sprite,
             cursor_animator,
+            full_list: Default::default(),
             list: ScrollableList::new(game_io, list_bounds, 15.0).with_focus(false),
             list_task: None,
             total_requests: 0,
@@ -229,13 +231,15 @@ impl PackagesScene {
                 case_insensitive_contains(&listing.name, &self.name_filter)
                     || case_insensitive_contains(&listing.long_name, &self.name_filter)
             })
+            .map(Rc::from)
             .collect();
 
         // sort alphabetically
         new_listings.sort_by(|a, b| (&a.long_name, &a.id).cmp(&(&b.long_name, &b.id)));
 
         self.list.set_children([]);
-        self.append_listings(game_io, new_listings);
+        self.append_listings(game_io, &new_listings);
+        self.full_list.extend(new_listings);
     }
 
     fn request_remote(&mut self, game_io: &GameIO, skip: usize) {
@@ -261,7 +265,9 @@ impl PackagesScene {
                 return Vec::new();
             };
 
-            list.iter().map(|v| v.into()).collect()
+            list.iter()
+                .map(|v| PackageListing::from(v).into())
+                .collect()
         });
 
         self.list_task = Some(task);
@@ -269,16 +275,12 @@ impl PackagesScene {
         self.list.set_label(label.to_uppercase());
     }
 
-    fn append_listings(
-        &mut self,
-        game_io: &GameIO,
-        items: impl IntoIterator<Item = PackageListing>,
-    ) {
+    fn append_listings(&mut self, game_io: &GameIO, items: &[Rc<PackageListing>]) {
         let globals = Globals::from_resources(game_io);
 
         self.list.append_children(
             items
-                .into_iter()
+                .iter()
                 .filter(|listing| {
                     if self.location_filter != Location::NotInstalled {
                         return true;
@@ -293,7 +295,7 @@ impl PackagesScene {
                         .is_none()
                 })
                 .map(|listing| -> Box<dyn UiNode> {
-                    let listing = Rc::new(listing);
+                    let listing = listing.clone();
 
                     Box::new(UiButton::new(listing.clone()).on_activate({
                         let event_sender = self.event_sender.clone();
@@ -423,10 +425,26 @@ impl PackagesScene {
         } else if let Some(location_filter) =
             self.location_menu.update(game_io, &self.ui_input_tracker)
         {
-            self.list_task = None;
-            self.location_filter = location_filter;
-            self.restart_search(game_io);
+            self.location_menu.close();
+            self.sidebar.set_focused(true);
 
+            self.update_location_filter(game_io, location_filter);
+        }
+    }
+
+    fn update_location_filter(&mut self, game_io: &GameIO, location_filter: Location) {
+        if self.location_filter == location_filter {
+            return;
+        }
+
+        let prev_location_filter = self.location_filter;
+        self.location_filter = location_filter;
+
+        let switching_between_local_and_online =
+            location_filter == Location::Installed || prev_location_filter == Location::Installed;
+
+        if switching_between_local_and_online {
+            // update title
             let title = if location_filter == Location::Installed {
                 "packages-local-scene-title"
             } else {
@@ -434,8 +452,16 @@ impl PackagesScene {
             };
             self.scene_title.set_title(game_io, title, vec![]);
 
-            self.location_menu.close();
-            self.sidebar.set_focused(true);
+            // restart search
+            self.list_task = None;
+            self.restart_search(game_io);
+        } else {
+            // rebuild list
+            self.list.set_children([]);
+
+            let full_list = std::mem::take(&mut self.full_list);
+            self.append_listings(game_io, &full_list);
+            self.full_list = full_list;
         }
     }
 
@@ -524,7 +550,8 @@ impl Scene for PackagesScene {
                 self.exhausted_list = true;
             }
 
-            self.append_listings(game_io, items);
+            self.append_listings(game_io, &items);
+            self.full_list.extend(items);
         }
 
         let index = self.list.selected_index();
