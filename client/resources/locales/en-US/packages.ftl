@@ -19,6 +19,7 @@ packages-category-tab = Category
 
 packages-location-context-menu-label = Category
 packages-location-online = Online
+packages-location-not-installed = Not Installed
 packages-location-installed = Installed
 
 packages-category-context-menu-label = Category

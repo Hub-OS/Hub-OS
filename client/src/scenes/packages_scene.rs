@@ -78,6 +78,13 @@ impl CategoryFilter {
     }
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Location {
+    Online,
+    NotInstalled,
+    Installed,
+}
+
 pub struct PackagesScene {
     camera: Camera,
     background: Background,
@@ -86,15 +93,16 @@ pub struct PackagesScene {
     ui_input_tracker: UiInputTracker,
     sidebar: UiLayout,
     category_menu: ContextMenu<CategoryFilter>,
-    location_menu: ContextMenu<bool>,
+    location_menu: ContextMenu<Location>,
     cursor_sprite: Sprite,
     cursor_animator: Animator,
     list: ScrollableList,
     list_task: Option<RequestTask>,
+    total_requests: usize,
     exhausted_list: bool,
     category_filter: CategoryFilter,
     name_filter: String,
-    local_only: bool,
+    location_filter: Location,
     event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
     textbox: Textbox,
@@ -161,37 +169,44 @@ impl PackagesScene {
             .with_translated_options(
                 game_io,
                 &[
-                    ("packages-location-online", false),
-                    ("packages-location-installed", true),
+                    ("packages-location-online", Location::Online),
+                    ("packages-location-not-installed", Location::NotInstalled),
+                    ("packages-location-installed", Location::Installed),
                 ],
             ),
             cursor_sprite,
             cursor_animator,
             list: ScrollableList::new(game_io, list_bounds, 15.0).with_focus(false),
             list_task: None,
+            total_requests: 0,
             exhausted_list: false,
             category_filter: initial_category,
             name_filter: String::new(),
-            local_only: false,
+            location_filter: Location::Online,
             event_sender,
             event_receiver,
             textbox: Textbox::new_navigation(game_io),
             next_scene: NextScene::None,
         };
 
-        scene.request_more(game_io, 0);
+        scene.request_more(game_io);
 
         scene
     }
 
-    fn request_more(&mut self, game_io: &GameIO, skip: usize) {
-        if self.local_only {
+    fn request_more(&mut self, game_io: &GameIO) {
+        let skip = self.total_requests * PACKAGES_PER_REQUEST;
+        self.total_requests += 1;
+
+        if self.location_filter == Location::Installed {
             if skip == 0 {
                 self.request_local(game_io);
             }
         } else {
             self.request_remote(game_io, skip);
         }
+
+        log::info!("Requesting page {}", self.total_requests);
     }
 
     fn request_local(&mut self, game_io: &GameIO) {
@@ -219,7 +234,7 @@ impl PackagesScene {
         new_listings.sort_by(|a, b| (&a.long_name, &a.id).cmp(&(&b.long_name, &b.id)));
 
         self.list.set_children([]);
-        self.append_listings(new_listings);
+        self.append_listings(game_io, new_listings);
     }
 
     fn request_remote(&mut self, game_io: &GameIO, skip: usize) {
@@ -253,20 +268,42 @@ impl PackagesScene {
         self.list.set_label(label.to_uppercase());
     }
 
-    fn append_listings(&mut self, items: impl IntoIterator<Item = PackageListing>) {
-        self.list
-            .append_children(items.into_iter().map(|listing| -> Box<dyn UiNode> {
-                Box::new(UiButton::new(listing.clone()).on_activate({
-                    let event_sender = self.event_sender.clone();
-                    move || {
-                        let event = Event::ViewPackage {
-                            listing: listing.clone(),
-                        };
+    fn append_listings(
+        &mut self,
+        game_io: &GameIO,
+        items: impl IntoIterator<Item = PackageListing>,
+    ) {
+        let globals = Globals::from_resources(game_io);
 
-                        event_sender.send(event).unwrap();
-                    }
-                }))
-            }))
+        self.list.append_children(
+            items
+                .into_iter()
+                .filter(|listing| {
+                    if self.location_filter != Location::NotInstalled {
+                        return true;
+                    };
+
+                    let Some(category) = listing.preview_data.category() else {
+                        return false;
+                    };
+
+                    globals
+                        .package_info(category, PackageNamespace::Local, &listing.id)
+                        .is_none()
+                })
+                .map(|listing| -> Box<dyn UiNode> {
+                    Box::new(UiButton::new(listing.clone()).on_activate({
+                        let event_sender = self.event_sender.clone();
+                        move || {
+                            let event = Event::ViewPackage {
+                                listing: listing.clone(),
+                            };
+
+                            event_sender.send(event).unwrap();
+                        }
+                    }))
+                }),
+        )
     }
 
     fn generate_sidebar(
@@ -380,12 +417,14 @@ impl PackagesScene {
             }
             self.category_menu.close();
             self.sidebar.set_focused(true);
-        } else if let Some(local) = self.location_menu.update(game_io, &self.ui_input_tracker) {
+        } else if let Some(location_filter) =
+            self.location_menu.update(game_io, &self.ui_input_tracker)
+        {
             self.list_task = None;
-            self.local_only = local;
+            self.location_filter = location_filter;
             self.restart_search(game_io);
 
-            let title = if local {
+            let title = if location_filter == Location::Installed {
                 "packages-local-scene-title"
             } else {
                 "packages-online-scene-title"
@@ -443,7 +482,9 @@ impl PackagesScene {
     fn restart_search(&mut self, game_io: &GameIO) {
         self.list.set_children([]);
         self.exhausted_list = false;
-        self.request_more(game_io, 0);
+        self.total_requests = 0;
+
+        self.request_more(game_io);
     }
 
     fn update_cursor(&mut self) {
@@ -480,7 +521,7 @@ impl Scene for PackagesScene {
                 self.exhausted_list = true;
             }
 
-            self.append_listings(items);
+            self.append_listings(game_io, items);
         }
 
         let index = self.list.selected_index();
@@ -490,7 +531,7 @@ impl Scene for PackagesScene {
             && self.list_task.is_none()
             && total_children - index < PACKAGES_PER_REQUEST
         {
-            self.request_more(game_io, total_children);
+            self.request_more(game_io);
         }
 
         self.handle_input(game_io);
