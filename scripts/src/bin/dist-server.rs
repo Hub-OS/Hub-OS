@@ -40,6 +40,12 @@ fn main() -> ExitCode {
         format!("dist/server/{BIN_NAME}"),
     );
 
+    // mac x86_64 exe
+    let _ = fs::copy(
+        format!("target/release/{BIN_NAME}-x86_64"),
+        format!("dist/server/{BIN_NAME}-x86_64"),
+    );
+
     // mac ARM exe
     let _ = fs::copy(
         format!("target/release/{BIN_NAME}-aarch64"),
