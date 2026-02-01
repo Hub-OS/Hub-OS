@@ -106,7 +106,7 @@ jobs:
           cp target/x86_64-apple-darwin/release/hub_os target/release/hub_os-x86_64
           cp target/x86_64-apple-darwin/release/hub_os_server target/release/hub_os_server-x86_64
 
-      - name: Build x86 Executables and Create Dist
+      - name: Build ARM Executables and Create Dist
         run: cargo run --bin dist
 
       - name: Push to itch.io
