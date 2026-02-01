@@ -10,7 +10,7 @@ packets = { path = "../packets", features = ["mlua"] }
 structures = { path = "../structures" }
 smol = { workspace = true }
 futures = { workspace = true }
-isahc = "1.7"
+minreq = { version = "2", features = ["https-native"] }
 mlua = { version = "0.9", features = ["vendored", "lua54"] }
 clap = { workspace = true }
 roxmltree = "0.19"

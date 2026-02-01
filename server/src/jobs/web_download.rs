@@ -1,5 +1,4 @@
 use super::job_promise::{JobPromise, PromiseValue};
-use super::web_request::web_request_internal;
 
 pub fn web_download(
     destination: String,
@@ -11,56 +10,72 @@ pub fn web_download(
     let promise = JobPromise::new();
     let mut thread_promise = promise.clone();
 
-    smol::spawn(async move {
-        let response = match web_request_internal(url, method, headers, body).await {
+    let future = smol::unblock(move || {
+        // make request
+        let mut request = minreq::Request::new(minreq::Method::Custom(method), url)
+            .with_follow_redirects(true)
+            .with_headers(headers);
+
+        if let Some(body) = body {
+            request = request.with_body(body);
+        }
+
+        let response = match request.send_lazy() {
             Ok(response) => response,
-            Err(err) => {
-                log::warn!("{err}");
-                thread_promise.set_value(PromiseValue::Success(false));
-                return;
+            Err(_) => {
+                return false;
             }
         };
 
-        // writing to file
-        if let Err(err) = save_response(destination, response).await {
-            log::warn!("{err}");
-            thread_promise.set_value(PromiseValue::Success(false));
-            return;
+        // read response to file
+        use std::io::{BufRead, Write};
+
+        let mut buf_reader = std::io::BufReader::new(response);
+        let mut buf_writer = match std::fs::File::create(&destination) {
+            Ok(file) => std::io::BufWriter::new(file),
+            Err(err) => {
+                log::warn!("{err}");
+                return false;
+            }
+        };
+
+        let mut length = 1;
+
+        while length > 0 {
+            let buffer = match buf_reader.fill_buf() {
+                Ok(buffer) => buffer,
+                Err(err) => {
+                    let _ = std::fs::remove_file(destination);
+                    log::warn!("{err}");
+                    return false;
+                }
+            };
+
+            length = buffer.len();
+
+            if let Err(err) = buf_writer.write_all(buffer) {
+                let _ = std::fs::remove_file(destination);
+                log::warn!("{err}");
+                return false;
+            };
+
+            buf_reader.consume(length);
         }
 
-        thread_promise.set_value(PromiseValue::Success(true));
+        if let Err(err) = buf_writer.flush() {
+            let _ = std::fs::remove_file(destination);
+            log::warn!("{err}");
+            return false;
+        };
+
+        true
+    });
+
+    smol::spawn(async move {
+        let success = future.await;
+        thread_promise.set_value(PromiseValue::Success(success));
     })
     .detach();
 
     promise
-}
-
-async fn save_response(
-    destination: String,
-    response: isahc::Response<isahc::AsyncBody>,
-) -> Result<(), Box<dyn std::error::Error>> {
-    use futures::io::BufReader;
-    use futures::{AsyncBufReadExt, AsyncWriteExt};
-    use smol::fs::File;
-    use smol::io::BufWriter;
-
-    let file = File::create(destination).await?;
-
-    let mut buf_reader = BufReader::new(response.into_body());
-    let mut buf_writer = BufWriter::new(file);
-
-    let mut length = 1;
-
-    while length > 0 {
-        let buffer = buf_reader.fill_buf().await?;
-        length = buffer.len();
-
-        buf_writer.write_all(buffer).await?;
-
-        buf_reader.consume_unpin(length);
-    }
-
-    buf_writer.flush().await?;
-
-    Ok(())
 }
