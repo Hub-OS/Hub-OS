@@ -95,16 +95,16 @@ jobs:
       - name: Install Cargo About
         run: cargo install cargo-about --version=^0.6
 
-      - name: Build ARM Client
-        run: cargo build --bin hub_os --target=aarch64-apple-darwin --release
+      - name: Build x86 Client
+        run: cargo build --bin hub_os --target=x86_64-apple-darwin --release
 
-      - name: Build ARM Server
-        run: cargo build --bin hub_os_server --target=aarch64-apple-darwin --release
+      - name: Build x86 Server
+        run: cargo build --bin hub_os_server --target=x86_64-apple-darwin --release
 
-      - name: Copy ARM Executables
+      - name: Copy x86 Executables
         run: |
-          cp target/aarch64-apple-darwin/release/hub_os target/release/hub_os-aarch64
-          cp target/aarch64-apple-darwin/release/hub_os_server target/release/hub_os_server-aarch64
+          cp target/x86_64-apple-darwin/release/hub_os target/release/hub_os-x86_64
+          cp target/x86_64-apple-darwin/release/hub_os_server target/release/hub_os_server-x86_64
 
       - name: Build x86 Executables and Create Dist
         run: cargo run --bin dist
