@@ -1,11 +1,9 @@
 pub async fn request(uri: &str) -> Option<Vec<u8>> {
-    let (sender, receiver) = flume::unbounded();
-
     // our uri encoder preserves spaces
     let uri = uri.replace(' ', "%20");
 
-    std::thread::spawn(move || {
-        let response = minreq::get(uri.clone())
+    let response = smol::unblock(move || {
+        minreq::get(uri.clone())
             .send()
             .map_err(|err| Some(err.to_string()))
             .and_then(|response| {
@@ -23,12 +21,10 @@ pub async fn request(uri: &str) -> Option<Vec<u8>> {
                         .unwrap_or("No reason provided")
                 );
             })
-            .ok();
-
-        let _ = sender.send(response);
+            .ok()
     });
 
-    receiver.recv_async().await.unwrap()
+    response.await
 }
 
 pub async fn request_json(uri: &str) -> Option<serde_json::Value> {
