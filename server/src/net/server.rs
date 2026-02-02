@@ -72,6 +72,7 @@ impl Server {
         log::info!("Server started");
 
         let (listener_sender, listener_receiver) = flume::unbounded();
+
         create_listening_thread(
             self.message_sender.clone(),
             listener_receiver,
@@ -85,64 +86,84 @@ impl Server {
         loop {
             futures::select_biased! {
                 _ = sleep_stream.select_next_some() => {
-                    self.tick(listener_sender.clone()).await;
+                    self.tick(&listener_sender).await;
                 }
                 message = message_stream.select_next_some() => {
-                    match message {
-                        ThreadMessage::NewConnection { socket_address } => {
-                            let mut packet_orchestrator = self.packet_orchestrator.borrow_mut();
-                            packet_orchestrator.create_connection(socket_address);
-
-                            let receivers = packet_orchestrator.take_packet_receivers();
-                            listener_sender.send(ListenerMessage::NewConnections { receivers }).unwrap();
-                        }
-                        ThreadMessage::ServerCommPacket { socket_address, packet } => {
-                            self.handle_server_comm_packet(
-                                socket_address,
-                                packet,
-                            );
-                        }
-                        ThreadMessage::ClientPacket { socket_address, packet } => {
-                            self.handle_client_packet(
-                                socket_address,
-                                packet,
-                            );
-                        }
-                        ThreadMessage::NetplayPacket { socket_address, packet } => {
-                            let packet_orchestrator = self.packet_orchestrator.borrow_mut();
-                            packet_orchestrator.forward_netplay_packet(socket_address, packet);
-                        }
-                        ThreadMessage::MessageServer { socket_address, data } => {
-                            let mut packet_orchestrator = self.packet_orchestrator.borrow_mut();
-                            packet_orchestrator.create_connection(socket_address);
-                            packet_orchestrator.send_server_comm(
-                                socket_address,
-                                Reliability::ReliableOrdered,
-                                ServerCommPacket::Message { data }
-                            );
-                        }
-                        ThreadMessage::PollServer { socket_address, promise } => {
-                            let mut packet_orchestrator = self.packet_orchestrator.borrow_mut();
-                            packet_orchestrator.create_connection(socket_address);
-                            packet_orchestrator.send_server_comm(
-                                socket_address,
-                                Reliability::Reliable,
-                                ServerCommPacket::Poll
-                            );
-
-                            if let Some(pending) = self.pending_server_polls.get_mut(&socket_address) {
-                                pending.push(promise);
-                            } else {
-                                self.pending_server_polls.insert(socket_address, vec![promise]);
-                            }
-                        }
-                    }
+                    self.handle_thread_message(&listener_sender, message);
                 }
             };
         }
     }
 
-    async fn tick(&mut self, listener_sender: Sender<ListenerMessage>) {
+    fn handle_thread_message(
+        &mut self,
+        listener_sender: &Sender<ListenerMessage>,
+        message: ThreadMessage,
+    ) {
+        match message {
+            ThreadMessage::NewConnection { socket_address } => {
+                let mut packet_orchestrator = self.packet_orchestrator.borrow_mut();
+                packet_orchestrator.create_connection(socket_address);
+
+                let receivers = packet_orchestrator.take_packet_receivers();
+                listener_sender
+                    .send(ListenerMessage::NewConnections { receivers })
+                    .unwrap();
+            }
+            ThreadMessage::ServerCommPacket {
+                socket_address,
+                packet,
+            } => {
+                self.handle_server_comm_packet(socket_address, packet);
+            }
+            ThreadMessage::ClientPacket {
+                socket_address,
+                packet,
+            } => {
+                self.handle_client_packet(socket_address, packet);
+            }
+            ThreadMessage::NetplayPacket {
+                socket_address,
+                packet,
+            } => {
+                let packet_orchestrator = self.packet_orchestrator.borrow_mut();
+                packet_orchestrator.forward_netplay_packet(socket_address, packet);
+            }
+            ThreadMessage::MessageServer {
+                socket_address,
+                data,
+            } => {
+                let mut packet_orchestrator = self.packet_orchestrator.borrow_mut();
+                packet_orchestrator.create_connection(socket_address);
+                packet_orchestrator.send_server_comm(
+                    socket_address,
+                    Reliability::ReliableOrdered,
+                    ServerCommPacket::Message { data },
+                );
+            }
+            ThreadMessage::PollServer {
+                socket_address,
+                promise,
+            } => {
+                let mut packet_orchestrator = self.packet_orchestrator.borrow_mut();
+                packet_orchestrator.create_connection(socket_address);
+                packet_orchestrator.send_server_comm(
+                    socket_address,
+                    Reliability::Reliable,
+                    ServerCommPacket::Poll,
+                );
+
+                if let Some(pending) = self.pending_server_polls.get_mut(&socket_address) {
+                    pending.push(promise);
+                } else {
+                    self.pending_server_polls
+                        .insert(socket_address, vec![promise]);
+                }
+            }
+        }
+    }
+
+    async fn tick(&mut self, listener_sender: &Sender<ListenerMessage>) {
         let elapsed_time = self.time.elapsed();
         self.time = Instant::now();
 
