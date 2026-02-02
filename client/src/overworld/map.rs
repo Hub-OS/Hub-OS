@@ -634,7 +634,9 @@ impl Map {
 
         let camera_bounds = camera.bounds();
 
-        const TILE_PADDING: i32 = 3;
+        const TILE_H_PADDING: i32 = 1;
+        const TILE_V_PADDING: i32 = 2;
+
         let screen_size = camera_bounds.size();
         let tile_size = self.tile_size;
 
@@ -648,11 +650,11 @@ impl Map {
 
         let vertical_offset = layer_index as i32;
 
-        for i in -TILE_PADDING..vertical_tile_count + TILE_PADDING {
+        for i in -TILE_V_PADDING..vertical_tile_count + TILE_V_PADDING + 1 {
             let vertical_start = (vertical_offset + i) / 2;
             let row_offset = (vertical_offset + i) % 2;
 
-            for j in -TILE_PADDING..horizontal_tile_count + row_offset + TILE_PADDING {
+            for j in -TILE_H_PADDING..horizontal_tile_count + row_offset + TILE_H_PADDING + 1 {
                 let col = tile_space_start_i.x + vertical_start + j;
                 let row = tile_space_start_i.y + vertical_start - j + row_offset;
 
