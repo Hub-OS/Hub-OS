@@ -1140,8 +1140,6 @@ impl OverworldOnlineScene {
                 seed,
                 remote_players,
             } => {
-                (self.send_packet)(Reliability::ReliableOrdered, ClientPacket::EncounterStart);
-
                 // copy background
                 let bg_props = self.area.map.background_properties();
                 let background = bg_props.generate_background(game_io, &self.assets);

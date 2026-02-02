@@ -110,7 +110,6 @@ pub enum ClientPacket {
     NetplayPreferences {
         force_relay: bool,
     },
-    EncounterStart,
     BattleMessage {
         message: String,
     },

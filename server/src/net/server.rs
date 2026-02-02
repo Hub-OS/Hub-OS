@@ -6,7 +6,8 @@ use crate::threads::{ListenerMessage, ThreadMessage, create_listening_thread};
 use flume::{Receiver, Sender};
 use packets::structures::ActorId;
 use packets::{
-    ClientAssetType, ClientPacket, Reliability, SERVER_TICK_RATE, ServerCommPacket, ServerPacket,
+    ClientAssetType, ClientPacket, NetplayPacketData, Reliability, SERVER_TICK_RATE,
+    ServerCommPacket, ServerPacket,
 };
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -126,7 +127,21 @@ impl Server {
                 socket_address,
                 packet,
             } => {
-                let packet_orchestrator = self.packet_orchestrator.borrow_mut();
+                let net = &mut self.net;
+                let mut packet_orchestrator = self.packet_orchestrator.borrow_mut();
+
+                if packet.data == NetplayPacketData::Hello
+                    && let Some(&player_id) = self.player_id_map.get(&socket_address)
+                    && let Some(client) = net.get_client(player_id)
+                    && let Some(info) = client.battle_tracker.front()
+                {
+                    packet_orchestrator.configure_netplay_destinations(
+                        socket_address,
+                        info.player_index,
+                        &info.remote_addresses,
+                    );
+                }
+
                 packet_orchestrator.forward_netplay_packet(socket_address, packet);
             }
             ThreadMessage::MessageServer {
@@ -576,23 +591,6 @@ impl Server {
                         client.force_relay = force_relay;
                     }
                 }
-                ClientPacket::EncounterStart => {
-                    let mut packet_orchestrator = self.packet_orchestrator.borrow_mut();
-
-                    if packet_orchestrator.disconnect_from_netplay(socket_address) {
-                        log::warn!("Received EncounterStart while already in a battle?");
-                    }
-
-                    if let Some(client) = net.get_client(player_id)
-                        && let Some(info) = client.battle_tracker.front()
-                    {
-                        packet_orchestrator.configure_netplay_destinations(
-                            socket_address,
-                            info.player_index,
-                            info.remote_addresses.clone(),
-                        );
-                    }
-                }
                 ClientPacket::BattleMessage { message } => {
                     self.plugin_wrapper.handle_battle_message(
                         net,
@@ -603,10 +601,6 @@ impl Server {
                     );
                 }
                 ClientPacket::BattleResults { battle_stats } => {
-                    self.packet_orchestrator
-                        .borrow_mut()
-                        .disconnect_from_netplay(socket_address);
-
                     self.plugin_wrapper
                         .handle_battle_results(net, player_id, &battle_stats);
                 }

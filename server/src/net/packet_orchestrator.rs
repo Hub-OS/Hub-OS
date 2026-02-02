@@ -164,12 +164,6 @@ impl PacketOrchestrator {
             };
 
             self.client_id_map.remove(id);
-
-            let index = connection.netplay_index;
-            self.forward_netplay_packet(
-                socket_address,
-                NetplayPacket::new_disconnect_signal(index),
-            );
         }
 
         // must leave rooms before dropping client_room_map
@@ -186,6 +180,19 @@ impl PacketOrchestrator {
     }
 
     pub fn disconnect_from_netplay(&mut self, socket_address: SocketAddr) -> bool {
+        if let Some(index) = self.connection_map.get(&socket_address) {
+            let connection = &mut self.connections[*index];
+            let index = connection.netplay_index;
+
+            // make sure peers receive a disconnect signal,
+            // in case the ClientPacket::BattleResults arrives earlier than the associate disconnect packet
+            // todo: fix disconnect race condition
+            self.forward_netplay_packet_inner(
+                socket_address,
+                NetplayPacket::new_disconnect_signal(index),
+            );
+        }
+
         let Some(peers) = self.netplay_route_map.remove(&socket_address) else {
             return false;
         };
@@ -215,13 +222,13 @@ impl PacketOrchestrator {
         &mut self,
         socket_address: SocketAddr,
         player_index: usize,
-        destination_addresses: Vec<SocketAddr>,
+        destination_addresses: &[SocketAddr],
     ) {
         if let Some(index) = self.connection_map.get(&socket_address) {
             self.connections[*index].netplay_index = player_index;
 
             self.netplay_route_map
-                .insert(socket_address, destination_addresses);
+                .insert(socket_address, destination_addresses.to_vec());
         }
     }
 
@@ -233,6 +240,10 @@ impl PacketOrchestrator {
             return;
         }
 
+        self.forward_netplay_packet_inner(socket_address, packet);
+    }
+
+    fn forward_netplay_packet_inner(&self, socket_address: SocketAddr, packet: NetplayPacket) {
         let prioritize = packet.prioritize();
         let reliability = packet.default_reliability();
         let data = Arc::new(serialize(packet));

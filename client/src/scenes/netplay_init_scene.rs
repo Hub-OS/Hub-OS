@@ -484,7 +484,11 @@ impl NetplayInitScene {
                 };
 
                 if !connection.spectating && data.signals.contains(&NetplaySignal::Disconnect) {
-                    log::info!("Player {} disconnected", connection.player_setup.index);
+                    log::info!(
+                        "Player {} disconnected, signals: {:?}",
+                        connection.player_setup.index,
+                        data.signals
+                    );
                     self.stage = ConnectionStage::Failed;
                 }
 
@@ -932,6 +936,13 @@ impl Scene for NetplayInitScene {
                     self.stage.advance();
                 }
                 Event::Fallback { fallback } => {
+                    // send a hello message on the fallback channel to force wait timers on other players to end
+                    // also allows the server to know we'd also like to use it as a relay
+                    fallback.0(NetplayPacket {
+                        index: self.local_index,
+                        data: NetplayPacketData::Hello,
+                    });
+
                     self.refresh_connections(game_io);
 
                     self.last_fallback_instant = game_io.frame_start_instant();
@@ -1051,15 +1062,8 @@ async fn punch_holes(
                 }
             }
             _ = timer => {
-                log::debug!("Hole punch timer exhausted");
-
                 // out of time, we'll assume hole punching failed
-
-                // send a hello message on the fallback channel to force wait timers on other players to end
-                fallback_sender_receiver.0(NetplayPacket{
-                    index: local_index,
-                    data: NetplayPacketData::Hello });
-
+                log::debug!("Hole punch timer exhausted");
                 return false;
             }
         }
