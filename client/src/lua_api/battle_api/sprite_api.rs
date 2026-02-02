@@ -324,6 +324,12 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
+    setter(lua_api, "rotation", |node, _, _: ()| Ok(node.rotation()));
+    setter(lua_api, "set_rotation", |node, _, radians| {
+        node.set_rotation(radians);
+        Ok(())
+    });
+
     getter(lua_api, "color", |node, _, _: ()| {
         Ok(LuaColor::from(node.color()))
     });

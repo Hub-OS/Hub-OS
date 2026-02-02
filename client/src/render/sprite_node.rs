@@ -86,12 +86,20 @@ impl SpriteNode {
         self.sprite.set_scale(scale);
     }
 
-    pub fn size(&mut self) -> Vec2 {
+    pub fn size(&self) -> Vec2 {
         self.sprite.size()
     }
 
     pub fn set_size(&mut self, size: Vec2) {
         self.sprite.set_size(size);
+    }
+
+    pub fn rotation(&self) -> f32 {
+        self.sprite.rotation()
+    }
+
+    pub fn set_rotation(&mut self, radians: f32) {
+        self.sprite.set_rotation(radians);
     }
 
     pub fn visible(&self) -> bool {
