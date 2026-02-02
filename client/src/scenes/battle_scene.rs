@@ -533,13 +533,13 @@ impl BattleScene {
             self.slow_cooldown -= 1;
         }
 
+        let globals = Globals::from_resources(game_io);
+        let debug_visible = globals.debug_visible;
+
         let target_buffer_len = self
             .local_index
             .map(|index| self.player_controllers[index].buffer.len())
-            .unwrap_or_else(|| {
-                let globals = Globals::from_resources(game_io);
-                globals.config.input_delay as usize
-            });
+            .unwrap_or_else(|| globals.config.input_delay as usize);
 
         let mut should_slow = false;
 
@@ -548,16 +548,17 @@ impl BattleScene {
                 continue;
             }
 
-            #[cfg(debug_assertions)]
-            println!(
-                "controller: {i}, buffer: {}, tolerance: {}, b+t: {}, b+t target: {}, rtt: {:.0}ms, fps: {:.1}",
-                controller.buffer.len(),
-                controller.lead_tolerance,
-                controller.buffer.len() + controller.lead_tolerance,
-                target_buffer_len,
-                controller.rtt * 1000.0,
-                1.0 / controller.average_frame_time
-            );
+            if debug_visible {
+                println!(
+                    "controller: {i}, buffer: {}, tolerance: {}, b+t: {}, b+t target: {}, rtt: {:.0}ms, fps: {:.1}",
+                    controller.buffer.len(),
+                    controller.lead_tolerance,
+                    controller.buffer.len() + controller.lead_tolerance,
+                    target_buffer_len,
+                    controller.rtt * 1000.0,
+                    1.0 / controller.average_frame_time
+                );
+            }
 
             // try to maintain a buffer len to stay in the past
             if controller.buffer.len() + controller.lead_tolerance < target_buffer_len {
