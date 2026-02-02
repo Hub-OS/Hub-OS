@@ -83,6 +83,7 @@ pub enum AuxRequirement {
     Element(Element),
     Emotion(Emotion),
     Defense(DefensePriority),
+    DefenseAbsent(DefensePriority),
     NegativeTileInteraction,
     TileState(usize),
     TileStateAbsent(usize),
@@ -142,6 +143,7 @@ impl AuxRequirement {
             AuxRequirement::Element(_)
             | AuxRequirement::Emotion(_)
             | AuxRequirement::Defense(_)
+            | AuxRequirement::DefenseAbsent(_)
             | AuxRequirement::NegativeTileInteraction
             | AuxRequirement::TileState(_)
             | AuxRequirement::TileStateAbsent(_)
@@ -201,6 +203,7 @@ impl AuxRequirement {
             "require_element" => AuxRequirement::Element(table.get(2)?),
             "require_emotion" => AuxRequirement::Emotion(table.get(2)?),
             "require_defense" => AuxRequirement::Defense(table.get(2)?),
+            "require_defense_absent" => AuxRequirement::DefenseAbsent(table.get(2)?),
             "require_negative_tile_interaction" => AuxRequirement::NegativeTileInteraction,
             "require_tile_state" => AuxRequirement::TileState(table.get(2)?),
             "require_tile_state_absent" => AuxRequirement::TileStateAbsent(table.get(2)?),
@@ -643,6 +646,9 @@ impl AuxProp {
                 }
                 AuxRequirement::Defense(priority) => {
                     defense_rules.iter().any(|d| d.priority == *priority)
+                }
+                AuxRequirement::DefenseAbsent(priority) => {
+                    !defense_rules.iter().any(|d| d.priority == *priority)
                 }
                 AuxRequirement::NegativeTileInteraction => !entity.ignore_negative_tile_effects,
                 AuxRequirement::TileState(required_tile_state) => tile_state == required_tile_state,
