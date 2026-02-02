@@ -29,6 +29,7 @@ enum Event {
     },
     Fallback {
         fallback: (NetplayPacketSender, NetplayPacketReceiver),
+        received_hello: bool,
     },
 }
 
@@ -36,6 +37,7 @@ enum Event {
 enum ConnectionStage {
     #[default]
     ResolvingAddresses,
+    FlushingFallback,
     ResolvingSpectators,
     SharingPackageList,
     WaitingToSharePackages,
@@ -49,7 +51,8 @@ enum ConnectionStage {
 impl ConnectionStage {
     fn advance(&mut self) {
         *self = match self {
-            ConnectionStage::ResolvingAddresses => ConnectionStage::ResolvingSpectators,
+            ConnectionStage::ResolvingAddresses => ConnectionStage::FlushingFallback,
+            ConnectionStage::FlushingFallback => ConnectionStage::ResolvingSpectators,
             ConnectionStage::ResolvingSpectators => ConnectionStage::SharingPackageList,
             ConnectionStage::SharingPackageList => ConnectionStage::WaitingToSharePackages,
             ConnectionStage::WaitingToSharePackages => ConnectionStage::SharingPackages,
@@ -140,11 +143,12 @@ impl NetplayInitScene {
 
                 let _ = event_sender.send(Event::Fallback {
                     fallback: fallback_sender_receiver,
+                    received_hello: false,
                 });
                 return;
             }
 
-            let success = punch_holes(
+            let status = punch_holes(
                 local_index,
                 &remote_index_map,
                 &senders_and_receivers,
@@ -152,15 +156,19 @@ impl NetplayInitScene {
             )
             .await;
 
-            let event = if success {
-                log::debug!("Hole punching successful");
-                Event::ResolvedAddresses {
-                    players: senders_and_receivers,
+            let event = match status {
+                HolePunchStatus::Success => {
+                    log::debug!("Hole punching successful");
+                    Event::ResolvedAddresses {
+                        players: senders_and_receivers,
+                    }
                 }
-            } else {
-                log::debug!("Hole punching failed");
-                Event::Fallback {
-                    fallback: fallback_sender_receiver,
+                HolePunchStatus::Failed { received_hello } => {
+                    log::debug!("Hole punching failed");
+                    Event::Fallback {
+                        fallback: fallback_sender_receiver,
+                        received_hello,
+                    }
                 }
             };
 
@@ -257,8 +265,18 @@ impl NetplayInitScene {
                 self.last_fallback_instant = game_io.frame_start_instant();
             }
 
-            while let Ok(packet) = receiver.try_recv() {
-                packets.push(packet);
+            if matches!(self.stage, ConnectionStage::FlushingFallback) {
+                // ignore packets until we get a hello to flush old data
+                while let Ok(packet) = receiver.try_recv() {
+                    if packet.data == NetplayPacketData::Hello {
+                        self.stage.advance();
+                        break;
+                    }
+                }
+            } else {
+                while let Ok(packet) = receiver.try_recv() {
+                    packets.push(packet);
+                }
             }
 
             if game_io.frame_start_instant() - self.last_fallback_instant > MAX_SILENCE {
@@ -754,7 +772,9 @@ impl NetplayInitScene {
 
     fn handle_stage(&mut self, game_io: &mut GameIO) {
         match self.stage {
-            ConnectionStage::ResolvingAddresses | ConnectionStage::Complete => {}
+            ConnectionStage::ResolvingAddresses
+            | ConnectionStage::FlushingFallback
+            | ConnectionStage::Complete => {}
             ConnectionStage::ResolvingSpectators => {
                 // identify spectators when the transition ends to avoid loading hiccups
                 // identification might happen early if a player disconnects
@@ -935,7 +955,10 @@ impl Scene for NetplayInitScene {
 
                     self.stage.advance();
                 }
-                Event::Fallback { fallback } => {
+                Event::Fallback {
+                    fallback,
+                    received_hello,
+                } => {
                     // send a hello message on the fallback channel to force wait timers on other players to end
                     // also allows the server to know we'd also like to use it as a relay
                     fallback.0(NetplayPacket {
@@ -948,6 +971,10 @@ impl Scene for NetplayInitScene {
                     self.last_fallback_instant = game_io.frame_start_instant();
                     self.fallback_sender_receiver = Some(fallback);
                     self.stage.advance();
+
+                    if received_hello {
+                        self.stage.advance();
+                    }
                 }
             }
         }
@@ -971,12 +998,17 @@ impl Scene for NetplayInitScene {
     }
 }
 
+enum HolePunchStatus {
+    Success,
+    Failed { received_hello: bool },
+}
+
 async fn punch_holes(
     local_index: usize,
     remote_index_map: &[usize],
     senders_and_receivers: &[(NetplayPacketSender, NetplayPacketReceiver)],
     fallback_sender_receiver: &(NetplayPacketSender, NetplayPacketReceiver),
-) -> bool {
+) -> HolePunchStatus {
     use futures::StreamExt;
     use futures::future::FutureExt;
 
@@ -1052,19 +1084,19 @@ async fn punch_holes(
 
                 if total_hello == total_expected && total_responses == total_expected {
                     // responded and received a response from everyone, looks like we all support hole punching
-                    return true;
+                    return HolePunchStatus::Success;
                 }
             }
             packet = fallback_stream.select_next_some() => {
                 if let NetplayPacketData::Hello = packet.data {
                     log::debug!("Received Hello through fallback channel");
-                    return false;
+                    return HolePunchStatus::Failed { received_hello: true };
                 }
             }
             _ = timer => {
                 // out of time, we'll assume hole punching failed
                 log::debug!("Hole punch timer exhausted");
-                return false;
+                return HolePunchStatus::Failed { received_hello: false };
             }
         }
     }
