@@ -334,8 +334,12 @@ impl TimeFreezeTracker {
         self.character_backup = Some(backup);
     }
 
-    fn take_entity_backup(&mut self) -> Option<TimeFreezeEntityBackup> {
-        self.character_backup.take()
+    fn restore_entity_backup(simulation: &mut BattleSimulation, resources: &SharedBattleResources) {
+        let Some(backup) = simulation.time_freeze_tracker.character_backup.take() else {
+            return;
+        };
+
+        backup.restore(simulation, resources);
     }
 
     fn increment_time(&mut self) {
@@ -426,14 +430,20 @@ impl TimeFreezeTracker {
         for (_, entity) in simulation.entities.query_mut::<Query>() {
             entity.time_frozen = true;
         }
+
+        for (_, action) in simulation.actions.iter_mut() {
+            action.time_frozen = true;
+        }
     }
 
     fn defrost(simulation: &mut BattleSimulation) {
         // unfreeze all entities
         for (_, entity) in simulation.entities.query_mut::<&mut Entity>() {
-            if entity.time_frozen {
-                entity.time_frozen = false;
-            }
+            entity.time_frozen = false;
+        }
+
+        for (_, action) in simulation.actions.iter_mut() {
+            action.time_frozen = false;
         }
     }
 
@@ -452,6 +462,13 @@ impl TimeFreezeTracker {
         let state_just_started =
             time_freeze_tracker.state_start_time == time_freeze_tracker.active_time;
 
+        if !matches!(
+            action_freeze_state,
+            ActionFreezeState::Action | ActionFreezeState::ActionCleanup
+        ) {
+            Self::restore_entity_backup(simulation, resources);
+        }
+
         match action_freeze_state {
             ActionFreezeState::FadeIn => {
                 if state_just_started {
@@ -466,7 +483,7 @@ impl TimeFreezeTracker {
                 }
             }
             ActionFreezeState::Counterable => {
-                if time_freeze_tracker.can_counter() {
+                if simulation.time_freeze_tracker.can_counter() {
                     Self::detect_counter_attempt(game_io, resources, simulation);
                 }
             }
@@ -474,11 +491,11 @@ impl TimeFreezeTracker {
                 Self::begin_action(simulation);
             }
             ActionFreezeState::Action => {
-                if let Some(index) = time_freeze_tracker.active_action_index() {
+                if let Some(index) = simulation.time_freeze_tracker.active_action_index() {
                     // detect action end
                     if !simulation.actions.contains_key(index) {
                         // action completed, update tracking
-                        time_freeze_tracker.end_action();
+                        simulation.time_freeze_tracker.end_action();
                     }
                 }
             }
@@ -488,15 +505,13 @@ impl TimeFreezeTracker {
                     Action::delete_multi(game_io, resources, simulation, true, [action_index]);
                 }
 
-                if let Some(entity_backup) = simulation.time_freeze_tracker.take_entity_backup() {
-                    entity_backup.restore(simulation, resources);
-                }
+                Self::restore_entity_backup(simulation, resources);
 
                 // delete anything that hit 0 hp during our action
                 simulation.mark_deleted(game_io, resources);
             }
             ActionFreezeState::PollEntityAction => {
-                time_freeze_tracker.advance_team_action();
+                simulation.time_freeze_tracker.advance_team_action();
             }
             _ => {}
         }

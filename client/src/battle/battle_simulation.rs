@@ -352,7 +352,6 @@ impl BattleSimulation {
 
     pub fn update_animations(&mut self, resources: &SharedBattleResources) {
         let status_registry = &resources.status_registry;
-        let time_is_frozen = self.time_freeze_tracker.time_is_frozen();
 
         for (id, entity) in self.entities.query::<&Entity>().into_iter() {
             if entity.time_frozen {
@@ -370,17 +369,7 @@ impl BattleSimulation {
         }
 
         for (_, action) in &mut self.actions {
-            if !action.executed {
-                continue;
-            }
-
-            let entities = &mut self.entities;
-
-            let Ok(entity) = entities.query_one_mut::<&mut Entity>(action.entity.into()) else {
-                continue;
-            };
-
-            if entity.time_frozen || (time_is_frozen && !action.properties.time_freeze) {
+            if !action.executed || action.time_frozen {
                 continue;
             }
 

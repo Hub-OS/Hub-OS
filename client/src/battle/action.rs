@@ -37,6 +37,7 @@ pub struct Action {
     pub processed: bool,
     pub executed: bool,
     pub deleted: bool,
+    pub time_frozen: bool,
     pub entity: EntityId,
     pub state: String,
     pub frame_callbacks: Vec<(usize, BattleCallback)>,
@@ -64,6 +65,7 @@ impl Action {
             processed: false,
             executed: false,
             deleted: false,
+            time_frozen: false,
             entity: entity_id,
             state,
             frame_callbacks: Vec::new(),
@@ -415,14 +417,14 @@ impl Action {
 
         // get a list of entity ids for entities that need processing
         let time_freeze_tracker = &simulation.time_freeze_tracker;
-        let mut time_is_frozen = time_freeze_tracker.time_is_frozen();
+        let mut time_just_froze = false;
         let mut any_can_counter_time_freeze = time_freeze_tracker.can_processing_action_counter();
         let polled_freezer = time_freeze_tracker.polled_entity();
 
         let ids: Vec<_> = entities
-            .query_mut::<&ActionQueue>()
+            .query_mut::<(&Entity, &ActionQueue)>()
             .into_iter()
-            .filter(|(id, action_queue)| {
+            .filter(|(id, (entity, action_queue))| {
                 let Some(action_index) = action_queue.pending.front() else {
                     // no actions queued
                     return false;
@@ -448,14 +450,14 @@ impl Action {
                 // we can't process an action if the entity is already in an action
                 // unless we have a time freeze exception
                 let already_has_action = action_queue.active.is_some();
-                let can_process = (!time_is_frozen && !already_has_action)
+                let can_process = (!entity.time_frozen && !time_just_froze && !already_has_action)
                     || time_freeze_counter
                     || freeze_continuation;
 
                 if can_process && freezes_time {
                     // causes other actions to wait in queue until time freeze is over
                     // or until countering is possible
-                    time_is_frozen = true;
+                    time_just_froze = true;
                     any_can_counter_time_freeze = false;
                 }
 
@@ -534,7 +536,6 @@ impl Action {
         simulation: &mut BattleSimulation,
     ) {
         let mut actions_pending_deletion = Vec::new();
-        let time_is_frozen = simulation.time_freeze_tracker.time_is_frozen();
 
         let action_indices: Vec<_> = (simulation.actions)
             .iter()
@@ -550,9 +551,12 @@ impl Action {
                 continue;
             };
 
-            if time_is_frozen && !action.properties.time_freeze {
-                // non time freeze action in time freeze
-                continue;
+            if action.time_frozen {
+                if simulation.time_freeze_tracker.active_action_index() != Some(action_index) {
+                    continue;
+                }
+
+                action.time_frozen = false;
             }
 
             let entities = &mut simulation.entities;
@@ -574,13 +578,6 @@ impl Action {
 
             // execute
             if !action.executed {
-                if time_is_frozen
-                    && simulation.time_freeze_tracker.active_action_index() != Some(action_index)
-                {
-                    // avoid starting pending time freeze actions
-                    continue;
-                }
-
                 if movement.is_some() {
                     continue;
                 }
