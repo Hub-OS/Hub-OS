@@ -198,13 +198,17 @@ impl TimeFreezeTracker {
             return None;
         }
 
-        let mut tracked_action_iter = self.action_chain.iter();
+        let tracked_action_iter = self.action_chain.iter().rev().enumerate();
         let dropped_chain_index = match self.chain_limit {
             TimeFreezeChainLimit::Unlimited => None,
-            TimeFreezeChainLimit::OnePerTeam => tracked_action_iter.position(|t| t.team == team),
-            TimeFreezeChainLimit::OnePerEntity => {
-                tracked_action_iter.position(|t| t.entity == action.entity)
-            }
+            TimeFreezeChainLimit::PerTeam(n) => tracked_action_iter
+                .filter(|(_, t)| t.team == team)
+                .nth(n.saturating_sub(1) as usize)
+                .map(|(i, _)| self.action_chain.len().saturating_sub(i + 1)),
+            TimeFreezeChainLimit::PerEntity(n) => tracked_action_iter
+                .filter(|(_, t)| t.entity == action.entity)
+                .nth(n.saturating_sub(1) as usize)
+                .map(|(i, _)| self.action_chain.len().saturating_sub(i + 1)),
         };
 
         let dropped_action_index = dropped_chain_index.map(|index| {

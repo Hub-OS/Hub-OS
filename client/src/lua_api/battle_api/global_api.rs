@@ -13,8 +13,14 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     globals.set("dofile", rollback_mlua::Nil)?;
 
     let tfc_chain_limit_table = lua.create_table()?;
-    tfc_chain_limit_table.set("OnePerEntity", TimeFreezeChainLimit::OnePerEntity)?;
-    tfc_chain_limit_table.set("OnePerTeam", TimeFreezeChainLimit::OnePerTeam)?;
+    tfc_chain_limit_table.set(
+        "PerEntity",
+        lua.create_function(|_, n| Ok(TimeFreezeChainLimit::PerEntity(n)))?,
+    )?;
+    tfc_chain_limit_table.set(
+        "PerTeam",
+        lua.create_function(|_, n| Ok(TimeFreezeChainLimit::PerTeam(n)))?,
+    )?;
     tfc_chain_limit_table.set("Unlimited", TimeFreezeChainLimit::Unlimited)?;
     globals.set("TimeFreezeChainLimit", tfc_chain_limit_table)?;
 
