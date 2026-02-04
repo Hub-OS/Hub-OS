@@ -33,6 +33,7 @@ struct AugmentMeta {
     colors: Vec<String>,
     flat: bool,
     shape: Option<Vec<Vec<u8>>>,
+    shapes: Vec<Vec<Vec<u8>>>,
     byproducts: Vec<PackageId>,
     prevent_byproducts: bool,
     limit: Option<usize>,
@@ -60,20 +61,23 @@ pub struct AugmentPackage {
     pub slot: Option<SwitchDriveSlot>,
 
     // block specific
-    pub has_shape: bool,
     pub is_flat: bool,
     pub block_colors: Vec<BlockColor>,
-    pub shape: [bool; 5 * 5],
+    pub shapes: Vec<[bool; 5 * 5]>,
     pub byproducts: Vec<PackageId>,
     pub prevent_byproducts: bool,
     pub limit: usize,
 }
 
 impl AugmentPackage {
-    pub fn exists_at(&self, rotation: u8, position: (usize, usize)) -> bool {
+    pub fn exists_at(&self, variant: usize, rotation: u8, position: (usize, usize)) -> bool {
         if position.0 >= 5 || position.1 >= 5 {
             return false;
         }
+
+        let Some(shape) = self.shapes.get(variant) else {
+            return false;
+        };
 
         let (x, y) = match rotation {
             1 => (position.1, 4 - position.0),
@@ -82,7 +86,7 @@ impl AugmentPackage {
             _ => (position.0, position.1),
         };
 
-        self.shape.get(y * 5 + x) == Some(&true)
+        shape.get(y * 5 + x) == Some(&true)
     }
 }
 
@@ -112,7 +116,7 @@ impl Package for AugmentPackage {
                 slot: self.slot,
                 flat: self.is_flat,
                 colors: self.block_colors.clone(),
-                shape: self.has_shape.then_some(self.shape),
+                shape: self.shapes.first().copied(),
             },
             dependencies: self.package_info.requirements.clone(),
         }
@@ -164,15 +168,42 @@ impl Package for AugmentPackage {
         package.slot = meta.slot;
 
         // block specific
-        package.has_shape = meta.shape.is_some();
         package.is_flat = meta.flat;
         package.block_colors = meta.colors.into_iter().map(BlockColor::from).collect();
         package.byproducts = meta.byproducts;
         package.prevent_byproducts = meta.prevent_byproducts;
         package.limit = meta.limit.unwrap_or(9);
 
+        // resolve block shapes
+        let flatten_shape = |shape: Vec<Vec<u8>>| {
+            let flattened_shape: Vec<_> = shape.into_iter().flatten().collect();
+
+            let mut final_shape = [false; 5 * 5];
+
+            if flattened_shape.len() != final_shape.len() {
+                log::error!(
+                    "Expected a 5x5 shape (5 lists of 5 numbers) in {:?}",
+                    package.package_info.toml_path
+                );
+            }
+
+            for (i, n) in flattened_shape.into_iter().enumerate() {
+                final_shape[i] = n != 0;
+            }
+
+            final_shape
+        };
+
+        if let Some(shape) = meta.shape {
+            package.shapes.push(flatten_shape(shape));
+        }
+
+        package
+            .shapes
+            .extend(meta.shapes.into_iter().map(flatten_shape));
+
         // block tags
-        if package.has_shape {
+        if !package.shapes.is_empty() {
             static BLOCK_TAG: std::sync::LazyLock<Arc<str>> =
                 std::sync::LazyLock::new(|| Arc::from("BLOCK"));
             static FLAT_BLOCK_TAG: std::sync::LazyLock<Arc<str>> =
@@ -182,21 +213,6 @@ impl Package for AugmentPackage {
 
             if package.is_flat {
                 package.package_info.tags.push(FLAT_BLOCK_TAG.clone());
-            }
-        }
-
-        if let Some(shape) = meta.shape {
-            let flattened_shape: Vec<_> = shape.into_iter().flatten().collect();
-
-            if flattened_shape.len() != package.shape.len() {
-                log::error!(
-                    "Expected a 5x5 shape (5 lists of 5 numbers) in {:?}",
-                    package.package_info.toml_path
-                );
-            }
-
-            for (i, n) in flattened_shape.into_iter().enumerate() {
-                package.shape[i] = n != 0;
             }
         }
 

@@ -115,6 +115,7 @@ pub struct BlocksScene {
     block_preview: Option<BlockPreview>,
     block_context_menu: ContextMenu<BlockOption>,
     held_block: Option<InstalledBlock>,
+    block_original_variant: usize,
     block_original_rotation: u8,
     cursor: GridCursor,
     block_returns_to_grid: bool,
@@ -155,7 +156,7 @@ impl BlocksScene {
         let mut packages: Vec<_> = globals
             .augment_packages
             .packages(PackageNamespace::Local)
-            .filter(|package| package.has_shape)
+            .filter(|package| !package.shapes.is_empty())
             .filter(|package| {
                 restrictions.validate_package_tree(game_io, package.package_info.triplet())
             })
@@ -271,6 +272,7 @@ impl BlocksScene {
                     ],
                 ),
             held_block: None,
+            block_original_variant: 0,
             block_original_rotation: 0,
             cursor,
             state: State::ListSelection,
@@ -421,9 +423,13 @@ impl BlocksScene {
                     position += list_step * index_offset as f32;
                     position += self.animator.point_or_zero("BLOCK_PREVIEW");
 
-                    let mut block_preview =
-                        BlockPreview::new(game_io, block_color, package.is_flat, package.shape)
-                            .with_position(position);
+                    let mut block_preview = BlockPreview::new(
+                        game_io,
+                        block_color,
+                        package.is_flat,
+                        package.shapes.first().copied().unwrap_or_default(),
+                    )
+                    .with_position(position);
 
                     if list_item.remaining_colors() > 1 {
                         block_preview.add_multi_color_indicator(game_io);
@@ -469,16 +475,29 @@ impl BlocksScene {
         let prev_held = self.held_block.is_some();
 
         if let Some(block) = &mut self.held_block {
+            let prev_variant = block.variant;
             let prev_rotation = block.rotation;
 
-            if self.input_tracker.pulsed(Input::ShoulderL) {
+            let input = InputUtil::new(game_io);
+            let shoulder_l = input.was_just_pressed(Input::ShoulderL);
+            let shoulder_r = input.was_just_pressed(Input::ShoulderR);
+
+            if (input.is_down(Input::ShoulderL) && shoulder_r)
+                || (input.is_down(Input::ShoulderR) && shoulder_l)
+            {
+                block.variant += 1;
+                block.variant %= globals
+                    .augment_packages
+                    .package(PackageNamespace::Local, &block.package_id)
+                    .map(|package| package.shapes.len())
+                    .unwrap_or(1);
+            } else if shoulder_l {
                 block.rotate_cc();
-            }
-            if self.input_tracker.pulsed(Input::ShoulderR) {
+            } else if shoulder_r {
                 block.rotate_c();
             }
 
-            if block.rotation != prev_rotation {
+            if block.rotation != prev_rotation || block.variant != prev_variant {
                 globals.audio.play_sound(&globals.sfx.cursor_move);
             }
 
@@ -502,6 +521,7 @@ impl BlocksScene {
                 let mut block = self.held_block.take().unwrap();
 
                 if self.block_returns_to_grid {
+                    block.variant = self.block_original_variant;
                     block.rotation = self.block_original_rotation;
 
                     let (x, y) = block.position;
@@ -716,6 +736,7 @@ impl BlocksScene {
 
                     match op {
                         BlockOption::Move => {
+                            self.block_original_variant = block.variant;
                             self.block_original_rotation = block.rotation;
                             self.held_block = Some(block);
                             self.block_returns_to_grid = true;
@@ -809,6 +830,7 @@ impl BlocksScene {
         self.block_returns_to_grid = false;
         self.held_block = Some(InstalledBlock {
             package_id: list_item.id.clone(),
+            variant: 0,
             rotation: 0,
             color: *color,
             position: (0, 0),
@@ -1143,7 +1165,7 @@ impl Scene for BlocksScene {
 
             for y in 0..5 {
                 for x in 0..5 {
-                    if !package.exists_at(block.rotation, (x, y)) {
+                    if !package.exists_at(block.variant, block.rotation, (x, y)) {
                         continue;
                     }
 
@@ -1317,7 +1339,12 @@ impl ColorSelector {
         let colors_iter = list_item.colors.iter().enumerate();
         self.items.clear();
         self.items.extend(colors_iter.map(|(i, &(color, count))| {
-            let mut preview = BlockPreview::new(game_io, color, package.is_flat, package.shape);
+            let mut preview = BlockPreview::new(
+                game_io,
+                color,
+                package.is_flat,
+                package.shapes.first().copied().unwrap_or_default(),
+            );
 
             let mut offset = Vec2::new((i % side_len) as f32, (i / side_len) as f32) * self.step;
             let preview_padding = (self.step - preview.size()) * 0.5;

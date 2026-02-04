@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct InstalledBlock {
     pub package_id: PackageId,
+    #[serde(default)]
+    pub variant: usize,
     pub rotation: u8,
     pub color: BlockColor,
     pub position: (usize, usize),

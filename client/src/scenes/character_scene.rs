@@ -229,7 +229,7 @@ impl<'a> StatusData<'a> {
         // resolve visible augments
         let visible_augments = augments
             .iter()
-            .filter(|(augment, _)| augment.has_shape)
+            .filter(|(augment, _)| !augment.shapes.is_empty())
             .flat_map(|(augment, level)| std::iter::repeat_n(augment.name.clone(), *level))
             .collect();
 

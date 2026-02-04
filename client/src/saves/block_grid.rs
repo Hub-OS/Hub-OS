@@ -96,7 +96,7 @@ impl BlockGrid {
 
         for y in 0..5 {
             for x in 0..5 {
-                if !package.exists_at(rotation, (x, y)) {
+                if !package.exists_at(block.variant, rotation, (x, y)) {
                     continue;
                 }
 
@@ -159,7 +159,7 @@ impl BlockGrid {
     ) -> impl Iterator<Item = (usize, usize)> + 'a {
         (0..5)
             .flat_map(|y| (0..5).map(move |x| (x, y)))
-            .filter(|&position| package.exists_at(block.rotation, position))
+            .filter(|&position| package.exists_at(block.variant, block.rotation, position))
             .map(|(x, y)| (block.position.0 + x - 2, block.position.1 + y - 2))
     }
 
@@ -289,6 +289,7 @@ impl BlockGrid {
         (0..BlockGrid::SIDE_LEN).any(|x| {
             (x + 2 >= block.position.0 && BlockGrid::LINE_Y + 2 >= block.position.1)
                 && package.exists_at(
+                    block.variant,
                     block.rotation,
                     (
                         x + 2 - block.position.0,
