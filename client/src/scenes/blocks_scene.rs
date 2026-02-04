@@ -115,6 +115,7 @@ pub struct BlocksScene {
     block_preview: Option<BlockPreview>,
     block_context_menu: ContextMenu<BlockOption>,
     held_block: Option<InstalledBlock>,
+    cycling_variant: bool,
     block_original_variant: usize,
     block_original_rotation: u8,
     cursor: GridCursor,
@@ -272,6 +273,7 @@ impl BlocksScene {
                     ],
                 ),
             held_block: None,
+            cycling_variant: false,
             block_original_variant: 0,
             block_original_rotation: 0,
             cursor,
@@ -479,11 +481,11 @@ impl BlocksScene {
             let prev_rotation = block.rotation;
 
             let input = InputUtil::new(game_io);
-            let shoulder_l = input.was_just_pressed(Input::ShoulderL);
-            let shoulder_r = input.was_just_pressed(Input::ShoulderR);
+            let holding_shoudler_l = input.is_down(Input::ShoulderL);
+            let holding_shoudler_r = input.is_down(Input::ShoulderR);
 
-            if (input.is_down(Input::ShoulderL) && shoulder_r)
-                || (input.is_down(Input::ShoulderR) && shoulder_l)
+            if (holding_shoudler_l && input.was_just_pressed(Input::ShoulderR))
+                || (holding_shoudler_r && input.was_just_pressed(Input::ShoulderL))
             {
                 let total_variants = globals
                     .augment_packages
@@ -495,11 +497,20 @@ impl BlocksScene {
                     block.variant += 1;
                     block.variant %= total_variants;
                 } else {
-                    globals.audio.play_sound(&globals.sfx.cursor_error);
+                    globals.audio.play_sound_with_behavior(
+                        &globals.sfx.cursor_error,
+                        AudioBehavior::NoOverlap,
+                    );
                 }
-            } else if shoulder_l {
+
+                self.cycling_variant = true;
+            } else if self.cycling_variant {
+                if !holding_shoudler_l && !holding_shoudler_r {
+                    self.cycling_variant = false;
+                }
+            } else if input.was_released(Input::ShoulderL) && !holding_shoudler_r {
                 block.rotate_cc();
-            } else if shoulder_r {
+            } else if input.was_released(Input::ShoulderR) && !holding_shoudler_l {
                 block.rotate_c();
             }
 
