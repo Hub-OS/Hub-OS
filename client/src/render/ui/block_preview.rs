@@ -1,6 +1,7 @@
 use crate::{
     render::{Animator, SpriteColorQueue},
     resources::{AssetManager, Globals, ResourcePaths},
+    saves::{BlockGrid, BlockShape},
 };
 use framework::prelude::*;
 use packets::structures::BlockColor;
@@ -13,7 +14,7 @@ pub struct BlockPreview {
 }
 
 impl BlockPreview {
-    pub fn new(game_io: &GameIO, color: BlockColor, is_flat: bool, shape: [bool; 25]) -> Self {
+    pub fn new(game_io: &GameIO, color: BlockColor, is_flat: bool, shape: BlockShape) -> Self {
         let mut sprites = Vec::new();
 
         let assets = &Globals::from_resources(game_io).assets;
@@ -29,8 +30,11 @@ impl BlockPreview {
         sprites.push(sprite.clone());
 
         // get constants for rendering shape
-        let grid_start = animator.point_or_zero("GRID_START") - animator.origin();
+        let mut grid_start = animator.point_or_zero("GRID_START") - animator.origin();
         let grid_next = animator.point_or_zero("GRID_STEP");
+
+        // off grid
+        grid_start -= grid_next;
 
         // set sprite to block for rendering shape
         animator.set_state(if is_flat {
@@ -40,16 +44,14 @@ impl BlockPreview {
         });
         animator.apply(&mut sprite);
 
-        for (i, shape) in shape.into_iter().enumerate() {
-            if !shape {
-                continue;
+        for y in 0..BlockGrid::SIDE_LEN {
+            for x in 0..BlockGrid::SIDE_LEN {
+                if !shape.exists_at(0, (x, y)) {
+                    continue;
+                }
+                sprite.set_position(grid_start + grid_next * Vec2::new(x as f32, y as f32));
+                sprites.push(sprite.clone());
             }
-
-            let row = i / 5;
-            let col = i % 5;
-
-            sprite.set_position(grid_start + grid_next * Vec2::new(col as f32, row as f32));
-            sprites.push(sprite.clone());
         }
 
         Self {

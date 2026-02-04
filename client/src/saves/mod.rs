@@ -1,5 +1,6 @@
 mod battle_recording;
 mod block_grid;
+mod block_shape;
 mod card;
 mod config;
 mod deck;
@@ -9,6 +10,7 @@ mod server_info;
 
 pub use battle_recording::*;
 pub use block_grid::*;
+pub use block_shape::*;
 pub use card::*;
 pub use config::*;
 pub use deck::*;

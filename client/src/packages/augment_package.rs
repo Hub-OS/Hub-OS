@@ -2,6 +2,7 @@ use super::*;
 use crate::bindable::BlockColor;
 use crate::bindable::SwitchDriveSlot;
 use crate::render::ui::{PackageListing, PackagePreviewData};
+use crate::saves::BlockShape;
 use packets::structures::FileHash;
 use serde::Deserialize;
 use std::sync::Arc;
@@ -63,30 +64,19 @@ pub struct AugmentPackage {
     // block specific
     pub is_flat: bool,
     pub block_colors: Vec<BlockColor>,
-    pub shapes: Vec<[bool; 5 * 5]>,
+    pub shapes: Vec<BlockShape>,
     pub byproducts: Vec<PackageId>,
     pub prevent_byproducts: bool,
     pub limit: usize,
 }
 
 impl AugmentPackage {
-    pub fn exists_at(&self, variant: usize, rotation: u8, position: (usize, usize)) -> bool {
-        if position.0 >= 5 || position.1 >= 5 {
-            return false;
-        }
-
+    pub fn exists_at(&self, variant: usize, rotation: u8, position: (i8, i8)) -> bool {
         let Some(shape) = self.shapes.get(variant) else {
             return false;
         };
 
-        let (x, y) = match rotation {
-            1 => (position.1, 4 - position.0),
-            2 => (4 - position.0, 4 - position.1),
-            3 => (4 - position.1, position.0),
-            _ => (position.0, position.1),
-        };
-
-        shape.get(y * 5 + x) == Some(&true)
+        shape.exists_at(rotation, position)
     }
 }
 
@@ -176,31 +166,18 @@ impl Package for AugmentPackage {
 
         // resolve block shapes
         let flatten_shape = |shape: Vec<Vec<u8>>| {
-            let flattened_shape: Vec<_> = shape.into_iter().flatten().collect();
-
-            let mut final_shape = [false; 5 * 5];
-
-            if flattened_shape.len() != final_shape.len() {
-                log::error!(
-                    "Expected a 5x5 shape (5 lists of 5 numbers) in {:?}",
-                    package.package_info.toml_path
-                );
-            }
-
-            for (i, n) in flattened_shape.into_iter().enumerate() {
-                final_shape[i] = n != 0;
-            }
-
-            final_shape
+            BlockShape::try_from(shape)
+                .inspect_err(|err| log::error!("In {:?}:\n{err}", package.package_info.toml_path))
+                .ok()
         };
 
         if let Some(shape) = meta.shape {
-            package.shapes.push(flatten_shape(shape));
+            package.shapes.extend(flatten_shape(shape));
         }
 
         package
             .shapes
-            .extend(meta.shapes.into_iter().map(flatten_shape));
+            .extend(meta.shapes.into_iter().flat_map(flatten_shape));
 
         // block tags
         if !package.shapes.is_empty() {

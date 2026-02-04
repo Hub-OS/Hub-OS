@@ -4,17 +4,14 @@ use crate::resources::{AssetManager, Globals, ResourcePaths};
 use crate::saves::BlockGrid;
 use framework::prelude::*;
 
-const SETTLE_START_X: usize = BlockGrid::SIDE_LEN;
-const SETTLE_END_X: usize = SETTLE_START_X + 9;
-const FADE_START_X: usize = SETTLE_END_X + 1;
-const FADE_END_X: usize = FADE_START_X + 2;
+const SETTLE_START_X: i8 = BlockGrid::SIDE_LEN;
+const SETTLE_END_X: i8 = SETTLE_START_X + 9;
+const FADE_START_X: i8 = SETTLE_END_X + 1;
+const FADE_END_X: i8 = FADE_START_X + 2;
 
 #[derive(PartialEq)]
 pub enum GridArrowStatus {
-    Block {
-        position: (usize, usize),
-        progress: f32,
-    },
+    Block { position: (i8, i8), progress: f32 },
     Fading,
     Complete,
 }
@@ -78,7 +75,7 @@ impl GridArrow {
         }
     }
 
-    pub fn current_block(&self) -> (usize, usize) {
+    pub fn current_block(&self) -> (i8, i8) {
         let current_block = self.internal_current_block();
 
         (
@@ -87,10 +84,10 @@ impl GridArrow {
         )
     }
 
-    fn internal_current_block(&self) -> (usize, usize) {
+    fn internal_current_block(&self) -> (i8, i8) {
         let block_f = self.internal_current_block_f();
 
-        (block_f.x as usize, block_f.y as usize)
+        (block_f.x as _, block_f.y as _)
     }
 
     fn internal_current_block_f(&self) -> Vec2 {
@@ -100,7 +97,7 @@ impl GridArrow {
 
     pub fn status(&self) -> GridArrowStatus {
         let block_f = self.internal_current_block_f();
-        let mut block = (block_f.x as usize, block_f.y as usize);
+        let mut block = (block_f.x as i8, block_f.y as i8);
 
         match block.0 {
             0..=SETTLE_END_X => {
@@ -152,7 +149,7 @@ impl GridArrow {
 
         let block_f = self.internal_current_block_f();
 
-        let opacity = match block_f.x as usize {
+        let opacity = match block_f.x as i8 {
             0..=SETTLE_END_X => DEFAULT_OPACITY,
             FADE_START_X..=FADE_END_X => {
                 DEFAULT_OPACITY * inverse_lerp!(FADE_END_X, FADE_START_X, block_f.x)

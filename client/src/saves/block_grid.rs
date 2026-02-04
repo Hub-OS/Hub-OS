@@ -1,6 +1,6 @@
 use crate::packages::{AugmentPackage, PackageNamespace};
 use crate::resources::Globals;
-use crate::saves::InstalledBlock;
+use crate::saves::{BlockShape, InstalledBlock};
 use crate::structures::{GenerationalIndex, SlotMap};
 use framework::prelude::GameIO;
 use packets::structures::{PackageCategory, PackageId};
@@ -9,19 +9,19 @@ use std::ops::Range;
 pub struct BlockGrid {
     namespace: PackageNamespace,
     blocks: SlotMap<InstalledBlock>,
-    grid: [Option<GenerationalIndex>; Self::SIDE_LEN * Self::SIDE_LEN],
+    grid: [Option<GenerationalIndex>; Self::SIDE_LEN as usize * Self::SIDE_LEN as usize],
 }
 
 impl BlockGrid {
-    pub const LINE_Y: usize = 3;
-    pub const SIDE_LEN: usize = 7;
-    const MAIN_RANGE: Range<usize> = 1..BlockGrid::SIDE_LEN - 1;
+    pub const LINE_Y: i8 = 3;
+    pub const SIDE_LEN: i8 = 7;
+    const MAIN_RANGE: Range<i8> = 1..BlockGrid::SIDE_LEN - 1;
 
-    pub fn is_edge((x, y): (usize, usize)) -> bool {
+    pub fn is_edge((x, y): (i8, i8)) -> bool {
         !Self::MAIN_RANGE.contains(&x) || !Self::MAIN_RANGE.contains(&y)
     }
 
-    pub fn is_corner((x, y): (usize, usize)) -> bool {
+    pub fn is_corner((x, y): (i8, i8)) -> bool {
         !Self::MAIN_RANGE.contains(&x) && !Self::MAIN_RANGE.contains(&y)
     }
 
@@ -29,7 +29,7 @@ impl BlockGrid {
         Self {
             namespace,
             blocks: Default::default(),
-            grid: [None; Self::SIDE_LEN * Self::SIDE_LEN],
+            grid: [None; _],
         }
     }
 
@@ -76,7 +76,7 @@ impl BlockGrid {
         &mut self,
         game_io: &GameIO,
         block: InstalledBlock,
-    ) -> Option<Vec<(usize, usize)>> {
+    ) -> Option<Vec<(i8, i8)>> {
         let globals = Globals::from_resources(game_io);
 
         let Some(package) = globals
@@ -94,8 +94,8 @@ impl BlockGrid {
         let mut conflicts = Vec::new();
         let mut intersects_main_grid = false;
 
-        for y in 0..5 {
-            for x in 0..5 {
+        for y in 0..Self::SIDE_LEN {
+            for x in 0..Self::SIDE_LEN {
                 if !package.exists_at(block.variant, rotation, (x, y)) {
                     continue;
                 }
@@ -103,20 +103,23 @@ impl BlockGrid {
                 let grid_temp_x = block_x + x;
                 let grid_temp_y = block_y + y;
 
-                if grid_temp_x < 2 || grid_temp_y < 2 {
+                if grid_temp_x < BlockShape::CENTER_OFFSET
+                    || grid_temp_y < BlockShape::CENTER_OFFSET
+                {
                     // out of bounds on the left/top side
                     return Some(Vec::new());
                 }
 
-                let grid_x = grid_temp_x - 2;
-                let grid_y = grid_temp_y - 2;
+                let grid_x = grid_temp_x - BlockShape::CENTER_OFFSET;
+                let grid_y = grid_temp_y - BlockShape::CENTER_OFFSET;
 
                 if grid_x >= Self::SIDE_LEN || grid_y >= Self::SIDE_LEN {
                     // out of bounds on the right/bottom side
                     return Some(Vec::new());
                 }
 
-                let slot = self.grid.get(grid_y * Self::SIDE_LEN + grid_x).unwrap();
+                let index = Self::calculate_index((grid_x, grid_y));
+                let slot = self.grid.get(index).unwrap();
 
                 if slot.is_some() {
                     conflicts.push((grid_x, grid_y));
@@ -143,8 +146,8 @@ impl BlockGrid {
 
         // actual placement
         self.blocks.insert_with_key(|block_index| {
-            for (x, y) in Self::iterate_block_positions(&block, package) {
-                self.grid[y * Self::SIDE_LEN + x] = Some(block_index);
+            for position in Self::iterate_block_positions(&block, package) {
+                self.grid[Self::calculate_index(position)] = Some(block_index);
             }
 
             block
@@ -156,14 +159,19 @@ impl BlockGrid {
     pub fn iterate_block_positions<'a>(
         block: &'a InstalledBlock,
         package: &'a AugmentPackage,
-    ) -> impl Iterator<Item = (usize, usize)> + 'a {
-        (0..5)
-            .flat_map(|y| (0..5).map(move |x| (x, y)))
+    ) -> impl Iterator<Item = (i8, i8)> + 'a {
+        (0..BlockGrid::SIDE_LEN)
+            .flat_map(|y| (0..BlockGrid::SIDE_LEN).map(move |x| (x, y)))
             .filter(|&position| package.exists_at(block.variant, block.rotation, position))
-            .map(|(x, y)| (block.position.0 + x - 2, block.position.1 + y - 2))
+            .map(|(x, y)| {
+                (
+                    block.position.0 + x - BlockShape::CENTER_OFFSET,
+                    block.position.1 + y - BlockShape::CENTER_OFFSET,
+                )
+            })
     }
 
-    pub fn remove_block(&mut self, position: (usize, usize)) -> Option<InstalledBlock> {
+    pub fn remove_block(&mut self, position: (i8, i8)) -> Option<InstalledBlock> {
         let grid_index = Self::calculate_index(position);
         let slot = *self.grid.get(grid_index)?;
         let block_index = slot?;
@@ -178,7 +186,7 @@ impl BlockGrid {
         self.blocks.remove(block_index)
     }
 
-    pub fn get_block(&self, position: (usize, usize)) -> Option<&InstalledBlock> {
+    pub fn get_block(&self, position: (i8, i8)) -> Option<&InstalledBlock> {
         let grid_index = Self::calculate_index(position);
         let slot = *self.grid.get(grid_index)?;
         let block_index = slot?;
@@ -186,8 +194,8 @@ impl BlockGrid {
         self.blocks.get(block_index)
     }
 
-    fn calculate_index(position: (usize, usize)) -> usize {
-        position.1 * Self::SIDE_LEN + position.0
+    fn calculate_index(position: (i8, i8)) -> usize {
+        position.1 as usize * Self::SIDE_LEN as usize + position.0 as usize
     }
 
     pub fn installed_packages<'a>(
@@ -287,15 +295,14 @@ impl BlockGrid {
 
     fn touches_line(block: &InstalledBlock, package: &AugmentPackage) -> bool {
         (0..BlockGrid::SIDE_LEN).any(|x| {
-            (x + 2 >= block.position.0 && BlockGrid::LINE_Y + 2 >= block.position.1)
-                && package.exists_at(
-                    block.variant,
-                    block.rotation,
-                    (
-                        x + 2 - block.position.0,
-                        BlockGrid::LINE_Y + 2 - block.position.1,
-                    ),
-                )
+            package.exists_at(
+                block.variant,
+                block.rotation,
+                (
+                    x + BlockShape::CENTER_OFFSET - block.position.0,
+                    BlockGrid::LINE_Y + BlockShape::CENTER_OFFSET - block.position.1,
+                ),
+            )
         })
     }
 
@@ -304,7 +311,7 @@ impl BlockGrid {
             .any(|position| Self::is_edge(position) || self.has_conflicting_neighbors(position))
     }
 
-    fn has_conflicting_neighbors(&self, position: (usize, usize)) -> bool {
+    fn has_conflicting_neighbors(&self, position: (i8, i8)) -> bool {
         let grid_index = Self::calculate_index(position);
         let Some(reference) = self.grid[grid_index] else {
             return false;
@@ -316,10 +323,7 @@ impl BlockGrid {
     }
 
     // skips edges
-    fn neighbor_indices(
-        &self,
-        position: (usize, usize),
-    ) -> impl Iterator<Item = GenerationalIndex> + '_ {
+    fn neighbor_indices(&self, position: (i8, i8)) -> impl Iterator<Item = GenerationalIndex> + '_ {
         let (x, y) = position;
         let mut neighbors = [None; 4];
 

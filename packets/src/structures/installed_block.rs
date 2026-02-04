@@ -8,7 +8,7 @@ pub struct InstalledBlock {
     pub variant: usize,
     pub rotation: u8,
     pub color: BlockColor,
-    pub position: (usize, usize),
+    pub position: (i8, i8),
 }
 
 impl InstalledBlock {

@@ -3,6 +3,7 @@ use crate::packages::PackageNamespace;
 use crate::render::ui::{ElementSprite, FontName, ImmutableUiNode, PackagePreviewData, TextStyle};
 use crate::render::{Animator, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, ResourcePaths, TEXT_DARK_SHADOW_COLOR};
+use crate::saves::BlockShape;
 use framework::prelude::*;
 use packets::structures::{FileHash, PackageCategory, PackageId, SwitchDriveSlot};
 use serde_json as json;
@@ -69,27 +70,10 @@ impl From<&json::Value> for PackageListing {
                     })
                     .collect()
                 },
-                shape: {
-                    // convert list of list i64 into [bool; 25]
-                    let bools: Option<Vec<bool>> = package_table
-                        .get("shape")
-                        .and_then(|value| value.as_array())
-                        .map(|value| {
-                            value
-                                .iter()
-                                .flat_map(|v| {
-                                    Some(
-                                        v.as_array()?
-                                            .iter()
-                                            .map(|v| v.as_i64().unwrap_or_default() != 0),
-                                    )
-                                })
-                                .flatten()
-                                .collect()
-                        });
-
-                    bools.and_then(|bools| bools.try_into().ok())
-                },
+                shape: package_table
+                    .get("shape")
+                    .and_then(into_shape)
+                    .or_else(|| package_table.get("shapes").and_then(into_shape)),
             },
             "encounter" => PackagePreviewData::Encounter {
                 recording: !get_str(package_table, "recording_path").is_empty(),
@@ -180,6 +164,30 @@ fn get_i32(table: &json::Value, key: &str) -> i32 {
 
 fn get_bool(table: &json::Value, key: &str) -> Option<bool> {
     table.get(key).and_then(|value| value.as_bool())
+}
+
+fn into_shape(value: &json::Value) -> Option<BlockShape> {
+    let shape: Vec<Vec<u8>> = value
+        .as_array()?
+        .iter()
+        .flat_map(|v| {
+            let line = v
+                .as_array()?
+                .iter()
+                .map(|v| {
+                    if v.as_i64().unwrap_or_default() != 0 {
+                        1u8
+                    } else {
+                        0u8
+                    }
+                })
+                .collect::<Vec<u8>>();
+
+            Some(line)
+        })
+        .collect::<Vec<Vec<u8>>>();
+
+    shape.try_into().ok()
 }
 
 fn map_array_values<'a, V, F>(

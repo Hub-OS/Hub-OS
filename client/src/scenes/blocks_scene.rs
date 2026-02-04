@@ -8,7 +8,7 @@ use crate::render::ui::{
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, FrameTime, SpriteColorQueue};
 use crate::resources::*;
-use crate::saves::{BlockGrid, GlobalSave, InstalledBlock};
+use crate::saves::{BlockGrid, BlockShape, GlobalSave, InstalledBlock};
 use framework::prelude::*;
 use itertools::Itertools;
 use packets::structures::PackageCategory;
@@ -87,8 +87,8 @@ impl ListItem {
 enum State {
     ListSelection,
     ColorSelection,
-    GridSelection { x: usize, y: usize },
-    BlockContext { x: usize, y: usize },
+    GridSelection { x: i8, y: i8 },
+    BlockContext { x: i8, y: i8 },
     Applying,
 }
 
@@ -485,12 +485,18 @@ impl BlocksScene {
             if (input.is_down(Input::ShoulderL) && shoulder_r)
                 || (input.is_down(Input::ShoulderR) && shoulder_l)
             {
-                block.variant += 1;
-                block.variant %= globals
+                let total_variants = globals
                     .augment_packages
                     .package(PackageNamespace::Local, &block.package_id)
                     .map(|package| package.shapes.len())
                     .unwrap_or(1);
+
+                if total_variants > 1 {
+                    block.variant += 1;
+                    block.variant %= total_variants;
+                } else {
+                    globals.audio.play_sound(&globals.sfx.cursor_error);
+                }
             } else if shoulder_l {
                 block.rotate_cc();
             } else if shoulder_r {
@@ -566,7 +572,10 @@ impl BlocksScene {
                 } else if self.input_tracker.pulsed(Input::Left) {
                     let y = self.scroll_tracker.selected_index() - self.scroll_tracker.top_index();
 
-                    self.state = State::GridSelection { x: 5, y: y.max(1) };
+                    self.state = State::GridSelection {
+                        x: 5,
+                        y: y.max(1) as _,
+                    };
 
                     globals.audio.play_sound(&globals.sfx.cursor_select);
                 } else {
@@ -973,7 +982,7 @@ impl BlocksScene {
         }
     }
 
-    fn resolve_flashing_blocks(&self) -> Vec<(usize, usize)> {
+    fn resolve_flashing_blocks(&self) -> Vec<(i8, i8)> {
         if self.state != State::Applying {
             return Vec::new();
         }
@@ -1163,13 +1172,14 @@ impl Scene for BlocksScene {
             // loop over shape and draw blocks under cursor
             let cursor_position = self.cursor.position();
 
-            for y in 0..5 {
-                for x in 0..5 {
+            for y in 0..BlockGrid::SIDE_LEN {
+                for x in 0..BlockGrid::SIDE_LEN {
                     if !package.exists_at(block.variant, block.rotation, (x, y)) {
                         continue;
                     }
 
-                    let offset = (Vec2::new(x as f32, y as f32) - 2.0) * self.grid_increment;
+                    let offset = (Vec2::new(x as f32, y as f32) - BlockShape::CENTER_OFFSET as f32)
+                        * self.grid_increment;
                     block_sprite.set_position(cursor_position + offset);
                     sprite_queue.draw_sprite(&block_sprite);
                 }

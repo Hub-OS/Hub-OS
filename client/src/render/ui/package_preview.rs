@@ -4,6 +4,7 @@ use crate::packages::PackageNamespace;
 use crate::render::ui::PackageListing;
 use crate::render::{Animator, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, ResourcePaths};
+use crate::saves::BlockShape;
 use framework::async_task::AsyncTask;
 use framework::prelude::*;
 use packets::address_parsing::uri_encode;
@@ -28,7 +29,7 @@ pub enum PackagePreviewData {
         slot: Option<SwitchDriveSlot>,
         flat: bool,
         colors: Vec<BlockColor>,
-        shape: Option<[bool; 5 * 5]>,
+        shape: Option<BlockShape>,
     },
     Encounter {
         recording: bool,
