@@ -48,6 +48,7 @@ config-ghosting-label = Ghosting
 config-hit-numbers-label = Hit Numbers
 config-heal-numbers-label = Heal Numbers
 config-drain-numbers-label = Drain Numbers
+config-input-display-label = Input Display
 config-color-sim-label = Color Sim
 config-color-sim-protanopia = Prot
 config-color-sim-deuteranopia = Deut
