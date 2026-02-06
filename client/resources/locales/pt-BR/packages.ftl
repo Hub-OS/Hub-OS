@@ -15,6 +15,7 @@ packages-location-tab = Local
 packages-category-tab = Categoria
 packages-location-context-menu-label = Categoria
 packages-location-online = Online
+packages-location-not-installed = Not Installed
 packages-location-installed = Baixados
 packages-category-context-menu-label = Categoria
 packages-category-filter-all = Todos
