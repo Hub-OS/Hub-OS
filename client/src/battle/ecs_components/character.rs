@@ -282,6 +282,20 @@ impl Character {
         simulation: &mut BattleSimulation,
         state_time: FrameTime,
     ) {
+        if simulation.time_freeze_tracker.time_is_frozen() {
+            // TFCs are handled in the time freeze tracker
+
+            // prevent awkward chip usage after time freeze by cancelling requests
+            let entities = &mut simulation.entities;
+            for (_, character) in entities.query_mut::<&mut Character>() {
+                if character.card_use_requested {
+                    character.card_use_requested = false;
+                }
+            }
+
+            return;
+        }
+
         // ensure initial test values for all card use aux props
         for (_, living) in simulation.entities.query_mut::<&mut Living>() {
             for aux_prop in living.aux_props.values_mut() {
@@ -293,6 +307,7 @@ impl Character {
 
         if state_time > BattleState::GRACE_TIME {
             let mut requesters = Vec::new();
+            let mut time_freeze_requested = false;
 
             let entities = &mut simulation.entities;
 
@@ -313,6 +328,17 @@ impl Character {
 
                 if action_processed {
                     continue;
+                }
+
+                if let Some(card) = character.cards.last() {
+                    if time_freeze_requested && card.time_freeze {
+                        // ignore request if someone else queued a time freeze chip
+                        // we'll keep the request in mind in case something happens to the chip
+                        // but if time freeze starts, the request will be dropped (along with all other requests)
+                        continue;
+                    }
+
+                    time_freeze_requested |= card.time_freeze;
                 }
 
                 character.card_use_requested = false;
