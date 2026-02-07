@@ -672,6 +672,46 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(!action_queue.pending.is_empty())
     });
 
+    lua_api.add_dynamic_function(
+        ENTITY_TABLE,
+        "can_time_freeze_counter",
+        |api_ctx, lua, params| {
+            let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+
+            let id: EntityId = table.raw_get("#id")?;
+
+            if !simulation.time_freeze_tracker.can_counter() {
+                return lua.pack_multi(false);
+            }
+
+            let Some(polled_id) = simulation.time_freeze_tracker.polled_entity() else {
+                // no one to counter?
+                return lua.pack_multi(false);
+            };
+
+            if polled_id == id {
+                // can't tfc self
+                return lua.pack_multi(false);
+            }
+
+            let entities = &mut simulation.entities;
+            let Ok(polled_entity) = entities.query_one_mut::<&Entity>(polled_id.into()) else {
+                return lua.pack_multi(false);
+            };
+
+            let time_freeze_team = polled_entity.team;
+
+            let Ok(entity) = entities.query_one_mut::<&Entity>(id.into()) else {
+                return lua.pack_multi(false);
+            };
+
+            lua.pack_multi(entity.team != time_freeze_team || entity.team == Team::Other)
+        },
+    );
+
     lua_api.add_dynamic_function(ENTITY_TABLE, "queue_action", |api_ctx, lua, params| {
         let (table, action_table): (rollback_mlua::Table, rollback_mlua::Table) =
             lua.unpack_multi(params)?;
