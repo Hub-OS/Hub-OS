@@ -51,6 +51,7 @@ config-drain-numbers-label = Drain Numbers
 config-display-input-label = Display Input
 config-display-input-full = Full
 config-display-input-simplified = Simple
+config-display-input-battle = Battle
 config-display-input-off = Off
 config-color-sim-label = Color Sim
 config-color-sim-protanopia = Prot
