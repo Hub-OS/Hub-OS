@@ -8,6 +8,7 @@ use crate::structures::VecMap;
 use framework::prelude::{GameIO, Sprite, Texture, UVec2, Vec2};
 use packets::structures::FileHash;
 use serde::Deserialize;
+use std::borrow::Cow;
 use std::sync::Arc;
 
 pub enum CardPackageStatusDuration {
@@ -248,7 +249,7 @@ impl CardPackage {
         game_io: &'a GameIO,
         namespace: PackageNamespace,
         package_id: &PackageId,
-    ) -> (Arc<Texture>, &'a str) {
+    ) -> (Arc<Texture>, Cow<'a, str>) {
         let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
         let package_manager = &globals.card_packages;
@@ -257,12 +258,12 @@ impl CardPackage {
             let icon_texture = assets.texture(game_io, &package.icon_texture_path);
 
             if icon_texture.size() == UVec2::new(14, 14) {
-                return (icon_texture, &package.icon_texture_path);
+                return (icon_texture, Cow::Borrowed(&package.icon_texture_path));
             }
         };
 
-        let path = ResourcePaths::CARD_ICON_MISSING;
-        (assets.texture(game_io, path), path)
+        let path = ResourcePaths::game_folder_absolute(ResourcePaths::CARD_ICON_MISSING);
+        (assets.texture(game_io, &path), Cow::Owned(path))
     }
 
     pub fn preview_texture<'a>(

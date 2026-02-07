@@ -9,6 +9,7 @@ use crate::lua_api::helpers::absolute_path;
 use crate::packages::{CardPackage, PackageNamespace};
 use crate::resources::{AssetManager, Globals, ResourcePaths};
 use framework::prelude::GameIO;
+use std::borrow::Cow;
 
 pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
     add_entity_query_fn::<&mut PlayerHand>(lua_api, "staged_items_confirmed", |hand, lua, _, _| {
@@ -132,27 +133,33 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
             let index = index.saturating_sub(1);
             let item = hand.staged_items.iter().nth(index);
 
-            let texture_path = item.map(|item| match &item.data {
-                StagedItemData::Deck(i) => {
-                    if let Some((card, namespace)) = hand.deck.get(*i) {
-                        CardPackage::icon_texture(game_io, *namespace, &card.package_id).1
-                    } else {
-                        ResourcePaths::CARD_ICON_MISSING
+            let texture_path = item.map(|item| -> Cow<'_, str> {
+                match &item.data {
+                    StagedItemData::Deck(i) => {
+                        if let Some((card, namespace)) = hand.deck.get(*i) {
+                            CardPackage::icon_texture(game_io, *namespace, &card.package_id).1
+                        } else {
+                            let icon_missing_path = ResourcePaths::game_folder_absolute(
+                                ResourcePaths::CARD_ICON_MISSING,
+                            );
+
+                            Cow::Owned(icon_missing_path)
+                        }
                     }
+                    StagedItemData::Card(props) => {
+                        CardPackage::icon_texture(
+                            game_io,
+                            props.namespace.unwrap_or(PackageNamespace::Local),
+                            &props.package_id,
+                        )
+                        .1
+                    }
+                    StagedItemData::Form((_, _, texture_path)) => {
+                        Cow::Borrowed(texture_path.as_ref().map(|s| &**s).unwrap_or(""))
+                    }
+                    StagedItemData::Icon((_, texture_path)) => Cow::Borrowed(texture_path),
+                    StagedItemData::Discard(_) => Cow::Borrowed(""),
                 }
-                StagedItemData::Card(props) => {
-                    CardPackage::icon_texture(
-                        game_io,
-                        props.namespace.unwrap_or(PackageNamespace::Local),
-                        &props.package_id,
-                    )
-                    .1
-                }
-                StagedItemData::Form((_, _, texture_path)) => {
-                    texture_path.as_ref().map(|s| &**s).unwrap_or("")
-                }
-                StagedItemData::Icon((_, texture_path)) => texture_path,
-                StagedItemData::Discard(_) => "",
             });
 
             lua.pack_multi(texture_path)
