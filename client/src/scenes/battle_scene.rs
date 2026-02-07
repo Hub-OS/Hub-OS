@@ -50,6 +50,7 @@ pub struct BattleScene {
     recording: Option<BattleRecording>,
     recording_preview: Option<RecordedPreview>,
     ui_camera: Camera,
+    input_display: InputDisplay,
     textbox: Textbox,
     textbox_is_blocking_input: bool,
     pending_signals: Vec<NetplaySignal>,
@@ -197,6 +198,7 @@ impl BattleScene {
             recording,
             recording_preview: None,
             ui_camera: Camera::new_ui(game_io),
+            input_display: InputDisplay::new(game_io),
             textbox: Textbox::new_overworld(game_io)
                 .with_transition_animation_enabled(!is_playing_back_recording),
             textbox_is_blocking_input: false,
@@ -1242,8 +1244,15 @@ impl Scene for BattleScene {
             sprite_queue.draw_sprite(&progress_sprite);
         }
 
-        // draw textbox over everything
+        // draw textbox over other UI
         self.textbox.draw(game_io, &mut sprite_queue);
+
+        // draw the input display over everything
+        let local_player_index = self.simulation.local_player_index;
+
+        if let Some(input) = self.simulation.inputs.get(local_player_index) {
+            self.input_display.draw(game_io, &mut sprite_queue, input);
+        }
 
         render_pass.consume_queue(sprite_queue);
     }

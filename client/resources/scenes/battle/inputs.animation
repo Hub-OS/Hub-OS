@@ -1,0 +1,92 @@
+animation state="A"
+frame x="1" y="1" w="11" h="11"
+
+animation state="B"
+frame x="14" y="1" w="11" h="11"
+
+animation state="X"
+frame x="27" y="1" w="11" h="11"
+
+animation state="Y"
+frame x="40" y="1" w="11" h="11"
+
+animation state="LEFT"
+frame x="1" y="14" w="11" h="11" flipx="1" originx="11"
+
+animation state="RIGHT"
+frame x="1" y="14" w="11" h="11"
+
+animation state="UP"
+frame x="14" y="14" w="11" h="11" flipy="1" originy="11"
+
+animation state="DOWN"
+frame x="14" y="14" w="11" h="11"
+
+animation state="DOWN_LEFT"
+frame x="1" y="27" w="11" h="11" flipx="1" originx="11"
+
+animation state="DOWN_RIGHT"
+frame x="1" y="27" w="11" h="11"
+
+animation state="UP_LEFT"
+frame x="14" y="27" w="11" h="11" flipx="1" originx="11"
+
+animation state="UP_RIGHT"
+frame x="14" y="27" w="11" h="11"
+
+animation state="SELECT"
+frame x="27" y="14" w="11" h="11"
+
+animation state="START"
+frame x="40" y="14" w="11" h="11"
+
+animation state="SHOULDERS"
+frame x="27" y="27" w="11" h="11"
+
+animation state="USE_CARD"
+frame x="53" y="1" w="11" h="12"
+
+animation state="CONFIRM"
+frame x="53" y="14" w="11" h="11"
+
+animation state="SHOOT"
+frame x="66" y="1" w="11" h="11"
+
+animation state="CANCEL"
+frame x="66" y="14" w="11" h="11"
+
+animation state="SPECIAL"
+frame x="79" y="1" w="11" h="11"
+
+animation state="FACE_LEFT"
+frame x="91" y="1" w="11" h="11"
+
+animation state="FACE_RIGHT"
+frame x="91" y="14" w="11" h="11"
+
+animation state="SHOULDER_L"
+frame x="105" y="1" w="11" h="11"
+
+animation state="FLEE"
+frame x="105" y="14" w="11" h="11"
+
+animation state="END_TURN"
+frame x="105" y="27" w="11" h="11"
+
+animation state="SHOULDER_R"
+frame x="118" y="1" w="11" h="11"
+
+animation state="INFO"
+frame x="118" y="14" w="11" h="11"
+
+animation state="OPTION"
+frame x="131" y="1" w="11" h="11"
+
+animation state="END"
+frame x="131" y="14" w="11" h="11"
+
+animation state="PAUSE"
+frame x="131" y="27" w="11" h="11"
+
+animation state="OPTION2"
+frame x="144" y="1" w="11" h="11"

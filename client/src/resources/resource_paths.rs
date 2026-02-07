@@ -260,6 +260,8 @@ impl ResourcePaths {
     pub const BATTLE_TRAP_ALERT: &'static str = "resources/scenes/battle/trap_alert.png";
     pub const BATTLE_TRAP_ALERT_ANIMATION: &'static str =
         "resources/scenes/battle/trap_alert.animation";
+    pub const BATTLE_INPUTS: &'static str = "resources/scenes/battle/inputs.png";
+    pub const BATTLE_INPUTS_ANIMATION: &'static str = "resources/scenes/battle/inputs.animation";
 
     // ConfigScene
     pub const CONFIG_UI_ANIMATION: &'static str = "resources/scenes/config/ui.animation";

@@ -24,6 +24,15 @@ pub enum InternalResolution {
     Auto,
 }
 
+#[derive(Default, Clone, Copy, PartialEq, Eq)]
+pub enum DisplayInput {
+    #[default]
+    Off,
+    Simplified,
+    Battle,
+    Full,
+}
+
 #[derive(Clone, PartialEq)]
 pub struct Config {
     pub language: Option<String>,
@@ -40,6 +49,7 @@ pub struct Config {
     pub hit_numbers: bool,
     pub heal_numbers: bool,
     pub drain_numbers: bool,
+    pub display_input: DisplayInput,
     pub color_blindness: u8,
     pub music: u8,
     pub sfx: u8,
@@ -318,6 +328,7 @@ impl Default for Config {
             hit_numbers: false,
             heal_numbers: false,
             drain_numbers: false,
+            display_input: Default::default(),
             color_blindness: PostProcessColorBlindness::TOTAL_OPTIONS,
             music: MAX_VOLUME / 2,
             sfx: MAX_VOLUME / 2,
@@ -358,6 +369,7 @@ impl From<&str> for Config {
             hit_numbers: false,
             heal_numbers: false,
             drain_numbers: false,
+            display_input: Default::default(),
             color_blindness: PostProcessColorBlindness::TOTAL_OPTIONS,
             music: MAX_VOLUME,
             sfx: MAX_VOLUME,
@@ -413,6 +425,17 @@ impl From<&str> for Config {
                 properties.get("ColorBlindness"),
                 PostProcessColorBlindness::TOTAL_OPTIONS,
             );
+            config.display_input = match properties
+                .get("DisplayInput")
+                .unwrap_or_default()
+                .to_lowercase()
+                .as_str()
+            {
+                "simplified" => DisplayInput::Simplified,
+                "battle" => DisplayInput::Battle,
+                "full" => DisplayInput::Full,
+                _ => DisplayInput::Off,
+            };
         }
 
         if let Some(properties) = ini.section(Some("Audio")) {
@@ -539,6 +562,13 @@ impl std::fmt::Display for Config {
         writeln!(f, "HealParticles = {}", self.heal_numbers)?;
         writeln!(f, "DrainParticles = {}", self.drain_numbers)?;
         writeln!(f, "ColorBlindness = {}", self.color_blindness)?;
+
+        match self.display_input {
+            DisplayInput::Off => writeln!(f, "DisplayInput = off")?,
+            DisplayInput::Simplified => writeln!(f, "DisplayInput = simplified")?,
+            DisplayInput::Battle => writeln!(f, "DisplayInput = battle")?,
+            DisplayInput::Full => writeln!(f, "DisplayInput = full")?,
+        }
 
         writeln!(f, "[Audio]")?;
         writeln!(f, "Music = {}", self.music)?;

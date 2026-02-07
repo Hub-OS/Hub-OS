@@ -6,6 +6,7 @@ use crate::packages::PackageNamespace;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
+use crate::saves::DisplayInput;
 use crate::saves::{Config, GlobalSave, InternalResolution, KeyStyle};
 use crate::scenes::CreditsScene;
 use framework::prelude::*;
@@ -493,6 +494,21 @@ impl ConfigScene {
                 |_, mut config| {
                     config.drain_numbers = !config.drain_numbers;
                     config.drain_numbers
+                },
+            )),
+            Box::new(UiConfigCycle::new(
+                game_io,
+                "config-display-input-label",
+                config.borrow().display_input,
+                config.clone(),
+                &[
+                    ("config-display-input-off", DisplayInput::Off),
+                    ("config-display-input-battle", DisplayInput::Battle),
+                    ("config-display-input-simplified", DisplayInput::Simplified),
+                    ("config-display-input-full", DisplayInput::Full),
+                ],
+                |_, mut config, value, _| {
+                    config.display_input = value;
                 },
             )),
             Box::new(UiConfigCycle::new(
