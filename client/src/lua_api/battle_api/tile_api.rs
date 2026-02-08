@@ -5,6 +5,7 @@ use crate::battle::{
     TileState,
 };
 use crate::bindable::{Direction, EntityId, Team, TileHighlight};
+use crate::lua_api::battle_api::errors::invalid_tile_state;
 use crate::lua_api::helpers::inherit_metatable;
 
 pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
@@ -60,7 +61,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "set_state", |api_ctx, lua, params| {
-        let (table, state_index): (rollback_mlua::Table, usize) = lua.unpack_multi(params)?;
+        let (table, state_index): (rollback_mlua::Table, isize) = lua.unpack_multi(params)?;
         let (x, y) = tile_position_from(table)?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
@@ -68,6 +69,11 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let simulation = &mut api_ctx.simulation;
         let resources = &mut api_ctx.resources;
 
+        if state_index < 0 {
+            return Err(invalid_tile_state());
+        }
+
+        let state_index = state_index as usize;
         let can_replace = TileState::can_replace(game_io, simulation, resources, x, y, state_index);
 
         if !can_replace {

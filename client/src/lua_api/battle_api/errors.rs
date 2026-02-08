@@ -75,6 +75,10 @@ pub fn invalid_tile() -> rollback_mlua::Error {
     rollback_mlua::Error::RuntimeError(String::from("invalid tile"))
 }
 
+pub fn invalid_tile_state() -> rollback_mlua::Error {
+    rollback_mlua::Error::RuntimeError(String::from("invalid tile state, missing dependency?"))
+}
+
 pub fn invalid_custom_tile_state() -> rollback_mlua::Error {
     rollback_mlua::Error::RuntimeError(String::from("invalid custom tile state"))
 }

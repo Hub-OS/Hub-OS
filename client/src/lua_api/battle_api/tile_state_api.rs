@@ -2,8 +2,8 @@ use super::errors::invalid_custom_tile_state;
 use super::field_api::get_field_compat_table;
 use super::tile_api::create_tile_table;
 use super::{
-    create_entity_table, BattleLuaApi, CAN_REPLACE_FN, CUSTOM_TILE_STATE_TABLE, ENTITY_ENTER_FN,
-    ENTITY_LEAVE_FN, ENTITY_STOP_FN, REPLACE_FN, TILE_STATE_TABLE, TILE_TABLE, UPDATE_FN,
+    BattleLuaApi, CAN_REPLACE_FN, CUSTOM_TILE_STATE_TABLE, ENTITY_ENTER_FN, ENTITY_LEAVE_FN,
+    ENTITY_STOP_FN, REPLACE_FN, TILE_STATE_TABLE, TILE_TABLE, UPDATE_FN, create_entity_table,
 };
 use crate::battle::{BattleCallback, TileState};
 use crate::lua_api::helpers::inherit_metatable;
@@ -52,7 +52,9 @@ pub fn inject_tile_state_api(lua_api: &mut BattleLuaApi) {
 
         let index = tile_states
             .iter()
-            .position(|state| state.state_name == key_str);
+            .position(|state| state.state_name == key_str)
+            .map(|i| i as i64)
+            .unwrap_or(-1);
 
         lua.pack_multi(index)
     });
