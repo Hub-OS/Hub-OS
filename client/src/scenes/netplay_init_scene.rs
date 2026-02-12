@@ -954,6 +954,8 @@ impl Scene for NetplayInitScene {
                     }
 
                     self.stage.advance();
+                    // skip flushing fallback
+                    self.stage.advance();
                 }
                 Event::Fallback {
                     fallback,
