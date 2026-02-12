@@ -18,7 +18,6 @@ use crate::render::{FrameTime, SpriteNode};
 use crate::resources::Globals;
 use crate::saves::Card;
 use crate::structures::TreeIndex;
-use framework::common::GameIO;
 use framework::prelude::Vec2;
 use packets::structures::MemoryCell;
 
@@ -1079,6 +1078,12 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
 
         lua.pack_multi(create_entity_table(lua, id))
     });
+
+    getter::<&PackageNamespace, _>(
+        lua_api,
+        "namespace",
+        |namespace: &PackageNamespace, lua, _: ()| lua.pack_multi(*namespace),
+    );
 
     getter::<&Character, _>(
         lua_api,
@@ -2212,21 +2217,41 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    add_entity_query_fn::<(&mut PlayerHand, &PackageNamespace)>(
-        lua_api,
-        "set_deck_card",
-        |(hand, default_ns), lua, _, params| {
-            let (index, card_value): (usize, _) = lua.unpack_multi(params)?;
-            let (card, namespace) = read_deck_card_table(card_value)?;
-            let index = index.saturating_sub(1);
+    lua_api.add_dynamic_function(ENTITY_TABLE, "set_deck_card", |api_ctx, lua, params| {
+        let (table, index, card_value): (rollback_mlua::Table, usize, _) =
+            lua.unpack_multi(params)?;
 
-            if let Some(card_ref) = hand.deck.get_mut(index) {
-                *card_ref = (card, namespace.unwrap_or(*default_ns));
+        let id: EntityId = table.raw_get("#id")?;
+        let (card, namespace) = read_deck_card_table(card_value)?;
+        let index = index.saturating_sub(1);
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let hand = entities
+            .query_one_mut::<&mut PlayerHand>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let namespace = if let Some(namespace) = namespace {
+            namespace
+        } else {
+            let vms = api_ctx.resources.vm_manager.vms();
+            let vm = &vms[api_ctx.vm_index];
+
+            if !vm.permitted_dependencies.contains(&card.package_id) {
+                return Err(unmarked_dependency());
             }
 
-            lua.pack_multi(())
-        },
-    );
+            vm.preferred_namespace()
+        };
+
+        if let Some(card_ref) = hand.deck.get_mut(index) {
+            *card_ref = (card, namespace);
+        }
+
+        lua.pack_multi(())
+    });
 
     setter(
         lua_api,
@@ -2249,30 +2274,48 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    add_entity_query_fn::<(&mut PlayerHand, &PackageNamespace)>(
-        lua_api,
-        "insert_deck_card",
-        |(hand, default_ns), lua, _, params| {
-            let (index, card_value): (usize, _) = lua.unpack_multi(params)?;
-            let (card, namespace) = read_deck_card_table(card_value)?;
-            let card_tuple = (card, namespace.unwrap_or(*default_ns));
+    lua_api.add_dynamic_function(ENTITY_TABLE, "insert_deck_card", |api_ctx, lua, params| {
+        let (table, index, card_value): (rollback_mlua::Table, usize, _) =
+            lua.unpack_multi(params)?;
 
-            let index = index.saturating_sub(1);
+        let id: EntityId = table.raw_get("#id")?;
+        let (card, namespace) = read_deck_card_table(card_value)?;
+        let index = index.saturating_sub(1);
 
-            if index > hand.deck.len() {
-                hand.deck.push(card_tuple);
-            } else {
-                if index == 0 {
-                    hand.has_regular_card = false;
-                }
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
 
-                hand.deck.insert(index, card_tuple);
-                hand.staged_items.handle_deck_index_inserted(index);
+        let hand = entities
+            .query_one_mut::<&mut PlayerHand>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let namespace = if let Some(namespace) = namespace {
+            namespace
+        } else {
+            let vms = api_ctx.resources.vm_manager.vms();
+            let vm = &vms[api_ctx.vm_index];
+
+            if !vm.permitted_dependencies.contains(&card.package_id) {
+                return Err(unmarked_dependency());
             }
 
-            lua.pack_multi(())
-        },
-    );
+            vm.preferred_namespace()
+        };
+
+        if index > hand.deck.len() {
+            hand.deck.push((card, namespace));
+        } else {
+            if index == 0 {
+                hand.has_regular_card = false;
+            }
+
+            hand.deck.insert(index, (card, namespace));
+            hand.staged_items.handle_deck_index_inserted(index);
+        }
+
+        lua.pack_multi(())
+    });
 
     // card_select_api.rs
 
@@ -2731,38 +2774,6 @@ fn setter<C, P>(
             .map_err(|_| entity_not_found())?;
 
         lua.pack_multi(callback(component, lua, param)?)
-    });
-}
-
-pub fn add_entity_query_fn<Q: hecs::Query + 'static>(
-    lua_api: &mut BattleLuaApi,
-    name: &str,
-    callback: for<'q, 'lua> fn(
-        Q::Item<'q>,
-        &'lua rollback_mlua::Lua,
-        &GameIO,
-        rollback_mlua::MultiValue<'lua>,
-    ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>,
-) {
-    lua_api.add_dynamic_function(ENTITY_TABLE, name, move |api_ctx, lua, mut params| {
-        // todo: could we produce a better error for Nil entity tables?
-        let player_value = params.pop_front();
-        let player_table = player_value
-            .as_ref()
-            .and_then(|value| value.as_table())
-            .ok_or_else(entity_not_found)?;
-
-        let id: EntityId = player_table.raw_get("#id")?;
-
-        let mut api_ctx = api_ctx.borrow_mut();
-        let game_io = api_ctx.game_io;
-        let entities = &mut api_ctx.simulation.entities;
-
-        let components = entities
-            .query_one_mut::<Q>(id.into())
-            .map_err(|_| entity_not_found())?;
-
-        callback(components, lua, game_io, params)
     });
 }
 

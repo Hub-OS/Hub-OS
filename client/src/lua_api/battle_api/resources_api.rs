@@ -149,4 +149,14 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
 
         lua.pack_multi(result)
     });
+
+    lua_api.add_dynamic_function(RESOURCES_TABLE, "namespace", |api_ctx, lua, _| {
+        let api_ctx = api_ctx.borrow();
+
+        let vms = api_ctx.resources.vm_manager.vms();
+        let vm = &vms[api_ctx.vm_index];
+        let namespace = vm.preferred_namespace();
+
+        lua.pack_multi(namespace)
+    });
 }
