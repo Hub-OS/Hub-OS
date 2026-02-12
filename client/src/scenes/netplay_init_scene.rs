@@ -381,6 +381,7 @@ impl NetplayInitScene {
                 recipes,
                 blocks,
                 drives,
+                memories,
                 input_delay,
                 ..
             } => {
@@ -395,6 +396,7 @@ impl NetplayInitScene {
                 setup.recipes = recipes;
                 setup.blocks = blocks;
                 setup.drives = drives;
+                setup.memories = memories;
                 setup.buffer.clear();
                 setup.buffer.set_delay(input_delay);
             }
