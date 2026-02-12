@@ -18,6 +18,7 @@ use crate::render::{FrameTime, SpriteNode};
 use crate::resources::Globals;
 use crate::saves::Card;
 use crate::structures::TreeIndex;
+use framework::common::GameIO;
 use framework::prelude::Vec2;
 use packets::structures::MemoryCell;
 
@@ -2774,6 +2775,38 @@ fn setter<C, P>(
             .map_err(|_| entity_not_found())?;
 
         lua.pack_multi(callback(component, lua, param)?)
+    });
+}
+
+pub fn add_entity_query_fn<Q: hecs::Query + 'static>(
+    lua_api: &mut BattleLuaApi,
+    name: &str,
+    callback: for<'q, 'lua> fn(
+        Q::Item<'q>,
+        &'lua rollback_mlua::Lua,
+        &GameIO,
+        rollback_mlua::MultiValue<'lua>,
+    ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>,
+) {
+    lua_api.add_dynamic_function(ENTITY_TABLE, name, move |api_ctx, lua, mut params| {
+        // todo: could we produce a better error for Nil entity tables?
+        let player_value = params.pop_front();
+        let player_table = player_value
+            .as_ref()
+            .and_then(|value| value.as_table())
+            .ok_or_else(entity_not_found)?;
+
+        let id: EntityId = player_table.raw_get("#id")?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let game_io = api_ctx.game_io;
+        let entities = &mut api_ctx.simulation.entities;
+
+        let components = entities
+            .query_one_mut::<Q>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        callback(components, lua, game_io, params)
     });
 }
 
