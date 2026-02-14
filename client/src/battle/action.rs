@@ -543,7 +543,6 @@ impl Action {
             .map(|(index, _)| index)
             .collect();
 
-        // card actions
         for action_index in action_indices {
             Living::attempt_interrupt(game_io, resources, simulation, action_index);
 
@@ -579,6 +578,14 @@ impl Action {
             // execute
             if !action.executed {
                 if movement.is_some() {
+                    continue;
+                }
+
+                if action.properties.time_freeze
+                    && simulation.time_freeze_tracker.active_action_index() != Some(action_index)
+                    && simulation.time_freeze_tracker.contains_action(action_index)
+                {
+                    // skip action part of a time freeze chain if it's not our turn
                     continue;
                 }
 
@@ -627,7 +634,7 @@ impl Action {
                 action.step_index += 1;
             }
 
-            // handling async card actions
+            // handling async actions
             let Some(action) = simulation.actions.get_mut(action_index) else {
                 continue;
             };

@@ -285,6 +285,12 @@ impl TimeFreezeTracker {
         ) && self.active_time == self.state_start_time
     }
 
+    pub fn contains_action(&self, action_index: GenerationalIndex) -> bool {
+        self.action_chain
+            .iter()
+            .any(|tracked_action| tracked_action.action_index == action_index)
+    }
+
     pub fn active_action_index(&self) -> Option<GenerationalIndex> {
         if self.state != ActionFreezeState::Action.into()
             && self.state != ActionFreezeState::BeginAction.into()
