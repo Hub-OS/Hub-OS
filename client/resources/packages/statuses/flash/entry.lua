@@ -24,6 +24,7 @@ function status_init(status)
         removed_intangible_rule = true
         entity:remove_status(Hit.Flash)
       end
+      reapplying_intangible_rule = false
     end
     entity:set_intangible(true, intangible_rule)
   end
@@ -43,10 +44,12 @@ function status_init(status)
 
     local remaining_time = status:remaining_time()
 
-    if remaining_time - prev_remaining_time ~= 1 and remaining_time ~= 0 then
+    if prev_remaining_time - remaining_time ~= 1 and remaining_time ~= 0 then
       reapplying_intangible_rule = true
       apply_rule()
     end
+
+    prev_remaining_time = remaining_time
 
     time = time + 1
   end
