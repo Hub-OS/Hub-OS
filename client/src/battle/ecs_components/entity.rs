@@ -203,6 +203,8 @@ impl Entity {
             return;
         }
 
+        simulation.ownership_tracking.untrack(id);
+
         // gather action indices for deletion
         let mut action_indices: Vec<_> = (simulation.actions)
             .iter()
@@ -268,6 +270,8 @@ impl Entity {
 
         // mark as erased
         entity.erased = true;
+
+        simulation.ownership_tracking.untrack(id);
 
         // delete
         Entity::delete(game_io, resources, simulation, id);
