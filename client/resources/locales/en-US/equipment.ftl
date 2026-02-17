@@ -45,6 +45,7 @@ deck-editor-pack-menu-label = FILTER
 deck-editor-option-search = Search
 deck-editor-option-namespace = Namesp.
 deck-editor-option-properties = Props.
+deck-editor-option-code = Code
 deck-editor-option-sort = Sort
 
 deck-editor-namespace-menu-label = NAMESPACE

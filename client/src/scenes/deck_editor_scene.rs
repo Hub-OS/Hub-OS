@@ -21,6 +21,7 @@ enum EditorMode {
 enum Event {
     Leave(bool),
     Search(String),
+    FilterCode(String),
     SwitchMode(EditorMode),
 }
 
@@ -128,6 +129,7 @@ enum SearchOption {
     Search,
     Namespace,
     Properties,
+    Code,
     Sort,
 }
 
@@ -149,6 +151,7 @@ pub struct DeckEditorScene {
     properties_menu: CardPropertiesMenu,
     sort_menu: ContextMenu<Sorting>,
     name_filter: String,
+    code_filter: String,
     ns_filter: usize,
     filtered: bool,
     last_sort: Option<Sorting>,
@@ -250,6 +253,7 @@ impl DeckEditorScene {
                     ("deck-editor-option-search", SearchOption::Search),
                     ("deck-editor-option-namespace", SearchOption::Namespace),
                     ("deck-editor-option-properties", SearchOption::Properties),
+                    ("deck-editor-option-code", SearchOption::Code),
                     ("deck-editor-option-sort", SearchOption::Sort),
                 ],
             ),
@@ -273,6 +277,7 @@ impl DeckEditorScene {
                 ],
             ),
             name_filter: Default::default(),
+            code_filter: Default::default(),
             ns_filter: Default::default(),
             filtered: false,
             last_sort: None,
@@ -516,6 +521,11 @@ fn handle_events(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
             apply_filters(scene, game_io);
             scene.pack_dock.update_preview(game_io);
         }
+        Event::FilterCode(code) => {
+            scene.code_filter = code.to_uppercase();
+            apply_filters(scene, game_io);
+            scene.pack_dock.update_preview(game_io);
+        }
     }
 }
 
@@ -523,6 +533,7 @@ fn handle_events(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
 fn apply_filters(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
     let globals = Globals::from_resources(game_io);
     let name_filter = &scene.name_filter;
+    let code_filter = &scene.code_filter;
 
     if scene.filtered {
         // previously filtered? reset pack
@@ -537,6 +548,7 @@ fn apply_filters(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
     let dock = &mut scene.pack_dock;
 
     if name_filter.is_empty()
+        && code_filter.is_empty()
         && scene.ns_filter == 0
         && scene.properties_menu.applied_filters().next().is_none()
     {
@@ -549,6 +561,14 @@ fn apply_filters(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
     scene.filtered = true;
 
     let packages = &globals.card_packages;
+
+    // apply code filter
+    if !code_filter.is_empty() {
+        dock.card_slots.retain(|slot| {
+            slot.as_ref()
+                .is_some_and(|item| item.card.code.eq_ignore_ascii_case(code_filter))
+        });
+    }
 
     // apply namespace filter
     if scene.ns_filter > 0 {
@@ -863,6 +883,17 @@ fn handle_options_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
         }
         SearchOption::Properties => {
             scene.properties_menu.open(game_io);
+        }
+        SearchOption::Code => {
+            let event_sender = scene.event_sender.clone();
+
+            let interface = TextboxPrompt::new(move |s| {
+                let _ = event_sender.send(Event::FilterCode(s));
+            })
+            .with_character_limit(1);
+
+            scene.textbox.push_interface(interface);
+            scene.textbox.open();
         }
         SearchOption::Sort => {
             scene.sort_menu.open();
