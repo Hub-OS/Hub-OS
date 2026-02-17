@@ -275,7 +275,11 @@ impl CardSelectUi {
             }
 
             let name = &name.0;
-            let suffix = character.rank.suffix();
+            let suffix = if character.display_rank {
+                character.rank.suffix()
+            } else {
+                ""
+            };
 
             // calculate size + position for text
             let name_width = style.measure(name).size.x + 1.0;

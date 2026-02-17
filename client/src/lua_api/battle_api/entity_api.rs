@@ -1211,6 +1211,15 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(character.rank)
     });
 
+    setter(
+        lua_api,
+        "hide_rank",
+        |character: &mut Character, _, _: ()| {
+            character.display_rank = false;
+            Ok(())
+        },
+    );
+
     callback_setter(lua_api, INTRO_FN, IntroCallback, |lua, table, _| {
         lua.pack_multi(table)
     });
