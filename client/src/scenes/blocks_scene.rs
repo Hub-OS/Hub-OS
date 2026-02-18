@@ -89,12 +89,19 @@ impl ListItem {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 enum State {
     ListSelection,
     ColorSelection,
-    GridSelection { x: i8, y: i8 },
-    BlockContext { x: i8, y: i8 },
+    GridSelection {
+        x: i8,
+        y: i8,
+    },
+    BlockContext {
+        x: i8,
+        y: i8,
+        prev_state: Box<State>,
+    },
     Applying,
 }
 
@@ -472,9 +479,47 @@ impl BlocksScene {
     fn open_grid_context_menu(
         &mut self,
         game_io: &mut GameIO,
+        grid_x: i8,
         grid_y: i8,
-        options: &[(&str, GridOption)],
+        has_block: bool,
     ) {
+        let options: &[(&str, GridOption)] = if has_block {
+            if cfg_android!() {
+                &[
+                    ("blocks-option-move", GridOption::Move),
+                    ("blocks-option-remove", GridOption::Remove),
+                    ("augments-option-clear", GridOption::Clear),
+                ]
+            } else {
+                &[
+                    ("blocks-option-move", GridOption::Move),
+                    ("blocks-option-remove", GridOption::Remove),
+                    ("blocks-option-more", GridOption::More),
+                ]
+            }
+        } else if cfg_android!() {
+            &[("augments-option-clear", GridOption::Clear)]
+        } else {
+            &[
+                ("augments-option-export", GridOption::Export),
+                ("augments-option-import", GridOption::Import),
+                ("augments-option-clear", GridOption::Clear),
+            ]
+        };
+
+        let mut state = State::Applying;
+        std::mem::swap(&mut self.state, &mut state);
+
+        self.state = State::BlockContext {
+            x: grid_x,
+            y: grid_y,
+            prev_state: if let State::BlockContext { prev_state, .. } = state {
+                prev_state.clone()
+            } else {
+                state.into()
+            },
+        };
+
         self.grid_context_menu
             .set_and_translate_options(game_io, options);
 
@@ -483,7 +528,7 @@ impl BlocksScene {
         self.grid_context_menu.update(game_io, &self.input_tracker);
 
         let menu_size = self.grid_context_menu.bounds().size();
-        let mut position = self.cursor.target();
+        let mut position = Vec2::new(grid_x as _, (grid_y + 1) as _) * self.grid_increment;
         position.x += (self.grid_increment.x - menu_size.x) * 0.5;
 
         let min_x = self.grid_increment.x * 0.5;
@@ -602,14 +647,17 @@ impl BlocksScene {
 
         if selection != GridOption::More {
             self.grid_context_menu.close();
-            self.state = State::GridSelection { x, y };
+
+            if let State::BlockContext { prev_state, .. } = &self.state {
+                self.state = (**prev_state).clone();
+            }
         }
     }
 
     fn handle_input(&mut self, game_io: &mut GameIO) {
         let globals = Globals::from_resources(game_io);
 
-        let prev_state = self.state;
+        let prev_state = self.state.clone();
         let prev_held = self.held_block.is_some();
 
         if let Some(block) = &mut self.held_block {
@@ -691,7 +739,7 @@ impl BlocksScene {
             }
         }
 
-        match self.state {
+        match &self.state {
             State::ListSelection => {
                 let input_util = InputUtil::new(game_io);
 
@@ -774,6 +822,8 @@ impl BlocksScene {
 
                             global_save.save();
                         }
+                    } else if input_util.was_just_pressed(Input::Option2) {
+                        self.open_grid_context_menu(game_io, 3, 1, false);
                     } else if input_util.was_released(Input::Special) {
                         // cycle color
                         if let Some(list_item) = self.list.get_mut(selected_index) {
@@ -817,6 +867,7 @@ impl BlocksScene {
                 }
             }
             State::GridSelection { x: old_x, y: old_y } => {
+                let (old_x, old_y) = (*old_x, *old_y);
                 let cancel = self.input_tracker.pulsed(Input::Cancel) && !prev_held;
                 let returned_to_list = self.input_tracker.pulsed(Input::Right) && old_x == 6;
                 let pressed_end = self.input_tracker.pulsed(Input::End);
@@ -832,33 +883,9 @@ impl BlocksScene {
 
                     globals.audio.play_sound(&globals.sfx.cursor_cancel);
                 } else if self.input_tracker.pulsed(Input::Confirm) && !prev_held {
-                    self.state = State::BlockContext { x: old_x, y: old_y };
-
-                    let options: &[(&str, GridOption)] = if has_block {
-                        if cfg_android!() {
-                            &[
-                                ("blocks-option-move", GridOption::Move),
-                                ("blocks-option-remove", GridOption::Remove),
-                                ("augments-option-clear", GridOption::Clear),
-                            ]
-                        } else {
-                            &[
-                                ("blocks-option-move", GridOption::Move),
-                                ("blocks-option-remove", GridOption::Remove),
-                                ("blocks-option-more", GridOption::More),
-                            ]
-                        }
-                    } else if cfg_android!() {
-                        &[("augments-option-clear", GridOption::Clear)]
-                    } else {
-                        &[
-                            ("augments-option-export", GridOption::Export),
-                            ("augments-option-import", GridOption::Import),
-                            ("augments-option-clear", GridOption::Clear),
-                        ]
-                    };
-
-                    self.open_grid_context_menu(game_io, old_y, options);
+                    self.open_grid_context_menu(game_io, old_x, old_y, has_block);
+                } else if self.input_tracker.pulsed(Input::Option2) {
+                    self.open_grid_context_menu(game_io, 3, 1, false);
                 } else {
                     let (mut x, mut y) = (old_x, old_y);
 
@@ -888,13 +915,13 @@ impl BlocksScene {
                     }
                 }
             }
-            State::BlockContext { x, y } => {
+            State::BlockContext { x, y, prev_state } => {
                 let selection = self.grid_context_menu.update(game_io, &self.input_tracker);
 
                 if let Some(op) = selection {
-                    self.handle_grid_option(game_io, x, y, op);
+                    self.handle_grid_option(game_io, *x, *y, op);
                 } else if !self.grid_context_menu.is_open() {
-                    self.state = State::GridSelection { x, y };
+                    self.state = (**prev_state).clone();
                 }
             }
             State::Applying => {
