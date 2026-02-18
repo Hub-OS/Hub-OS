@@ -27,18 +27,16 @@ deck-list-option-more = MORE
 deck-list-option-back = BACK{ "    " }
 deck-list-option-clone = CLONE
 deck-list-option-delete = DELETE
-deck-list-delete-question = Delete { $name }?
 deck-list-option-export = EXPORT
-deck-list-copied-to-clipboard = Copied to clipboard.
-deck-list-copied-to-clipboard-failed = Failed to copy to clipboard.
 deck-list-option-import = IMPORT
-deck-list-import-failed = Failed to read from clipboard.
+deck-list-delete-question = Delete { $name }?
 deck-list-new-deck-name = NewFldr
 deck-editor-scene-title = Folder Edit
 deck-editor-pack-menu-label = FILTER
 deck-editor-option-search = Search
 deck-editor-option-namespace = Namesp.
 deck-editor-option-properties = Props.
+deck-editor-option-code = Code
 deck-editor-option-sort = Sort
 deck-editor-namespace-menu-label = NAMESPACE
 deck-editor-properties-menu-label = PROPERTIES
@@ -83,8 +81,9 @@ character-select-fallback-details = Continuing with this navi will discard innat
 blocks-scene-title = Blocks
 blocks-information-box-label = INFORMATION
 blocks-apply-label = RUN!
-blocks-option-move = Move
-blocks-option-remove = Remove
+blocks-option-move = MOVE
+blocks-option-remove = REMOVE
+blocks-option-more = MORE
 blocks-leave-question = Quit customizing and return to menu?
 blocks-success =
     OK
@@ -97,3 +96,15 @@ switch-drives-leg-slot = Leg
 switch-drives-unequip-question = Unequip { $name }?
 switch-drives-filter-slot-question = Filter for { $slot } drives?
 switch-drives-leave-question = Quit customizing and return to menu?
+augments-option-export = EXPORT
+augments-option-import = IMPORT
+augments-option-clear = CLEAR
+blocks-clear-question =
+    Remove all
+    Blocks?
+switch-drives-clear-question =
+    Remove all
+    Switch Drives?
+copied-to-clipboard = Copied to clipboard.
+copy-to-clipboard-failed = Failed to copy to clipboard.
+clipboard-read-failed = Failed to read from clipboard.
