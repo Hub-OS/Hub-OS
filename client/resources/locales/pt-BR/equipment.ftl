@@ -77,9 +77,9 @@ character-select-fallback-details = Continuar com esse Navi irá descartar as ha
 blocks-scene-title = NaviCustomizer
 blocks-information-box-label = INFORMAÇÃO
 blocks-apply-label = EXECUTAR!
-blocks-option-move = MOVE
-blocks-option-remove = REMOVE
-blocks-option-more = MORE
+blocks-option-move = MOVER
+blocks-option-remove = REMOVER
+blocks-option-more = MAIS
 blocks-leave-question = Sair do Customizador e ir para o menu?
 blocks-success =
     OK!
@@ -101,6 +101,6 @@ blocks-clear-question =
 switch-drives-clear-question =
     Remove all
     Switch Drives?
-copied-to-clipboard = Copied to clipboard.
-copy-to-clipboard-failed = Failed to copy to clipboard.
-clipboard-read-failed = Failed to read from clipboard.
+copied-to-clipboard = Copiado para a área de transferência.
+copy-to-clipboard-failed = Falha ao copiar para a área de transferência!
+clipboard-read-failed = Erro ao ler da área de transferência.
