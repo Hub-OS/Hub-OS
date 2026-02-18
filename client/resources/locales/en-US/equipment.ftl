@@ -95,8 +95,9 @@ character-select-fallback-details = Continuing with this navi will discard innat
 blocks-scene-title = Blocks
 blocks-information-box-label = INFORMATION
 blocks-apply-label = RUN!
-blocks-option-move = Move
-blocks-option-remove = Remove
+blocks-option-move = MOVE
+blocks-option-remove = REMOVE
+blocks-option-more = MORE
 blocks-leave-question = Quit customizing and return to menu?
 blocks-success = 
     OK

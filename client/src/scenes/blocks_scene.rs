@@ -26,17 +26,13 @@ enum Event {
     Leave,
     Applied,
     Clear,
-    UpdateCursor,
-}
-
-#[derive(Clone, Copy)]
-enum BlockOption {
-    Move,
-    Remove,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum GridOption {
+    Move,
+    Remove,
+    More,
     Export,
     Import,
     Clear,
@@ -123,7 +119,7 @@ pub struct BlocksScene {
     tracked_invalid: HashSet<(Cow<'static, PackageId>, BlockColor)>,
     arrow: GridArrow,
     block_preview: Option<BlockPreview>,
-    block_context_menu: ContextMenu<BlockOption>,
+    grid_context_menu: ContextMenu<GridOption>,
     held_block: Option<InstalledBlock>,
     cycling_variant: bool,
     block_original_variant: usize,
@@ -136,7 +132,6 @@ pub struct BlocksScene {
     list: Vec<ListItem>,
     color_selector: ColorSelector,
     special_hold_time: FrameTime,
-    grid_context_menu: ContextMenu<GridOption>,
     event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
     next_scene: NextScene,
@@ -252,20 +247,6 @@ impl BlocksScene {
         let cursor_position = scroll_tracker.selected_cursor_position();
         let cursor = GridCursor::new(game_io).with_position(cursor_position);
 
-        // grid context menu
-        let mut grid_context_menu =
-            ContextMenu::new_translated(game_io, "blocks-scene-title", Vec2::ZERO)
-                .with_translated_options(
-                    game_io,
-                    &[
-                        ("augments-option-export", GridOption::Export),
-                        ("augments-option-import", GridOption::Import),
-                        ("augments-option-clear", GridOption::Clear),
-                    ],
-                );
-        grid_context_menu.recalculate_layout(game_io);
-        grid_context_menu.set_top_center(RESOLUTION_F * Vec2::new(0.5, 0.25));
-
         let (event_sender, event_receiver) = flume::unbounded();
 
         Self {
@@ -289,14 +270,7 @@ impl BlocksScene {
             tracked_invalid: HashSet::new(),
             arrow: GridArrow::new(game_io),
             block_preview: None,
-            block_context_menu: ContextMenu::new(game_io, Default::default(), Vec2::ZERO)
-                .with_translated_options(
-                    game_io,
-                    &[
-                        ("blocks-option-move", BlockOption::Move),
-                        ("blocks-option-remove", BlockOption::Remove),
-                    ],
-                ),
+            grid_context_menu: ContextMenu::new(game_io, Default::default(), Vec2::ZERO),
             held_block: None,
             cycling_variant: false,
             block_original_variant: 0,
@@ -309,7 +283,6 @@ impl BlocksScene {
             list: packages,
             color_selector: ColorSelector::new(game_io, color_selection_step),
             special_hold_time: 0,
-            grid_context_menu,
             event_sender,
             event_receiver,
             next_scene: NextScene::None,
@@ -496,21 +469,62 @@ impl BlocksScene {
         }
     }
 
-    fn open_grid_context_menu(&mut self, game_io: &mut GameIO) {
-        if cfg_android!() {
-            // clipboard isn't available on android
-            self.handle_grid_option(game_io, GridOption::Clear);
-        } else {
-            self.grid_context_menu.open();
-            self.update_cursor_sprite();
+    fn open_grid_context_menu(
+        &mut self,
+        game_io: &mut GameIO,
+        grid_y: i8,
+        options: &[(&str, GridOption)],
+    ) {
+        self.grid_context_menu
+            .set_and_translate_options(game_io, options);
 
-            let globals = Globals::from_resources(game_io);
-            globals.audio.play_sound(&globals.sfx.cursor_select);
+        self.grid_context_menu.open();
+
+        self.grid_context_menu.update(game_io, &self.input_tracker);
+
+        let menu_size = self.grid_context_menu.bounds().size();
+        let mut position = self.cursor.target();
+        position.x += (self.grid_increment.x - menu_size.x) * 0.5;
+
+        let min_x = self.grid_increment.x * 0.5;
+        let max_x = self.grid_increment.x * (BlockGrid::SIDE_LEN as f32 - 0.5) - menu_size.x;
+
+        position.x = (position.x).clamp(self.grid_start.x + min_x, self.grid_start.x + max_x);
+
+        if grid_y < 4 {
+            position.y += self.grid_increment.y * 0.75;
+        } else {
+            position.y -= menu_size.y + self.grid_increment.y * 0.25;
         }
+
+        self.grid_context_menu.set_position(position);
     }
 
-    fn handle_grid_option(&mut self, game_io: &mut GameIO, selection: GridOption) {
+    fn handle_grid_option(&mut self, game_io: &mut GameIO, x: i8, y: i8, selection: GridOption) {
         match selection {
+            GridOption::Move => {
+                let block = self.grid.remove_block((x, y)).unwrap();
+
+                self.block_original_variant = block.variant;
+                self.block_original_rotation = block.rotation;
+                self.held_block = Some(block);
+                self.block_returns_to_grid = true;
+            }
+            GridOption::Remove => {
+                let block = self.grid.remove_block((x, y)).unwrap();
+
+                self.uninstall(game_io, block);
+            }
+            GridOption::More => {
+                self.grid_context_menu.set_and_translate_options(
+                    game_io,
+                    &[
+                        ("augments-option-export", GridOption::Export),
+                        ("augments-option-import", GridOption::Import),
+                        ("augments-option-clear", GridOption::Clear),
+                    ],
+                );
+            }
             GridOption::Export => {
                 let text = self.grid.export_string(game_io);
 
@@ -522,10 +536,7 @@ impl BlocksScene {
                 } else {
                     globals.translate("copy-to-clipboard-failed")
                 };
-                let event_sender = self.event_sender.clone();
-                let interface = TextboxMessage::new(message).with_callback(move || {
-                    let _ = event_sender.send(Event::UpdateCursor);
-                });
+                let interface = TextboxMessage::new(message);
 
                 self.textbox.push_interface(interface);
                 self.textbox.open();
@@ -563,16 +574,11 @@ impl BlocksScene {
                             continue;
                         }
                     }
-
-                    self.update_cursor_sprite();
                 } else {
                     let globals = Globals::from_resources(game_io);
 
                     let message = globals.translate("clipboard-read-failed");
-                    let event_sender = self.event_sender.clone();
-                    let interface = TextboxMessage::new(message).with_callback(move || {
-                        let _ = event_sender.send(Event::UpdateCursor);
-                    });
+                    let interface = TextboxMessage::new(message);
 
                     self.textbox.push_interface(interface);
                     self.textbox.open();
@@ -586,8 +592,6 @@ impl BlocksScene {
                 let interface = TextboxQuestion::new(game_io, question, move |response| {
                     if response {
                         let _ = event_sender.send(Event::Clear);
-                    } else {
-                        let _ = event_sender.send(Event::UpdateCursor);
                     }
                 });
 
@@ -595,20 +599,14 @@ impl BlocksScene {
                 self.textbox.open();
             }
         }
+
+        if selection != GridOption::More {
+            self.grid_context_menu.close();
+            self.state = State::GridSelection { x, y };
+        }
     }
 
     fn handle_input(&mut self, game_io: &mut GameIO) {
-        if self.grid_context_menu.is_open() {
-            if let Some(selection) = self.grid_context_menu.update(game_io, &self.input_tracker) {
-                self.grid_context_menu.close();
-                self.handle_grid_option(game_io, selection);
-            } else if !self.grid_context_menu.is_open() {
-                self.update_cursor_sprite();
-            }
-
-            return;
-        }
-
         let globals = Globals::from_resources(game_io);
 
         let prev_state = self.state;
@@ -776,8 +774,6 @@ impl BlocksScene {
 
                             global_save.save();
                         }
-                    } else if input_util.was_just_pressed(Input::Option2) {
-                        self.open_grid_context_menu(game_io);
                     } else if input_util.was_released(Input::Special) {
                         // cycle color
                         if let Some(list_item) = self.list.get_mut(selected_index) {
@@ -835,32 +831,34 @@ impl BlocksScene {
                     }
 
                     globals.audio.play_sound(&globals.sfx.cursor_cancel);
-                } else if self.input_tracker.pulsed(Input::Confirm) && !prev_held && has_block {
+                } else if self.input_tracker.pulsed(Input::Confirm) && !prev_held {
                     self.state = State::BlockContext { x: old_x, y: old_y };
 
-                    self.block_context_menu.open();
-                    self.block_context_menu.update(game_io, &self.input_tracker);
-
-                    let menu_size = self.block_context_menu.bounds().size();
-                    let mut position = self.cursor.target();
-                    position.x += (self.grid_increment.x - menu_size.x) * 0.5;
-
-                    let min_x = self.grid_increment.x * 0.5;
-                    let max_x =
-                        self.grid_increment.x * (BlockGrid::SIDE_LEN as f32 - 0.5) - menu_size.x;
-
-                    position.x =
-                        (position.x).clamp(self.grid_start.x + min_x, self.grid_start.x + max_x);
-
-                    if old_y < 4 {
-                        position.y += self.grid_increment.y * 0.75;
+                    let options: &[(&str, GridOption)] = if has_block {
+                        if cfg_android!() {
+                            &[
+                                ("blocks-option-move", GridOption::Move),
+                                ("blocks-option-remove", GridOption::Remove),
+                                ("augments-option-clear", GridOption::Clear),
+                            ]
+                        } else {
+                            &[
+                                ("blocks-option-move", GridOption::Move),
+                                ("blocks-option-remove", GridOption::Remove),
+                                ("blocks-option-more", GridOption::More),
+                            ]
+                        }
+                    } else if cfg_android!() {
+                        &[("augments-option-clear", GridOption::Clear)]
                     } else {
-                        position.y -= menu_size.y + self.grid_increment.y * 0.25;
-                    }
+                        &[
+                            ("augments-option-export", GridOption::Export),
+                            ("augments-option-import", GridOption::Import),
+                            ("augments-option-clear", GridOption::Clear),
+                        ]
+                    };
 
-                    self.block_context_menu.set_position(position);
-                } else if self.input_tracker.pulsed(Input::Option2) && self.held_block.is_none() {
-                    self.open_grid_context_menu(game_io);
+                    self.open_grid_context_menu(game_io, old_y, options);
                 } else {
                     let (mut x, mut y) = (old_x, old_y);
 
@@ -891,28 +889,11 @@ impl BlocksScene {
                 }
             }
             State::BlockContext { x, y } => {
-                let selection = self.block_context_menu.update(game_io, &self.input_tracker);
+                let selection = self.grid_context_menu.update(game_io, &self.input_tracker);
 
                 if let Some(op) = selection {
-                    let block = self.grid.remove_block((x, y)).unwrap();
-
-                    match op {
-                        BlockOption::Move => {
-                            self.block_original_variant = block.variant;
-                            self.block_original_rotation = block.rotation;
-                            self.held_block = Some(block);
-                            self.block_returns_to_grid = true;
-                        }
-                        BlockOption::Remove => {
-                            self.uninstall(game_io, block);
-                        }
-                    }
-
-                    self.block_context_menu.close();
-                    self.state = State::GridSelection { x, y };
-                }
-
-                if !self.block_context_menu.is_open() {
+                    self.handle_grid_option(game_io, x, y, op);
+                } else if !self.grid_context_menu.is_open() {
                     self.state = State::GridSelection { x, y };
                 }
             }
@@ -1095,10 +1076,6 @@ impl BlocksScene {
             _ => {}
         }
 
-        if self.grid_context_menu.is_open() {
-            self.cursor.hide();
-        }
-
         self.update_grid_sprite();
     }
 
@@ -1140,9 +1117,6 @@ impl BlocksScene {
 
                     let transition = crate::transitions::new_sub_scene_pop(game_io);
                     self.next_scene = NextScene::new_pop().with_transition(transition);
-                }
-                Event::UpdateCursor => {
-                    self.update_cursor_sprite();
                 }
                 Event::Applied => {
                     self.arrow.reset();
@@ -1469,7 +1443,6 @@ impl Scene for BlocksScene {
         self.information_text.draw(game_io, &mut sprite_queue);
 
         // draw context menus
-        self.block_context_menu.draw(game_io, &mut sprite_queue);
         self.grid_context_menu.draw(game_io, &mut sprite_queue);
 
         // draw frame
