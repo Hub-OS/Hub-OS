@@ -27,18 +27,16 @@ deck-list-option-more = MAIS
 deck-list-option-back = VOLTAR
 deck-list-option-clone = CLONAR
 deck-list-option-delete = REMOVER
-deck-list-delete-question = Remover { $name }?
 deck-list-option-export = EXPORTAR
-deck-list-copied-to-clipboard = Copiado para a área de transferência.
-deck-list-copied-to-clipboard-failed = Falha ao copiar para a área de transferência!
 deck-list-option-import = IMPORTAR
-deck-list-import-failed = Erro ao ler da área de transferência.
+deck-list-delete-question = Remover { $name }?
 deck-list-new-deck-name = NovaPsta
 deck-editor-scene-title = Editar Pasta
 deck-editor-pack-menu-label = FILTRO
 deck-editor-option-search = Buscar
 deck-editor-option-namespace = Autores
 deck-editor-option-properties = Propriedades
+deck-editor-option-code = Code
 deck-editor-option-sort = Ordenar
 deck-editor-namespace-menu-label = AUTOR
 deck-editor-properties-menu-label = PROPRIEDADES
@@ -79,8 +77,9 @@ character-select-fallback-details = Continuar com esse Navi irá descartar as ha
 blocks-scene-title = NaviCustomizer
 blocks-information-box-label = INFORMAÇÃO
 blocks-apply-label = EXECUTAR!
-blocks-option-move = Mover
-blocks-option-remove = Remover
+blocks-option-move = MOVE
+blocks-option-remove = REMOVE
+blocks-option-more = MORE
 blocks-leave-question = Sair do Customizador e ir para o menu?
 blocks-success =
     OK!
@@ -93,3 +92,15 @@ switch-drives-leg-slot = Pernas
 switch-drives-unequip-question = Desequipar { $name }?
 switch-drives-filter-slot-question = Filtrar para Reforços de { $slot }?
 switch-drives-leave-question = Sair dos Reforços e retornar ao menu?
+augments-option-export = EXPORT
+augments-option-import = IMPORT
+augments-option-clear = CLEAR
+blocks-clear-question =
+    Remove all
+    Blocks?
+switch-drives-clear-question =
+    Remove all
+    Switch Drives?
+copied-to-clipboard = Copied to clipboard.
+copy-to-clipboard-failed = Failed to copy to clipboard.
+clipboard-read-failed = Failed to read from clipboard.
