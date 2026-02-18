@@ -9,6 +9,7 @@ use crate::render::ui::{
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, FrameTime, SpriteColorQueue};
 use crate::resources::*;
 use crate::saves::{BlockGrid, BlockShape, GlobalSave, InstalledBlock};
+use framework::cfg_macros::cfg_android;
 use framework::prelude::*;
 use itertools::Itertools;
 use packets::structures::PackageCategory;
@@ -24,12 +25,21 @@ const COLOR_UI_DELAY: FrameTime = 24;
 enum Event {
     Leave,
     Applied,
+    Clear,
+    UpdateCursor,
 }
 
 #[derive(Clone, Copy)]
 enum BlockOption {
     Move,
     Remove,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum GridOption {
+    Export,
+    Import,
+    Clear,
 }
 
 #[derive(Clone)]
@@ -126,6 +136,7 @@ pub struct BlocksScene {
     list: Vec<ListItem>,
     color_selector: ColorSelector,
     special_hold_time: FrameTime,
+    grid_context_menu: ContextMenu<GridOption>,
     event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
     next_scene: NextScene,
@@ -241,6 +252,20 @@ impl BlocksScene {
         let cursor_position = scroll_tracker.selected_cursor_position();
         let cursor = GridCursor::new(game_io).with_position(cursor_position);
 
+        // grid context menu
+        let mut grid_context_menu =
+            ContextMenu::new_translated(game_io, "blocks-scene-title", Vec2::ZERO)
+                .with_translated_options(
+                    game_io,
+                    &[
+                        ("augments-option-export", GridOption::Export),
+                        ("augments-option-import", GridOption::Import),
+                        ("augments-option-clear", GridOption::Clear),
+                    ],
+                );
+        grid_context_menu.recalculate_layout(game_io);
+        grid_context_menu.set_top_center(RESOLUTION_F * Vec2::new(0.5, 0.25));
+
         let (event_sender, event_receiver) = flume::unbounded();
 
         Self {
@@ -284,6 +309,7 @@ impl BlocksScene {
             list: packages,
             color_selector: ColorSelector::new(game_io, color_selection_step),
             special_hold_time: 0,
+            grid_context_menu,
             event_sender,
             event_receiver,
             next_scene: NextScene::None,
@@ -470,7 +496,119 @@ impl BlocksScene {
         }
     }
 
+    fn open_grid_context_menu(&mut self, game_io: &mut GameIO) {
+        if cfg_android!() {
+            // clipboard isn't available on android
+            self.handle_grid_option(game_io, GridOption::Clear);
+        } else {
+            self.grid_context_menu.open();
+            self.update_cursor_sprite();
+
+            let globals = Globals::from_resources(game_io);
+            globals.audio.play_sound(&globals.sfx.cursor_select);
+        }
+    }
+
+    fn handle_grid_option(&mut self, game_io: &mut GameIO, selection: GridOption) {
+        match selection {
+            GridOption::Export => {
+                let text = self.grid.export_string(game_io);
+
+                let copied = game_io.input_mut().set_clipboard_text(text);
+
+                let globals = Globals::from_resources(game_io);
+                let message = if copied {
+                    globals.translate("copied-to-clipboard")
+                } else {
+                    globals.translate("copy-to-clipboard-failed")
+                };
+                let event_sender = self.event_sender.clone();
+                let interface = TextboxMessage::new(message).with_callback(move || {
+                    let _ = event_sender.send(Event::UpdateCursor);
+                });
+
+                self.textbox.push_interface(interface);
+                self.textbox.open();
+            }
+            GridOption::Import => {
+                let text = game_io.input_mut().request_clipboard_text();
+
+                let blocks = BlockGrid::import_string(&text);
+
+                if let Some(blocks) = blocks {
+                    self.clear_grid(game_io);
+
+                    for block in blocks {
+                        let Ok(i) = self
+                            .list
+                            .binary_search_by(|package| package.id.cmp(&block.package_id))
+                        else {
+                            continue;
+                        };
+
+                        let list_item = &self.list[i];
+                        let Some(color_index) =
+                            list_item.colors.iter().position(|(c, _)| *c == block.color)
+                        else {
+                            continue;
+                        };
+
+                        if self.take_block_from_list(i, color_index).is_none() {
+                            continue;
+                        }
+
+                        let conflicts = self.grid.install_block(game_io, block);
+
+                        if conflicts.is_some() {
+                            continue;
+                        }
+                    }
+
+                    self.update_cursor_sprite();
+                } else {
+                    let globals = Globals::from_resources(game_io);
+
+                    let message = globals.translate("clipboard-read-failed");
+                    let event_sender = self.event_sender.clone();
+                    let interface = TextboxMessage::new(message).with_callback(move || {
+                        let _ = event_sender.send(Event::UpdateCursor);
+                    });
+
+                    self.textbox.push_interface(interface);
+                    self.textbox.open();
+                }
+            }
+            GridOption::Clear => {
+                let globals = Globals::from_resources(game_io);
+                let question = globals.translate("blocks-clear-question");
+
+                let event_sender = self.event_sender.clone();
+                let interface = TextboxQuestion::new(game_io, question, move |response| {
+                    if response {
+                        let _ = event_sender.send(Event::Clear);
+                    } else {
+                        let _ = event_sender.send(Event::UpdateCursor);
+                    }
+                });
+
+                self.textbox.push_interface(interface);
+                self.textbox.open();
+            }
+        }
+    }
+
     fn handle_input(&mut self, game_io: &mut GameIO) {
+        if self.grid_context_menu.is_open() {
+            if let Some(selection) = self.grid_context_menu.update(game_io, &self.input_tracker) {
+                self.grid_context_menu.close();
+                self.handle_grid_option(game_io, selection);
+            } else if !self.grid_context_menu.is_open() {
+                self.update_cursor_sprite();
+            }
+
+            return;
+        }
+
         let globals = Globals::from_resources(game_io);
 
         let prev_state = self.state;
@@ -614,7 +752,7 @@ impl BlocksScene {
                     if self.input_tracker.pulsed(Input::Confirm) {
                         if self.list.get(selected_index).is_some() {
                             // selected a block
-                            self.take_block_from_list();
+                            self.take_selected_block_from_list();
                             globals.audio.play_sound(&globals.sfx.cursor_select);
                         } else {
                             // selected APPLY
@@ -638,6 +776,8 @@ impl BlocksScene {
 
                             global_save.save();
                         }
+                    } else if input_util.was_just_pressed(Input::Option2) {
+                        self.open_grid_context_menu(game_io);
                     } else if input_util.was_released(Input::Special) {
                         // cycle color
                         if let Some(list_item) = self.list.get_mut(selected_index) {
@@ -670,7 +810,7 @@ impl BlocksScene {
                 }
 
                 if self.input_tracker.pulsed(Input::Confirm) {
-                    if self.take_block_from_list() {
+                    if self.take_selected_block_from_list() {
                         globals.audio.play_sound(&globals.sfx.cursor_select);
                     } else {
                         globals.audio.play_sound(&globals.sfx.cursor_error);
@@ -719,6 +859,8 @@ impl BlocksScene {
                     }
 
                     self.block_context_menu.set_position(position);
+                } else if self.input_tracker.pulsed(Input::Option2) && self.held_block.is_none() {
+                    self.open_grid_context_menu(game_io);
                 } else {
                     let (mut x, mut y) = (old_x, old_y);
 
@@ -830,41 +972,53 @@ impl BlocksScene {
         }
     }
 
-    fn take_block_from_list(&mut self) -> bool {
+    fn take_selected_block_from_list(&mut self) -> bool {
         let selected_index = self.scroll_tracker.selected_index();
+
         let Some(list_item) = self.list.get_mut(selected_index) else {
             return false;
         };
 
-        let Some((color, count)) = list_item.colors.get_mut(list_item.selected_color) else {
+        let color_index = list_item.selected_color;
+        let package_id = list_item.id.clone();
+
+        let Some(color) = self.take_block_from_list(selected_index, color_index) else {
             return false;
         };
 
-        if *count == 0 {
-            return false;
-        }
-
-        *count -= 1;
-        let new_count = *count;
-
         self.block_returns_to_grid = false;
         self.held_block = Some(InstalledBlock {
-            package_id: list_item.id.clone(),
+            package_id,
             variant: 0,
             rotation: 0,
-            color: *color,
+            color,
             position: (0, 0),
         });
         self.state = State::GridSelection { x: 2, y: 2 };
 
+        true
+    }
+
+    fn take_block_from_list(&mut self, index: usize, color_index: usize) -> Option<BlockColor> {
+        let list_item = self.list.get_mut(index)?;
+        let (color, count) = list_item.colors.get_mut(color_index)?;
+
+        if *count == 0 {
+            return None;
+        }
+
+        *count -= 1;
+        let new_count = *count;
+        let color = *color;
+
         if list_item.colors.iter().all(|(_, count)| *count == 0) {
-            self.list.remove(selected_index);
+            self.list.remove(index);
             self.scroll_tracker.set_total_items(self.list.len() + 1);
         } else if new_count == 0 {
             list_item.select_next_color();
         }
 
-        true
+        Some(color)
     }
 
     fn uninstall(&mut self, game_io: &GameIO, block: InstalledBlock) {
@@ -941,6 +1095,10 @@ impl BlocksScene {
             _ => {}
         }
 
+        if self.grid_context_menu.is_open() {
+            self.cursor.hide();
+        }
+
         self.update_grid_sprite();
     }
 
@@ -983,13 +1141,29 @@ impl BlocksScene {
                     let transition = crate::transitions::new_sub_scene_pop(game_io);
                     self.next_scene = NextScene::new_pop().with_transition(transition);
                 }
+                Event::UpdateCursor => {
+                    self.update_cursor_sprite();
+                }
                 Event::Applied => {
                     self.arrow.reset();
                     self.state = State::ListSelection;
                     self.update_cursor_sprite();
                     self.update_text(game_io);
                 }
+                Event::Clear => {
+                    self.clear_grid(game_io);
+                    self.update_cursor_sprite();
+                }
             }
+        }
+    }
+
+    fn clear_grid(&mut self, game_io: &GameIO) {
+        let blocks: Vec<_> = self.grid.installed_blocks().cloned().collect();
+
+        for block in blocks {
+            self.grid.remove_block(block.position);
+            self.uninstall(game_io, block);
         }
     }
 
@@ -1294,8 +1468,9 @@ impl Scene for BlocksScene {
         self.information_label.draw(game_io, &mut sprite_queue);
         self.information_text.draw(game_io, &mut sprite_queue);
 
-        // draw context menu
+        // draw context menus
         self.block_context_menu.draw(game_io, &mut sprite_queue);
+        self.grid_context_menu.draw(game_io, &mut sprite_queue);
 
         // draw frame
         self.frame.draw(&mut sprite_queue);

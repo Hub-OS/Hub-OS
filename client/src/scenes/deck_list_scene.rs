@@ -585,9 +585,9 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
 
             let globals = Globals::from_resources(game_io);
             let message = if copied {
-                globals.translate("deck-list-copied-to-clipboard")
+                globals.translate("copied-to-clipboard")
             } else {
-                globals.translate("deck-list-copied-to-clipboard-failed")
+                globals.translate("copy-to-clipboard-failed")
             };
             let textbox_interface = TextboxMessage::new(message);
 
@@ -625,7 +625,7 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
             } else {
                 let globals = Globals::from_resources(game_io);
 
-                let message = globals.translate("deck-list-import-failed");
+                let message = globals.translate("clipboard-read-failed");
                 let textbox_interface = TextboxMessage::new(message);
 
                 scene.textbox.push_interface(textbox_interface);

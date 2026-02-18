@@ -1,23 +1,32 @@
 use crate::bindable::SpriteColorMode;
 use crate::packages::{AugmentPackage, PackageId, PackageNamespace};
 use crate::render::ui::{
-    FontName, SceneTitle, ScrollTracker, SubSceneFrame, Text, TextStyle, Textbox, TextboxQuestion,
-    UiInputTracker,
+    ContextMenu, FontName, SceneTitle, ScrollTracker, SubSceneFrame, Text, TextStyle, Textbox,
+    TextboxMessage, TextboxQuestion, UiInputTracker,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, FrameTime, SpriteColorQueue};
 use crate::resources::*;
 use crate::saves::{GlobalSave, InstalledSwitchDrive};
 use enum_map::{Enum, EnumMap, enum_map};
 use framework::prelude::*;
+use itertools::Itertools;
 use packets::structures::SwitchDriveSlot;
 use std::borrow::Cow;
 use std::collections::HashSet;
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum ContextOption {
+    Export,
+    Import,
+    Clear,
+}
 
 enum Event {
     Leave,
     AddSwitchDrive,
     RemoveSwitchDrive,
     ApplyFilter(Option<SwitchDriveSlot>),
+    Clear,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -195,6 +204,7 @@ pub struct ManageSwitchDriveScene {
     time: FrameTime,
     package_ids: Vec<PackageId>,
     filtered_packages: bool,
+    context_menu: ContextMenu<ContextOption>,
     event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
     next_scene: NextScene,
@@ -272,6 +282,19 @@ impl ManageSwitchDriveScene {
                 ResourcePaths::TEXTBOX_CURSOR,
             );
 
+        let mut context_menu =
+            ContextMenu::new_translated(game_io, "switch-drives-scene-title", Vec2::ZERO)
+                .with_translated_options(
+                    game_io,
+                    &[
+                        ("augments-option-export", ContextOption::Export),
+                        ("augments-option-import", ContextOption::Import),
+                        ("augments-option-clear", ContextOption::Clear),
+                    ],
+                );
+        context_menu.recalculate_layout(game_io);
+        context_menu.set_top_center(RESOLUTION_F * Vec2::new(0.5, 0.25));
+
         let (event_sender, event_receiver) = flume::unbounded();
 
         let mut scene = Self {
@@ -299,6 +322,7 @@ impl ManageSwitchDriveScene {
             time: 0,
             package_ids,
             filtered_packages: false,
+            context_menu,
             event_sender,
             event_receiver,
             next_scene: NextScene::None,
@@ -399,6 +423,14 @@ impl ManageSwitchDriveScene {
 
     fn handle_input(&mut self, game_io: &mut GameIO) {
         let globals = Globals::from_resources(game_io);
+
+        // clipboard isn't available on android
+        #[cfg(not(target_os = "android"))]
+        if self.input_tracker.pulsed(Input::Option2) {
+            self.context_menu.open();
+            globals.audio.play_sound(&globals.sfx.cursor_select);
+            return;
+        }
 
         let prev_state = self.state;
         let prev_slot_index = self.equipment_scroll_tracker.selected_index();
@@ -578,6 +610,118 @@ impl ManageSwitchDriveScene {
         }
     }
 
+    fn handle_context_selection(&mut self, game_io: &mut GameIO, selection: ContextOption) {
+        const EXPORT_ORDER: &[SwitchDriveSlot] = &[
+            SwitchDriveSlot::Head,
+            SwitchDriveSlot::Arms,
+            SwitchDriveSlot::Body,
+            SwitchDriveSlot::Legs,
+        ];
+
+        match selection {
+            ContextOption::Export => {
+                let text = EXPORT_ORDER
+                    .iter()
+                    .map(|&slot| self.equipment_map[slot].package_id.as_ref())
+                    .map(|id| {
+                        id.map(|id| id.to_string())
+                            .unwrap_or_else(|| String::from("---"))
+                    })
+                    .join("\n");
+
+                let copied = game_io.input_mut().set_clipboard_text(text);
+
+                let globals = Globals::from_resources(game_io);
+                let message = if copied {
+                    globals.translate("copied-to-clipboard")
+                } else {
+                    globals.translate("copy-to-clipboard-failed")
+                };
+                let interface = TextboxMessage::new(message);
+
+                self.textbox.push_interface(interface);
+                self.textbox.open();
+            }
+            ContextOption::Import => {
+                let text = game_io.input_mut().request_clipboard_text();
+                let globals = Globals::from_resources_mut(game_io);
+
+                if !text.is_empty() {
+                    // move drives back into the list
+                    for ui in self.equipment_map.values_mut() {
+                        let Some(package_id) = ui.package_id.take() else {
+                            continue;
+                        };
+                        ui.set_package(None);
+
+                        if let Err(index) = self.package_ids.binary_search(&package_id) {
+                            self.package_ids.insert(index, package_id);
+                        }
+                    }
+
+                    // import drives
+                    let augment_packages = &globals.augment_packages;
+
+                    for (slot, line) in EXPORT_ORDER.iter().zip(text.lines()) {
+                        let package_id = PackageId::from(line);
+
+                        let Some(package) =
+                            augment_packages.package(PackageNamespace::Local, &package_id)
+                        else {
+                            continue;
+                        };
+
+                        if let Ok(index) = self.package_ids.binary_search(&package_id) {
+                            self.package_ids.remove(index);
+                            self.equipment_map[*slot].set_package(Some(package));
+                        }
+                    }
+
+                    let global_save = &mut globals.global_save;
+                    global_save
+                        .installed_drive_parts
+                        .entry(global_save.selected_character.clone())
+                        .and_modify(|list| {
+                            list.clear();
+
+                            for (slot, ui) in &self.equipment_map {
+                                if let Some(package_id) = ui.package_id.clone() {
+                                    list.push(InstalledSwitchDrive { package_id, slot });
+                                }
+                            }
+                        });
+
+                    // update save
+
+                    let list_size = self.package_ids.len();
+                    self.list_scroll_tracker.set_total_items(list_size);
+                } else {
+                    let globals = Globals::from_resources(game_io);
+
+                    let message = globals.translate("clipboard-read-failed");
+                    let interface = TextboxMessage::new(message);
+
+                    self.textbox.push_interface(interface);
+                    self.textbox.open();
+                }
+            }
+            ContextOption::Clear => {
+                let globals = Globals::from_resources(game_io);
+                let question = globals.translate("switch-drives-clear-question");
+
+                let event_sender = self.event_sender.clone();
+                let interface = TextboxQuestion::new(game_io, question, move |response| {
+                    if response {
+                        let _ = event_sender.send(Event::Clear);
+                    }
+                });
+
+                self.textbox.push_interface(interface);
+                self.textbox.open();
+            }
+        }
+    }
+
     fn handle_events(&mut self, game_io: &mut GameIO) {
         while let Ok(event) = self.event_receiver.try_recv() {
             match event {
@@ -631,6 +775,31 @@ impl ManageSwitchDriveScene {
 
                     self.filtered_packages = filter.is_some();
                 }
+                Event::Clear => {
+                    let globals = Globals::from_resources_mut(game_io);
+                    let global_save = &mut globals.global_save;
+
+                    global_save
+                        .installed_drive_parts
+                        .entry(global_save.selected_character.clone())
+                        .and_modify(|list| {
+                            for drive in list.drain(..) {
+                                // update ui
+                                let slot_ui = &mut self.equipment_map[drive.slot];
+                                slot_ui.set_package(None);
+
+                                // move drive into package_ids list
+                                if let Err(index) =
+                                    self.package_ids.binary_search(&drive.package_id)
+                                {
+                                    self.package_ids.insert(index, drive.package_id);
+                                }
+                            }
+
+                            let list_size = self.package_ids.len();
+                            self.list_scroll_tracker.set_total_items(list_size);
+                        });
+                }
             }
         }
     }
@@ -665,8 +834,13 @@ impl Scene for ManageSwitchDriveScene {
             self.textbox.close();
         }
 
-        if !game_io.is_in_transition() && !self.textbox.is_open() {
+        if !game_io.is_in_transition() && !self.textbox.is_open() && !self.context_menu.is_open() {
             self.handle_input(game_io);
+        }
+
+        if let Some(selection) = self.context_menu.update(game_io, &self.input_tracker) {
+            self.context_menu.close();
+            self.handle_context_selection(game_io, selection);
         }
 
         self.handle_events(game_io);
@@ -784,6 +958,9 @@ impl Scene for ManageSwitchDriveScene {
 
         // draw textbox
         self.textbox.draw(game_io, &mut sprite_queue);
+
+        // draw context menu
+        self.context_menu.draw(game_io, &mut sprite_queue);
 
         render_pass.consume_queue(sprite_queue);
     }

@@ -28,6 +28,8 @@ pub enum BlockColor {
 }
 
 impl BlockColor {
+    pub const MAX_TEXT_WIDTH: usize = 6;
+
     pub fn state(&self) -> &'static str {
         match self {
             BlockColor::White => "WHITE_INDICATOR",

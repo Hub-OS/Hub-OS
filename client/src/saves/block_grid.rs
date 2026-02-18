@@ -3,7 +3,7 @@ use crate::resources::Globals;
 use crate::saves::{BlockShape, InstalledBlock};
 use crate::structures::{GenerationalIndex, SlotMap};
 use framework::prelude::GameIO;
-use packets::structures::{PackageCategory, PackageId};
+use packets::structures::{BlockColor, PackageCategory, PackageId};
 use std::ops::Range;
 
 pub struct BlockGrid {
@@ -348,5 +348,134 @@ impl BlockGrid {
         }
 
         neighbors.into_iter().flatten()
+    }
+
+    pub fn export_string(&self, game_io: &GameIO) -> String {
+        use std::fmt::Write;
+
+        let globals = Globals::from_resources(game_io);
+        let packages = &globals.augment_packages;
+
+        let mut text = String::new();
+
+        // sort blocks by position for a consistent export
+        let mut blocks: Vec<_> = self.installed_blocks().collect();
+        blocks.sort_by_key(|block| (block.position.1, block.position.0));
+
+        for block in blocks {
+            let id = &block.package_id;
+            let Some(package) = packages.package(PackageNamespace::Local, id) else {
+                continue;
+            };
+
+            let name = &*package.name;
+            let color = format!("{:?}", block.color); // rendering ahead of time for formatting
+            let (x, y) = block.position;
+            let rotation = block.rotation;
+            let variant = block.variant;
+
+            let _ = writeln!(
+                &mut text,
+                "{name:<8.8} {color:<color_width$} ({x},{y}) {rotation} {variant} {id}",
+                color_width = BlockColor::MAX_TEXT_WIDTH,
+            );
+        }
+
+        text
+    }
+
+    pub fn import_string(text: &str) -> Option<Vec<InstalledBlock>> {
+        use unicode_segmentation::UnicodeSegmentation;
+
+        let mut blocks = Vec::new();
+
+        fn split_after(text: &str, grapheme_count: usize) -> (&str, &str) {
+            let mid = text
+                .grapheme_indices(true)
+                .nth(grapheme_count)
+                .map(|(i, _)| i)
+                .unwrap_or(text.len());
+
+            text.split_at(mid)
+        }
+
+        for line in text.lines() {
+            if line.is_empty() {
+                continue;
+            }
+
+            // read name
+            let (name, remaining_line) = split_after(line, 9);
+
+            if !name.ends_with(' ') {
+                // expecting a space for separation
+                return None;
+            }
+
+            // read color
+            let (color_name, remaining_line) =
+                split_after(remaining_line, BlockColor::MAX_TEXT_WIDTH + 1);
+
+            if !color_name.ends_with(' ') {
+                // expecting a space for separation
+                return None;
+            }
+
+            let color = BlockColor::from(color_name.trim_end());
+
+            // read position
+            let (position_text, remaining_line) = split_after(remaining_line, 6);
+
+            let position = {
+                let relevant_slice = position_text.get(1..4)?;
+                let (x, y) = relevant_slice.split_once(',')?;
+
+                (x.parse().ok()?, y.parse().ok()?)
+            };
+
+            if !position_text.ends_with(' ') {
+                // expecting a space for separation
+                return None;
+            }
+
+            // read rotation
+            let (rotation_text, remaining_line) = split_after(remaining_line, 2);
+
+            if !rotation_text.ends_with(' ') {
+                // expecting a space for separation
+                return None;
+            }
+
+            let rotation = rotation_text.trim_end().parse().ok()?;
+
+            if rotation > 3 {
+                // invalid rotation
+                return None;
+            }
+
+            // read variant
+            let (variant_text, remaining_line) = split_after(remaining_line, 2);
+
+            if !variant_text.ends_with(' ') {
+                // expecting a space for separation
+                return None;
+            }
+
+            let variant = variant_text.trim_end().parse().ok()?;
+
+            blocks.push(InstalledBlock {
+                package_id: remaining_line.into(),
+                variant,
+                rotation,
+                color,
+                position,
+            });
+        }
+
+        if blocks.is_empty() {
+            return None;
+        }
+
+        Some(blocks)
     }
 }
