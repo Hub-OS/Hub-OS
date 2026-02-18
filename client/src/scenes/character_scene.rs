@@ -1,4 +1,4 @@
-use super::{BlocksScene, CharacterSelectScene, ManageSwitchDriveScene};
+use super::{BlocksScene, CharacterSelectScene, SwitchDrivesScene};
 use crate::battle::{Player, PlayerFallbackResources};
 use crate::bindable::SpriteColorMode;
 use crate::packages::{PackageNamespace, PlayerPackage};
@@ -160,7 +160,7 @@ impl Scene for CharacterScene {
                 }
                 Event::EquipDrives => {
                     let transition = crate::transitions::new_sub_scene(game_io);
-                    self.next_scene = NextScene::new_push(ManageSwitchDriveScene::new(game_io))
+                    self.next_scene = NextScene::new_push(SwitchDrivesScene::new(game_io))
                         .with_transition(transition)
                 }
             }

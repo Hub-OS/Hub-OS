@@ -183,7 +183,7 @@ impl SlotUi {
     }
 }
 
-pub struct ManageSwitchDriveScene {
+pub struct SwitchDrivesScene {
     camera: Camera,
     background: Background,
     frame: SubSceneFrame,
@@ -210,7 +210,7 @@ pub struct ManageSwitchDriveScene {
     next_scene: NextScene,
 }
 
-impl ManageSwitchDriveScene {
+impl SwitchDrivesScene {
     pub fn new(game_io: &GameIO) -> Self {
         let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
@@ -805,7 +805,7 @@ impl ManageSwitchDriveScene {
     }
 }
 
-impl Scene for ManageSwitchDriveScene {
+impl Scene for SwitchDrivesScene {
     fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
     }

@@ -13,7 +13,6 @@ mod initial_connect_scene;
 mod key_item_scene;
 mod library_scene;
 mod main_menu_scene;
-mod manage_switch_drive_scene;
 mod netplay_init_scene;
 mod overworld_online_scene;
 mod package_scene;
@@ -22,6 +21,7 @@ mod packages_scene;
 mod resource_order_scene;
 mod server_edit_scene;
 mod server_list_scene;
+mod switch_drives_scene;
 mod sync_data_scene;
 
 pub use battle_init_scene::*;
@@ -39,7 +39,6 @@ pub use initial_connect_scene::*;
 pub use key_item_scene::*;
 pub use library_scene::*;
 pub use main_menu_scene::*;
-pub use manage_switch_drive_scene::*;
 pub use netplay_init_scene::*;
 pub use overworld_online_scene::*;
 pub use package_scene::*;
@@ -48,6 +47,7 @@ pub use packages_scene::*;
 pub use resource_order_scene::*;
 pub use server_edit_scene::*;
 pub use server_list_scene::*;
+pub use switch_drives_scene::*;
 pub use sync_data_scene::*;
 
 #[cfg(debug_assertions)]
