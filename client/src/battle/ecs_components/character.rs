@@ -1,15 +1,16 @@
 use super::{Artifact, HpDisplay, Living, Player};
 use crate::battle::{
     Action, ActionQueue, ActionType, BattleCallback, BattleSimulation, BattleState,
-    CanMoveToCallback, DeleteCallback, Entity, Movement, SharedBattleResources, TileState,
+    CanMoveToCallback, DeleteCallback, Entity, Field, Movement, SharedBattleResources, TileState,
 };
-use crate::bindable::*;
 use crate::lua_api::create_entity_table;
-use crate::packages::PackageNamespace;
+use crate::packages::{CardPackage, PackageNamespace};
 use crate::render::ui::{FontName, TextStyle};
-use crate::render::{FrameTime, SpriteColorQueue};
-use crate::resources::{BATTLE_INFO_SHADOW_COLOR, RESOLUTION_F};
-use framework::prelude::{GameIO, Vec2};
+use crate::render::{FrameTime, SpriteColorQueue, SpriteNode, Tree};
+use crate::resources::{AssetManager, BATTLE_INFO_SHADOW_COLOR, Globals, RESOLUTION_F};
+use crate::structures::SlotMap;
+use crate::{ResourcePaths, bindable::*};
+use framework::prelude::{Color, GameIO, Vec2};
 use packets::structures::PackageId;
 
 #[derive(Clone)]
@@ -416,5 +417,54 @@ impl Character {
         // revert aux damage
         card_props.damage -= aux_damage;
         card_props.boosted_damage -= aux_damage;
+    }
+
+    pub fn draw_cards_over_head(
+        &self,
+        game_io: &GameIO,
+        sprite_queue: &mut SpriteColorQueue,
+        sprite_trees: &SlotMap<Tree<SpriteNode>>,
+        field: &Field,
+        entity: &Entity,
+        perspective_flipped: bool,
+    ) {
+        if self.cards.is_empty() {
+            return;
+        }
+
+        let sprite_tree = sprite_trees.get(entity.sprite_tree_index);
+
+        if entity.deleted || !entity.on_field || sprite_tree.is_none_or(|t| !t.root().visible()) {
+            return;
+        }
+
+        sprite_queue.set_color_mode(SpriteColorMode::Multiply);
+
+        let mut base_position = entity.screen_position(field, perspective_flipped);
+        base_position.y -= entity.height + 16.0 + entity.elevation;
+
+        let globals = Globals::from_resources(game_io);
+        let mut border_sprite = globals.assets.new_sprite(game_io, ResourcePaths::PIXEL);
+        border_sprite.set_color(Color::BLACK);
+        border_sprite.set_size(Vec2::new(16.0, 16.0));
+
+        for i in 0..self.cards.len() {
+            let card = &self.cards[i];
+
+            let cards_before = self.cards.len() - i;
+            let card_offset = 2.0 * cards_before as f32;
+            let position = base_position - card_offset;
+
+            border_sprite.set_position(position - 1.0);
+            sprite_queue.draw_sprite(&border_sprite);
+
+            CardPackage::draw_icon(
+                game_io,
+                sprite_queue,
+                card.namespace.unwrap_or(PackageNamespace::Local),
+                &card.package_id,
+                position,
+            )
+        }
     }
 }

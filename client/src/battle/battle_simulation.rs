@@ -2,7 +2,7 @@ use super::external_events::ExternalEvent;
 use super::*;
 use crate::bindable::*;
 use crate::lua_api::{call_encounter_end_listeners, pass_server_message};
-use crate::packages::{CardPackage, PackageNamespace};
+use crate::packages::PackageNamespace;
 use crate::render::ui::{BattleBannerPopup, FontName, PlayerHealthUi, Text};
 use crate::render::*;
 use crate::resources::*;
@@ -873,8 +873,6 @@ impl BattleSimulation {
         // store whether the player's team flips the perspective into a shorter variable
         let perspective_flipped = self.local_team.flips_perspective();
 
-        let assets = &Globals::from_resources(game_io).assets;
-
         // draw background
         self.background.draw(game_io, render_pass);
 
@@ -1083,42 +1081,32 @@ impl BattleSimulation {
             }
         }
 
+        // draw cards over npcs
+        for (_, (entity, character)) in
+            (self.entities).query_mut::<hecs::Without<(&Entity, &Character), &Player>>()
+        {
+            character.draw_cards_over_head(
+                game_io,
+                &mut sprite_queue,
+                &self.sprite_trees,
+                &self.field,
+                entity,
+                perspective_flipped,
+            );
+        }
+
         // draw card icons for the local player
         if let Ok((entity, character)) =
             (self.entities).query_one_mut::<(&Entity, &Character)>(self.local_player_id.into())
         {
-            let sprite_tree = self.sprite_trees.get(entity.sprite_tree_index);
-
-            if !entity.deleted && entity.on_field && sprite_tree.is_some_and(|t| t.root().visible())
-            {
-                sprite_queue.set_color_mode(SpriteColorMode::Multiply);
-
-                let mut base_position = entity.screen_position(&self.field, perspective_flipped);
-                base_position.y -= entity.height + 16.0 + entity.elevation;
-
-                let mut border_sprite = assets.new_sprite(game_io, ResourcePaths::PIXEL);
-                border_sprite.set_color(Color::BLACK);
-                border_sprite.set_size(Vec2::new(16.0, 16.0));
-
-                for i in 0..character.cards.len() {
-                    let card = &character.cards[i];
-
-                    let cards_before = character.cards.len() - i;
-                    let card_offset = 2.0 * cards_before as f32;
-                    let position = base_position - card_offset;
-
-                    border_sprite.set_position(position - 1.0);
-                    sprite_queue.draw_sprite(&border_sprite);
-
-                    CardPackage::draw_icon(
-                        game_io,
-                        &mut sprite_queue,
-                        card.namespace.unwrap_or(PackageNamespace::Local),
-                        &card.package_id,
-                        position,
-                    )
-                }
-            }
+            character.draw_cards_over_head(
+                game_io,
+                &mut sprite_queue,
+                &self.sprite_trees,
+                &self.field,
+                entity,
+                perspective_flipped,
+            );
         }
 
         for particle in &self.hp_particles {
