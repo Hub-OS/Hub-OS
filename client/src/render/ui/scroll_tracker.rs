@@ -98,6 +98,11 @@ impl ScrollTracker {
         self
     }
 
+    pub fn with_custom_cursor_states(mut self, default: &str, selected: &str) -> Self {
+        self.set_custom_cursor_states(default, selected);
+        self
+    }
+
     pub fn set_idle(&mut self, idle: bool) {
         let state = if idle { "IDLE" } else { "DEFAULT" };
 
@@ -116,17 +121,22 @@ impl ScrollTracker {
         let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
-        let mut cursor_animator = Animator::load_new(assets, animation_path);
-        cursor_animator.set_state("DEFAULT");
-        cursor_animator.set_loop_mode(AnimatorLoopMode::Loop);
-
-        self.cursor_animator = cursor_animator.clone();
-
-        cursor_animator.set_state("SELECTED");
-        self.remembered_animator = cursor_animator;
+        self.cursor_animator = Animator::load_new(assets, animation_path);
+        self.remembered_animator = self.cursor_animator.clone();
 
         self.cursor_sprite
             .set_texture(assets.texture(game_io, texture_path));
+
+        self.set_custom_cursor_states("DEFAULT", "SELECTED");
+    }
+
+    pub fn set_custom_cursor_states(&mut self, default: &str, selected: &str) {
+        self.cursor_animator.set_state(default);
+        self.cursor_animator.set_loop_mode(AnimatorLoopMode::Loop);
+
+        self.remembered_animator.set_state(selected);
+        self.remembered_animator
+            .set_loop_mode(AnimatorLoopMode::Loop);
     }
 
     pub fn selected_cursor_position(&self) -> Vec2 {

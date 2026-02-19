@@ -43,6 +43,7 @@ struct ListItem {
     id: PackageId,
     name: Arc<str>,
     colors: Vec<(BlockColor, usize)>,
+    selected_shape: usize,
     selected_color: usize,
 }
 
@@ -63,6 +64,7 @@ impl ListItem {
             id: package.package_info.id.clone(),
             name: package.name.clone(),
             colors,
+            selected_shape: 0,
             selected_color: 0,
         }
     }
@@ -92,7 +94,7 @@ impl ListItem {
 #[derive(Clone, PartialEq, Eq)]
 enum State {
     ListSelection,
-    ColorSelection,
+    VariantSelection,
     GridSelection {
         x: i8,
         y: i8,
@@ -128,8 +130,7 @@ pub struct BlocksScene {
     block_preview: Option<BlockPreview>,
     grid_context_menu: ContextMenu<GridOption>,
     held_block: Option<InstalledBlock>,
-    cycling_variant: bool,
-    block_original_variant: usize,
+    cycling_shape: bool,
     block_original_rotation: u8,
     cursor: GridCursor,
     block_returns_to_grid: bool,
@@ -137,7 +138,7 @@ pub struct BlocksScene {
     textbox: Textbox,
     time: FrameTime,
     list: Vec<ListItem>,
-    color_selector: ColorSelector,
+    variant_selector: VariantSelector,
     special_hold_time: FrameTime,
     event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
@@ -198,9 +199,9 @@ impl BlocksScene {
         let mut animator = Animator::load_new(assets, ResourcePaths::BLOCKS_UI_ANIMATION);
         let mut grid_sprite = assets.new_sprite(game_io, ResourcePaths::BLOCKS_UI);
 
-        // color selection
+        // color + shape selection
         animator.set_state("DEFAULT");
-        let color_selection_step = animator.point_or_zero("COLOR_SELECTION_STEP");
+        let variant_selection_step = animator.point_or_zero("VARIANT_SELECTION_STEP");
 
         // grid sprite
         animator.set_state("GRID");
@@ -279,8 +280,7 @@ impl BlocksScene {
             block_preview: None,
             grid_context_menu: ContextMenu::new(game_io, Default::default(), Vec2::ZERO),
             held_block: None,
-            cycling_variant: false,
-            block_original_variant: 0,
+            cycling_shape: false,
             block_original_rotation: 0,
             cursor,
             state: State::ListSelection,
@@ -288,7 +288,7 @@ impl BlocksScene {
             textbox: Textbox::new_navigation(game_io).with_position(RESOLUTION_F * 0.5),
             time: 0,
             list: packages,
-            color_selector: ColorSelector::new(game_io, color_selection_step),
+            variant_selector: VariantSelector::new(game_io, variant_selection_step),
             special_hold_time: 0,
             event_sender,
             event_receiver,
@@ -435,11 +435,15 @@ impl BlocksScene {
                         game_io,
                         block_color,
                         package.is_flat,
-                        package.shapes.first().copied().unwrap_or_default(),
+                        package
+                            .shapes
+                            .get(list_item.selected_shape)
+                            .copied()
+                            .unwrap_or_default(),
                     )
                     .with_position(position);
 
-                    if list_item.remaining_colors() > 1 {
+                    if package.shapes.len() > 1 || list_item.remaining_colors() > 1 {
                         block_preview.add_multi_color_indicator(game_io);
                     }
 
@@ -550,7 +554,6 @@ impl BlocksScene {
             GridOption::Move => {
                 let block = self.grid.remove_block((x, y)).unwrap();
 
-                self.block_original_variant = block.variant;
                 self.block_original_rotation = block.rotation;
                 self.held_block = Some(block);
                 self.block_returns_to_grid = true;
@@ -661,7 +664,7 @@ impl BlocksScene {
         let prev_held = self.held_block.is_some();
 
         if let Some(block) = &mut self.held_block {
-            let prev_variant = block.variant;
+            let prev_shape = block.variant;
             let prev_rotation = block.rotation;
 
             let input = InputUtil::new(game_io);
@@ -671,15 +674,15 @@ impl BlocksScene {
             if (holding_shoudler_l && input.was_just_pressed(Input::ShoulderR))
                 || (holding_shoudler_r && input.was_just_pressed(Input::ShoulderL))
             {
-                let total_variants = globals
+                let total_shapes = globals
                     .augment_packages
                     .package(PackageNamespace::Local, &block.package_id)
                     .map(|package| package.shapes.len())
                     .unwrap_or(1);
 
-                if total_variants > 1 {
+                if total_shapes > 1 {
                     block.variant += 1;
-                    block.variant %= total_variants;
+                    block.variant %= total_shapes;
                 } else {
                     globals.audio.play_sound_with_behavior(
                         &globals.sfx.cursor_error,
@@ -687,10 +690,10 @@ impl BlocksScene {
                     );
                 }
 
-                self.cycling_variant = true;
-            } else if self.cycling_variant {
+                self.cycling_shape = true;
+            } else if self.cycling_shape {
                 if !holding_shoudler_l && !holding_shoudler_r {
-                    self.cycling_variant = false;
+                    self.cycling_shape = false;
                 }
             } else if input.was_released(Input::ShoulderL) && !holding_shoudler_r {
                 block.rotate_cc();
@@ -698,7 +701,7 @@ impl BlocksScene {
                 block.rotate_c();
             }
 
-            if block.rotation != prev_rotation || block.variant != prev_variant {
+            if block.rotation != prev_rotation || block.variant != prev_shape {
                 globals.audio.play_sound(&globals.sfx.cursor_move);
             }
 
@@ -722,7 +725,6 @@ impl BlocksScene {
                 let mut block = self.held_block.take().unwrap();
 
                 if self.block_returns_to_grid {
-                    block.variant = self.block_original_variant;
                     block.rotation = self.block_original_rotation;
 
                     let (x, y) = block.position;
@@ -838,21 +840,24 @@ impl BlocksScene {
                                 );
                             }
                         }
-                    } else if self.special_hold_time > COLOR_UI_DELAY {
-                        // try open the color selector
+                    } else if self.special_hold_time > COLOR_UI_DELAY
+                        || input_util.was_just_pressed(Input::Right)
+                    {
+                        // try to open the variant selector
                         if let Some(list_item) = self.list.get(selected_index) {
-                            self.color_selector.load_list_item(game_io, list_item);
-                            self.state = State::ColorSelection;
+                            self.variant_selector.load_list_item(game_io, list_item);
+                            self.state = State::VariantSelection;
                             globals.audio.play_sound(&globals.sfx.cursor_select);
                         }
                     }
                 }
             }
-            State::ColorSelection => {
-                self.color_selector.update(game_io, &self.input_tracker);
+            State::VariantSelection => {
+                self.variant_selector.update(game_io, &self.input_tracker);
 
                 if let Some(list_item) = self.list.get_mut(self.scroll_tracker.selected_index()) {
-                    list_item.selected_color = self.color_selector.scroll_tracker.selected_index();
+                    list_item.selected_shape = self.variant_selector.selected_shape_index();
+                    list_item.selected_color = self.variant_selector.selected_color_index();
                 }
 
                 if self.input_tracker.pulsed(Input::Confirm) {
@@ -988,6 +993,7 @@ impl BlocksScene {
         };
 
         let color_index = list_item.selected_color;
+        let shape_index = list_item.selected_shape;
         let package_id = list_item.id.clone();
 
         let Some(color) = self.take_block_from_list(selected_index, color_index) else {
@@ -997,7 +1003,7 @@ impl BlocksScene {
         self.block_returns_to_grid = false;
         self.held_block = Some(InstalledBlock {
             package_id,
-            variant: 0,
+            variant: shape_index,
             rotation: 0,
             color,
             position: (0, 0),
@@ -1097,7 +1103,7 @@ impl BlocksScene {
                 }
             }
             State::ListSelection => self.cursor.use_textbox_cursor(),
-            State::ColorSelection | State::Applying => {
+            State::VariantSelection | State::Applying => {
                 self.cursor.hide();
             }
             _ => {}
@@ -1481,8 +1487,8 @@ impl Scene for BlocksScene {
             preview.draw(&mut sprite_queue);
         }
 
-        if self.state == State::ColorSelection {
-            self.color_selector.draw(game_io, &mut sprite_queue);
+        if self.state == State::VariantSelection {
+            self.variant_selector.draw(game_io, &mut sprite_queue);
         }
 
         // draw textbox
@@ -1492,76 +1498,83 @@ impl Scene for BlocksScene {
     }
 }
 
-struct ColorSelector {
+struct VariantSelector {
     scroll_tracker: GridScrollTracker,
-    items: Vec<(BlockPreview, String)>, // preview, count string
+    previews: Vec<BlockPreview>,
+    color_counts: Vec<(BlockColor, usize, String)>,
+    preview_animator: Animator,
     step: Vec2,
 }
 
-impl ColorSelector {
+impl VariantSelector {
     fn new(game_io: &GameIO, step: Vec2) -> Self {
         Self {
-            scroll_tracker: GridScrollTracker::new(game_io, 0, 0).with_step(step),
-            items: Default::default(),
+            scroll_tracker: GridScrollTracker::new(game_io, 0, 0)
+                .with_step(step)
+                .with_custom_cursor(
+                    game_io,
+                    ResourcePaths::BLOCKS_UI_ANIMATION,
+                    ResourcePaths::BLOCKS_UI,
+                )
+                .with_custom_cursor_states("CLAW_CURSOR", "CLAW_GRIP"),
+            previews: Default::default(),
+            color_counts: Default::default(),
+            preview_animator: BlockPreview::new_animator(game_io),
             step,
         }
     }
 
     fn load_list_item(&mut self, game_io: &GameIO, list_item: &ListItem) {
-        // update scroll trackers
-        let len = list_item.colors.len();
-        let mut side_len = len.isqrt();
-
-        if side_len * side_len < len {
-            // aim for a perfect square, but make sure we can fit every option
-            side_len += 1;
-        }
-
-        self.scroll_tracker.set_view_size(side_len, side_len);
-        self.scroll_tracker.set_total_items(len);
-        self.scroll_tracker
-            .set_selected_index(list_item.selected_color);
-
         // load previews
         let globals = Globals::from_resources(game_io);
-        let package = globals
+        let Some(package) = globals
             .augment_packages
             .package(PackageNamespace::Local, &list_item.id)
-            .unwrap();
+        else {
+            self.scroll_tracker.set_view_size(0, 0);
+            self.scroll_tracker.set_total_items(0);
+            return;
+        };
 
-        let grid_size = (Vec2::new(side_len as f32, len.div_ceil(side_len) as f32)) * self.step;
-        let top_left = (RESOLUTION_F - grid_size) * 0.5;
+        self.previews.clear();
+        self.previews.extend(
+            package.shapes.iter().map(|shape| {
+                BlockPreview::new(game_io, BlockColor::White, package.is_flat, *shape)
+            }),
+        );
 
-        let colors_iter = list_item.colors.iter().enumerate();
-        self.items.clear();
-        self.items.extend(colors_iter.map(|(i, &(color, count))| {
-            let mut preview = BlockPreview::new(
-                game_io,
-                color,
-                package.is_flat,
-                package.shapes.first().copied().unwrap_or_default(),
-            );
+        self.color_counts.clear();
+        self.color_counts.extend(
+            list_item
+                .colors
+                .iter()
+                .map(|&(color, count)| (color, count, format!("x{count}"))),
+        );
 
-            let mut offset = Vec2::new((i % side_len) as f32, (i / side_len) as f32) * self.step;
-            let preview_padding = (self.step - preview.size()) * 0.5;
-            offset += preview_padding;
+        // resolve item counts and selection
+        let width = self.color_counts.len();
+        let height = self.previews.len();
+        let view_height = height.min((RESOLUTION_F.y / self.step.y) as usize - 1);
 
-            preview.set_position(top_left + offset);
+        self.scroll_tracker.set_view_size(width, view_height);
+        self.scroll_tracker.set_total_items(width * height);
+        self.scroll_tracker
+            .set_selected_index(width * list_item.selected_shape + list_item.selected_color);
 
-            if i == 0 {
-                // resolve the first cursor position using the position and size of the first preview
-                self.scroll_tracker.set_position(top_left);
+        if let Some(preview) = self.previews.first() {
+            // resolve grid position
+            let grid_size = (Vec2::new(width as f32, view_height as f32)) * self.step;
+            let top_left = (RESOLUTION_F - grid_size) * 0.5;
+            let preview_size = preview.size();
 
-                let cursor_offset = Vec2::new(-8.0, preview.size().y * 0.25) + preview_padding;
-                self.scroll_tracker.define_cursor(cursor_offset);
-            }
+            let preview_padding = (self.step - preview_size) * 0.5;
 
-            if count == 0 {
-                preview.set_tint(Color::WHITE.multiply_color(0.5));
-            }
+            self.scroll_tracker.set_position(top_left + preview_padding);
 
-            (preview, format!("x{count}"))
-        }));
+            // resolve cursor offset
+            let cursor_offset = Vec2::new(0.0, preview_size.y * -0.5);
+            self.scroll_tracker.define_cursor(cursor_offset);
+        }
     }
 
     fn update(&mut self, game_io: &GameIO, input_tracker: &UiInputTracker) {
@@ -1592,9 +1605,26 @@ impl ColorSelector {
         let mut text_style = TextStyle::new_monospace(game_io, FontName::DuplicateCount);
         text_style.letter_spacing = 0.0;
 
-        for (preview, count_string) in &mut self.items {
+        let columns = self.color_counts.len();
+
+        for (i, position) in self.scroll_tracker.iter_visible() {
+            let x = i % columns;
+            let y = i / columns;
+
+            let (color, count, count_string) = &self.color_counts[x];
+
+            // render preview
+            let preview = &mut self.previews[y];
+            preview.apply_color(&mut self.preview_animator, *color);
+
+            if *count == 0 {
+                preview.set_tint(Color::WHITE.multiply_color(0.5));
+            }
+
+            preview.set_position(position);
             preview.draw(sprite_queue);
 
+            // render count string
             let preview_size = preview.size();
             let text_size = text_style.measure(count_string).size;
 
@@ -1606,5 +1636,13 @@ impl ColorSelector {
         }
 
         self.scroll_tracker.draw_cursor(sprite_queue);
+    }
+
+    fn selected_shape_index(&self) -> usize {
+        self.scroll_tracker.selected_index() / self.color_counts.len()
+    }
+
+    fn selected_color_index(&self) -> usize {
+        self.scroll_tracker.selected_index() % self.color_counts.len()
     }
 }

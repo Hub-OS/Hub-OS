@@ -11,23 +11,23 @@ pub struct BlockPreview {
     scale: f32,
     position: Vec2,
     sprites: Vec<Sprite>,
+    is_flat: bool,
 }
 
 impl BlockPreview {
     pub fn new(game_io: &GameIO, color: BlockColor, is_flat: bool, shape: BlockShape) -> Self {
-        let mut sprites = Vec::new();
-
         let assets = &Globals::from_resources(game_io).assets;
 
+        let mut animator = Self::new_animator(game_io);
         let mut sprite = assets.new_sprite(game_io, ResourcePaths::BLOCKS_UI);
-        let mut animator = Animator::load_new(assets, ResourcePaths::BLOCKS_PREVIEW_ANIMATION);
 
         // add background to sprites list
         animator.set_state("GRID");
         animator.apply(&mut sprite);
 
         let size = sprite.size();
-        sprites.push(sprite.clone());
+
+        let mut sprites = vec![sprite.clone()];
 
         // get constants for rendering shape
         let mut grid_start = animator.point_or_zero("GRID_START") - animator.origin();
@@ -35,14 +35,6 @@ impl BlockPreview {
 
         // off grid
         grid_start -= grid_next;
-
-        // set sprite to block for rendering shape
-        animator.set_state(if is_flat {
-            color.flat_state()
-        } else {
-            color.plus_state()
-        });
-        animator.apply(&mut sprite);
 
         for y in 0..BlockGrid::SIDE_LEN {
             for x in 0..BlockGrid::SIDE_LEN {
@@ -54,11 +46,34 @@ impl BlockPreview {
             }
         }
 
-        Self {
+        let mut preview = Self {
             size,
             scale: 1.0,
             position: Vec2::ZERO,
             sprites,
+            is_flat,
+        };
+
+        preview.apply_color(&mut animator, color);
+
+        preview
+    }
+
+    pub fn new_animator(game_io: &GameIO) -> Animator {
+        let assets = &Globals::from_resources(game_io).assets;
+
+        Animator::load_new(assets, ResourcePaths::BLOCKS_PREVIEW_ANIMATION)
+    }
+
+    pub fn apply_color(&mut self, preview_animator: &mut Animator, color: BlockColor) {
+        preview_animator.set_state(if self.is_flat {
+            color.flat_state()
+        } else {
+            color.plus_state()
+        });
+
+        for sprite in &mut self.sprites[1..] {
+            preview_animator.apply(sprite);
         }
     }
 

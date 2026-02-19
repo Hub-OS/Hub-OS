@@ -1,6 +1,5 @@
-use crate::render::SpriteColorQueue;
-
 use super::{ScrollTracker, UiInputTracker};
+use crate::render::SpriteColorQueue;
 use framework::prelude::*;
 
 pub struct GridScrollTracker {
@@ -45,6 +44,36 @@ impl GridScrollTracker {
     pub fn with_total_items(mut self, total_items: usize) -> Self {
         self.set_total_items(total_items);
         self
+    }
+
+    pub fn with_custom_cursor(
+        mut self,
+        game_io: &GameIO,
+        animation_path: &str,
+        texture_path: &str,
+    ) -> Self {
+        self.use_custom_cursor(game_io, animation_path, texture_path);
+        self
+    }
+
+    pub fn with_custom_cursor_states(mut self, default: &str, selected: &str) -> Self {
+        self.set_custom_cursor_states(default, selected);
+        self
+    }
+
+    pub fn use_custom_cursor(
+        &mut self,
+        game_io: &GameIO,
+        animation_path: &str,
+        texture_path: &str,
+    ) {
+        self.v_scroll_tracker
+            .use_custom_cursor(game_io, animation_path, texture_path);
+    }
+
+    pub fn set_custom_cursor_states(&mut self, default: &str, selected: &str) {
+        self.v_scroll_tracker
+            .set_custom_cursor_states(default, selected);
     }
 
     pub fn set_view_size(&mut self, width: usize, height: usize) {
@@ -170,7 +199,10 @@ impl GridScrollTracker {
         let (offset, _) = self.h_scroll_tracker.cursor_definition();
 
         let h_index = self.h_scroll_tracker.selected_index();
-        let v_index = self.v_scroll_tracker.selected_index();
+        let v_index = self
+            .v_scroll_tracker
+            .selected_index()
+            .saturating_sub(self.v_scroll_tracker.top_index());
 
         let position =
             self.position + offset + Vec2::new(h_index as f32, v_index as f32) * self.step;
