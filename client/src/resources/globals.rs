@@ -702,14 +702,33 @@ impl Globals {
 
         async move {
             let mut hash_list = Vec::new();
-            const CHUNK_SIZE: usize = 20;
 
-            for (i, chunk) in package_ids.chunks(CHUNK_SIZE).enumerate() {
-                log::info!(
-                    "Requesting hashes: {}/{}",
-                    i * CHUNK_SIZE + chunk.len(),
-                    package_ids.len()
-                );
+            // nginx has an 8k header limit
+            const ID_BYTE_LIMIT: usize = 7000;
+
+            // resolve id chunks
+            let mut id_bytes_remaining = ID_BYTE_LIMIT;
+
+            let id_chunk_iter = package_ids.chunk_by(|id_a, id_b| {
+                let bytes_required = id_a.len() + 1 + id_b.len();
+
+                if id_bytes_remaining <= bytes_required {
+                    id_bytes_remaining = ID_BYTE_LIMIT;
+                    return false;
+                }
+
+                id_bytes_remaining = id_bytes_remaining.saturating_sub(bytes_required - id_b.len());
+
+                true
+            });
+
+            // request hashes
+            let mut ids_requested = 0;
+
+            for chunk in id_chunk_iter {
+                ids_requested += chunk.len();
+
+                log::info!("Requesting hashes: {ids_requested}/{}", package_ids.len());
 
                 let uri = format!("{repo}/api/mods/hashes?id={}", chunk.join("&id="));
 
