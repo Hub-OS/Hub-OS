@@ -690,6 +690,29 @@ impl SwitchDrivesScene {
                 Event::Leave => {
                     let transition = crate::transitions::new_sub_scene_pop(game_io);
                     self.next_scene = NextScene::new_pop().with_transition(transition);
+
+                    let globals = Globals::from_resources_mut(game_io);
+                    let global_save = &mut globals.global_save;
+
+                    global_save.character_update_times.insert(
+                        global_save.selected_character.clone(),
+                        GlobalSave::current_time(),
+                    );
+
+                    global_save
+                        .installed_drive_parts
+                        .entry(global_save.selected_character.clone())
+                        .and_modify(|list| {
+                            list.clear();
+
+                            for (slot, ui) in &self.equipment_map {
+                                if let Some(package_id) = ui.package_id.clone() {
+                                    list.push(InstalledSwitchDrive { package_id, slot });
+                                }
+                            }
+                        });
+
+                    global_save.save();
                 }
                 Event::AddSwitchDrive => {
                     // Not sure if I should move add_drive_part here or not.
@@ -743,32 +766,6 @@ impl SwitchDrivesScene {
 impl Scene for SwitchDrivesScene {
     fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
-    }
-
-    fn destroy(&mut self, game_io: &mut GameIO) {
-        // save on exit
-        let globals = Globals::from_resources_mut(game_io);
-        let global_save = &mut globals.global_save;
-
-        global_save.character_update_times.insert(
-            global_save.selected_character.clone(),
-            GlobalSave::current_time(),
-        );
-
-        global_save
-            .installed_drive_parts
-            .entry(global_save.selected_character.clone())
-            .and_modify(|list| {
-                list.clear();
-
-                for (slot, ui) in &self.equipment_map {
-                    if let Some(package_id) = ui.package_id.clone() {
-                        list.push(InstalledSwitchDrive { package_id, slot });
-                    }
-                }
-            });
-
-        global_save.save();
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
