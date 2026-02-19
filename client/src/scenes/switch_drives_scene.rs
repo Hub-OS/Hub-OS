@@ -694,11 +694,13 @@ impl SwitchDrivesScene {
                     let globals = Globals::from_resources_mut(game_io);
                     let global_save = &mut globals.global_save;
 
+                    // mark as updated for syncing
                     global_save.character_update_times.insert(
                         global_save.selected_character.clone(),
                         GlobalSave::current_time(),
                     );
 
+                    // save parts
                     let part_list = global_save
                         .installed_drive_parts
                         .entry(global_save.selected_character.clone())
@@ -712,6 +714,7 @@ impl SwitchDrivesScene {
                         }
                     }
 
+                    // avoid storing package ids with empty lists for smaller file sizes
                     if part_list.is_empty() {
                         global_save
                             .installed_drive_parts
