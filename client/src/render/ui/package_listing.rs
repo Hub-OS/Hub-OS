@@ -72,8 +72,8 @@ impl From<&json::Value> for PackageListing {
                 },
                 shape: package_table
                     .get("shape")
-                    .and_then(into_shape)
-                    .or_else(|| package_table.get("shapes").and_then(into_shape)),
+                    .or_else(|| package_table.get("shapes").and_then(|shapes| shapes.get(0)))
+                    .and_then(into_shape),
             },
             "encounter" => PackagePreviewData::Encounter {
                 recording: !get_str(package_table, "recording_path").is_empty(),
