@@ -178,7 +178,12 @@ impl TimeFreezeTracker {
 
         if matches!(
             self.state,
-            TimeFreezeState::Action(ActionFreezeState::PollEntityAction)
+            TimeFreezeState::Action(
+                ActionFreezeState::BeginAction
+                    | ActionFreezeState::Action
+                    | ActionFreezeState::ActionCleanup
+                    | ActionFreezeState::PollEntityAction
+            )
         ) {
             // action queued in the middle of an existing action
             let index = if self
@@ -222,10 +227,6 @@ impl TimeFreezeTracker {
             self.skipping_intros = action.properties.skip_time_freeze_intro;
         } else if self.can_processing_action_counter() {
             self.state = ActionFreezeState::Countered.into();
-        } else if action.properties.skip_time_freeze_intro {
-            self.state = ActionFreezeState::BeginAction.into();
-        } else {
-            self.state = ActionFreezeState::DisplaySummary.into();
         }
 
         // set the state start time to allow other players to counter, as well as initialize
