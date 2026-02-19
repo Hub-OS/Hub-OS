@@ -699,18 +699,24 @@ impl SwitchDrivesScene {
                         GlobalSave::current_time(),
                     );
 
-                    global_save
+                    let part_list = global_save
                         .installed_drive_parts
                         .entry(global_save.selected_character.clone())
-                        .and_modify(|list| {
-                            list.clear();
+                        .or_default();
 
-                            for (slot, ui) in &self.equipment_map {
-                                if let Some(package_id) = ui.package_id.clone() {
-                                    list.push(InstalledSwitchDrive { package_id, slot });
-                                }
-                            }
-                        });
+                    part_list.clear();
+
+                    for (slot, ui) in &self.equipment_map {
+                        if let Some(package_id) = ui.package_id.clone() {
+                            part_list.push(InstalledSwitchDrive { package_id, slot });
+                        }
+                    }
+
+                    if part_list.is_empty() {
+                        global_save
+                            .installed_drive_parts
+                            .remove(&global_save.selected_character);
+                    }
 
                     global_save.save();
                 }
