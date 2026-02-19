@@ -36,7 +36,7 @@ deck-editor-pack-menu-label = FILTRO
 deck-editor-option-search = Buscar
 deck-editor-option-namespace = Autores
 deck-editor-option-properties = Propriedades
-deck-editor-option-code = Code
+deck-editor-option-code = Código
 deck-editor-option-sort = Ordenar
 deck-editor-namespace-menu-label = AUTOR
 deck-editor-properties-menu-label = PROPRIEDADES
@@ -92,15 +92,13 @@ switch-drives-leg-slot = Pernas
 switch-drives-unequip-question = Desequipar { $name }?
 switch-drives-filter-slot-question = Filtrar para Reforços de { $slot }?
 switch-drives-leave-question = Sair dos Reforços e retornar ao menu?
-augments-option-export = EXPORT
-augments-option-import = IMPORT
-augments-option-clear = CLEAR
-blocks-clear-question =
-    Remove all
-    Blocks?
+augments-option-export = EXPORTAR
+augments-option-import = IMPORTAR
+augments-option-clear = LIMPAR
+blocks-clear-question = Remover todos os Blocos?
 switch-drives-clear-question =
-    Remove all
-    Switch Drives?
+    Remover todos os
+    Reforços?
 copied-to-clipboard = Copiado para a área de transferência.
 copy-to-clipboard-failed = Falha ao copiar para a área de transferência!
 clipboard-read-failed = Erro ao ler da área de transferência.
