@@ -338,46 +338,48 @@ impl SwitchDrivesScene {
             return false;
         }
 
-        let package_id = self.package_ids.remove(index);
+        let mut add_part = || {
+            let package_id = self.package_ids.remove(index);
 
-        // TODO: validate the drive slot
-        // let mut conflicts = Vec::new();
+            // actual placement
+            let globals = Globals::from_resources(game_io);
 
-        // if !conflicts.is_empty() {
-        //     return Some(conflicts);
-        // }
+            let Some(package) = globals
+                .augment_packages
+                .package(PackageNamespace::Local, &package_id)
+            else {
+                return false;
+            };
 
-        // actual placement
-        let globals = Globals::from_resources(game_io);
+            let Some(slot) = package.slot else {
+                return false;
+            };
 
-        let Some(package) = globals
-            .augment_packages
-            .package(PackageNamespace::Local, &package_id)
-        else {
-            return false;
+            let slot_ui = &mut self.equipment_map[slot];
+
+            // move drive into package_ids list
+            if let Some(prev_package_id) = slot_ui.package_id.take()
+                && let Err(index) = self.package_ids.binary_search(&prev_package_id)
+            {
+                self.package_ids.insert(index, prev_package_id);
+            }
+
+            slot_ui.set_package(Some(package));
+
+            self.state = State::EquipmentSelection;
+            self.equipment_scroll_tracker
+                .set_selected_index(slot as usize);
+
+            true
         };
 
-        let slot = package.slot.unwrap();
-        let slot_ui = &mut self.equipment_map[slot];
-
-        // move drive into package_ids list
-        if let Some(prev_package_id) = slot_ui.package_id.take()
-            && let Err(index) = self.package_ids.binary_search(&prev_package_id)
-        {
-            self.package_ids.insert(index, prev_package_id);
-        }
-
-        slot_ui.set_package(Some(package));
-
-        self.state = State::EquipmentSelection;
-        self.equipment_scroll_tracker
-            .set_selected_index(slot as usize);
+        let result = add_part();
 
         // update list tracking
         let list_size = self.package_ids.len();
         self.list_scroll_tracker.set_total_items(list_size);
 
-        true
+        result
     }
 
     fn request_leave(&mut self, game_io: &GameIO) {
