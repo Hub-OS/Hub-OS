@@ -1,6 +1,6 @@
 use super::{AssetManager, Globals};
 use crate::packages::*;
-use crate::resources::{GlobalMusic, GlobalSfx, LocalAssetManager, ResourcePaths};
+use crate::resources::{GlobalMusic, GlobalSfx, LocalAssetManager, ResourcePaths, SoundBuffer};
 use framework::prelude::GameIO;
 use packets::structures::FileHash;
 use std::collections::HashSet;
@@ -47,39 +47,38 @@ impl BootThread {
                 hashes: HashSet::new(),
             };
 
-            context.load_audio();
-            context.load_packages();
+            let _ = (move || -> Result<(), flume::SendError<BootEvent>> {
+                context.load_audio()?;
+                context.load_packages()?;
+                Ok(())
+            })();
         });
 
         receiver
     }
 
-    fn send(&mut self, event: BootEvent) {
-        self.sender.send(event).unwrap();
-    }
-
-    fn load_audio(&mut self) {
+    fn load_audio(&mut self) -> Result<(), flume::SendError<BootEvent>> {
         // total for music, add 1 for sound font
         let total = GlobalMusic::total() + 1;
 
         // load sound font for music
-        self.send(BootEvent::ProgressUpdate(ProgressUpdate {
+        self.sender.send(BootEvent::ProgressUpdate(ProgressUpdate {
             label_translation_key: "boot-loading-music",
             progress: 0,
             total,
-        }));
+        }))?;
 
         let sound_font_bytes = self.assets.binary(ResourcePaths::SOUND_FONT);
 
         // load music
         let mut progress = 1;
 
-        let load = |path: &str| {
-            self.send(BootEvent::ProgressUpdate(ProgressUpdate {
+        let load = |path: &str| -> Result<Vec<SoundBuffer>, flume::SendError<BootEvent>> {
+            self.sender.send(BootEvent::ProgressUpdate(ProgressUpdate {
                 label_translation_key: "boot-loading-music",
                 progress,
                 total,
-            }));
+            }))?;
 
             progress += 1;
 
@@ -107,89 +106,99 @@ impl BootThread {
                 }
             });
 
-            files
+            Ok(files)
         };
 
-        let music = GlobalMusic::load_with(sound_font_bytes, load);
-        self.send(BootEvent::Music(music));
+        let music = GlobalMusic::load_with(sound_font_bytes, load)?;
+        self.sender.send(BootEvent::Music(music))?;
 
         // load sfx
         let mut progress = 0;
         let total = GlobalSfx::total();
 
-        let load = |path: &str| {
-            self.send(BootEvent::ProgressUpdate(ProgressUpdate {
+        let load = |path: &str| -> Result<SoundBuffer, flume::SendError<BootEvent>> {
+            self.sender.send(BootEvent::ProgressUpdate(ProgressUpdate {
                 label_translation_key: "boot-loading-sfx",
                 progress,
                 total,
-            }));
+            }))?;
 
             progress += 1;
 
-            self.assets.non_midi_audio(path)
+            Ok(self.assets.non_midi_audio(path))
         };
 
-        let sfx = Box::new(GlobalSfx::load_with(load));
-        self.send(BootEvent::Sfx(sfx));
+        let sfx = Box::new(GlobalSfx::load_with(load)?);
+        self.sender.send(BootEvent::Sfx(sfx))?;
+
+        Ok(())
     }
 
-    fn load_packages(&mut self) {
+    fn load_packages(&mut self) -> Result<(), flume::SendError<BootEvent>> {
         // load players
         let player_packages =
-            self.load_category(PackageCategory::Player, "boot-loading-player-mods");
+            self.load_category(PackageCategory::Player, "boot-loading-player-mods")?;
 
-        self.send(BootEvent::PlayerManager(player_packages));
+        self.sender
+            .send(BootEvent::PlayerManager(player_packages))?;
 
         // load cards
-        let card_packages = self.load_category(PackageCategory::Card, "boot-loading-card-mods");
+        let card_packages = self.load_category(PackageCategory::Card, "boot-loading-card-mods")?;
 
-        self.send(BootEvent::CardManager(card_packages));
+        self.sender.send(BootEvent::CardManager(card_packages))?;
 
         // load battles
         let encounter_packages =
-            self.load_category(PackageCategory::Encounter, "boot-loading-encounter-mods");
+            self.load_category(PackageCategory::Encounter, "boot-loading-encounter-mods")?;
 
-        self.send(BootEvent::EncounterManager(encounter_packages));
+        self.sender
+            .send(BootEvent::EncounterManager(encounter_packages))?;
 
         // load augments
         let augment_packages =
-            self.load_category(PackageCategory::Augment, "boot-loading-augment-mods");
+            self.load_category(PackageCategory::Augment, "boot-loading-augment-mods")?;
 
-        self.send(BootEvent::AugmentManager(augment_packages));
+        self.sender
+            .send(BootEvent::AugmentManager(augment_packages))?;
 
         // load statuses
         let status_packages =
-            self.load_category(PackageCategory::Status, "boot-loading-status-mods");
+            self.load_category(PackageCategory::Status, "boot-loading-status-mods")?;
 
-        self.send(BootEvent::StatusManager(status_packages));
+        self.sender
+            .send(BootEvent::StatusManager(status_packages))?;
 
         // load tile states
         let tile_state_packages =
-            self.load_category(PackageCategory::TileState, "boot-loading-tile-state-mods");
+            self.load_category(PackageCategory::TileState, "boot-loading-tile-state-mods")?;
 
-        self.send(BootEvent::TileStateManager(tile_state_packages));
+        self.sender
+            .send(BootEvent::TileStateManager(tile_state_packages))?;
 
         // load libraries
         let library_packages =
-            self.load_category(PackageCategory::Library, "boot-loading-library-mods");
+            self.load_category(PackageCategory::Library, "boot-loading-library-mods")?;
 
-        self.send(BootEvent::LibraryManager(library_packages));
+        self.sender
+            .send(BootEvent::LibraryManager(library_packages))?;
 
         // load child packages
-        self.load_child_packages();
+        self.load_child_packages()?;
 
         // clean cache
-        self.clean_cache_folder();
+        self.clean_cache_folder()?;
 
         // complete
-        self.send(BootEvent::Done);
+        self.sender.send(BootEvent::Done)?;
+
+        Ok(())
     }
 
     fn load_category<P: Package>(
         &mut self,
         category: PackageCategory,
         label_translation_key: &'static str,
-    ) -> PackageManager<P> {
+    ) -> Result<PackageManager<P>, flume::SendError<BootEvent>> {
         let mut package_manager = PackageManager::<P>::new(category);
 
         self.load_package_folder(
@@ -197,16 +206,16 @@ impl BootThread {
             PackageNamespace::BuiltIn,
             &ResourcePaths::game_folder_absolute(category.built_in_path()),
             label_translation_key,
-        );
+        )?;
 
         self.load_package_folder(
             &mut package_manager,
             PackageNamespace::Local,
             &ResourcePaths::data_folder_absolute(category.mod_path()),
             label_translation_key,
-        );
+        )?;
 
-        package_manager
+        Ok(package_manager)
     }
 
     fn load_package_folder<P: Package>(
@@ -215,7 +224,7 @@ impl BootThread {
         namespace: PackageNamespace,
         path: &str,
         label_translation_key: &'static str,
-    ) {
+    ) -> Result<(), flume::SendError<BootEvent>> {
         package_manager.load_packages_in_folder(
             &self.assets,
             namespace,
@@ -228,9 +237,10 @@ impl BootThread {
                 };
 
                 let event = BootEvent::ProgressUpdate(status_update);
-                self.sender.send(event).unwrap();
+
+                self.sender.send(event)
             },
-        );
+        )?;
 
         // gather hashes
         for package in package_manager.packages(namespace) {
@@ -244,9 +254,11 @@ impl BootThread {
             .map(move |info| (info, namespace));
 
         self.child_packages.extend(child_package_iter);
+
+        Ok(())
     }
 
-    fn load_child_packages(&mut self) {
+    fn load_child_packages(&mut self) -> Result<(), flume::SendError<BootEvent>> {
         let mut character_packages =
             PackageManager::<CharacterPackage>::new(PackageCategory::Character);
 
@@ -260,18 +272,20 @@ impl BootThread {
                 total: total_child_packages,
             };
 
-            let event = BootEvent::ProgressUpdate(status_update);
-            self.sender.send(event).unwrap();
+            self.sender.send(BootEvent::ProgressUpdate(status_update))?;
 
             character_packages.load_child_package(*namespace, child_package);
         }
 
-        self.send(BootEvent::CharacterManager(character_packages));
+        self.sender
+            .send(BootEvent::CharacterManager(character_packages))?;
+
+        Ok(())
     }
 
-    pub fn clean_cache_folder(&mut self) {
+    pub fn clean_cache_folder(&mut self) -> Result<(), flume::SendError<BootEvent>> {
         let Ok(entry_iter) = std::fs::read_dir(ResourcePaths::mod_cache_folder()) else {
-            return;
+            return Ok(());
         };
 
         let entries: Vec<_> = entry_iter
@@ -301,11 +315,13 @@ impl BootThread {
                 total,
             };
 
-            self.send(BootEvent::ProgressUpdate(status_update));
+            self.sender.send(BootEvent::ProgressUpdate(status_update))?;
 
             if let Err(e) = std::fs::remove_file(entry.path()) {
                 log::error!("Failed to delete {:?}: {e}", entry.path());
             }
         }
+
+        Ok(())
     }
 }

@@ -71,15 +71,14 @@ impl<T: Package> PackageManager<T> {
             .collect()
     }
 
-    pub fn load_packages_in_folder<F>(
+    // The callback can return false to cancel loading packages
+    pub fn load_packages_in_folder<E>(
         &mut self,
         assets: &LocalAssetManager,
         namespace: PackageNamespace,
         path: &str,
-        mut callback: F,
-    ) where
-        F: FnMut(usize, usize),
-    {
+        mut callback: impl FnMut(usize, usize) -> Result<(), E>,
+    ) -> Result<(), E> {
         use std::fs;
 
         let _ = fs::create_dir_all(path);
@@ -94,8 +93,10 @@ impl<T: Package> PackageManager<T> {
 
         for (i, base_path) in paths.into_iter().enumerate() {
             self.load_package(assets, namespace, &base_path);
-            callback(i, total);
+            callback(i, total)?;
         }
+
+        Ok(())
     }
 
     pub fn load_child_packages<I>(&mut self, namespace: PackageNamespace, child_packages: I)
