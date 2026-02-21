@@ -6,9 +6,3 @@ pub struct InstalledSwitchDrive {
     pub package_id: PackageId,
     pub slot: SwitchDriveSlot,
 }
-
-impl InstalledSwitchDrive {
-    pub fn get_slot(&self) -> SwitchDriveSlot {
-        self.slot
-    }
-}

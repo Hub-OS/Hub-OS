@@ -10,9 +10,7 @@ use crate::saves::{GlobalSave, InstalledSwitchDrive};
 use enum_map::{Enum, EnumMap, enum_map};
 use framework::prelude::*;
 use itertools::Itertools;
-use packets::structures::SwitchDriveSlot;
-use std::borrow::Cow;
-use std::collections::HashSet;
+use packets::structures::{PackageCategory, SwitchDriveSlot};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum ContextOption {
@@ -35,6 +33,13 @@ enum State {
     EquipmentSelection,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum DriveValidity {
+    Valid,
+    InvalidSlot,
+    Invalid,
+}
+
 struct SlotUi {
     name_text: Text,
     body_part_sprite: Sprite,
@@ -43,6 +48,7 @@ struct SlotUi {
     selected_state: &'static str,
     highlighted_state: &'static str,
     selected: bool,
+    validation: DriveValidity,
     time: FrameTime,
     package_id: Option<PackageId>,
 }
@@ -123,6 +129,7 @@ impl SlotUi {
             selected_state,
             highlighted_state,
             selected: false,
+            validation: DriveValidity::Valid,
             time: 0,
             package_id: None,
         }
@@ -148,6 +155,17 @@ impl SlotUi {
             self.package_id = None;
             self.name_text.text.clear();
         }
+
+        self.set_validity(DriveValidity::Valid);
+    }
+
+    pub fn set_validity(&mut self, validity: DriveValidity) {
+        self.validation = validity;
+        self.name_text.style.color = if validity == DriveValidity::Valid {
+            Color::WHITE
+        } else {
+            Color::ORANGE
+        };
     }
 
     fn update(&mut self, scene_state: State, animator: &mut Animator) {
@@ -198,7 +216,6 @@ pub struct SwitchDrivesScene {
     input_tracker: UiInputTracker,
     list_scroll_tracker: ScrollTracker,
     equipment_scroll_tracker: ScrollTracker,
-    tracked_invalid: HashSet<(Cow<'static, PackageId>, Option<SwitchDriveSlot>)>,
     state: State,
     textbox: Textbox,
     time: FrameTime,
@@ -241,7 +258,7 @@ impl SwitchDrivesScene {
 
         for drive_part in global_save.active_drive_parts() {
             let package = get_package(globals, &drive_part.package_id);
-            slot_map[drive_part.get_slot()].set_package(package);
+            slot_map[drive_part.slot].set_package(package);
         }
 
         let mut info_box_sprite = equipment_sprite.clone();
@@ -312,7 +329,6 @@ impl SwitchDrivesScene {
             input_tracker: UiInputTracker::new(),
             list_scroll_tracker,
             equipment_scroll_tracker,
-            tracked_invalid: HashSet::new(),
             state: if package_ids.is_empty() {
                 State::EquipmentSelection
             } else {
@@ -358,7 +374,8 @@ impl SwitchDrivesScene {
             let slot_ui = &mut self.equipment_map[slot];
 
             // move drive into package_ids list
-            if let Some(prev_package_id) = slot_ui.package_id.take()
+            if slot_ui.validation != DriveValidity::Invalid
+                && let Some(prev_package_id) = slot_ui.package_id.take()
                 && let Err(index) = self.package_ids.binary_search(&prev_package_id)
             {
                 self.package_ids.insert(index, prev_package_id);
@@ -734,7 +751,8 @@ impl SwitchDrivesScene {
                     let slot_ui = &mut self.equipment_map[slot];
 
                     // move drive into package_ids list
-                    if let Some(package_id) = slot_ui.package_id.take()
+                    if slot_ui.validation != DriveValidity::Invalid
+                        && let Some(package_id) = slot_ui.package_id.take()
                         && let Err(index) = self.package_ids.binary_search(&package_id)
                     {
                         self.package_ids.insert(index, package_id);
@@ -777,6 +795,40 @@ impl SwitchDrivesScene {
 impl Scene for SwitchDrivesScene {
     fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
+    }
+
+    fn enter(&mut self, game_io: &mut GameIO) {
+        let globals = Globals::from_resources(game_io);
+        let packages = &globals.augment_packages;
+
+        for (slot, ui) in &mut self.equipment_map {
+            let Some(id) = &ui.package_id else {
+                continue;
+            };
+
+            let Some(package) = packages.package(PackageNamespace::Local, id) else {
+                ui.set_package(None);
+                continue;
+            };
+
+            if package.slot.is_none() {
+                ui.set_package(None);
+                continue;
+            }
+
+            if !globals.restrictions.validate_package_tree(
+                game_io,
+                (
+                    PackageCategory::Augment,
+                    PackageNamespace::Local,
+                    id.clone(),
+                ),
+            ) {
+                ui.set_validity(DriveValidity::Invalid);
+            } else if package.slot != Some(slot) {
+                ui.set_validity(DriveValidity::InvalidSlot);
+            }
+        }
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
