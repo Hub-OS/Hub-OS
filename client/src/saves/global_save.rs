@@ -273,16 +273,9 @@ impl GlobalSave {
         let blocks_iter = block_grid.augments(game_io);
 
         // drives
-        let drives = global_save.active_drive_parts().iter().filter(|drive| {
-            restrictions.validate_package_tree(
-                game_io,
-                (
-                    PackageCategory::Augment,
-                    NAMESPACE,
-                    drive.package_id.clone(),
-                ),
-            )
-        });
+        let drives = restrictions
+            .filter_drives(game_io, NAMESPACE, global_save.active_drive_parts().iter())
+            .cloned();
 
         let drives_iter = drives
             .flat_map(|drive| {

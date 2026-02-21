@@ -3,7 +3,7 @@ use crate::packages::PackageNamespace;
 use crate::resources::Globals;
 use crate::saves::BlockGrid;
 use framework::prelude::{GameIO, Vec3};
-use packets::structures::{ActorId, Inventory, PackageCategory, PackageId};
+use packets::structures::{ActorId, Inventory, PackageId};
 
 pub struct OverworldPlayerData {
     pub entity: hecs::Entity,
@@ -72,15 +72,8 @@ impl OverworldPlayerData {
         }
 
         // health boost from switch drives
-        let drives: Vec<_> = global_save
-            .active_drive_parts()
-            .iter()
-            .filter(|drive| {
-                restrictions.validate_package_tree(
-                    game_io,
-                    (PackageCategory::Augment, ns, drive.package_id.clone()),
-                )
-            })
+        let drives: Vec<_> = restrictions
+            .filter_drives(game_io, ns, global_save.active_drive_parts().iter())
             .cloned()
             .collect();
 

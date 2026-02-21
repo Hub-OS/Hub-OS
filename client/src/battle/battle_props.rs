@@ -91,15 +91,8 @@ impl PlayerSetup {
         let grid = BlockGrid::new(ns).with_blocks(game_io, blocks.clone());
 
         // switch drives
-        let drives: Vec<_> = global_save
-            .active_drive_parts()
-            .iter()
-            .filter(|drive| {
-                restrictions.validate_package_tree(
-                    game_io,
-                    (PackageCategory::Augment, ns, drive.package_id.clone()),
-                )
-            })
+        let drives: Vec<_> = restrictions
+            .filter_drives(game_io, ns, global_save.active_drive_parts().iter())
             .cloned()
             .collect();
 

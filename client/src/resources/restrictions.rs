@@ -2,7 +2,9 @@ use super::{DeckRestrictions, Globals};
 use crate::packages::{PackageInfo, PlayerPackage};
 use crate::{packages::PackageNamespace, saves::Card};
 use framework::prelude::GameIO;
-use packets::structures::{BlockColor, FileHash, InstalledBlock, PackageCategory, PackageId};
+use packets::structures::{
+    BlockColor, FileHash, InstalledBlock, InstalledSwitchDrive, PackageCategory, PackageId,
+};
 use std::borrow::Cow;
 use std::collections::{HashMap, HashSet};
 
@@ -307,6 +309,31 @@ impl Restrictions {
                 return false;
             };
 
+            self.validate_package_tree(game_io, augment.package_info.triplet())
+        })
+    }
+
+    pub fn filter_drives<'a, 'b: 'a>(
+        &'a self,
+        game_io: &'a GameIO,
+        namespace: PackageNamespace,
+        iter: impl Iterator<Item = &'b InstalledSwitchDrive> + 'a,
+    ) -> impl Iterator<Item = &'b InstalledSwitchDrive> + 'a {
+        let globals = Globals::from_resources(game_io);
+        let augment_packages = &globals.augment_packages;
+
+        iter.filter(move |drive| {
+            let id = &drive.package_id;
+            let Some(augment) = augment_packages.package_or_fallback(namespace, id) else {
+                return false;
+            };
+
+            // test slot
+            if augment.slot != Some(drive.slot) {
+                return false;
+            }
+
+            // test dependency tree
             self.validate_package_tree(game_io, augment.package_info.triplet())
         })
     }
