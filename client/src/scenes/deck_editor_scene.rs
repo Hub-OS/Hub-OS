@@ -1781,7 +1781,7 @@ impl CardListItem {
 
         const COUNT_OFFSET: Vec2 = Vec2::new(120.0, 3.0);
 
-        let mut label = Text::new(game_io, FontName::Thick);
+        let mut label = Text::new_monospace(game_io, FontName::Thick);
         label.style.color = color;
 
         label.style.shadow_color = TEXT_DARK_SHADOW_COLOR;
