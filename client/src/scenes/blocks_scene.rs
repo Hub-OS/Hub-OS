@@ -168,12 +168,22 @@ impl BlocksScene {
         }
 
         // load block packages
+        let player_package = globals.global_save.player_package(game_io).unwrap();
+        let player_info = &player_package.package_info;
+
         let mut packages: Vec<_> = globals
             .augment_packages
             .packages(PackageNamespace::Local)
             .filter(|package| !package.shapes.is_empty())
             .filter(|package| {
                 restrictions.validate_package_tree(game_io, package.package_info.triplet())
+            })
+            .filter(|package| {
+                package.visible_to_tagged.is_empty()
+                    || package
+                        .visible_to_tagged
+                        .iter()
+                        .any(|tag| player_info.has_tag(tag))
             })
             .map(|package| {
                 let mut list_item = ListItem::new(game_io, restrictions, package);

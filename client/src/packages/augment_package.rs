@@ -25,6 +25,7 @@ struct AugmentMeta {
     dark_boost: i8,
     deck_boost: i8,
     hand_size_boost: i8,
+    visible_to_tagged: Vec<String>,
     tags: Vec<String>,
 
     // switch drive specific
@@ -47,6 +48,7 @@ pub struct AugmentPackage {
     pub long_name: Arc<str>,
     pub description: Arc<str>,
     pub long_description: Arc<str>,
+    pub visible_to_tagged: Vec<String>,
     pub health_boost: i32,
     pub attack_boost: i8,
     pub rapid_boost: i8,
@@ -143,6 +145,7 @@ impl Package for AugmentPackage {
         };
         package.description = meta.description.into();
         package.long_description = meta.long_description.into();
+        package.visible_to_tagged = meta.visible_to_tagged;
         package.health_boost = meta.health_boost;
         package.attack_boost = meta.attack_boost;
         package.rapid_boost = meta.rapid_boost;

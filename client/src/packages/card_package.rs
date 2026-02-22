@@ -23,14 +23,14 @@ struct CardMeta {
     long_name: String,
     icon_texture_path: String,
     preview_texture_path: String,
+    description: String,
+    long_description: String,
     codes: Vec<String>,
     regular_allowed: Option<bool>,
     hidden: bool,
 
     // card properties
     name: String,
-    description: String,
-    long_description: String,
     damage: i32,
     recover: i32,
     element: String,

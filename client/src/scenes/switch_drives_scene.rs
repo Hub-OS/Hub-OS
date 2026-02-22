@@ -987,6 +987,11 @@ fn collect_drive_package_ids(
     let restrictions = &globals.restrictions;
     let active_drive_parts = globals.global_save.active_drive_parts();
 
+    let Some(player_package) = globals.global_save.player_package(game_io) else {
+        return Vec::new();
+    };
+    let player_info = &player_package.package_info;
+
     let mut package_ids: Vec<_> = globals
         .augment_packages
         .packages(PackageNamespace::Local)
@@ -999,6 +1004,13 @@ fn collect_drive_package_ids(
         })
         .filter(|package| {
             restrictions.validate_package_tree(game_io, package.package_info.triplet())
+        })
+        .filter(|package| {
+            package.visible_to_tagged.is_empty()
+                || package
+                    .visible_to_tagged
+                    .iter()
+                    .any(|tag| player_info.has_tag(tag))
         })
         .filter(|package| {
             !active_drive_parts
