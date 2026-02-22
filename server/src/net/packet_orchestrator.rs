@@ -1,3 +1,5 @@
+use super::ServerConfig;
+use super::boot::Boot;
 use packets::structures::ActorId;
 use packets::{
     ChannelSender, ConnectionBuilder, NetplayPacket, PacketChannels, PacketReceiver, PacketSender,
@@ -8,9 +10,7 @@ use std::collections::{HashMap, HashSet};
 use std::net::{SocketAddr, UdpSocket};
 use std::rc::Rc;
 use std::sync::Arc;
-
-use super::ServerConfig;
-use super::boot::Boot;
+use std::time::Instant;
 
 struct Connection {
     pub socket_address: SocketAddr,
@@ -50,6 +50,11 @@ impl Connection {
     }
 }
 
+struct NetplayRoute {
+    battle_creation_time: Instant,
+    peers: Vec<SocketAddr>,
+}
+
 pub struct PacketOrchestrator {
     socket: Rc<UdpSocket>,
     server_config: Rc<ServerConfig>,
@@ -59,7 +64,7 @@ pub struct PacketOrchestrator {
     client_id_map: HashMap<ActorId, slotmap::DefaultKey>,
     client_room_map: HashMap<SocketAddr, Vec<String>>,
     rooms: HashMap<String, Vec<slotmap::DefaultKey>>,
-    netplay_route_map: HashMap<SocketAddr, Vec<SocketAddr>>,
+    netplay_route_map: HashMap<SocketAddr, NetplayRoute>,
     synchronize_updates: bool,
     synchronize_requests: usize,
     synchronize_locked_clients: HashSet<SocketAddr>,
@@ -193,19 +198,11 @@ impl PacketOrchestrator {
             );
         }
 
-        let Some(peers) = self.netplay_route_map.remove(&socket_address) else {
+        let Some(route) = self.netplay_route_map.remove(&socket_address) else {
             return false;
         };
 
-        for address in &peers {
-            if let Some(address_list) = self.netplay_route_map.get_mut(address)
-                && let Some(index) = address_list
-                    .iter()
-                    .position(|address| *address == socket_address)
-            {
-                address_list.swap_remove(index);
-            }
-        }
+        self.clean_up_route(socket_address, route);
 
         true
     }
@@ -222,13 +219,57 @@ impl PacketOrchestrator {
         &mut self,
         socket_address: SocketAddr,
         player_index: usize,
+        battle_creation_time: Instant,
         destination_addresses: &[SocketAddr],
     ) {
-        if let Some(index) = self.connection_map.get(&socket_address) {
-            self.connections[*index].netplay_index = player_index;
+        let Some(index) = self.connection_map.get(&socket_address) else {
+            return;
+        };
 
-            self.netplay_route_map
-                .insert(socket_address, destination_addresses.to_vec());
+        self.connections[*index].netplay_index = player_index;
+
+        let peers = destination_addresses
+            .iter()
+            .cloned()
+            .filter(|peer| {
+                let Some(peer_route) = self.netplay_route_map.get(peer) else {
+                    return true;
+                };
+
+                // only consider peers that haven't moved on
+                peer_route.battle_creation_time <= battle_creation_time
+            })
+            .collect();
+
+        let route = NetplayRoute {
+            battle_creation_time,
+            peers,
+        };
+
+        let Some(prev_route) = self.netplay_route_map.insert(socket_address, route) else {
+            return;
+        };
+
+        self.clean_up_route(socket_address, prev_route);
+    }
+
+    fn clean_up_route(&mut self, socket_address: SocketAddr, route: NetplayRoute) {
+        for address in &route.peers {
+            let Some(peer_route) = self.netplay_route_map.get_mut(address) else {
+                continue;
+            };
+
+            if route.battle_creation_time != peer_route.battle_creation_time {
+                // if our peer has moved on, don't touch their route
+                continue;
+            }
+
+            let mut peers_iter = peer_route.peers.iter();
+            let Some(index) = peers_iter.position(|address| *address == socket_address) else {
+                continue;
+            };
+
+            peer_route.peers.swap_remove(index);
         }
     }
 
@@ -248,11 +289,11 @@ impl PacketOrchestrator {
         let reliability = packet.default_reliability();
         let data = Arc::new(serialize(packet));
 
-        let Some(addresses) = self.netplay_route_map.get(&socket_address) else {
+        let Some(route) = self.netplay_route_map.get(&socket_address) else {
             return;
         };
 
-        for address in addresses {
+        for address in &route.peers {
             let Some(index) = self.connection_map.get(address) else {
                 continue;
             };

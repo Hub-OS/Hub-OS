@@ -3,10 +3,11 @@ use packets::structures::{ActorId, BattleId};
 use std::collections::HashSet;
 use std::collections::VecDeque;
 use std::net::SocketAddr;
+use std::time::Instant;
 
-#[derive(Default)]
 pub(super) struct BattleTrackingInfo {
     pub battle_id: BattleId,
+    pub creation_time: Instant,
     pub plugin_index: usize,
     pub player_index: usize,
     pub remote_addresses: Vec<SocketAddr>,

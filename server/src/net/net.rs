@@ -14,6 +14,7 @@ use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use std::time::Instant;
 
 pub struct Net {
     packet_orchestrator: Rc<RefCell<PacketOrchestrator>>,
@@ -1104,7 +1105,10 @@ impl Net {
         let tracking_info = BattleTrackingInfo {
             battle_id,
             plugin_index: self.active_plugin,
-            ..Default::default()
+            creation_time: Instant::now(),
+            // unused
+            player_index: 0,
+            remote_addresses: Vec::new(),
         };
 
         client.battle_tracker.push_back(tracking_info);
@@ -1160,6 +1164,7 @@ impl Net {
         let seed = thread_rng().next_u64();
 
         let battle_id = self.active_battles.insert_with_key(|battle_id| {
+            let creation_time = Instant::now();
             let mut final_list = IndexSet::default();
 
             for (player_index, id) in ids.iter().enumerate() {
@@ -1179,6 +1184,7 @@ impl Net {
 
                 let tracking_info = BattleTrackingInfo {
                     battle_id,
+                    creation_time,
                     plugin_index: self.active_plugin,
                     player_index,
                     remote_addresses,

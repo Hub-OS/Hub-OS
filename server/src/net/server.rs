@@ -138,6 +138,7 @@ impl Server {
                     packet_orchestrator.configure_netplay_destinations(
                         socket_address,
                         info.player_index,
+                        info.creation_time,
                         &info.remote_addresses,
                     );
                 }
