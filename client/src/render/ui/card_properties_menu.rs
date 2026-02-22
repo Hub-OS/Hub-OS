@@ -80,6 +80,7 @@ impl CardPropertiesMenu {
             ("PierceGround", "deck-editor-properties-pierce-ground"),
             ("Blind", "deck-editor-properties-blind"),
             ("Confuse", "deck-editor-properties-confuse"),
+            ("Freeze", "deck-editor-properties-freeze"),
             ("Paralyze", "deck-editor-properties-paralyze"),
         ];
 
