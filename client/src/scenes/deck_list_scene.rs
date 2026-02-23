@@ -674,7 +674,9 @@ fn create_new_deck(scene: &mut DeckListScene, game_io: &mut GameIO) {
     let insert_index = global_save.decks.len().min(next_index);
 
     global_save.decks.insert(insert_index, Deck::new(name));
-    scene.deck_validities.push(DeckValidity::default());
+    scene
+        .deck_validities
+        .insert(insert_index, Default::default());
 
     let total_decks = global_save.decks.len();
 
