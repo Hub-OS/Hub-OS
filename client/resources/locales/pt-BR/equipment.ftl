@@ -55,6 +55,7 @@ deck-editor-properties-pierce-ground = Nega Subterrâneo
 deck-editor-properties-blind = Cegueira
 deck-editor-properties-confuse = Confusão
 deck-editor-properties-paralyze = Paralisia
+deck-editor-properties-freeze = Congelamento
 deck-editor-sort-menu-label = ORDENAR
 deck-editor-sort-id = ID
 deck-editor-sort-alphabetical = ABCDE

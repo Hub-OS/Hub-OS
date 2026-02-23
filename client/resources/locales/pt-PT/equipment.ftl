@@ -55,6 +55,7 @@ deck-editor-properties-pierce-ground = Pierce Ground
 deck-editor-properties-blind = Blind
 deck-editor-properties-confuse = Confuse
 deck-editor-properties-paralyze = Paralyze
+deck-editor-properties-freeze = Freeze
 deck-editor-sort-menu-label = SORT
 deck-editor-sort-id = ID
 deck-editor-sort-alphabetical = ABCDE
