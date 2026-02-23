@@ -138,6 +138,14 @@ impl NetplayInitScene {
             let mut senders_and_receivers: Vec<_> = results.into_iter().flatten().collect();
             let fallback_sender_receiver = senders_and_receivers.pop().unwrap();
 
+            if total_remote == 0 {
+                let _ = event_sender.send(Event::Fallback {
+                    fallback: fallback_sender_receiver,
+                    received_hello: true,
+                });
+                return;
+            }
+
             if senders_and_receivers.len() < total_remote {
                 log::info!("Using relay due to player preferences");
 
