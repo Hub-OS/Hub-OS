@@ -4,7 +4,7 @@ use crate::resources::{AssetManager, Globals, ResourcePaths};
 use framework::prelude::GameIO;
 use packets::structures::{InstalledSwitchDrive, MemoryCell, Uuid};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 const FIRST_SERVER_NAME: &str = "The Index";
 const FIRST_SERVER_ADDRESS: &str = "servers.hubos.dev";
@@ -31,6 +31,7 @@ pub struct GlobalSave {
     #[serde(default = "GlobalSave::current_time")]
     pub resource_order_time: u64,
     pub virtual_controller_visible: bool,
+    pub favorited_packages: HashSet<PackageId>,
 }
 
 impl GlobalSave {
@@ -350,6 +351,10 @@ impl GlobalSave {
 
         log::info!("Updating save for updated package id: {old_id} -> {new_id}");
 
+        if self.favorited_packages.remove(old_id) {
+            self.favorited_packages.insert(new_id.clone());
+        }
+
         match category {
             PackageCategory::Augment => {
                 // update blocks
@@ -414,6 +419,13 @@ impl GlobalSave {
             _ => {}
         }
     }
+
+    pub fn remove_package_id(&mut self, id: &PackageId) {
+        self.character_update_times.remove(id);
+        self.installed_blocks.remove(id);
+        self.installed_drive_parts.remove(id);
+        self.favorited_packages.remove(id);
+    }
 }
 
 impl Default for GlobalSave {
@@ -439,6 +451,7 @@ impl Default for GlobalSave {
             resource_package_order: Vec::new(),
             resource_order_time: 0,
             virtual_controller_visible: true,
+            favorited_packages: Default::default(),
         }
     }
 }

@@ -17,6 +17,7 @@ pub struct BattleSelectScene {
     ui_input_tracker: UiInputTracker,
     preview_frame_sprite: Sprite,
     recording_frame_sprite: Sprite,
+    favorited_sprite: Sprite,
     cursor_sprite: Sprite,
     cursor_animator: Animator,
     scroll_tracker: GridScrollTracker,
@@ -46,6 +47,11 @@ impl BattleSelectScene {
         ui_animator.set_state("RECORDING_FRAME");
         ui_animator.apply(&mut recording_frame_sprite);
 
+        // favorited sprite
+        let mut favorited_sprite = preview_frame_sprite.clone();
+        ui_animator.set_state("FAVORITED");
+        ui_animator.apply(&mut favorited_sprite);
+
         // cursor sprite
         let mut cursor_sprite = preview_frame_sprite.clone();
         ui_animator.set_state("CURSOR");
@@ -59,6 +65,7 @@ impl BattleSelectScene {
             frame: SubSceneFrame::new(game_io).with_top_bar(true),
             preview_frame_sprite,
             recording_frame_sprite,
+            favorited_sprite,
             cursor_sprite,
             cursor_animator: ui_animator,
             ui_input_tracker: UiInputTracker::new(),
@@ -117,6 +124,14 @@ impl BattleSelectScene {
             globals.audio.restart_music();
         }
     }
+
+    fn sort_packages(&mut self, game_io: &GameIO) {
+        let globals = Globals::from_resources(game_io);
+        let favorited = &globals.global_save.favorited_packages;
+
+        self.package_ids
+            .sort_by(|a, b| (!favorited.contains(a), a).cmp(&(!favorited.contains(b), b)));
+    }
 }
 
 impl Scene for BattleSelectScene {
@@ -128,15 +143,13 @@ impl Scene for BattleSelectScene {
         // reload package list
         let globals = Globals::from_resources(game_io);
         let encounter_manager = &globals.encounter_packages;
-        let mut package_ids: Vec<_> = encounter_manager
+        self.package_ids = encounter_manager
             .package_ids(PackageNamespace::Local)
             .cloned()
             .collect();
 
-        package_ids.sort();
-
-        self.scroll_tracker.set_total_items(package_ids.len());
-        self.package_ids = package_ids;
+        self.scroll_tracker.set_total_items(self.package_ids.len());
+        self.sort_packages(game_io);
 
         // update title to match the possibly changed selection
         self.update_title(game_io);
@@ -191,6 +204,27 @@ impl Scene for BattleSelectScene {
 
             let transition = crate::transitions::new_battle_init(game_io);
             self.next_scene = NextScene::new_push(scene).with_transition(transition);
+            return;
+        }
+
+        if input_tracker.pulsed(Input::Special) && !self.package_ids.is_empty() {
+            // favorite
+            let i = self.scroll_tracker.selected_index();
+            let package_id = &self.package_ids[i];
+
+            let globals = Globals::from_resources_mut(game_io);
+            globals.audio.play_sound(&globals.sfx.cursor_select);
+
+            let favorited = &mut globals.global_save.favorited_packages;
+
+            if !favorited.remove(package_id) {
+                favorited.insert(package_id.clone());
+            }
+
+            globals.global_save.save();
+
+            self.sort_packages(game_io);
+
             return;
         }
 
@@ -260,7 +294,7 @@ impl Scene for BattleSelectScene {
 
             // draw frame
             if package.recording_path.is_some() {
-                //  recording frame
+                // recording frame
                 self.recording_frame_sprite.set_position(position);
                 sprite_queue.draw_sprite(&self.recording_frame_sprite);
             } else {
@@ -274,6 +308,12 @@ impl Scene for BattleSelectScene {
             preview_sprite.set_origin(preview_sprite.size() * 0.5);
             preview_sprite.set_position(position);
             sprite_queue.draw_sprite(&preview_sprite);
+
+            // draw favorited icon
+            if globals.global_save.favorited_packages.contains(package_id) {
+                self.favorited_sprite.set_position(position);
+                sprite_queue.draw_sprite(&self.favorited_sprite);
+            }
         }
 
         // draw cursor

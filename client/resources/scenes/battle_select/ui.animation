@@ -1,14 +1,17 @@
 animation state="DEFAULT"
-blank
+frame
 point label="GRID_START" x="42" y="50"
 point label="GRID_STEP" x="78" y="62"
 
 animation state="FRAME"
-frame w="78" h="62" originx="39" originy="31"
+frame x="1" y="1" w="76" h="60" originx="38" originy="30"
 
 animation state="RECORDING_FRAME"
-frame x="79" w="78" h="62" originx="39" originy="31"
+frame x="79" y="1" w="76" h="60" originx="38" originy="30"
 
 animation state="CURSOR"
-frame duration="8f" y="62" w="78" h="62" originx="39" originy="31"
-frame duration="8f" x="78" y="62" w="78" h="62" originx="39" originy="31"
+frame x="73" y="63" w="68" h="52" originx="34" originy="26" duration="8f"
+frame x="1" y="63" w="70" h="54" originx="35" originy="27" duration="8f"
+
+animation state="FAVORITED"
+frame x="142" y="62" w="9" h="9" originx="-25" originy="26"
