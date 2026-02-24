@@ -3,7 +3,7 @@ members = ["android", "client", "packets", "scripts", "server", "structures"]
 resolver = "2"
 
 [workspace.package]
-version = "0.95.2"
+version = "0.95.3"
 
 [profile.dev]
 opt-level = 1
