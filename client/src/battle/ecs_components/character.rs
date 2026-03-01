@@ -167,19 +167,21 @@ impl Character {
         Ok(id)
     }
 
-    fn apply_aux_card_boosts(simulation: &mut BattleSimulation, entity_id: EntityId) {
+    pub fn take_boosted_card(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+    ) -> Option<CardProperties> {
         let entities = &mut simulation.entities;
-        let (character, living) = entities
-            .query_one_mut::<(&mut Character, &mut Living)>(entity_id.into())
-            .unwrap();
+        let character = entities
+            .query_one_mut::<&mut Character>(entity_id.into())
+            .ok()?;
 
-        let Some(card_properties) = character.cards.last_mut() else {
-            return;
-        };
+        let card_properties = character.cards.pop()?;
 
         // update card with multipliers
-        let callbacks = living.modify_used_card(card_properties);
-        simulation.pending_callbacks.extend(callbacks);
+        Living::modify_used_card(game_io, resources, simulation, entity_id, card_properties)
     }
 
     pub fn use_card(
@@ -188,8 +190,6 @@ impl Character {
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
     ) {
-        Self::apply_aux_card_boosts(simulation, entity_id);
-
         let entities = &mut simulation.entities;
         let is_player = entities
             .satisfies::<&Player>(entity_id.into())
@@ -200,16 +200,20 @@ impl Character {
             return;
         }
 
+        let Some(card_props) = Self::take_boosted_card(game_io, resources, simulation, entity_id)
+        else {
+            return;
+        };
+
         Living::update_action_context(game_io, resources, simulation, ActionType::CARD, entity_id);
 
         let entities = &mut simulation.entities;
-        let (character, namespace) = entities
-            .query_one_mut::<(&mut Character, &PackageNamespace)>(entity_id.into())
-            .unwrap();
+        let Ok(namespace) = entities.query_one_mut::<&PackageNamespace>(entity_id.into()) else {
+            return;
+        };
 
         // create card action
         let namespace = *namespace;
-        let card_props = character.cards.pop().unwrap();
         let action_index = Action::create_from_card_properties(
             game_io, resources, simulation, entity_id, namespace, card_props,
         );
@@ -299,15 +303,6 @@ impl Character {
             return;
         }
 
-        // ensure initial test values for all card use aux props
-        for (_, living) in simulation.entities.query_mut::<&mut Living>() {
-            for aux_prop in living.aux_props.values_mut() {
-                if aux_prop.effect().executes_on_card_use() {
-                    aux_prop.process_card(None);
-                }
-            }
-        }
-
         if state_time > BattleState::GRACE_TIME {
             let mut requesters = Vec::new();
             let mut time_freeze_requested = false;
@@ -355,7 +350,7 @@ impl Character {
 
         // clean up card use aux props
         Living::aux_prop_cleanup(simulation, |aux_prop| {
-            aux_prop.effect().executes_on_card_use()
+            aux_prop.effect().modifies_final_card()
         });
 
         simulation.call_pending_callbacks(game_io, resources);

@@ -708,15 +708,22 @@ impl Player {
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
     ) {
+        let Some(card_props) =
+            Character::take_boosted_card(game_io, resources, simulation, entity_id)
+        else {
+            return;
+        };
+
         Living::update_action_context(game_io, resources, simulation, ActionType::CARD, entity_id);
 
-        let (character, player, namespace) = simulation
+        let Ok((player, namespace)) = simulation
             .entities
-            .query_one_mut::<(&mut Character, &mut Player, &PackageNamespace)>(entity_id.into())
-            .unwrap();
+            .query_one_mut::<(&mut Player, &PackageNamespace)>(entity_id.into())
+        else {
+            return;
+        };
 
         // create card action
-        let card_props = character.cards.pop().unwrap();
         let action_index = if player.card_charged {
             player.card_charged = false;
 

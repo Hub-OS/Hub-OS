@@ -694,26 +694,18 @@ impl Living {
                     continue;
                 }
 
-                if matches!(aux_prop.effect(), AuxEffect::InterceptAction(_))
-                    && intercept_callback.is_some()
-                {
-                    // action is already pending replacement
-                    // we can try activation again in the next loop
-                    continue;
-                }
-
                 aux_prop.mark_activated();
 
-                match aux_prop.effect() {
-                    AuxEffect::InterceptAction(callback) => {
-                        intercept_callback = Some(callback.clone());
-                    }
-                    _ => log::error!("Engine error: Unexpected AuxEffect!"),
-                }
+                let callbacks_iter = aux_prop.callbacks().iter().cloned();
+                simulation.pending_callbacks.extend(callbacks_iter);
 
-                simulation
-                    .pending_callbacks
-                    .extend(aux_prop.callbacks().iter().cloned());
+                let AuxEffect::InterceptAction(callback) = aux_prop.effect() else {
+                    log::error!("Engine error: Unexpected AuxEffect!");
+                    continue;
+                };
+
+                intercept_callback = Some(callback.clone());
+                break;
             }
 
             simulation.call_pending_callbacks(game_io, resources);
@@ -740,16 +732,64 @@ impl Living {
         }
     }
 
-    #[must_use]
     pub fn modify_used_card(
-        &mut self,
-        card_properties: &mut CardProperties,
-    ) -> Vec<BattleCallback> {
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+        mut card_properties: CardProperties,
+    ) -> Option<CardProperties> {
         let mut multiplier = 1.0;
-        let mut callbacks = Vec::new();
 
-        for aux_prop in self.aux_props.values_mut() {
-            if !aux_prop.effect().executes_on_card_use() {
+        loop {
+            let entities = &mut simulation.entities;
+            let Ok(living) = entities.query_one_mut::<&mut Living>(entity_id.into()) else {
+                return None;
+            };
+
+            let mut intercept_callback = None;
+
+            for aux_prop in living.aux_props.values_mut() {
+                if !matches!(aux_prop.effect(), AuxEffect::InterceptCard(_)) || aux_prop.activated()
+                {
+                    // skip unrelated and activated aux_props
+                    continue;
+                }
+
+                aux_prop.process_card(Some(&card_properties));
+
+                if !aux_prop.passed_all_tests() {
+                    continue;
+                }
+
+                aux_prop.mark_activated();
+
+                let callbacks_iter = aux_prop.callbacks().iter().cloned();
+                simulation.pending_callbacks.extend(callbacks_iter);
+
+                let AuxEffect::InterceptCard(callback) = aux_prop.effect() else {
+                    log::error!("Engine error: Unexpected AuxEffect!");
+                    continue;
+                };
+
+                intercept_callback = Some(callback.clone());
+                break;
+            }
+
+            let Some(callback) = intercept_callback else {
+                break;
+            };
+
+            card_properties = callback.call(game_io, resources, simulation, card_properties)?;
+        }
+
+        let entities = &mut simulation.entities;
+        let Ok(living) = entities.query_one_mut::<&mut Living>(entity_id.into()) else {
+            return None;
+        };
+
+        for aux_prop in living.aux_props.values_mut() {
+            if !aux_prop.effect().modifies_final_card() {
                 // skip unrelated aux_props
                 continue;
             }
@@ -763,11 +803,16 @@ impl Living {
                 continue;
             }
 
-            aux_prop.process_card(Some(card_properties));
+            aux_prop.process_card(Some(&card_properties));
 
             if !aux_prop.passed_all_tests() {
                 continue;
             }
+
+            aux_prop.mark_activated();
+
+            let callbacks_iter = aux_prop.callbacks().iter().cloned();
+            simulation.pending_callbacks.extend(callbacks_iter);
 
             match aux_prop.effect() {
                 AuxEffect::IncreaseCardDamage(increase) => {
@@ -779,9 +824,6 @@ impl Living {
                 }
                 _ => log::error!("Engine error: Unexpected AuxEffect!"),
             }
-
-            aux_prop.mark_activated();
-            callbacks.extend(aux_prop.callbacks().iter().cloned());
         }
 
         // todo: do :once() auxprops activate twice from not cleaning up on every call?
@@ -793,7 +835,7 @@ impl Living {
         card_properties.damage = new_damage;
         card_properties.boosted_damage = new_damage - original_damage;
 
-        callbacks
+        Some(card_properties)
     }
 
     pub fn predict_card_aux_damage(&self, card_properties: &CardProperties) -> i32 {

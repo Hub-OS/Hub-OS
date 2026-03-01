@@ -62,9 +62,10 @@ for _, name in ipairs(req_list) do
 end
 
 local eff_list = {
-  "update_context",
+  "intercept_card",
   "increase_card_multiplier",
   "increase_card_damage",
+  "update_context",
   "intercept_action",
   "interrupt_action",
   "increase_pre_hit_damage",
