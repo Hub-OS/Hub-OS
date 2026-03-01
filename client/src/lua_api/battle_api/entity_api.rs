@@ -665,11 +665,15 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
         // check for pending actions
         let entities = &mut simulation.entities;
-        let Ok(action_queue) = entities.query_one_mut::<&ActionQueue>(id.into()) else {
+        let Ok((action_queue, character)) =
+            entities.query_one_mut::<(&ActionQueue, Option<&Character>)>(id.into())
+        else {
             return lua.pack_multi(false);
         };
 
-        lua.pack_multi(!action_queue.pending.is_empty())
+        lua.pack_multi(
+            !action_queue.pending.is_empty() || character.is_some_and(|c| c.card_use_requested),
+        )
     });
 
     lua_api.add_dynamic_function(
@@ -1185,6 +1189,39 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
             Ok(())
         },
     );
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "use_card", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let game_io = api_ctx.game_io;
+        let resources = api_ctx.resources;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let entities = &mut simulation.entities;
+        let character = entities
+            .query_one_mut::<&mut Character>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        if character.cards.is_empty() {
+            return lua.pack_multi(());
+        }
+
+        if simulation.time_freeze_tracker.time_is_frozen() {
+            if simulation.time_freeze_tracker.can_counter() {
+                // use immediately to TFC
+                Character::use_card(game_io, resources, simulation, id);
+            }
+
+            return lua.pack_multi(());
+        }
+
+        character.card_use_requested = true;
+
+        lua.pack_multi(())
+    });
 
     // todo: can_attack, maybe better inverted and described as is_idle?
     // nothing is stoping a card action from being queued other than another card action
