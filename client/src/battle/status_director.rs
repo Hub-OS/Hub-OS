@@ -142,7 +142,7 @@ impl StatusDirector {
     }
 
     fn apply_status_internal(&mut self, new_status: AppliedStatus) {
-        if new_status.status_flag & self.immunity != 0 {
+        if new_status.status_flag & self.immunity != 0 || new_status.remaining_time <= 0 {
             return;
         }
 
