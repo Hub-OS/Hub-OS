@@ -11,6 +11,7 @@ pub struct GlobalMusic {
     pub customize: Vec<SoundBuffer>,
     pub battle: Vec<SoundBuffer>,
     pub overworld: Vec<SoundBuffer>,
+    pub credits: Vec<SoundBuffer>,
 }
 
 impl GlobalMusic {
@@ -24,6 +25,7 @@ impl GlobalMusic {
             customize: load(ResourcePaths::CUSTOMIZE_MUSIC)?,
             battle: load(ResourcePaths::BATTLE_MUSIC)?,
             overworld: load(ResourcePaths::OVERWORLD_MUSIC)?,
+            credits: load(ResourcePaths::CREDITS_MUSIC)?,
         })
     }
 

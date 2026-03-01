@@ -96,6 +96,8 @@ const SECTIONS: &[(&str, &[&str])] = &[
     ),
     ("", &[""]),
     ("", &["$credits-reach-out-1", "$credits-reach-out-2"]),
+    ("", &[""]),
+    ("", &["♪"]),
 ];
 
 pub struct CreditsScene {
@@ -156,14 +158,17 @@ impl CreditsScene {
             return;
         }
 
+        let Some(total_names_in_section) = SECTIONS
+            .get(self.section_index)
+            .map(|(_, names)| names.len())
+        else {
+            // out of pages, we'll idle on the last page
+            return;
+        };
+
         // advance page
         self.top_name += NAMES_PER_PAGE;
         self.page_time = 0;
-
-        let total_names_in_section = SECTIONS
-            .get(self.section_index)
-            .map(|(_, names)| names.len())
-            .unwrap_or(0);
 
         if self.top_name < total_names_in_section {
             return;
@@ -184,11 +189,6 @@ impl CreditsScene {
         } else {
             // out of pages
             self.header_text.clear();
-
-            if self.section_index > SECTIONS.len() {
-                // close after a completely blank page
-                self.end_scene(game_io);
-            }
         }
     }
 }
@@ -198,13 +198,30 @@ impl Scene for CreditsScene {
         &mut self.next_scene
     }
 
+    fn enter(&mut self, game_io: &mut GameIO) {
+        let globals = Globals::from_resources(game_io);
+        globals.audio.push_music_stack();
+    }
+
+    fn exit(&mut self, game_io: &mut GameIO) {
+        let globals = Globals::from_resources(game_io);
+        globals.audio.pop_music_stack();
+        globals.audio.restart_music();
+    }
+
     fn update(&mut self, game_io: &mut GameIO) {
         self.camera.update();
         self.background.update();
 
         if !game_io.is_in_transition() {
             self.handle_input(game_io);
-            self.started = true
+            self.started = true;
+
+            let globals = Globals::from_resources(game_io);
+
+            if !globals.audio.is_music_playing() {
+                globals.audio.pick_music(&globals.music.credits, true);
+            }
         }
 
         if !self.started {

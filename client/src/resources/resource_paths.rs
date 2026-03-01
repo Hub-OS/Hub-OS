@@ -16,6 +16,7 @@ impl ResourcePaths {
     pub const CUSTOMIZE_MUSIC: &'static str = "resources/music/customize";
     pub const BATTLE_MUSIC: &'static str = "resources/music/battle";
     pub const OVERWORLD_MUSIC: &'static str = "resources/music/overworld";
+    pub const CREDITS_MUSIC: &'static str = "resources/music/credits";
 
     // SFX
     pub const START_GAME_SFX: &'static str = "resources/sfx/start_game.ogg";
