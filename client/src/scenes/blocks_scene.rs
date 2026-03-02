@@ -632,6 +632,8 @@ impl BlocksScene {
                             continue;
                         }
                     }
+
+                    self.update_colors();
                 } else {
                     let globals = Globals::from_resources(game_io);
 
