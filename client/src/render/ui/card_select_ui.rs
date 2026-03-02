@@ -270,7 +270,7 @@ impl CardSelectUi {
             .entities
             .query_mut::<(&Entity, &Character, &EntityName)>()
         {
-            if entity.team == simulation.local_team {
+            if entity.team.is_allied(simulation.local_team) {
                 continue;
             }
 
