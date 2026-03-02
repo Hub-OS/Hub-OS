@@ -438,8 +438,7 @@ impl Action {
 
                 // time freeze counter
                 let freezes_time = action.properties.time_freeze;
-                let action_counters_time_freeze =
-                    freezes_time && !action.properties.skip_time_freeze_intro;
+                let action_counters_time_freeze = action.properties.can_time_freeze_counter();
                 let time_freeze_counter =
                     any_can_counter_time_freeze && action_counters_time_freeze;
 

@@ -63,6 +63,10 @@ impl<L: Default, F: Default> Default for CardProperties<L, F> {
 }
 
 impl<L, F> CardProperties<L, F> {
+    pub fn can_time_freeze_counter(&self) -> bool {
+        self.time_freeze && !self.skip_time_freeze_intro
+    }
+
     pub fn draw_summary(
         &self,
         game_io: &GameIO,

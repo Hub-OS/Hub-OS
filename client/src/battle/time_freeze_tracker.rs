@@ -569,8 +569,7 @@ impl TimeFreezeTracker {
             }
 
             if let Some(card_props) = character.cards.last() {
-                if !card_props.time_freeze {
-                    // must counter with a time freeze card
+                if !card_props.can_time_freeze_counter() {
                     continue;
                 }
             } else {
