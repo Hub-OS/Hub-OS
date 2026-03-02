@@ -111,7 +111,7 @@ impl BattleSimulation {
                 .unwrap_or_default(),
             local_player_id: EntityId::DANGLING,
             local_health_ui: PlayerHealthUi::new(game_io),
-            local_team: Team::Red,
+            local_team: Team::Other,
             progress: BattleProgress::Initializing,
             is_resimulation: false,
             // extra
