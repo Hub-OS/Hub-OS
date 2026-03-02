@@ -233,9 +233,6 @@ impl SwitchDrivesScene {
         let assets = &globals.assets;
         let global_save = &globals.global_save;
 
-        // load drive part packages
-        let package_ids = collect_drive_package_ids(game_io, globals, None);
-
         let mut animator = Animator::load_new(assets, ResourcePaths::SWITCH_DRIVE_UI_ANIMATION);
 
         // layout
@@ -249,6 +246,7 @@ impl SwitchDrivesScene {
         animator.apply(&mut equipment_sprite);
         equipment_sprite.set_position(equipment_position);
 
+        // load equipment
         let mut slot_map = enum_map! {
             SwitchDriveSlot::Head => SlotUi::new_left(game_io, &mut animator, "HEAD", equipment_position),
             SwitchDriveSlot::Body => SlotUi::new_left(game_io, &mut animator, "BODY", equipment_position),
@@ -260,6 +258,9 @@ impl SwitchDrivesScene {
             let package = get_package(globals, &drive_part.package_id);
             slot_map[drive_part.slot].set_package(package);
         }
+
+        // load list
+        let package_ids = collect_drive_package_ids(game_io, globals, None, &slot_map);
 
         let mut info_box_sprite = equipment_sprite.clone();
         animator.set_state("TEXTBOX");
@@ -762,7 +763,8 @@ impl SwitchDrivesScene {
                 }
                 Event::ApplyFilter(filter) => {
                     let globals = Globals::from_resources(game_io);
-                    self.package_ids = collect_drive_package_ids(game_io, globals, filter);
+                    self.package_ids =
+                        collect_drive_package_ids(game_io, globals, filter, &self.equipment_map);
 
                     self.state = State::ListSelection;
                     self.list_scroll_tracker
@@ -983,9 +985,9 @@ fn collect_drive_package_ids(
     game_io: &GameIO,
     globals: &Globals,
     filter: Option<SwitchDriveSlot>,
+    equipment_map: &EnumMap<SwitchDriveSlot, SlotUi>,
 ) -> Vec<PackageId> {
     let restrictions = &globals.restrictions;
-    let active_drive_parts = globals.global_save.active_drive_parts();
 
     let Some(player_package) = globals.global_save.player_package(game_io) else {
         return Vec::new();
@@ -1000,7 +1002,8 @@ fn collect_drive_package_ids(
                 return false;
             };
 
-            filter.is_none() || filter == Some(slot)
+            filter.is_none_or(|filter| filter == slot)
+                && equipment_map[slot].package_id.as_ref() != Some(&package.package_info.id)
         })
         .filter(|package| {
             restrictions.validate_package_tree(game_io, package.package_info.triplet())
@@ -1011,11 +1014,6 @@ fn collect_drive_package_ids(
                     .visible_to_tagged
                     .iter()
                     .any(|tag| player_info.has_tag(tag))
-        })
-        .filter(|package| {
-            !active_drive_parts
-                .iter()
-                .any(|drive| package.package_info.id == drive.package_id)
         })
         .map(|package| package.package_info.id.clone())
         .collect();
