@@ -747,12 +747,13 @@ impl TimeFreezeTracker {
         // draw summary text
         if let Some(action) = simulation.actions.get(tracked_action.action_index) {
             let default_card_props = CardProperties::default();
-            let card_props =
-                if action.properties.conceal && simulation.local_team != tracked_action.team {
-                    &default_card_props
-                } else {
-                    &action.properties
-                };
+            let card_props = if action.properties.conceal
+                && !simulation.local_team.is_allied(tracked_action.team)
+            {
+                &default_card_props
+            } else {
+                &action.properties
+            };
 
             let scale = Vec2::new(1.0, summary_scale_y);
             card_props.draw_summary(game_io, sprite_queue, position, scale, true);
