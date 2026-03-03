@@ -184,6 +184,38 @@ impl Character {
         Living::modify_used_card(game_io, resources, simulation, entity_id, card_properties)
     }
 
+    pub fn set_card_context(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+        card_props: CardProperties,
+    ) -> Option<CardProperties> {
+        // put the card back for auxprops to see
+        let entities = &mut simulation.entities;
+        let character = entities
+            .query_one_mut::<&mut Character>(entity_id.into())
+            .ok()?;
+        character.cards.push(card_props);
+
+        Living::update_action_context(simulation, ActionType::CARD, entity_id);
+
+        let entities = &mut simulation.entities;
+        let character = entities
+            .query_one_mut::<&mut Character>(entity_id.into())
+            .ok()?;
+
+        let Some(card_props) = character.cards.pop() else {
+            log::error!("Card removed during context update?");
+            return None;
+        };
+
+        // call auxprop callbacks now that we've removed the card
+        simulation.call_pending_callbacks(game_io, resources);
+
+        Some(card_props)
+    }
+
     pub fn use_card(
         game_io: &GameIO,
         resources: &SharedBattleResources,
@@ -198,14 +230,18 @@ impl Character {
         if is_player && !simulation.time_freeze_tracker.time_is_frozen() {
             Player::use_card(game_io, resources, simulation, entity_id);
             return;
-        }
+        };
 
         let Some(card_props) = Self::take_boosted_card(game_io, resources, simulation, entity_id)
         else {
             return;
         };
 
-        Living::update_action_context(game_io, resources, simulation, ActionType::CARD, entity_id);
+        let Some(card_props) =
+            Self::set_card_context(game_io, resources, simulation, entity_id, card_props)
+        else {
+            return;
+        };
 
         let entities = &mut simulation.entities;
         let Ok(namespace) = entities.query_one_mut::<&PackageNamespace>(entity_id.into()) else {

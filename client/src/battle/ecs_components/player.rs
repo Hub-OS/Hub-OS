@@ -589,13 +589,9 @@ impl Player {
         })
         .collect();
 
-        Living::update_action_context(
-            game_io,
-            resources,
-            simulation,
-            ActionType::NORMAL,
-            entity_id,
-        );
+        Living::update_action_context(simulation, ActionType::NORMAL, entity_id);
+        // call auxprop callbacks
+        simulation.call_pending_callbacks(game_io, resources);
 
         Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
@@ -616,13 +612,9 @@ impl Player {
         })
         .collect();
 
-        Living::update_action_context(
-            game_io,
-            resources,
-            simulation,
-            ActionType::CHARGED,
-            entity_id,
-        );
+        Living::update_action_context(simulation, ActionType::CHARGED, entity_id);
+        // call auxprop callbacks
+        simulation.call_pending_callbacks(game_io, resources);
 
         Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
@@ -643,13 +635,9 @@ impl Player {
         })
         .collect();
 
-        Living::update_action_context(
-            game_io,
-            resources,
-            simulation,
-            ActionType::SPECIAL,
-            entity_id,
-        );
+        Living::update_action_context(simulation, ActionType::SPECIAL, entity_id);
+        // call auxprop callbacks
+        simulation.call_pending_callbacks(game_io, resources);
 
         Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
@@ -714,7 +702,11 @@ impl Player {
             return;
         };
 
-        Living::update_action_context(game_io, resources, simulation, ActionType::CARD, entity_id);
+        let Some(card_props) =
+            Character::set_card_context(game_io, resources, simulation, entity_id, card_props)
+        else {
+            return;
+        };
 
         let Ok((player, namespace)) = simulation
             .entities

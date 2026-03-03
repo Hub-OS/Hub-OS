@@ -590,13 +590,9 @@ impl Action {
 
                 if action_queue.action_type == ActionType::NONE {
                     // the action was prompted by script, not by the engine
-                    Living::update_action_context(
-                        game_io,
-                        resources,
-                        simulation,
-                        ActionType::SCRIPT,
-                        entity_id,
-                    );
+                    Living::update_action_context(simulation, ActionType::SCRIPT, entity_id);
+                    // call auxprop callbacks
+                    simulation.call_pending_callbacks(game_io, resources);
                 }
 
                 if !simulation.is_entity_actionable(resources, entity_id) {

@@ -938,8 +938,6 @@ impl Living {
     }
 
     pub fn update_action_context(
-        game_io: &GameIO,
-        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
         action_type: ActionTypes,
         entity_id: EntityId,
@@ -1023,6 +1021,6 @@ impl Living {
                 .extend(aux_prop.callbacks().iter().cloned());
         }
 
-        simulation.call_pending_callbacks(game_io, resources);
+        // call callbacks externally so modders can't remove cards pending queue
     }
 }

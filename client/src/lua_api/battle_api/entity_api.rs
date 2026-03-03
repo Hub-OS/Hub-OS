@@ -634,13 +634,9 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
 
-        Living::update_action_context(
-            api_ctx.game_io,
-            api_ctx.resources,
-            simulation,
-            action_type,
-            id,
-        );
+        Living::update_action_context(simulation, action_type, id);
+        // call auxprop callbacks
+        simulation.call_pending_callbacks(api_ctx.game_io, api_ctx.resources);
 
         lua.pack_multi(())
     });
