@@ -186,6 +186,11 @@ impl BlockGrid {
         self.blocks.remove(block_index)
     }
 
+    pub fn clear(&mut self) {
+        self.blocks.clear();
+        self.grid.fill(None);
+    }
+
     pub fn get_block(&self, position: (i8, i8)) -> Option<&InstalledBlock> {
         let grid_index = Self::calculate_index(position);
         let slot = *self.grid.get(grid_index)?;

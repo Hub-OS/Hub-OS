@@ -1047,6 +1047,7 @@ impl BlocksScene {
         Some(color)
     }
 
+    /// Adds the block back to the list and updates colors
     fn uninstall(&mut self, game_io: &GameIO, block: InstalledBlock) {
         let tracked_invalid_key = (Cow::Borrowed(&block.package_id), block.color);
 
@@ -1180,8 +1181,9 @@ impl BlocksScene {
     fn clear_grid(&mut self, game_io: &GameIO) {
         let blocks: Vec<_> = self.grid.installed_blocks().cloned().collect();
 
+        self.grid.clear();
+
         for block in blocks {
-            self.grid.remove_block(block.position);
             self.uninstall(game_io, block);
         }
     }
