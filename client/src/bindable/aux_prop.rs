@@ -310,6 +310,10 @@ impl AuxEffect {
         }
     }
 
+    pub fn generates_final_card(&self) -> bool {
+        matches!(self, AuxEffect::InterceptCard(_))
+    }
+
     pub fn modifies_final_card(&self) -> bool {
         matches!(
             self,

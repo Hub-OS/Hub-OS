@@ -386,7 +386,8 @@ impl Character {
 
         // clean up card use aux props
         Living::aux_prop_cleanup(simulation, |aux_prop| {
-            aux_prop.effect().modifies_final_card()
+            let effect = aux_prop.effect();
+            effect.generates_final_card() || effect.modifies_final_card()
         });
 
         simulation.call_pending_callbacks(game_io, resources);

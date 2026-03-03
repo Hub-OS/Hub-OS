@@ -750,8 +750,7 @@ impl Living {
             let mut intercept_callback = None;
 
             for aux_prop in living.aux_props.values_mut() {
-                if !matches!(aux_prop.effect(), AuxEffect::InterceptCard(_)) || aux_prop.activated()
-                {
+                if !aux_prop.effect().generates_final_card() || aux_prop.activated() {
                     // skip unrelated and activated aux_props
                     continue;
                 }
