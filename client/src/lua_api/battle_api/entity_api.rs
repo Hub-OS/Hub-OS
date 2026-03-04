@@ -687,7 +687,8 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
                 return lua.pack_multi(false);
             }
 
-            let Some(polled_id) = simulation.time_freeze_tracker.polled_entity() else {
+            let Some((polled_id, time_freeze_team)) = simulation.time_freeze_tracker.current_user()
+            else {
                 // no one to counter?
                 return lua.pack_multi(false);
             };
@@ -698,12 +699,6 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             }
 
             let entities = &mut simulation.entities;
-            let Ok(polled_entity) = entities.query_one_mut::<&Entity>(polled_id.into()) else {
-                return lua.pack_multi(false);
-            };
-
-            let time_freeze_team = polled_entity.team;
-
             let Ok(entity) = entities.query_one_mut::<&Entity>(id.into()) else {
                 return lua.pack_multi(false);
             };
