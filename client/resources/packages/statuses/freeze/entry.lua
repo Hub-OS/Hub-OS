@@ -130,6 +130,7 @@ function status_init(status)
   local break_aux_prop =
       AuxProp.new()
       :require_hit_element(Element.Break)
+      :require_hit_flags_absent(Hit.PierceGuard)
       :increase_hit_damage("DAMAGE")
       :with_callback(aux_prop_callback)
 
