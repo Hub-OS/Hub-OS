@@ -59,7 +59,7 @@ impl Input {
         Input::ShoulderR,
     ];
 
-    pub const NON_OVERLAP: [Input; 10] = [
+    pub const NON_OVERLAP: [Input; 11] = [
         Input::Up,
         Input::Down,
         Input::Left,
@@ -70,6 +70,7 @@ impl Input {
         Input::Option2,
         Input::ShoulderL,
         Input::ShoulderR,
+        Input::Special,
     ];
 
     pub const BATTLE: [Input; 19] = [
