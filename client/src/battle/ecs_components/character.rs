@@ -325,7 +325,9 @@ impl Character {
         simulation: &mut BattleSimulation,
         state_time: FrameTime,
     ) {
-        if simulation.time_freeze_tracker.time_is_frozen() {
+        let time_frozen = simulation.time_freeze_tracker.time_is_frozen();
+
+        if time_frozen {
             // TFCs are handled in the time freeze tracker
 
             // prevent awkward chip usage after time freeze by cancelling requests
@@ -335,11 +337,9 @@ impl Character {
                     character.card_use_requested = false;
                 }
             }
-
-            return;
         }
 
-        if state_time > BattleState::GRACE_TIME {
+        if state_time > BattleState::GRACE_TIME && !time_frozen {
             let mut requesters = Vec::new();
             let mut time_freeze_requested = false;
 
