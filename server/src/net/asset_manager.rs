@@ -133,20 +133,22 @@ impl AssetManager {
         asset_path: &'a str,
         chain: &mut Vec<&'a str>,
     ) {
-        if let Some(asset) = self.assets.get(asset_path) {
-            for dependency in &asset.dependencies {
-                let Some(dependency_path) = self.resolve_dependency_path(dependency) else {
-                    continue;
-                };
+        let Some(asset) = self.assets.get(asset_path) else {
+            return;
+        };
 
-                if chain.contains(&dependency_path) {
-                    continue;
-                }
+        chain.push(asset_path);
 
-                self.build_flattened_dependency_chain_with_recursion(dependency_path, chain);
+        for dependency in &asset.dependencies {
+            let Some(dependency_path) = self.resolve_dependency_path(dependency) else {
+                continue;
+            };
+
+            if chain.contains(&dependency_path) {
+                continue;
             }
 
-            chain.push(asset_path);
+            self.build_flattened_dependency_chain_with_recursion(dependency_path, chain);
         }
     }
 
