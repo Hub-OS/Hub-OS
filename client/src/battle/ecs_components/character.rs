@@ -286,7 +286,9 @@ impl Character {
             // update the card index
             character.next_card_mutation = Some(lua_card_index + 1);
 
-            let card_index = character.invert_card_index(lua_card_index);
+            let Some(card_index) = character.invert_card_index(lua_card_index) else {
+                break;
+            };
 
             // get the card or mark the mutate state as complete
             let Some(card) = &character.cards.get(card_index) else {
@@ -315,8 +317,8 @@ impl Character {
         }
     }
 
-    pub fn invert_card_index(&self, index: usize) -> usize {
-        self.cards.len().wrapping_sub(index).wrapping_sub(1)
+    pub fn invert_card_index(&self, index: usize) -> Option<usize> {
+        self.cards.len().checked_sub(index + 1)
     }
 
     pub fn process_card_requests(

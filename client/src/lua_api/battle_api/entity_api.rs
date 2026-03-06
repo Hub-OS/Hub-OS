@@ -1096,10 +1096,12 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
     getter::<&Character, _>(
         lua_api,
         "field_card",
-        |character: &Character, lua, index: isize| {
+        |character: &Character, lua, lua_index: isize| {
             // accepting index as isize to prevent type errors when we can just return nil
-            let index = character.invert_card_index((index - 1) as usize);
-            let card = character.cards.get(index);
+            let card = Some(lua_index - 1)
+                .filter(|&i| i >= 0)
+                .and_then(|i| character.invert_card_index(i as _))
+                .and_then(|i| character.cards.get(i));
 
             lua.pack_multi(card)
         },
@@ -1108,11 +1110,13 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
     setter(
         lua_api,
         "set_field_card",
-        |character: &mut Character, _, (index, card): (isize, CardProperties)| {
+        |character: &mut Character, _, (lua_index, card): (isize, CardProperties)| {
             // accepting index as isize to prevent type errors when we can just return nil
-            let index = character.invert_card_index((index - 1) as usize);
-
-            let Some(card_ref) = character.cards.get_mut(index) else {
+            let Some(card_ref) = Some(lua_index - 1)
+                .filter(|&i| i >= 0)
+                .and_then(|i| character.invert_card_index(i as _))
+                .and_then(|i| character.cards.get_mut(i))
+            else {
                 return Ok(());
             };
 
@@ -1131,27 +1135,32 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
     setter(
         lua_api,
         "remove_field_card",
-        |character: &mut Character, _, reversed_index: isize| {
+        |character: &mut Character, _, lua_index: isize| {
             // accepting index as isize to prevent type errors when we can just return nil
-            let reversed_index = (reversed_index - 1) as usize;
-
-            let usable_index = character.invert_card_index(reversed_index);
+            let Some(index) = Some(lua_index - 1)
+                .filter(|&i| i >= 0)
+                .and_then(|i| character.invert_card_index(i as _))
+            else {
+                return Ok(());
+            };
 
             // drop the card
-            if character.cards.get(usable_index).is_some() {
-                character.cards.remove(usable_index);
+            if character.cards.get(index).is_some() {
+                character.cards.remove(index);
             }
 
             // cancel card use if we dropped the card
-            if reversed_index == 0 {
+            let lua_index = lua_index as usize;
+
+            if lua_index == 1 {
                 character.card_use_requested = false;
             }
 
             // fix next_card_mutation as indices were shifted
             if let Some(next_index) = &mut character.next_card_mutation
-                && *next_index == reversed_index + 1
+                && *next_index == lua_index + 1
             {
-                *next_index = reversed_index;
+                *next_index = lua_index;
             }
 
             Ok(())
@@ -1161,12 +1170,16 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
     setter(
         lua_api,
         "insert_field_card",
-        |character: &mut Character, _, (index, card): (isize, CardProperties)| {
+        |character: &mut Character, _, (lua_index, card): (isize, CardProperties)| {
             // accepting index as isize to prevent type errors when we can just return nil
-            let index = if (index as usize) < character.cards.len() {
-                character.invert_card_index((index - 1) as usize)
+
+            let index = if lua_index < 1 {
+                character.cards.len()
             } else {
-                0
+                character
+                    .invert_card_index((lua_index - 1) as _)
+                    .map(|i| i + 1)
+                    .unwrap_or(0)
             };
 
             if index > character.cards.len() {
