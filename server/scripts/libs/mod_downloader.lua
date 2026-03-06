@@ -5,17 +5,45 @@ local ModDownloader = {
   FOLDER = "downloaded_mods"
 }
 
+-- nginx has an 8k header limit
+local ID_BYTE_LIMIT = 7000
+local ID_JOIN_STR = "&id="
+
+-- call within an Async scope
 ---@param package_id_list string[]
-function ModDownloader.maintain(package_id_list)
-  local encoded_package_ids = {}
+local function request_hashes(package_id_list)
+  local hash_map = {}
+  local next_id_index = 1
 
-  for _, package_id in ipairs(package_id_list) do
-    encoded_package_ids[#encoded_package_ids + 1] = Net.encode_uri_component(package_id)
-  end
+  while next_id_index <= #package_id_list do
+    local encoded_package_ids = {}
+    local header_bytes_used = 0
 
-  local encoded_ids_string = table.concat(encoded_package_ids, "&id=")
+    local start_i = next_id_index
+    -- set next_id_index to just after the end of the list in case the id loop passes
+    next_id_index = #package_id_list + 1
 
-  return Async.create_scope(function()
+    for i = start_i, #package_id_list do
+      local package_id = package_id_list[i]
+      local encoded_id = Net.encode_uri_component(package_id)
+
+      if header_bytes_used > 0 then
+        header_bytes_used = header_bytes_used + #ID_JOIN_STR
+      end
+
+      header_bytes_used = header_bytes_used + #encoded_id
+
+      if i ~= start_i and header_bytes_used > ID_BYTE_LIMIT then
+        -- set next_id_index to the index of the id we failed on
+        next_id_index = i
+        break
+      end
+
+      encoded_package_ids[#encoded_package_ids + 1] = encoded_id
+    end
+
+    local encoded_ids_string = table.concat(encoded_package_ids, ID_JOIN_STR)
+
     local response = Async.await(Async.request(ModDownloader.REPO .. "/api/mods/hashes?id=" .. encoded_ids_string))
 
     if response.status ~= 200 then
@@ -23,10 +51,21 @@ function ModDownloader.maintain(package_id_list)
       return nil
     end
 
-    local hash_map = {}
-
     for _, package_hash_result in ipairs(json.decode(response.body)) do
       hash_map[package_hash_result.id] = package_hash_result.hash
+    end
+  end
+
+  return hash_map
+end
+
+---@param package_id_list string[]
+function ModDownloader.maintain(package_id_list)
+  return Async.create_scope(function()
+    local hash_map = request_hashes(package_id_list)
+
+    if not hash_map then
+      return
     end
 
     Async.await(Async.ensure_dir("assets/" .. ModDownloader.FOLDER))
