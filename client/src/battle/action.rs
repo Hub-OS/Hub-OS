@@ -707,13 +707,16 @@ impl Action {
             if let Ok(action_queue) = simulation
                 .entities
                 .query_one_mut::<&mut ActionQueue>(action.entity.into())
-                && action_queue.active == Some(index)
             {
-                action.complete_sync(
-                    &mut simulation.entities,
-                    &mut simulation.pending_callbacks,
-                    &mut simulation.field,
-                );
+                if action_queue.active == Some(index) {
+                    action.complete_sync(
+                        &mut simulation.entities,
+                        &mut simulation.pending_callbacks,
+                        &mut simulation.field,
+                    );
+                } else {
+                    action_queue.pending.retain(|&action_i| action_i != index);
+                }
             }
 
             // end callbacks
