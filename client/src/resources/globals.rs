@@ -705,12 +705,13 @@ impl Globals {
 
             // nginx has an 8k header limit
             const ID_BYTE_LIMIT: usize = 7000;
+            const ID_JOIN_STR: &str = "&id=";
 
             // resolve id chunks
             let mut id_bytes_remaining = ID_BYTE_LIMIT;
 
             let id_chunk_iter = package_ids.chunk_by(|id_a, id_b| {
-                let bytes_required = id_a.len() + 1 + id_b.len();
+                let bytes_required = id_a.len() + ID_JOIN_STR.len() + id_b.len();
 
                 if id_bytes_remaining <= bytes_required {
                     id_bytes_remaining = ID_BYTE_LIMIT;
@@ -730,7 +731,7 @@ impl Globals {
 
                 log::info!("Requesting hashes: {ids_requested}/{}", package_ids.len());
 
-                let uri = format!("{repo}/api/mods/hashes?id={}", chunk.join("&id="));
+                let uri = format!("{repo}/api/mods/hashes?id={}", chunk.join(ID_JOIN_STR));
 
                 let Some(json) = crate::http::request_json(&uri).await else {
                     continue;
