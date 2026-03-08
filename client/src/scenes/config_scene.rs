@@ -6,6 +6,7 @@ use crate::packages::PackageNamespace;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
+use crate::saves::BattleZoomConfig;
 use crate::saves::DisplayInput;
 use crate::saves::{Config, GlobalSave, InternalResolution, KeyStyle};
 use crate::scenes::CreditsScene;
@@ -402,6 +403,19 @@ impl ConfigScene {
                     globals.snap_resize = config.snap_resize;
 
                     config.snap_resize
+                },
+            )),
+            Box::new(UiConfigCycle::new(
+                game_io,
+                "config-battle-zoom-label",
+                config.borrow().battle_zooming,
+                config.clone(),
+                &[
+                    ("config-battle-zoom-default", BattleZoomConfig::Default),
+                    ("config-battle-zoom-disabled", BattleZoomConfig::Disabled),
+                ],
+                |_, mut config, value, _| {
+                    config.battle_zooming = value;
                 },
             )),
             Box::new(UiConfigNumber::new_percentage(

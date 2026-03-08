@@ -6,7 +6,7 @@ use crate::packages::PackageNamespace;
 use crate::render::ui::{BattleBannerPopup, FontName, PlayerHealthUi, Text};
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::RecordedPreview;
+use crate::saves::{BattleZoomConfig, RecordedPreview};
 use crate::scenes::BattleEvent;
 use crate::structures::{DenseSlotMap, SlotMap};
 use framework::prelude::*;
@@ -309,7 +309,7 @@ impl BattleSimulation {
         // update background
         self.background.update();
 
-        self.update_camera();
+        self.update_camera(game_io);
 
         // reset fade colors
         resources.ui_fade_color.set(Color::TRANSPARENT);
@@ -555,13 +555,19 @@ impl BattleSimulation {
         }
     }
 
-    fn update_camera(&mut self) {
+    fn update_camera(&mut self, game_io: &GameIO) {
         self.camera.update();
 
         let scale = self.field.best_fitting_scale();
 
         if scale == Vec2::ONE {
             // no need to manage the camera if we can fit everything on screen
+            return;
+        }
+
+        let globals = Globals::from_resources(game_io);
+
+        if globals.config.battle_zooming == BattleZoomConfig::Disabled {
             return;
         }
 

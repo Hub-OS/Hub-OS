@@ -9,6 +9,13 @@ use itertools::Itertools;
 use std::collections::HashMap;
 
 #[derive(Default, Clone, Copy, PartialEq, Eq)]
+pub enum BattleZoomConfig {
+    #[default]
+    Default,
+    Disabled,
+}
+
+#[derive(Default, Clone, Copy, PartialEq, Eq)]
 pub enum KeyStyle {
     #[default]
     Mix,
@@ -35,6 +42,7 @@ pub enum DisplayInput {
 
 #[derive(Clone, PartialEq)]
 pub struct Config {
+    // video
     pub language: Option<String>,
     pub fullscreen: bool,
     pub vsync: bool,
@@ -42,6 +50,7 @@ pub struct Config {
     pub lock_aspect_ratio: bool,
     pub integer_scaling: bool,
     pub snap_resize: bool,
+    pub battle_zooming: BattleZoomConfig,
     pub flash_brightness: u8,
     pub brightness: u8,
     pub saturation: u8,
@@ -51,11 +60,13 @@ pub struct Config {
     pub drain_numbers: bool,
     pub display_input: DisplayInput,
     pub color_blindness: u8,
+    // audio
     pub music: u8,
     pub sfx: u8,
     pub mute_music: bool,
     pub mute_sfx: bool,
     pub audio_device: String,
+    // input
     pub key_style: KeyStyle,
     pub key_bindings: HashMap<Input, Vec<Key>>,
     pub controller_bindings: HashMap<Input, Vec<Button>>,
@@ -63,6 +74,7 @@ pub struct Config {
     pub virtual_input_positions: HashMap<Button, Vec2>,
     pub virtual_controller_scale: f32,
     pub input_delay: u8,
+    // online
     pub force_relay: bool,
     pub package_repo: String,
 }
@@ -311,6 +323,7 @@ impl Config {
 impl Default for Config {
     fn default() -> Config {
         Config {
+            // video
             language: None,
             fullscreen: {
                 cfg_android! {true}
@@ -321,6 +334,7 @@ impl Default for Config {
             lock_aspect_ratio: true,
             integer_scaling: false,
             snap_resize: false,
+            battle_zooming: Default::default(),
             flash_brightness: 100,
             brightness: 100,
             saturation: 100,
@@ -330,11 +344,13 @@ impl Default for Config {
             drain_numbers: false,
             display_input: Default::default(),
             color_blindness: PostProcessColorBlindness::TOTAL_OPTIONS,
+            // audio
             music: MAX_VOLUME / 2,
             sfx: MAX_VOLUME / 2,
             mute_music: false,
             mute_sfx: false,
             audio_device: String::new(),
+            // input
             key_style: Default::default(),
             key_bindings: Self::default_key_bindings(Default::default()),
             controller_bindings: Self::default_controller_bindings(),
@@ -342,6 +358,7 @@ impl Default for Config {
             virtual_input_positions: Self::default_virtual_input_positions(),
             virtual_controller_scale: 1.0,
             input_delay: DEFAULT_INPUT_DELAY,
+            // online
             force_relay: false,
             package_repo: String::from(DEFAULT_PACKAGE_REPO),
         }
@@ -355,6 +372,7 @@ impl From<&str> for Config {
         use strum::IntoEnumIterator;
 
         let mut config = Config {
+            // video
             language: None,
             fullscreen: false,
             vsync: true,
@@ -362,6 +380,7 @@ impl From<&str> for Config {
             lock_aspect_ratio: true,
             integer_scaling: false,
             snap_resize: false,
+            battle_zooming: Default::default(),
             flash_brightness: 100,
             brightness: 100,
             saturation: 100,
@@ -371,11 +390,13 @@ impl From<&str> for Config {
             drain_numbers: false,
             display_input: Default::default(),
             color_blindness: PostProcessColorBlindness::TOTAL_OPTIONS,
+            // audio
             music: MAX_VOLUME,
             sfx: MAX_VOLUME,
             mute_music: false,
             mute_sfx: false,
             audio_device: String::new(),
+            // input
             key_style: Default::default(),
             key_bindings: HashMap::new(),
             controller_bindings: HashMap::new(),
@@ -383,6 +404,7 @@ impl From<&str> for Config {
             virtual_input_positions: Self::default_virtual_input_positions(),
             virtual_controller_scale: 1.0,
             input_delay: DEFAULT_INPUT_DELAY,
+            // online
             force_relay: false,
             package_repo: String::from(DEFAULT_PACKAGE_REPO),
         };
@@ -414,6 +436,15 @@ impl From<&str> for Config {
             config.lock_aspect_ratio = parse_or_default(properties.get("LockAspectRatio"));
             config.integer_scaling = parse_or_default(properties.get("IntegerScaling"));
             config.snap_resize = parse_or_default(properties.get("SnapResize"));
+            config.battle_zooming = match properties
+                .get("BattleZooming")
+                .unwrap_or_default()
+                .to_lowercase()
+                .as_str()
+            {
+                "disabled" => BattleZoomConfig::Disabled,
+                _ => BattleZoomConfig::Default,
+            };
             config.flash_brightness = parse_or(properties.get("FlashBrightness"), 100);
             config.brightness = parse_or(properties.get("Brightness"), 100);
             config.saturation = parse_or(properties.get("Saturation"), 100);
@@ -554,6 +585,12 @@ impl std::fmt::Display for Config {
         writeln!(f, "LockAspectRatio = {}", self.lock_aspect_ratio)?;
         writeln!(f, "IntegerScaling = {}", self.integer_scaling)?;
         writeln!(f, "SnapResize = {}", self.snap_resize)?;
+
+        match self.battle_zooming {
+            BattleZoomConfig::Default => writeln!(f, "BattleZooming = default")?,
+            BattleZoomConfig::Disabled => writeln!(f, "BattleZooming = disabled")?,
+        }
+
         writeln!(f, "FlashBrightness = {}", self.flash_brightness)?;
         writeln!(f, "Brightness = {}", self.brightness)?;
         writeln!(f, "Saturation = {}", self.saturation)?;
