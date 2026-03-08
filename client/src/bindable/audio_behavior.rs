@@ -1,4 +1,4 @@
-#[derive(Default)]
+#[derive(Default, Clone, Copy)]
 pub enum AudioBehavior {
     #[default]
     Default,

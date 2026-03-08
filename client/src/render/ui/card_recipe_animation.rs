@@ -180,7 +180,7 @@ impl CardRecipeAnimation {
                 if self.time == 1 {
                     if local && self.changes_contain_index(self.visible_card_count) {
                         let globals = Globals::from_resources(game_io);
-                        simulation.play_sound(game_io, &globals.sfx.indicate);
+                        simulation.play_sound(game_io, resources, &globals.sfx.indicate);
                     }
 
                     self.visible_card_count += 1;
@@ -191,7 +191,7 @@ impl CardRecipeAnimation {
             State::DisplayChanges => {
                 if local && self.time == 1 {
                     let globals = Globals::from_resources(game_io);
-                    simulation.play_sound(game_io, &globals.sfx.craft);
+                    simulation.play_sound(game_io, resources, &globals.sfx.craft);
                 }
             }
             State::FadeIn => {

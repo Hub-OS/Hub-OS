@@ -149,10 +149,15 @@ impl FormActivateState {
 
         simulation.call_pending_callbacks(game_io, resources);
 
-        self.spawn_shine(game_io, simulation);
+        self.spawn_shine(game_io, resources, simulation);
     }
 
-    fn spawn_shine(&mut self, game_io: &GameIO, simulation: &mut BattleSimulation) {
+    fn spawn_shine(
+        &mut self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
         let mut relevant_ids = Vec::new();
 
         for (id, player) in simulation.entities.query_mut::<&mut Player>() {
@@ -197,8 +202,8 @@ impl FormActivateState {
 
         // play sfx
         let globals = Globals::from_resources(game_io);
-        simulation.play_sound(game_io, &globals.sfx.shine);
-        simulation.play_sound(game_io, &globals.sfx.form_activate);
+        simulation.play_sound(game_io, resources, &globals.sfx.shine);
+        simulation.play_sound(game_io, resources, &globals.sfx.form_activate);
     }
 
     fn detect_animation_end(

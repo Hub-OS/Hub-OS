@@ -218,7 +218,7 @@ impl TileState {
         cracked_state.hide_body = true;
 
         cracked_state.entity_leave_callback = BattleCallback::new(
-            |game_io, _, simulation, (entity_id, old_x, old_y): (EntityId, i32, i32)| {
+            |game_io, resources, simulation, (entity_id, old_x, old_y): (EntityId, i32, i32)| {
                 let entities = &mut simulation.entities;
                 let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
                     return;
@@ -233,12 +233,10 @@ impl TileState {
                 };
 
                 if tile.reservations().is_empty() {
-                    if !simulation.is_resimulation {
-                        let globals = Globals::from_resources(game_io);
-                        globals.audio.play_sound(&globals.sfx.tile_break);
-                    }
-
                     tile.set_state_index(TileState::BROKEN, Some(BROKEN_LIFETIME));
+
+                    let globals = Globals::from_resources(game_io);
+                    simulation.play_sound(game_io, resources, &globals.sfx.tile_break);
                 }
             },
         );

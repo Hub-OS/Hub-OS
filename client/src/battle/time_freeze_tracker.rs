@@ -480,13 +480,13 @@ impl TimeFreezeTracker {
             ActionFreezeState::FadeIn => {
                 if state_just_started {
                     let globals = Globals::from_resources(game_io);
-                    simulation.play_sound(game_io, &globals.sfx.time_freeze);
+                    simulation.play_sound(game_io, resources, &globals.sfx.time_freeze);
                 }
             }
             ActionFreezeState::Countered => {
                 if state_just_started {
                     let globals = Globals::from_resources(game_io);
-                    globals.audio.play_sound(&globals.sfx.trap);
+                    simulation.play_sound(game_io, resources, &globals.sfx.trap);
                 }
             }
             ActionFreezeState::Counterable => {

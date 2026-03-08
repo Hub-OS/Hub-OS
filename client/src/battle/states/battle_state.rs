@@ -219,7 +219,7 @@ impl BattleState {
         if previously_incomplete {
             // just completed, play a sfx
             let globals = Globals::from_resources(game_io);
-            simulation.play_sound(game_io, &globals.sfx.turn_gauge);
+            simulation.play_sound(game_io, resources, &globals.sfx.turn_gauge);
         }
 
         let config = resources.config.borrow();

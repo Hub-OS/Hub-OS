@@ -245,57 +245,60 @@ impl IntroState {
         let action = &mut simulation.actions[action_index];
         action.lockout_type = ActionLockout::Sequence;
 
-        action.execute_callback = Some(BattleCallback::new(move |game_io, _, simulation, _| {
-            // play a sound to start
-            let sfx = &Globals::from_resources(game_io).sfx;
-            simulation.play_sound(game_io, &sfx.appear);
+        action.execute_callback = Some(BattleCallback::new(
+            move |game_io, resources, simulation, _| {
+                // play a sound to start
+                let sfx = &Globals::from_resources(game_io).sfx;
+                simulation.play_sound(game_io, resources, &sfx.appear);
 
-            // create action step now that we know our start time
-            let start_time = simulation.time;
-            let action = &mut simulation.actions[action_index];
+                // create action step now that we know our start time
+                let start_time = simulation.time;
+                let action = &mut simulation.actions[action_index];
 
-            let mut action_step = ActionStep::default();
-            action_step.callback = BattleCallback::new(move |_, _, simulation, ()| {
-                let Some(action) = &mut simulation.actions.get_mut(action_index) else {
-                    return;
-                };
-                let Some(action_step) = action.steps.get_mut(0) else {
-                    return;
-                };
-                let Ok(entity) = simulation
-                    .entities
-                    .query_one_mut::<&mut Entity>(action.entity.into())
-                else {
-                    action_step.completed = true;
-                    return;
-                };
-                let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index)
-                else {
-                    action_step.completed = true;
-                    return;
-                };
+                let mut action_step = ActionStep::default();
+                action_step.callback = BattleCallback::new(move |_, _, simulation, ()| {
+                    let Some(action) = &mut simulation.actions.get_mut(action_index) else {
+                        return;
+                    };
+                    let Some(action_step) = action.steps.get_mut(0) else {
+                        return;
+                    };
+                    let Ok(entity) = simulation
+                        .entities
+                        .query_one_mut::<&mut Entity>(action.entity.into())
+                    else {
+                        action_step.completed = true;
+                        return;
+                    };
+                    let Some(sprite_tree) =
+                        simulation.sprite_trees.get_mut(entity.sprite_tree_index)
+                    else {
+                        action_step.completed = true;
+                        return;
+                    };
 
-                let elapsed = simulation.time - start_time;
+                    let elapsed = simulation.time - start_time;
 
-                let max_time = DEFAULT_ANIMATION_TIME / 2;
-                let time = (elapsed + 1) / 2;
+                    let max_time = DEFAULT_ANIMATION_TIME / 2;
+                    let time = (elapsed + 1) / 2;
 
-                let alpha = time as f32 / max_time as f32;
+                    let alpha = time as f32 / max_time as f32;
 
-                let root_sprite = sprite_tree.root_mut();
+                    let root_sprite = sprite_tree.root_mut();
 
-                if alpha < 1.0 {
-                    root_sprite.set_alpha(alpha);
-                    root_sprite.set_shader_effect(SpriteShaderEffect::Pixelate)
-                } else {
-                    root_sprite.set_alpha(1.0);
-                    root_sprite.set_shader_effect(SpriteShaderEffect::Default);
-                    action_step.completed = true;
-                }
-            });
+                    if alpha < 1.0 {
+                        root_sprite.set_alpha(alpha);
+                        root_sprite.set_shader_effect(SpriteShaderEffect::Pixelate)
+                    } else {
+                        root_sprite.set_alpha(1.0);
+                        root_sprite.set_shader_effect(SpriteShaderEffect::Default);
+                        action_step.completed = true;
+                    }
+                });
 
-            action.steps.push(action_step);
-        }));
+                action.steps.push(action_step);
+            },
+        ));
 
         // resume sprite animations when battle begins
         let mut component = Component::new(entity_id, ComponentLifetime::Battle);

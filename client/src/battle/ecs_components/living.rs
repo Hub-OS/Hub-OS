@@ -370,7 +370,7 @@ impl Living {
                         // play counter sfx if the attack was caused by the local player
                         if simulation.local_player_id == aggressor_id {
                             let globals = Globals::from_resources(game_io);
-                            simulation.play_sound(game_io, &globals.sfx.counter_hit);
+                            simulation.play_sound(game_io, resources, &globals.sfx.counter_hit);
                         }
                     });
 
@@ -393,17 +393,16 @@ impl Living {
             .query_one_mut::<(&mut Living, Option<&Obstacle>)>(entity_id.into())
             .unwrap();
 
-        if play_hurt_sfx && !simulation.is_resimulation {
+        let hurt_sfx = play_hurt_sfx.then(|| {
             let globals = Globals::from_resources(game_io);
-
             if simulation.local_player_id == entity_id {
-                globals.audio.play_sound(&globals.sfx.hurt);
+                &globals.sfx.hurt
             } else if obstacle.is_some() {
-                globals.audio.play_sound(&globals.sfx.hurt_obstacle);
+                &globals.sfx.hurt_obstacle
             } else {
-                globals.audio.play_sound(&globals.sfx.hurt_opponent);
+                &globals.sfx.hurt_opponent
             }
-        }
+        });
 
         // apply post hit aux props
         let mut drained: i32 = 0;
@@ -481,6 +480,11 @@ impl Living {
             if drained > 0 {
                 HpChanges::track_source(simulation, entity_id, HpChangeSource::Drain, drained);
             }
+        }
+
+        // play sfx
+        if let Some(sound_buffer) = hurt_sfx {
+            simulation.play_sound(game_io, resources, sound_buffer);
         }
     }
 

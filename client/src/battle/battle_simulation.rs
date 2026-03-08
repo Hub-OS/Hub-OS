@@ -195,20 +195,28 @@ impl BattleSimulation {
         }
     }
 
-    pub fn play_sound(&self, game_io: &GameIO, sound_buffer: &SoundBuffer) {
-        if !self.is_resimulation {
-            let globals = Globals::from_resources(game_io);
-            globals.audio.play_sound(sound_buffer);
-        }
+    pub fn play_sound(
+        &self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        sound_buffer: &SoundBuffer,
+    ) {
+        self.play_sound_with_behavior(game_io, resources, sound_buffer, AudioBehavior::Default);
     }
 
     pub fn play_sound_with_behavior(
         &self,
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         sound_buffer: &SoundBuffer,
         behavior: AudioBehavior,
     ) {
-        if !self.is_resimulation {
+        if resources.audio_tracking.track_sound(
+            self.time,
+            self.is_resimulation,
+            sound_buffer,
+            behavior,
+        ) {
             let globals = Globals::from_resources(game_io);
             let audio = &globals.audio;
             audio.play_sound_with_behavior(sound_buffer, behavior);

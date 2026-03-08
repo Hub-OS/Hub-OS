@@ -160,7 +160,7 @@ impl State for CardSelectState {
             // sfx
             if !pre_confirmed {
                 let globals = Globals::from_resources(game_io);
-                simulation.play_sound(game_io, &globals.sfx.card_select_open);
+                simulation.play_sound(game_io, resources, &globals.sfx.card_select_open);
             }
 
             self.dark_card_check(simulation, game_io);
@@ -536,7 +536,7 @@ impl CardSelectState {
                     // sfx
                     if selection.local {
                         let globals = Globals::from_resources(game_io);
-                        simulation.play_sound(game_io, &globals.sfx.form_select);
+                        simulation.play_sound(game_io, resources, &globals.sfx.form_select);
                     }
 
                     return;
@@ -616,7 +616,7 @@ impl CardSelectState {
 
             if selection.local {
                 let globals = Globals::from_resources(game_io);
-                simulation.play_sound(game_io, &globals.sfx.card_select_toggle);
+                simulation.play_sound(game_io, resources, &globals.sfx.card_select_toggle);
             }
         }
 
@@ -767,7 +767,7 @@ impl CardSelectState {
         }
 
         for sfx in pending_sfx {
-            simulation.play_sound(game_io, sfx);
+            simulation.play_sound(game_io, resources, sfx);
         }
 
         simulation.call_pending_callbacks(game_io, resources);
@@ -806,7 +806,7 @@ impl CardSelectState {
 
             if selection.local {
                 // not using pending_sfx since we're returning right after anyway
-                simulation.play_sound(game_io, &globals.sfx.form_select_open);
+                simulation.play_sound(game_io, resources, &globals.sfx.form_select_open);
             }
             return;
         }
@@ -946,7 +946,7 @@ impl CardSelectState {
         }
 
         for (sfx, behavior) in pending_sfx {
-            simulation.play_sound_with_behavior(game_io, sfx, behavior);
+            simulation.play_sound_with_behavior(game_io, resources, sfx, behavior);
         }
 
         if selection.local {
@@ -997,11 +997,12 @@ impl CardSelectState {
 
         if success {
             if uses_default_audio && selection.local {
-                simulation.play_sound(game_io, &globals.sfx.cursor_select);
+                simulation.play_sound(game_io, resources, &globals.sfx.cursor_select);
             }
         } else if selection.local {
             simulation.play_sound_with_behavior(
                 game_io,
+                resources,
                 &globals.sfx.cursor_error,
                 AudioBehavior::NoOverlap,
             );
@@ -1033,7 +1034,7 @@ impl CardSelectState {
                 }
 
                 if local {
-                    simulation.play_sound(game_io, &globals.sfx.form_deactivate);
+                    simulation.play_sound(game_io, resources, &globals.sfx.form_deactivate);
                 }
             }
 
@@ -1047,10 +1048,11 @@ impl CardSelectState {
         // sfx
         if local {
             if applied {
-                simulation.play_sound(game_io, &globals.sfx.cursor_cancel);
+                simulation.play_sound(game_io, resources, &globals.sfx.cursor_cancel);
             } else {
                 simulation.play_sound_with_behavior(
                     game_io,
+                    resources,
                     &globals.sfx.cursor_error,
                     AudioBehavior::NoOverlap,
                 );
@@ -1279,6 +1281,7 @@ impl CardSelectState {
 
             simulation.play_sound_with_behavior(
                 game_io,
+                resources,
                 &globals.sfx.dark_card,
                 AudioBehavior::NoOverlap,
             );

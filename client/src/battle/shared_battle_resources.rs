@@ -1,5 +1,6 @@
 use super::external_events::ExternalEvents;
 use super::{BattleConfig, BattleMeta, BattleSimulation, StatusRegistry, TileState};
+use crate::battle::BattleAudioTracking;
 use crate::bindable::{AuxVariable, MathExpr};
 use crate::lua_api::BattleVmManager;
 use crate::packages::{PackageInfo, PackageNamespace};
@@ -30,6 +31,7 @@ pub struct SharedBattleResources {
     pub battle_fade_color: Cell<Color>,
     pub ui_fade_color: Cell<Color>,
     pub fade_sprite: RefCell<Sprite>,
+    pub audio_tracking: BattleAudioTracking,
     pub music_stack_depth: usize,
     pub event_sender: flume::Sender<BattleEvent>,
     pub event_receiver: flume::Receiver<BattleEvent>,
@@ -64,6 +66,7 @@ impl SharedBattleResources {
             battle_fade_color: Default::default(),
             ui_fade_color: Default::default(),
             fade_sprite: fade_sprite.into(),
+            audio_tracking: Default::default(),
             music_stack_depth: globals.audio.music_stack_len() + 1,
             event_sender,
             event_receiver,

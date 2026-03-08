@@ -74,8 +74,12 @@ impl Artifact {
             ResourcePaths::BATTLE_EXPLOSION_ANIMATION,
         );
 
-        let spawn_callback = BattleCallback::new(|game_io, _, simulation, _| {
-            simulation.play_sound(game_io, &Globals::from_resources(game_io).sfx.explode);
+        let spawn_callback = BattleCallback::new(|game_io, resources, simulation, _| {
+            simulation.play_sound(
+                game_io,
+                resources,
+                &Globals::from_resources(game_io).sfx.explode,
+            );
         });
 
         let _ = simulation
@@ -102,8 +106,12 @@ impl Artifact {
             ResourcePaths::BATTLE_TRAP_ALERT_ANIMATION,
         );
 
-        let spawn_callback = BattleCallback::new(|game_io, _, simulation, _| {
-            simulation.play_sound(game_io, &Globals::from_resources(game_io).sfx.trap);
+        let spawn_callback = BattleCallback::new(|game_io, resources, simulation, _| {
+            simulation.play_sound(
+                game_io,
+                resources,
+                &Globals::from_resources(game_io).sfx.trap,
+            );
         });
 
         let _ = simulation

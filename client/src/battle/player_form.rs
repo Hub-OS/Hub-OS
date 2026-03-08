@@ -74,7 +74,7 @@ impl PlayerForm {
 
         simulation.time_freeze_tracker.queue_animation(
             30,
-            BattleCallback::new(move |game_io, _, simulation, _| {
+            BattleCallback::new(move |game_io, resources, simulation, _| {
                 let entities = &mut simulation.entities;
 
                 let Ok((entity, living, player)) =
@@ -108,7 +108,7 @@ impl PlayerForm {
 
                 // play revert sfx
                 let sfx = &Globals::from_resources(game_io).sfx;
-                simulation.play_sound(game_io, &sfx.form_deactivate);
+                simulation.play_sound(game_io, resources, &sfx.form_deactivate);
 
                 // actual shine creation as indicated above
                 let shine_id = Artifact::create_transformation_shine(game_io, simulation);

@@ -797,9 +797,15 @@ impl BattleScene {
             self.record_buffer_limits();
         }
 
+        self.resources
+            .audio_tracking
+            .prep_resimulation(start_time, self.simulation.time);
+
         // rollback
         let steps = (local_time - start_time) as usize;
         self.rollback(game_io, steps);
+
+        debug_assert_eq!(start_time, self.simulation.time);
 
         self.simulation.is_resimulation = true;
         self.resimulating = true;
@@ -812,6 +818,7 @@ impl BattleScene {
 
         self.simulation.is_resimulation = false;
         self.resimulating = false;
+        self.resources.audio_tracking.end_resimulation(game_io);
     }
 
     fn rewind(&mut self, game_io: &mut GameIO, mut steps: usize) {
@@ -912,6 +919,12 @@ impl BattleScene {
         if self.backups.len() > INPUT_BUFFER_LIMIT {
             let backup = self.backups.pop_front();
             let server_comms = self.comms.server.as_ref();
+
+            if let Some(backup) = &backup {
+                self.resources
+                    .audio_tracking
+                    .drop_frame(backup.simulation.time);
+            }
 
             if let (Some(backup), Some((send, _))) = (backup, server_comms) {
                 let messages = backup.simulation.external_outbox;
@@ -1153,6 +1166,8 @@ impl Scene for BattleScene {
 
             globals.battle_recording = Some((meta, recording, preview))
         }
+
+        self.resources.audio_tracking.end_loops(game_io);
     }
 
     fn update(&mut self, game_io: &mut GameIO) {

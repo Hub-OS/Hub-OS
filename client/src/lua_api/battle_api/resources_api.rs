@@ -39,14 +39,11 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
         let api_ctx = api_ctx.borrow();
         let game_io = &api_ctx.game_io;
         let simulation = &api_ctx.simulation;
+        let resources = &api_ctx.resources;
 
-        if !simulation.is_resimulation || matches!(behavior, AudioBehavior::EndLoop) {
-            let globals = Globals::from_resources(game_io);
-            let sound_buffer = globals.assets.audio(game_io, &path);
-            let audio = &globals.audio;
-
-            audio.play_sound_with_behavior(&sound_buffer, behavior);
-        }
+        let globals = Globals::from_resources(game_io);
+        let sound_buffer = globals.assets.audio(game_io, &path);
+        simulation.play_sound_with_behavior(game_io, resources, &sound_buffer, behavior);
 
         lua.pack_multi(())
     });
@@ -59,6 +56,7 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let game_io = api_ctx.game_io;
+        let resources = api_ctx.resources;
         let simulation = &mut api_ctx.simulation;
         let entities = &mut simulation.entities;
 
@@ -66,14 +64,11 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
 
         let player = entities.query_one_mut::<&Player>(entity_id.into()).ok();
 
-        if player.is_some_and(|player| player.index == simulation.local_player_index)
-            && (!simulation.is_resimulation || matches!(behavior, AudioBehavior::EndLoop))
-        {
+        if player.is_some_and(|player| player.index == simulation.local_player_index) {
             let globals = Globals::from_resources(game_io);
             let sound_buffer = globals.assets.audio(game_io, &path);
-            let audio = &globals.audio;
 
-            audio.play_sound_with_behavior(&sound_buffer, behavior);
+            simulation.play_sound_with_behavior(game_io, resources, &sound_buffer, behavior);
         }
 
         lua.pack_multi(())
