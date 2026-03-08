@@ -50,6 +50,7 @@ pub struct Config {
     pub lock_aspect_ratio: bool,
     pub integer_scaling: bool,
     pub snap_resize: bool,
+    pub screen_shake: bool,
     pub battle_zooming: BattleZoomConfig,
     pub flash_brightness: u8,
     pub brightness: u8,
@@ -334,6 +335,7 @@ impl Default for Config {
             lock_aspect_ratio: true,
             integer_scaling: false,
             snap_resize: false,
+            screen_shake: true,
             battle_zooming: Default::default(),
             flash_brightness: 100,
             brightness: 100,
@@ -380,6 +382,7 @@ impl From<&str> for Config {
             lock_aspect_ratio: true,
             integer_scaling: false,
             snap_resize: false,
+            screen_shake: true,
             battle_zooming: Default::default(),
             flash_brightness: 100,
             brightness: 100,
@@ -436,6 +439,7 @@ impl From<&str> for Config {
             config.lock_aspect_ratio = parse_or_default(properties.get("LockAspectRatio"));
             config.integer_scaling = parse_or_default(properties.get("IntegerScaling"));
             config.snap_resize = parse_or_default(properties.get("SnapResize"));
+            config.screen_shake = parse_or(properties.get("ScreenShake"), true);
             config.battle_zooming = match properties
                 .get("BattleZooming")
                 .unwrap_or_default()
@@ -585,6 +589,7 @@ impl std::fmt::Display for Config {
         writeln!(f, "LockAspectRatio = {}", self.lock_aspect_ratio)?;
         writeln!(f, "IntegerScaling = {}", self.integer_scaling)?;
         writeln!(f, "SnapResize = {}", self.snap_resize)?;
+        writeln!(f, "ScreenShake = {}", self.screen_shake)?;
 
         match self.battle_zooming {
             BattleZoomConfig::Default => writeln!(f, "BattleZooming = default")?,

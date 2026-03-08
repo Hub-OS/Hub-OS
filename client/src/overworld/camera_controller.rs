@@ -1,5 +1,6 @@
 use super::Map;
 use crate::render::{Camera, CameraMotion};
+use crate::resources::Globals;
 use framework::prelude::*;
 use std::collections::VecDeque;
 
@@ -132,7 +133,11 @@ impl CameraController {
                     },
                 ),
                 CameraAction::Shake { strength, duration } => {
-                    camera.shake(strength, (duration * 60.0) as _)
+                    let globals = Globals::from_resources(game_io);
+
+                    if globals.config.screen_shake {
+                        camera.shake(strength, (duration * 60.0) as _)
+                    }
                 }
                 CameraAction::Fade { color, duration } => {
                     camera.fade(color, (duration * 60.0) as _)

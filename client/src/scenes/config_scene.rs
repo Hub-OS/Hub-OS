@@ -405,6 +405,16 @@ impl ConfigScene {
                     config.snap_resize
                 },
             )),
+            Box::new(UiConfigToggle::new(
+                game_io,
+                "config-screen-shake-label",
+                config.borrow().screen_shake,
+                config.clone(),
+                |_, mut config| {
+                    config.screen_shake = !config.screen_shake;
+                    config.screen_shake
+                },
+            )),
             Box::new(UiConfigCycle::new(
                 game_io,
                 "config-battle-zoom-label",

@@ -47,6 +47,7 @@ config-resolution-auto = Auto
 config-lock-aspect-label = Lock Aspect
 config-integer-scaling-label = Integer Scaling
 config-snap-resize-label = Snap Resize
+config-screen-shake-label = Screen Shake
 config-battle-zoom-label = Battle Zoom
 config-battle-zoom-default = Default
 config-battle-zoom-disabled = Off

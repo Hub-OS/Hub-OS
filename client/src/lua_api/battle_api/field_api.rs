@@ -5,6 +5,7 @@ use crate::battle::{Character, Entity, Obstacle, Player, Spell};
 use crate::bindable::{EntityId, Team};
 use crate::lua_api::FIELD_COMPAT_TABLE;
 use crate::render::FrameTime;
+use crate::resources::Globals;
 use framework::prelude::IVec2;
 
 pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
@@ -133,8 +134,12 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
 
         let mut api_ctx = api_ctx.borrow_mut();
 
-        let camera = &mut api_ctx.simulation.camera;
-        camera.shake(power, duration);
+        let globals = Globals::from_resources(api_ctx.game_io);
+
+        if globals.config.screen_shake {
+            let camera = &mut api_ctx.simulation.camera;
+            camera.shake(power, duration);
+        }
 
         lua.pack_multi(())
     });
