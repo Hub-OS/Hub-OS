@@ -1,0 +1,6 @@
+[package]
+category = "resource"
+id = "dev.hubos.Resources.CustomizeMusicA"
+name = "Customize Music A"
+long_name = "Customize Your\nHub OS - A"
+description = "by Mondo"
