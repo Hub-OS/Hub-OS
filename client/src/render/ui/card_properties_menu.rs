@@ -1,3 +1,4 @@
+use crate::bindable::CardClass;
 use crate::bindable::Element;
 use crate::packages::PackageNamespace;
 use crate::render::ui::*;
@@ -19,6 +20,7 @@ const ROWS: usize = 5;
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub enum CardPropertyFilter {
+    CardClass(CardClass),
     Element(Element),
     HitFlag {
         id: PackageId,
@@ -33,6 +35,10 @@ pub enum CardPropertyFilter {
 }
 
 const STATIC_PROPERTIES: &[CardPropertyFilter] = &[
+    CardPropertyFilter::CardClass(CardClass::Standard),
+    CardPropertyFilter::CardClass(CardClass::Mega),
+    CardPropertyFilter::CardClass(CardClass::Giga),
+    CardPropertyFilter::CardClass(CardClass::Dark),
     CardPropertyFilter::Chargeable,
     CardPropertyFilter::Boostable,
     CardPropertyFilter::Recovers,
@@ -175,7 +181,7 @@ impl CardPropertiesMenu {
             cursor_animator: cursor_animator
                 .with_state("DEFAULT")
                 .with_loop_mode(AnimatorLoopMode::Loop),
-            h_scroll_tracker: ScrollTracker::new(game_io, Element::COUNT).with_wrap(true),
+            h_scroll_tracker: ScrollTracker::new(game_io, STATIC_PROPERTIES.len()).with_wrap(true),
             v_scroll_tracker: ScrollTracker::new(game_io, ROWS).with_total_items(2 + status_rows),
             hovered_item: None,
             hovered_text: Default::default(),
@@ -197,7 +203,8 @@ impl CardPropertiesMenu {
         self.open = true;
         self.h_scroll_tracker.set_selected_index(0);
         self.v_scroll_tracker.set_selected_index(0);
-        self.h_scroll_tracker.set_total_items(Element::COUNT);
+        self.h_scroll_tracker
+            .set_total_items(STATIC_PROPERTIES.len());
         self.resolve_hovered_item(game_io);
     }
 
@@ -234,8 +241,8 @@ impl CardPropertiesMenu {
 
         if prev_v_index != self.v_scroll_tracker.selected_index() {
             let total_items = match self.v_scroll_tracker.selected_index() {
-                0 => Element::COUNT,
-                1 => STATIC_PROPERTIES.len(),
+                0 => STATIC_PROPERTIES.len(),
+                1 => Element::COUNT,
                 row => (self.statuses.len() - (row - 2) * COLS).min(COLS),
             };
 
@@ -272,12 +279,12 @@ impl CardPropertiesMenu {
 
     fn resolve_hovered_item(&mut self, game_io: &GameIO) {
         self.hovered_item = match self.v_scroll_tracker.selected_index() {
-            0 => Element::iter()
-                .nth(self.h_scroll_tracker.selected_index())
-                .map(CardPropertyFilter::Element),
-            1 => STATIC_PROPERTIES
+            0 => STATIC_PROPERTIES
                 .get(self.h_scroll_tracker.selected_index())
                 .cloned(),
+            1 => Element::iter()
+                .nth(self.h_scroll_tracker.selected_index())
+                .map(CardPropertyFilter::Element),
             row => {
                 let i = (row - 2) * COLS + self.h_scroll_tracker.selected_index();
                 self.statuses.get(i).map(|s| CardPropertyFilter::HitFlag {
@@ -294,6 +301,9 @@ impl CardPropertiesMenu {
             .hovered_item
             .as_ref()
             .map(|item| match item {
+                CardPropertyFilter::CardClass(card_class) => {
+                    globals.translate(card_class.translation_key())
+                }
                 CardPropertyFilter::Element(element) => {
                     globals.translate(element.translation_key())
                 }
@@ -331,25 +341,12 @@ impl CardPropertiesMenu {
         for row in self.v_scroll_tracker.view_range() {
             match row {
                 0 => {
-                    for element in Element::iter() {
-                        let mut sprite = ElementSprite::new(game_io, element);
-                        sprite.set_position(item_position);
-                        sprite_queue.draw_sprite(&sprite);
-
-                        // render selection frame
-                        let key = CardPropertyFilter::Element(element);
-
-                        if self.applied_filters.contains(&key) {
-                            self.selection_frame_sprite.set_position(item_position);
-                            sprite_queue.draw_sprite(&self.selection_frame_sprite);
-                        }
-
-                        item_position.x += ITEM_W;
-                    }
-                }
-                1 => {
                     for filter in STATIC_PROPERTIES {
                         let state = match filter {
+                            CardPropertyFilter::CardClass(CardClass::Standard) => "STANDARD_MINI",
+                            CardPropertyFilter::CardClass(CardClass::Mega) => "MEGA_MINI",
+                            CardPropertyFilter::CardClass(CardClass::Giga) => "GIGA_MINI",
+                            CardPropertyFilter::CardClass(CardClass::Dark) => "DARK_MINI",
                             CardPropertyFilter::Chargeable => "CAN_CHARGE",
                             CardPropertyFilter::Boostable => "CAN_BOOST",
                             CardPropertyFilter::Recovers => "RECOVER",
@@ -373,6 +370,23 @@ impl CardPropertiesMenu {
 
                         // render selection frame
                         if self.applied_filters.contains(filter) {
+                            self.selection_frame_sprite.set_position(item_position);
+                            sprite_queue.draw_sprite(&self.selection_frame_sprite);
+                        }
+
+                        item_position.x += ITEM_W;
+                    }
+                }
+                1 => {
+                    for element in Element::iter() {
+                        let mut sprite = ElementSprite::new(game_io, element);
+                        sprite.set_position(item_position);
+                        sprite_queue.draw_sprite(&sprite);
+
+                        // render selection frame
+                        let key = CardPropertyFilter::Element(element);
+
+                        if self.applied_filters.contains(&key) {
                             self.selection_frame_sprite.set_position(item_position);
                             sprite_queue.draw_sprite(&self.selection_frame_sprite);
                         }

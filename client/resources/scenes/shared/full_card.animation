@@ -28,17 +28,29 @@ frame x="160" y="135" w="80" h="134"
 animation state="DARK_BACK"
 frame x="240" y="135" w="80" h="134"
 
+animation state="STANDARD_MINI"
+frame x="0" y="270" w="12" h="12"
+
+animation state="MEGA_MINI"
+frame x="12" y="270" w="12" h="12"
+
+animation state="GIGA_MINI"
+frame x="24" y="270" w="12" h="12"
+
+animation state="DARK_MINI"
+frame x="36" y="270" w="12" h="12"
+
 animation state="CAN_CHARGE"
-frame x="0" y="270" w="12" h="12" originx="-10" originy="-54"
+frame x="48" y="270" w="12" h="12" originx="-10" originy="-54"
 
 animation state="CAN_BOOST"
-frame x="12" y="270" w="12" h="12" originx="-22" originy="-54"
+frame x="60" y="270" w="12" h="12" originx="-22" originy="-54"
 
 animation state="RECOVER"
-frame x="24" y="270" w="12" h="12" originx="-34" originy="-54"
-
-animation state="CONCEAL"
-frame x="48" y="270" w="12" h="12" originx="-46" originy="-54"
+frame x="72" y="270" w="12" h="12" originx="-34" originy="-54"
 
 animation state="TIME_FREEZE"
-frame x="36" y="270" w="12" h="12" originx="-58" originy="-54"
+frame x="84" y="270" w="12" h="12" originx="-58" originy="-54"
+
+animation state="CONCEAL"
+frame x="96" y="270" w="12" h="12" originx="-46" originy="-54"

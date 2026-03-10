@@ -1,7 +1,7 @@
 use num_derive::FromPrimitive;
 
 #[repr(u8)]
-#[derive(Default, Debug, Copy, Clone, PartialEq, PartialOrd, Ord, Eq, FromPrimitive)]
+#[derive(Default, Debug, Copy, Clone, PartialEq, PartialOrd, Ord, Eq, Hash, FromPrimitive)]
 pub enum CardClass {
     #[default]
     Standard,
@@ -55,7 +55,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CardClass {
                     from: lua_value.type_name(),
                     to: "CardClass",
                     message: None,
-                })
+                });
             }
         };
 

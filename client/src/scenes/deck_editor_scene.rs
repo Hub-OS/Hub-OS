@@ -596,7 +596,15 @@ fn apply_filters(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
     }
 
     // apply properties filter
+    let mut card_classes = Vec::new();
+
     for filter in scene.properties_menu.applied_filters() {
+        if let CardPropertyFilter::CardClass(card_class) = filter {
+            // we'll handle card classes in a separate pass
+            card_classes.push(*card_class);
+            continue;
+        }
+
         dock.card_slots.retain(|slot| {
             slot.as_ref()
                 .and_then(|item| packages.package(NAMESPACE, &item.card.package_id))
@@ -604,6 +612,7 @@ fn apply_filters(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
                     let properties = &package.card_properties;
 
                     match filter {
+                        CardPropertyFilter::CardClass(_) => true,
                         CardPropertyFilter::Element(Element::None) => {
                             properties.element == Element::None
                         }
@@ -629,6 +638,17 @@ fn apply_filters(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
                         CardPropertyFilter::TimeFreeze => properties.time_freeze,
                         CardPropertyFilter::Conceal => properties.conceal,
                     }
+                })
+        });
+    }
+
+    if !card_classes.is_empty() {
+        dock.card_slots.retain(|slot| {
+            slot.as_ref()
+                .and_then(|item| packages.package(NAMESPACE, &item.card.package_id))
+                .is_some_and(|package| {
+                    let properties = &package.card_properties;
+                    card_classes.contains(&properties.card_class)
                 })
         });
     }

@@ -2,44 +2,41 @@ animation state="DEFAULT"
 blank
 point label="STEP" x="12" y="12"
 
-animation state="FLINCH"
-frame x="60" y="270" w="12" h="12"
-
-animation state="FLASH"
-frame x="72" y="270" w="12" h="12"
-
-animation state="PARALYZE"
-frame x="84" y="270" w="12" h="12"
-
-animation state="STUN"
-frame x="84" y="270" w="12" h="12"
-
-animation state="DRAG"
-frame x="96" y="270" w="12" h="12"
-
-animation state="SHAKE"
+animation state="DRAIN"
 frame x="108" y="270" w="12" h="12"
 
-animation state="PIERCEINVIS"
+animation state="FLINCH"
 frame x="120" y="270" w="12" h="12"
 
-animation state="PIERCEGUARD"
+animation state="DRAG"
 frame x="132" y="270" w="12" h="12"
 
-animation state="PIERCEGROUND"
+animation state="FLASH"
 frame x="144" y="270" w="12" h="12"
 
-animation state="BLIND"
+animation state="PIERCEINVIS"
 frame x="156" y="270" w="12" h="12"
 
-animation state="ROOT"
+animation state="PIERCEGUARD"
 frame x="168" y="270" w="12" h="12"
 
-animation state="CONFUSE"
+animation state="PIERCEGROUND"
 frame x="180" y="270" w="12" h="12"
 
-animation state="FREEZE"
+animation state="BLIND"
 frame x="192" y="270" w="12" h="12"
 
-animation state="DRAIN"
-frame x="227" y="270" w="12" h="12"
+animation state="CONFUSE"
+frame x="204" y="270" w="12" h="12"
+
+animation state="FREEZE"
+frame x="216" y="270" w="12" h="12"
+
+animation state="PARALYZE"
+frame x="228" y="270" w="12" h="12"
+
+animation state="STUN"
+frame x="228" y="270" w="12" h="12"
+
+animation state="ROOT"
+frame x="240" y="270" w="12" h="12"
