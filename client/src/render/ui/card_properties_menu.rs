@@ -60,6 +60,7 @@ pub struct CardPropertiesMenu {
     selection_frame_sprite: Sprite,
     cursor_sprite: Sprite,
     cursor_animator: Animator,
+    preserved_col: usize,
     h_scroll_tracker: ScrollTracker,
     v_scroll_tracker: ScrollTracker,
     hovered_item: Option<CardPropertyFilter>,
@@ -181,6 +182,7 @@ impl CardPropertiesMenu {
             cursor_animator: cursor_animator
                 .with_state("DEFAULT")
                 .with_loop_mode(AnimatorLoopMode::Loop),
+            preserved_col: 0,
             h_scroll_tracker: ScrollTracker::new(game_io, STATIC_PROPERTIES.len()).with_wrap(true),
             v_scroll_tracker: ScrollTracker::new(game_io, ROWS).with_total_items(2 + status_rows),
             hovered_item: None,
@@ -201,6 +203,7 @@ impl CardPropertiesMenu {
 
     pub fn open(&mut self, game_io: &GameIO) {
         self.open = true;
+        self.preserved_col = 0;
         self.h_scroll_tracker.set_selected_index(0);
         self.v_scroll_tracker.set_selected_index(0);
         self.h_scroll_tracker
@@ -247,10 +250,15 @@ impl CardPropertiesMenu {
             };
 
             self.h_scroll_tracker.set_total_items(total_items);
+            self.h_scroll_tracker.set_selected_index(self.preserved_col);
         }
 
         self.h_scroll_tracker
             .handle_horizontal_input(ui_input_tracker);
+
+        if ui_input_tracker.pulsed(Input::Left) || ui_input_tracker.pulsed(Input::Right) {
+            self.preserved_col = self.h_scroll_tracker.selected_index();
+        }
 
         // sfx and resolving selection
         if prev_v_index != self.v_scroll_tracker.selected_index()
