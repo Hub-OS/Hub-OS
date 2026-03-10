@@ -82,6 +82,7 @@ impl CardPropertiesMenu {
             ("Confuse", "deck-editor-properties-confuse"),
             ("Freeze", "deck-editor-properties-freeze"),
             ("Paralyze", "deck-editor-properties-paralyze"),
+            ("Root", "deck-editor-properties-root"),
         ];
 
         let mut builtin_status_animator =
