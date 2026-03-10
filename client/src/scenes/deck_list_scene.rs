@@ -600,10 +600,12 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
 
             let text = game_io.input_mut().request_clipboard_text();
 
-            if let Some(mut deck) = Deck::import_string(text) {
+            if let Some(mut deck) = Deck::import_string(&text) {
                 let globals = Globals::from_resources(game_io);
 
-                deck.name = globals.translate("deck-list-new-deck-name");
+                if deck.name.is_empty() {
+                    deck.name = globals.translate("deck-list-new-deck-name");
+                }
 
                 // validate deck
                 let deck_restrictions = globals.restrictions.base_deck_restrictions();

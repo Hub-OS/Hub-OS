@@ -9,6 +9,11 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use unicode_segmentation::UnicodeSegmentation;
 
+struct ImportHeader {
+    name: String,
+    regular_index: Option<usize>,
+}
+
 #[derive(Default, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Deck {
     pub name: String,
@@ -212,6 +217,22 @@ impl Deck {
 
         let mut text = String::new();
 
+        // write name
+        let _ = write!(&mut text, "[{:<8.8}]", self.name);
+
+        // write regular chip
+        let compressed_reg_index = self
+            .regular_index
+            .and_then(|index| self.cards.get(index))
+            .and_then(|card| card_list.iter().position(|(c, _)| *c == card));
+
+        if let Some(index) = compressed_reg_index {
+            let _ = write!(&mut text, " [REG {index}]");
+        }
+
+        text.push('\n');
+
+        // write cards
         for (card, (package, count)) in card_list {
             let id = &card.package_id;
             let name = &package.card_properties.short_name;
@@ -223,17 +244,33 @@ impl Deck {
         text
     }
 
-    pub fn import_string(text: String) -> Option<Deck> {
+    pub fn import_string(mut text: &str) -> Option<Deck> {
         let mut deck = Deck::default();
 
-        for line in text.lines() {
-            if line.is_empty() {
-                continue;
-            }
+        text = text.trim();
 
+        // process optional header
+        // this header didn't exist in older versions
+        let header = text
+            .starts_with("[")
+            .then(|| text.split_once('\n'))
+            .flatten()
+            .and_then(|(line, remaining_text)| {
+                text = remaining_text;
+                Self::parse_header(line)
+            });
+
+        for (i, line) in text.lines().enumerate() {
             // read count
             let count_end = line.find(" ")?;
             let count: u8 = line[0..count_end].parse().ok()?;
+
+            // resolve regular index
+            if let Some(header) = &header
+                && header.regular_index == Some(i)
+            {
+                deck.regular_index = Some(deck.cards.len());
+            }
 
             // read name
             let name_start = count_end + 1;
@@ -266,7 +303,63 @@ impl Deck {
             deck.cards.extend(std::iter::repeat_n(card, count as _));
         }
 
+        // finish reading header
+        if let Some(header) = header {
+            deck.name = header.name;
+        }
+
         Some(deck)
+    }
+
+    fn parse_header(mut remaining_line: &str) -> Option<ImportHeader> {
+        let mut header = ImportHeader {
+            name: String::new(),
+            regular_index: None,
+        };
+
+        remaining_line = &remaining_line[1..];
+
+        // read name
+        let name_len = remaining_line
+            .grapheme_indices(true)
+            .nth(8)
+            .map(|(i, _)| i)
+            .unwrap_or(remaining_line.len());
+
+        header.name = remaining_line[..name_len].trim_end().to_string();
+        remaining_line = &remaining_line[name_len..];
+
+        if !remaining_line.starts_with(']') {
+            log::warn!("Missing ] for name header");
+            return None;
+        }
+
+        remaining_line = &remaining_line[1..];
+
+        // read tags
+        loop {
+            remaining_line = remaining_line.trim_start();
+
+            // check for more tags to parse
+            if !remaining_line.starts_with("[") {
+                break;
+            }
+            remaining_line = &remaining_line[1..];
+
+            let tag;
+            (tag, remaining_line) = remaining_line.split_once(']')?;
+
+            if let Some(suffix) = tag.strip_prefix("REG ") {
+                header.regular_index = suffix
+                    .parse()
+                    .inspect_err(|err| log::warn!("Failed to parse [{tag}]: {err:?}"))
+                    .ok();
+            } else {
+                log::warn!("Unrecognized tag: [{tag}]");
+            }
+        }
+
+        Some(header)
     }
 }
 
@@ -291,7 +384,7 @@ mod test {
 1 EraseMnΩ K LDR100.card.Navi.11.EraseMnΩ
 1 EraseMn * LDR100.card.Navi.12.EraseMnRV";
 
-        let deck = Deck::import_string(DECK.to_string()).unwrap();
+        let deck = Deck::import_string(DECK).unwrap();
 
         let expected_cards = vec![
             new_card("BattleNetwork6.Class02.Mega.005.ProtoEX", "B"),
