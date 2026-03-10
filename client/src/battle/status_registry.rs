@@ -21,6 +21,23 @@ pub struct RegisteredStatus {
     pub constructor: BattleCallback<(EntityId, bool)>,
 }
 
+pub struct RegisterStatusRequest<'a> {
+    pub namespace: PackageNamespace,
+    pub package_id: &'a PackageId,
+    pub flag_name: &'a Arc<str>,
+    pub durations: &'a [i64],
+    pub blocks_actions: bool,
+    pub blocks_mobility: bool,
+    pub vm_index: usize,
+}
+
+pub struct RegisterStatusConflictsRequest<'a> {
+    pub flag: i64,
+    pub mutual_exclusions: &'a [String],
+    pub blocks_flags: &'a [String],
+    pub blocked_by: &'a [String],
+}
+
 impl RegisteredStatus {
     pub fn duration_for(&self, mut level: usize) -> FrameTime {
         level = level.saturating_sub(1);
@@ -72,113 +89,142 @@ impl StatusRegistry {
                 continue;
             };
 
-            let existing_index = self
-                .list
-                .iter()
-                .position(|item| item.name == package.flag_name);
-
-            if existing_index.is_some_and(|i| {
-                !matches!(
-                    self.list[i].namespace,
-                    PackageNamespace::BuiltIn | PackageNamespace::RecordingBuiltIn,
-                )
-            }) {
-                // skip conflict
-                continue;
-            }
-
             let Some(vm_index) = vm_manager.find_vm_from_info(package.package_info()) else {
                 continue;
             };
 
-            // register new status
-            let mut flag = HitFlag::from_str(self, &package.flag_name);
-
-            if flag != HitFlag::NONE {
-                // overwrite existing flag
-                self.immobilizing_flags &= !flag;
-                self.inactionable_flags &= !flag;
-            } else {
-                // use a new flag
-                if self.next_shift >= STATUS_LIMIT {
-                    log::error!(
-                        "Failed to register {HIT_FLAG_TABLE}.{}: Too many statuses registered",
-                        package.flag_name
-                    );
-                    continue;
-                }
-
-                flag = 1 << self.next_shift;
-                self.next_shift += 1;
-            }
-
-            let constructor = BattleCallback::new(
-                move |game_io, resources, simulation, (entity_id, reapplied)| {
-                    let result = simulation.call_global(
-                        game_io,
-                        resources,
-                        vm_index,
-                        "status_init",
-                        |lua| create_status_table(lua, entity_id, flag, reapplied),
-                    );
-
-                    if let Err(err) = result {
-                        log::error!("{err}");
-                    }
-                },
-            );
-
-            let status = RegisteredStatus {
-                package_id: info.id.clone(),
+            self.register_status(RegisterStatusRequest {
                 namespace: *namespace,
-                name: package.flag_name.clone(),
-                flag,
-                durations: package.durations.clone(),
-                constructor,
-            };
-
-            if let Some(i) = existing_index {
-                self.list[i] = status;
-            } else {
-                self.list.push(status);
-            }
-
-            if package.blocks_actions {
-                self.inactionable_flags |= flag;
-            }
-
-            if package.blocks_mobility {
-                self.immobilizing_flags |= flag;
-            }
+                package_id: &info.id,
+                flag_name: &package.flag_name,
+                durations: &package.durations,
+                blocks_actions: package.blocks_actions,
+                blocks_mobility: package.blocks_mobility,
+                vm_index,
+            });
         }
 
-        // create inter status rules after flags are resolved
-        for item in &self.list {
-            let package = packages
-                .package_or_fallback(item.namespace, &item.package_id)
-                .unwrap();
+        let finalizing: Vec<_> = self
+            .list
+            .iter()
+            .map(|item| {
+                (
+                    item.flag,
+                    packages
+                        .package_or_fallback(item.namespace, &item.package_id)
+                        .unwrap(),
+                )
+            })
+            .collect();
 
-            for name in &package.mutual_exclusions {
-                let flag = HitFlag::from_str(self, name);
+        for (flag, package) in finalizing {
+            self.register_conflicts(RegisterStatusConflictsRequest {
+                flag,
+                mutual_exclusions: &package.mutual_exclusions,
+                blocks_flags: &package.blocks_flags,
+                blocked_by: &package.blocked_by,
+            });
+        }
+    }
 
-                let set = self.mutual_exclusions.entry(item.flag).or_default();
-                set.insert(flag);
+    /// Automatically called by init(), marked as pub for testing.
+    /// Any steps requiring name resolution, such as register_conflicts, should be handled after all statuses are registered.
+    pub fn register_status(&mut self, request: RegisterStatusRequest) -> Option<i64> {
+        let flag_name = request.flag_name;
+        let existing_index = self.list.iter().position(|item| item.name == *flag_name);
 
-                let set = self.mutual_exclusions.entry(flag).or_default();
-                set.insert(item.flag);
+        if existing_index.is_some_and(|i| {
+            !matches!(
+                self.list[i].namespace,
+                PackageNamespace::BuiltIn | PackageNamespace::RecordingBuiltIn,
+            )
+        }) {
+            // skip conflict
+            return None;
+        }
+
+        // register new status
+        let mut flag = HitFlag::from_str(self, flag_name);
+
+        if flag != HitFlag::NONE {
+            // overwrite existing flag
+            self.immobilizing_flags &= !flag;
+            self.inactionable_flags &= !flag;
+        } else {
+            // use a new flag
+            if self.next_shift >= STATUS_LIMIT {
+                log::error!(
+                    "Failed to register {HIT_FLAG_TABLE}.{flag_name}: Too many statuses registered",
+                );
+                return None;
             }
 
-            for name in &package.blocked_by {
-                let flag = HitFlag::from_str(self, name);
-                let overrides = self.overrides.entry(item.flag).or_default();
-                *overrides |= flag;
-            }
+            flag = 1 << self.next_shift;
+            self.next_shift += 1;
+        }
 
-            for name in &package.blocks_flags {
-                let flag = HitFlag::from_str(self, name);
-                let overrides = self.overrides.entry(flag).or_default();
-                *overrides |= item.flag;
-            }
+        let vm_index = request.vm_index;
+        let constructor = BattleCallback::new(
+            move |game_io, resources, simulation, (entity_id, reapplied)| {
+                let result =
+                    simulation.call_global(game_io, resources, vm_index, "status_init", |lua| {
+                        create_status_table(lua, entity_id, flag, reapplied)
+                    });
+
+                if let Err(err) = result {
+                    log::error!("{err}");
+                }
+            },
+        );
+
+        let status = RegisteredStatus {
+            namespace: request.namespace,
+            package_id: request.package_id.clone(),
+            name: flag_name.clone(),
+            flag,
+            durations: request.durations.to_vec(),
+            constructor,
+        };
+
+        if let Some(i) = existing_index {
+            self.list[i] = status;
+        } else {
+            self.list.push(status);
+        }
+
+        if request.blocks_actions {
+            self.inactionable_flags |= flag;
+        }
+
+        if request.blocks_mobility {
+            self.immobilizing_flags |= flag;
+        }
+
+        Some(flag)
+    }
+
+    /// Automatically called by init(), marked as pub for testing
+    pub fn register_conflicts(&mut self, request: RegisterStatusConflictsRequest) {
+        for name in request.mutual_exclusions {
+            let flag = HitFlag::from_str(self, name);
+
+            let set = self.mutual_exclusions.entry(request.flag).or_default();
+            set.insert(flag);
+
+            let set = self.mutual_exclusions.entry(flag).or_default();
+            set.insert(request.flag);
+        }
+
+        for name in request.blocked_by {
+            let flag = HitFlag::from_str(self, name);
+            let overrides = self.overrides.entry(request.flag).or_default();
+            *overrides |= flag;
+        }
+
+        for name in request.blocks_flags {
+            let flag = HitFlag::from_str(self, name);
+            let overrides = self.overrides.entry(flag).or_default();
+            *overrides |= request.flag;
         }
     }
 

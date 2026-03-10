@@ -445,3 +445,118 @@ impl StatusDirector {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+
+    use super::*;
+    use crate::battle::{RegisterStatusConflictsRequest, RegisterStatusRequest};
+    use crate::packages::PackageNamespace;
+    use packets::structures::PackageId;
+
+    struct SimplifiedRegisterRequest {
+        flag_name: &'static str,
+        durations: &'static [FrameTime],
+        blocks_actions: bool,
+        blocks_mobility: bool,
+    }
+
+    fn register_status(registry: &mut StatusRegistry, request: SimplifiedRegisterRequest) -> i64 {
+        registry
+            .register_status(RegisterStatusRequest {
+                namespace: PackageNamespace::BuiltIn, // unused
+                package_id: &PackageId::new_blank(),  // unused
+                flag_name: &(request.flag_name.into()),
+                durations: request.durations,
+                blocks_actions: request.blocks_actions,
+                blocks_mobility: request.blocks_mobility,
+                vm_index: 0, // unused
+            })
+            .unwrap()
+    }
+
+    struct SimplifiedConflictsRequest {
+        flag: i64,
+        mutual_exclusions: &'static [&'static str],
+        blocks_flags: &'static [&'static str],
+        blocked_by: &'static [&'static str],
+    }
+
+    fn register_conflicts(registry: &mut StatusRegistry, request: SimplifiedConflictsRequest) {
+        fn str_slice_to_vec(str_slice: &'static [&'static str]) -> Vec<String> {
+            str_slice.iter().map(|s| s.to_string()).collect()
+        }
+
+        registry.register_conflicts(RegisterStatusConflictsRequest {
+            flag: request.flag,
+            mutual_exclusions: &str_slice_to_vec(request.mutual_exclusions),
+            blocks_flags: &str_slice_to_vec(request.blocks_flags),
+            blocked_by: &str_slice_to_vec(request.blocked_by),
+        });
+    }
+
+    fn build_registry() -> StatusRegistry {
+        let mut registry = StatusRegistry::new();
+
+        register_status(
+            &mut registry,
+            SimplifiedRegisterRequest {
+                flag_name: "Flinch",
+                durations: &[],
+                blocks_actions: false,
+                blocks_mobility: false,
+            },
+        );
+
+        register_status(
+            &mut registry,
+            SimplifiedRegisterRequest {
+                flag_name: "Paralyze",
+                durations: &[90],
+                blocks_actions: false,
+                blocks_mobility: false,
+            },
+        );
+
+        register_conflicts(
+            &mut registry,
+            SimplifiedConflictsRequest {
+                flag: HitFlag::PARALYZE,
+                mutual_exclusions: &["Flinch", "Blind", "Freeze", "Confuse"],
+                blocks_flags: &["Flinch", "Flash", "Blind", "Freeze", "Confuse"],
+                blocked_by: &[],
+            },
+        );
+
+        registry
+    }
+
+    #[test]
+    fn flinch() {
+        let registry = build_registry();
+
+        let mut status_director = StatusDirector::default();
+        status_director.apply_hit_flags(&registry, HitFlag::FLINCH, &Default::default());
+        status_director.apply_new_statuses(&registry, false);
+
+        assert_ne!(status_director.remaining_status_time(HitFlag::FLINCH), 0);
+    }
+
+    #[test]
+    fn flinch_para() {
+        let registry = build_registry();
+
+        let mut status_director = StatusDirector::default();
+
+        status_director.apply_hit_flags(
+            &registry,
+            HitFlag::FLINCH | HitFlag::PARALYZE,
+            &Default::default(),
+        );
+
+        status_director.apply_new_statuses(&registry, false);
+
+        assert_eq!(status_director.remaining_status_time(HitFlag::FLINCH), 0);
+        assert_eq!(status_director.remaining_status_time(HitFlag::PARALYZE), 90);
+    }
+}
