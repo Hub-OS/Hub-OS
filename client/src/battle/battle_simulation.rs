@@ -153,7 +153,7 @@ impl BattleSimulation {
         clone_component!(PlayerHand, PackageNamespace);
         clone_component!(ActionQueue, AttackContext, Movement, LocalComponents);
         clone_component!(SpawnCallback, IntroCallback, UpdateCallback);
-        clone_component!(DeleteCallback, DeleteCallbacks);
+        clone_component!(DeleteCallback, DeleteCallbacks, EraseCallbacks);
         clone_component!(CanMoveToCallback, IdleCallback);
         clone_component!(CollisionCallback, AttackCallback);
         clone_component!(CounterCallback, CounteredCallback);
@@ -304,7 +304,7 @@ impl BattleSimulation {
         self.assertions();
 
         // remove dead entities
-        self.cleanup_erased_entities();
+        self.cleanup_erased_entities(game_io, resources);
 
         // update background
         self.background.update();
@@ -665,7 +665,7 @@ impl BattleSimulation {
         self.camera.zoom(Vec2::splat(fit_zoom), BATTLE_ZOOM_MOTION);
     }
 
-    fn cleanup_erased_entities(&mut self) {
+    fn cleanup_erased_entities(&mut self, game_io: &GameIO, resources: &SharedBattleResources) {
         let mut pending_removal = Vec::new();
 
         for (id, entity) in self.entities.query_mut::<&Entity>() {
@@ -682,7 +682,17 @@ impl BattleSimulation {
             pending_removal.push(id);
         }
 
+        self.call_pending_callbacks(game_io, resources);
+
         for id in pending_removal {
+            if let Ok(EraseCallbacks(erase_callbacks)) =
+                self.entities.remove_one::<EraseCallbacks>(id)
+            {
+                for callback in erase_callbacks {
+                    callback.call(game_io, resources, self, ());
+                }
+            }
+
             let entity_id = id.into();
 
             // delete shadow

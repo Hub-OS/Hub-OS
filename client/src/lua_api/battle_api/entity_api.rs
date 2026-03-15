@@ -946,39 +946,60 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    lua_api.add_dynamic_function(ENTITY_TABLE, "on_delete", |api_ctx, lua, params| {
-        let (table, callback): (rollback_mlua::Table, rollback_mlua::Function) =
-            lua.unpack_multi(params)?;
+    fn impl_push_callback<C: hecs::Component>(
+        lua_api: &mut BattleLuaApi,
+        name: &str,
+        construct: fn(callback: BattleCallback) -> C,
+        push: fn(component: &mut C, callback: BattleCallback),
+    ) {
+        lua_api.add_dynamic_function(ENTITY_TABLE, name, move |api_ctx, lua, params| {
+            let (table, callback): (rollback_mlua::Table, rollback_mlua::Function) =
+                lua.unpack_multi(params)?;
 
-        let id: EntityId = table.raw_get("#id")?;
+            let id: EntityId = table.raw_get("#id")?;
 
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let entities = &mut api_ctx.simulation.entities;
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let entities = &mut api_ctx.simulation.entities;
 
-        if !entities.contains(id.into()) {
-            return Err(entity_not_found());
-        };
+            if !entities.contains(id.into()) {
+                return Err(entity_not_found());
+            };
 
-        let vm_index = api_ctx.vm_index;
+            let vm_index = api_ctx.vm_index;
 
-        let callback = BattleCallback::new_transformed_lua_callback(
-            lua,
-            vm_index,
-            callback,
-            move |_, lua, _| {
-                let entity_table = create_entity_table(lua, id)?;
-                lua.pack_multi(entity_table)
-            },
-        )?;
+            let callback = BattleCallback::new_transformed_lua_callback(
+                lua,
+                vm_index,
+                callback,
+                move |_, lua, _| {
+                    let entity_table = create_entity_table(lua, id)?;
+                    lua.pack_multi(entity_table)
+                },
+            )?;
 
-        if let Ok(callbacks) = entities.query_one_mut::<&mut DeleteCallbacks>(id.into()) {
-            callbacks.0.push(callback);
-        } else {
-            let _ = entities.insert_one(id.into(), DeleteCallbacks(vec![callback]));
-        }
+            if let Ok(component) = entities.query_one_mut::<&mut C>(id.into()) {
+                push(component, callback);
+            } else {
+                let _ = entities.insert_one(id.into(), construct(callback));
+            }
 
-        lua.pack_multi(())
-    });
+            lua.pack_multi(())
+        });
+    }
+
+    impl_push_callback(
+        lua_api,
+        "on_delete",
+        |callback| DeleteCallbacks(vec![callback]),
+        |component, callback| component.0.push(callback),
+    );
+
+    impl_push_callback(
+        lua_api,
+        "on_erase",
+        |callback| EraseCallbacks(vec![callback]),
+        |component, callback| component.0.push(callback),
+    );
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "set_idle", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;

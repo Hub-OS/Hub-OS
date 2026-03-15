@@ -17,6 +17,9 @@ pub struct DeleteCallback(pub BattleCallback);
 pub struct DeleteCallbacks(pub Vec<BattleCallback>);
 
 #[derive(Clone)]
+pub struct EraseCallbacks(pub Vec<BattleCallback>);
+
+#[derive(Clone)]
 pub struct CanMoveToCallback(pub BattleCallback<(i32, i32), bool>);
 
 #[derive(Clone)]
