@@ -47,7 +47,7 @@ impl BootThread {
                 hashes: HashSet::new(),
             };
 
-            let _ = (move || -> Result<(), flume::SendError<BootEvent>> {
+            let _ = (move || -> anyhow::Result<()> {
                 context.load_audio()?;
                 context.load_packages()?;
                 Ok(())
@@ -57,7 +57,7 @@ impl BootThread {
         receiver
     }
 
-    fn load_audio(&mut self) -> Result<(), flume::SendError<BootEvent>> {
+    fn load_audio(&mut self) -> anyhow::Result<()> {
         // total for music, add 1 for sound font
         let total = GlobalMusic::total() + 1;
 
@@ -134,7 +134,7 @@ impl BootThread {
         Ok(())
     }
 
-    fn load_packages(&mut self) -> Result<(), flume::SendError<BootEvent>> {
+    fn load_packages(&mut self) -> anyhow::Result<()> {
         // load players
         let player_packages =
             self.load_category(PackageCategory::Player, "boot-loading-player-mods")?;
@@ -198,7 +198,7 @@ impl BootThread {
         &mut self,
         category: PackageCategory,
         label_translation_key: &'static str,
-    ) -> Result<PackageManager<P>, flume::SendError<BootEvent>> {
+    ) -> anyhow::Result<PackageManager<P>> {
         let mut package_manager = PackageManager::<P>::new(category);
 
         self.load_package_folder(
@@ -224,7 +224,7 @@ impl BootThread {
         namespace: PackageNamespace,
         path: &str,
         label_translation_key: &'static str,
-    ) -> Result<(), flume::SendError<BootEvent>> {
+    ) -> anyhow::Result<()> {
         package_manager.load_packages_in_folder(
             &self.assets,
             namespace,
@@ -258,7 +258,7 @@ impl BootThread {
         Ok(())
     }
 
-    fn load_child_packages(&mut self) -> Result<(), flume::SendError<BootEvent>> {
+    fn load_child_packages(&mut self) -> anyhow::Result<()> {
         let mut character_packages =
             PackageManager::<CharacterPackage>::new(PackageCategory::Character);
 
@@ -283,7 +283,7 @@ impl BootThread {
         Ok(())
     }
 
-    pub fn clean_cache_folder(&mut self) -> Result<(), flume::SendError<BootEvent>> {
+    pub fn clean_cache_folder(&mut self) -> anyhow::Result<()> {
         let Ok(entry_iter) = std::fs::read_dir(ResourcePaths::mod_cache_folder()) else {
             return Ok(());
         };
