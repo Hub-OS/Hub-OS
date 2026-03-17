@@ -38,7 +38,6 @@ const SECTIONS: &[(&str, &[&str])] = &[
             "Jack",
             "KayThree",
             "Kyqurikan",
-            "LDR100",
             "PlayerZero",
             "Region Locking",
             "Sefaia",
@@ -49,7 +48,7 @@ const SECTIONS: &[(&str, &[&str])] = &[
     ),
     (
         "credits-technical-design",
-        &["Dawn Elaine", "JamesKing", "Mars"],
+        &["Dawn Elaine", "JamesKing", "LDR100", "Mars"],
     ),
     (
         "credits-programmers",
