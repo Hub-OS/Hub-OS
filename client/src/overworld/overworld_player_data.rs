@@ -35,8 +35,10 @@ impl OverworldPlayerData {
             tile_interaction: None,
         };
 
+        data.reload_character_data(game_io);
         data.process_boosts(game_io);
         data.health = data.base_health + data.health_boost;
+        data.clamp_health();
 
         data
     }
@@ -45,15 +47,19 @@ impl OverworldPlayerData {
         self.base_health + self.health_boost
     }
 
+    pub fn reload_character_data(&mut self, game_io: &GameIO) {
+        let globals = Globals::from_resources(game_io);
+        let global_save = &globals.global_save;
+
+        let player_package = global_save.player_package(game_io).unwrap();
+        self.base_health = player_package.health;
+    }
+
     pub fn process_boosts(&mut self, game_io: &GameIO) {
         let globals = Globals::from_resources(game_io);
 
         let global_save = &globals.global_save;
         let restrictions = &globals.restrictions;
-
-        // base_health
-        let player_package = global_save.player_package(game_io).unwrap();
-        self.base_health = player_package.health;
 
         // resolving health boost from augments
         let mut health_boost = 0;
@@ -83,8 +89,9 @@ impl OverworldPlayerData {
             .fold(0, |acc, package| acc + package.health_boost);
 
         self.health_boost = health_boost;
+    }
 
-        // apply max_health to final health
+    pub fn clamp_health(&mut self) {
         self.health = self.max_health().min(self.health);
     }
 }

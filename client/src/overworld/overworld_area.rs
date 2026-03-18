@@ -200,22 +200,25 @@ impl OverworldArea {
         self.camera_controller.queue_action(action);
     }
 
-    fn handle_player_changes(&mut self, game_io: &GameIO) {
+    pub fn enter(&mut self, game_io: &GameIO) {
         let globals = Globals::from_resources(game_io);
         let global_save = &globals.global_save;
         let player_package = global_save.player_package(game_io).unwrap();
 
-        if self.player_data.package_id == player_package.package_info.id {
-            return;
+        let swapped_character = self.player_data.package_id != player_package.package_info.id;
+
+        if swapped_character {
+            self.player_data.package_id = player_package.package_info.id.clone();
+            self.player_data.reload_character_data(game_io);
         }
 
-        self.player_data.package_id = player_package.package_info.id.clone();
-        self.player_data.health = self.player_data.max_health();
-    }
-
-    pub fn enter(&mut self, game_io: &GameIO) {
         self.player_data.process_boosts(game_io);
-        self.handle_player_changes(game_io);
+
+        if swapped_character {
+            self.player_data.health = self.player_data.max_health();
+        } else {
+            self.player_data.clamp_health();
+        }
     }
 
     pub fn update(&mut self, game_io: &GameIO) {
