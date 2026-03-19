@@ -158,6 +158,7 @@ impl BattleSimulation {
         clone_component!(CollisionCallback, AttackCallback);
         clone_component!(CounterCallback, CounteredCallback);
         clone_component!(BattleStartCallback, BattleEndCallback);
+        clone_component!(SpawnPriority);
 
         Self {
             statistics: self.statistics.clone(),

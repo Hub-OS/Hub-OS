@@ -119,9 +119,13 @@ impl Player {
         let namespace = setup.namespace();
         let id = Character::create(game_io, resources, simulation, CharacterRank::V1, namespace)?;
 
-        let _ = simulation
-            .entities
-            .insert_one(id.into(), EntityName(player_package.name.clone()));
+        let _ = simulation.entities.insert(
+            id.into(),
+            (
+                EntityName(player_package.name.clone()),
+                SpawnPriority(simulation.entities.len() as _),
+            ),
+        );
 
         let (entity, living) = simulation
             .entities

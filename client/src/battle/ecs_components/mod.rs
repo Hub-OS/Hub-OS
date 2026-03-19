@@ -13,6 +13,7 @@ mod living;
 mod movement;
 mod obstacle;
 mod player;
+mod spawn_priority;
 mod spell;
 
 pub use action_queue::*;
@@ -30,4 +31,5 @@ pub use living::*;
 pub use movement::*;
 pub use obstacle::*;
 pub use player::*;
+pub use spawn_priority::*;
 pub use spell::*;

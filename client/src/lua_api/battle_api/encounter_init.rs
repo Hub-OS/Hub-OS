@@ -3,7 +3,7 @@ use super::field_api::get_field_compat_table;
 use super::{BattleLuaApi, ENCOUNTER_TABLE, MUTATOR_TABLE, SPAWNER_TABLE, create_entity_table};
 use crate::battle::{
     BattleInitMusic, BattleProgress, BattleScriptContext, BattleSimulation, Character, Entity,
-    SharedBattleResources, TileState, TileStateAnimationSupport,
+    SharedBattleResources, SpawnPriority, TileState, TileStateAnimationSupport,
 };
 use crate::bindable::{CharacterRank, EntityId, TimeFreezeChainLimit};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable, lua_value_to_string};
@@ -593,6 +593,8 @@ fn inject_spawner_api(lua_api: &mut BattleLuaApi) {
         entity.x = x;
         entity.y = y;
         entity.pending_spawn = true;
+
+        let _ = entities.insert_one(id.into(), SpawnPriority(entities.len() as _));
 
         let mutator_table = create_mutator(lua, id)?;
 

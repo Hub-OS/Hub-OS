@@ -58,25 +58,25 @@ impl State for IntroState {
             let mut entity_ids = Vec::new();
             let mut player_count = 0;
 
-            for (id, (entity, _, player)) in
-                entities.query_mut::<(&mut Entity, &Character, Option<&Player>)>()
+            for (id, (entity, priority, player)) in
+                entities.query_mut::<(&mut Entity, &SpawnPriority, Option<&Player>)>()
             {
-                if !entity.spawned {
+                if !entity.spawned && !entity.deleted {
                     continue;
                 }
 
-                entity_ids.push((id, player.is_some()));
+                entity_ids.push((id, player.is_some(), priority.0));
             }
 
             // move players to the end to animate last
-            entity_ids.sort_by_cached_key(|&(_, is_player)| is_player);
+            entity_ids.sort_by_cached_key(|&(_, is_player, priority)| (is_player, priority));
 
             // get intros for entities
             // built in reverse to allow us to pop from the end to get the next value
             self.pending_intros = entity_ids
                 .into_iter()
                 .rev()
-                .flat_map(|(id, is_player)| {
+                .flat_map(|(id, is_player, _)| {
                     let entity_id = id.into();
                     let action_index =
                         self.resolve_intro_action(game_io, resources, simulation, entity_id)?;
@@ -92,7 +92,7 @@ impl State for IntroState {
             self.npcs_remaining = self.pending_intros.len() - player_count;
 
             // shuffle players
-            self.pending_intros[self.npcs_remaining..].shuffle(&mut simulation.rng);
+            self.pending_intros[..player_count].shuffle(&mut simulation.rng);
         }
 
         let scale = simulation.field.best_fitting_scale();
