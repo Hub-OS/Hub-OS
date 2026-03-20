@@ -276,31 +276,49 @@ impl Net {
         client.actor.texture_path = texture_path.to_string();
         client.actor.animation_path = animation_path.to_string();
 
-        // we'd normally skip if the player has not been sent to anyone yet
-        // but for this we want to make sure the player sees this and updates their avatar
-        // if the other players receive this, they'll just ignore it
-
-        ensure_assets(
-            &mut self.packet_orchestrator.borrow_mut(),
-            self.config.args.max_payload_size,
-            &self.asset_manager,
-            &mut self.clients,
-            area.connected_players(),
-            [texture_path, animation_path].iter(),
-        );
-
         let packet = ServerPacket::ActorSetAvatar {
             actor_id: id,
             texture_path: texture_path.to_string(),
             animation_path: animation_path.to_string(),
         };
 
-        broadcast_to_area(
-            &mut self.packet_orchestrator.borrow_mut(),
-            area,
-            Reliability::ReliableOrdered,
-            packet,
-        );
+        // we'd normally skip if the player has not been sent to anyone yet
+        // but for this we want to make sure the player sees this and updates their avatar
+        // if the other players receive this, they'll just ignore it
+
+        let packet_orchestrator = &mut *self.packet_orchestrator.borrow_mut();
+
+        if area.connected_players().contains(&client.actor.id) {
+            ensure_assets(
+                packet_orchestrator,
+                self.config.args.max_payload_size,
+                &self.asset_manager,
+                &mut self.clients,
+                area.connected_players(),
+                [texture_path, animation_path].iter(),
+            );
+
+            broadcast_to_area(
+                packet_orchestrator,
+                area,
+                Reliability::ReliableOrdered,
+                packet,
+            );
+        } else {
+            // player in the middle of tranferring
+            // send their updated avatar
+
+            ensure_assets(
+                packet_orchestrator,
+                self.config.args.max_payload_size,
+                &self.asset_manager,
+                &mut self.clients,
+                &[id],
+                [texture_path, animation_path].iter(),
+            );
+
+            packet_orchestrator.send_by_id(id, Reliability::ReliableOrdered, packet);
+        }
     }
 
     pub fn set_player_emote(&mut self, id: ActorId, emote_id: String) {
