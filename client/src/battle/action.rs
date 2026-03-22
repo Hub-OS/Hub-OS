@@ -543,7 +543,13 @@ impl Action {
             .collect();
 
         for action_index in action_indices {
-            Living::attempt_interrupt(game_io, resources, simulation, action_index);
+            let Some(action) = simulation.actions.get_mut(action_index) else {
+                continue;
+            };
+
+            if action.executed {
+                Living::attempt_interrupt(game_io, resources, simulation, action_index);
+            }
 
             let Some(action) = simulation.actions.get_mut(action_index) else {
                 continue;
