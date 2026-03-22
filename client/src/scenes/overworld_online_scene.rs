@@ -49,7 +49,7 @@ pub struct OverworldOnlineScene {
     last_position_send: Instant,
     assets: ServerAssetManager,
     actor_id_map: BiMap<ActorId, hecs::Entity>,
-    sprite_id_map: HashMap<SpriteId, hecs::Entity>,
+    sprite_id_map: BiMap<SpriteId, hecs::Entity>,
     excluded_actors: HashMap<ActorId, usize>,
     excluded_objects: HashMap<u32, usize>,
     doorstop_key: Option<TextboxDoorstopKey>,
@@ -116,8 +116,8 @@ impl OverworldOnlineScene {
             previous_boost_packet: None,
             last_position_send: game_io.frame_start_instant(),
             assets,
-            actor_id_map: BiMap::new(),
-            sprite_id_map: HashMap::new(),
+            actor_id_map: Default::default(),
+            sprite_id_map: Default::default(),
             excluded_actors: Default::default(),
             excluded_objects: Default::default(),
             doorstop_key: None,
@@ -417,7 +417,10 @@ impl OverworldOnlineScene {
 
                 for &entity in self.actor_id_map.right_values() {
                     let _ = self.area.entities.despawn(entity);
-                    self.area.despawn_sprite_attachments(entity);
+
+                    for entity in self.area.despawn_sprite_attachments(entity) {
+                        self.sprite_id_map.remove_by_right(&entity);
+                    }
                 }
 
                 self.actor_id_map.clear();
@@ -1296,16 +1299,18 @@ impl OverworldOnlineScene {
             }
             ServerPacket::ActorDisconnected { actor_id, warp_out } => {
                 if let Some((_, entity)) = self.actor_id_map.remove_by_left(&actor_id) {
+                    for entity in self.area.despawn_sprite_attachments(entity) {
+                        self.sprite_id_map.remove_by_right(&entity);
+                    }
+
                     if warp_out {
                         let event_sender = self.area.event_sender.clone();
 
                         WarpEffect::warp_out(game_io, &mut self.area, entity, move |_, area| {
                             let _ = area.entities.despawn(entity);
-                            area.despawn_sprite_attachments(entity);
                         });
                     } else {
                         let _ = self.area.entities.despawn(entity);
-                        self.area.despawn_sprite_attachments(entity);
                     }
                 }
             }
@@ -1474,7 +1479,7 @@ impl OverworldOnlineScene {
                 attachment,
                 definition,
             } => {
-                self.sprite_id_map.entry(sprite_id).or_insert_with(|| {
+                if !self.sprite_id_map.contains_left(&sprite_id) {
                     let entities = &mut self.area.entities;
                     let assets = &self.assets;
 
@@ -1518,15 +1523,15 @@ impl OverworldOnlineScene {
 
                     insert_attachment_bundle(entities, &self.actor_id_map, attachment, entity);
 
-                    entity
-                });
+                    self.sprite_id_map.insert(sprite_id, entity);
+                }
             }
             ServerPacket::SpriteAnimate {
                 sprite_id,
                 state,
                 loop_animation,
             } => {
-                if let Some(&entity) = self.sprite_id_map.get(&sprite_id) {
+                if let Some(&entity) = self.sprite_id_map.get_by_left(&sprite_id) {
                     let entities = &mut self.area.entities;
 
                     if let Ok(animator) = entities.query_one_mut::<&mut Animator>(entity) {
@@ -1539,7 +1544,7 @@ impl OverworldOnlineScene {
                 }
             }
             ServerPacket::SpriteDeleted { sprite_id } => {
-                if let Some(entity) = self.sprite_id_map.remove(&sprite_id) {
+                if let Some((_, entity)) = self.sprite_id_map.remove_by_left(&sprite_id) {
                     let entities = &mut self.area.entities;
                     let _ = entities.despawn(entity);
                 }

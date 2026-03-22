@@ -128,16 +128,18 @@ impl OverworldArea {
             .spawn((Sprite::new(game_io, texture), animator, position))
     }
 
-    pub fn despawn_sprite_attachments(&mut self, entity: hecs::Entity) {
+    pub fn despawn_sprite_attachments(&mut self, entity: hecs::Entity) -> Vec<hecs::Entity> {
         let attachment_iter = self.entities.query_mut::<&ActorAttachment>().into_iter();
         let pending_deletion: Vec<_> = attachment_iter
             .filter(|(_, attachment)| attachment.actor_entity == entity)
             .map(|(entity, _)| entity)
             .collect();
 
-        for entity in pending_deletion {
+        for &entity in &pending_deletion {
             let _ = self.entities.despawn(entity);
         }
+
+        pending_deletion
     }
 
     pub fn set_map(&mut self, game_io: &GameIO, assets: &impl AssetManager, map: Map) {
