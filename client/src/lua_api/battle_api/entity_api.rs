@@ -17,10 +17,11 @@ use crate::packages::{PackageId, PackageNamespace};
 use crate::render::{FrameTime, SpriteNode};
 use crate::resources::Globals;
 use crate::saves::Card;
-use crate::structures::TreeIndex;
+use crate::structures::{SlotMap, TreeIndex};
 use framework::common::GameIO;
 use framework::prelude::Vec2;
 use packets::structures::MemoryCell;
+use std::rc::Rc;
 
 pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     inject_character_api(lua_api);
@@ -949,9 +950,12 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     fn impl_push_callback<C: hecs::Component>(
         lua_api: &mut BattleLuaApi,
         name: &str,
-        construct: fn(callback: BattleCallback) -> C,
-        push: fn(component: &mut C, callback: BattleCallback),
+        construct: fn() -> C,
+        callbacks_mut: fn(component: &mut C) -> &mut SlotMap<BattleCallback>,
     ) {
+        let remove_callback_key: Rc<str> = format!("#{name}").into();
+        let remove_callback_key2 = remove_callback_key.clone();
+
         lua_api.add_dynamic_function(ENTITY_TABLE, name, move |api_ctx, lua, params| {
             let (table, callback): (rollback_mlua::Table, rollback_mlua::Function) =
                 lua.unpack_multi(params)?;
@@ -965,40 +969,105 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
                 return Err(entity_not_found());
             };
 
+            // get the callbacks table
+            let callbacks_table =
+                match table.raw_get::<_, rollback_mlua::Table>(&*remove_callback_key) {
+                    Ok(map_table) => map_table,
+                    Err(_) => {
+                        let map_table = lua.create_table()?;
+                        table.set(&*remove_callback_key, map_table.clone())?;
+                        map_table
+                    }
+                };
+
+            // see if we've already inserted this callback
+            if callbacks_table
+                .contains_key(callback.clone())
+                .unwrap_or_default()
+            {
+                return lua.pack_multi(());
+            }
+
             let vm_index = api_ctx.vm_index;
 
-            let callback = BattleCallback::new_transformed_lua_callback(
+            let transformed_callback = BattleCallback::new_transformed_lua_callback(
                 lua,
                 vm_index,
-                callback,
+                callback.clone(),
                 move |_, lua, _| {
                     let entity_table = create_entity_table(lua, id)?;
                     lua.pack_multi(entity_table)
                 },
             )?;
 
-            if let Ok(component) = entities.query_one_mut::<&mut C>(id.into()) {
-                push(component, callback);
+            // insert callback and remember the index for tracking
+            let index = if let Ok(component) = entities.query_one_mut::<&mut C>(id.into()) {
+                callbacks_mut(component).insert(transformed_callback)
             } else {
-                let _ = entities.insert_one(id.into(), construct(callback));
-            }
+                let mut component = construct();
+                let index = callbacks_mut(&mut component).insert(transformed_callback);
+                let _ = entities.insert_one(id.into(), component);
+                index
+            };
+
+            // store index in the callbacks table, used again in :remove_*()
+            callbacks_table.set(callback, index)?;
 
             lua.pack_multi(())
         });
+
+        lua_api.add_dynamic_function(
+            ENTITY_TABLE,
+            &format!("remove_{name}"),
+            move |api_ctx, lua, params| {
+                let (table, callback): (rollback_mlua::Table, rollback_mlua::Function) =
+                    lua.unpack_multi(params)?;
+
+                let id: EntityId = table.raw_get("#id")?;
+
+                let api_ctx = &mut *api_ctx.borrow_mut();
+                let entities = &mut api_ctx.simulation.entities;
+
+                if !entities.contains(id.into()) {
+                    return lua.pack_multi(());
+                };
+
+                let Ok(callbacks_table) =
+                    table.raw_get::<_, rollback_mlua::Table>(&*remove_callback_key2)
+                else {
+                    return lua.pack_multi(());
+                };
+
+                let Ok(index) = callbacks_table.get::<_, GenerationalIndex>(callback.clone())
+                else {
+                    return lua.pack_multi(());
+                };
+
+                // remove callback
+                if let Ok(callbacks) = entities.query_one_mut::<&mut C>(id.into()) {
+                    callbacks_mut(callbacks).remove(index);
+                }
+
+                // allow this callback to be set again
+                let _ = callbacks_table.raw_remove(callback);
+
+                lua.pack_multi(())
+            },
+        );
     }
 
     impl_push_callback(
         lua_api,
         "on_delete",
-        |callback| DeleteCallbacks(vec![callback]),
-        |component, callback| component.0.push(callback),
+        || DeleteCallbacks(Default::default()),
+        |component| &mut component.0,
     );
 
     impl_push_callback(
         lua_api,
         "on_erase",
-        |callback| EraseCallbacks(vec![callback]),
-        |component, callback| component.0.push(callback),
+        || EraseCallbacks(Default::default()),
+        |component| &mut component.0,
     );
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "set_idle", |api_ctx, lua, params| {

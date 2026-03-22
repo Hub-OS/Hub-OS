@@ -1,5 +1,6 @@
 use crate::battle::BattleCallback;
 use crate::bindable::{EntityId, GenerationalIndex};
+use crate::structures::SlotMap;
 
 #[derive(Clone)]
 pub struct SpawnCallback(pub BattleCallback);
@@ -13,11 +14,11 @@ pub struct UpdateCallback(pub BattleCallback);
 #[derive(Clone)]
 pub struct DeleteCallback(pub BattleCallback);
 
-#[derive(Clone)]
-pub struct DeleteCallbacks(pub Vec<BattleCallback>);
+#[derive(Default, Clone)]
+pub struct DeleteCallbacks(pub SlotMap<BattleCallback>);
 
-#[derive(Clone)]
-pub struct EraseCallbacks(pub Vec<BattleCallback>);
+#[derive(Default, Clone)]
+pub struct EraseCallbacks(pub SlotMap<BattleCallback>);
 
 #[derive(Clone)]
 pub struct CanMoveToCallback(pub BattleCallback<(i32, i32), bool>);

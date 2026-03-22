@@ -239,7 +239,9 @@ impl Entity {
         Action::delete_multi(game_io, resources, simulation, true, action_indices);
 
         // call delete callbacks after
-        simulation.pending_callbacks.extend(listener_callbacks);
+        simulation
+            .pending_callbacks
+            .extend(listener_callbacks.into_iter().map(|(_, callback)| callback));
 
         if let Some(callback) = delete_callback {
             simulation.pending_callbacks.push(callback.0);

@@ -689,7 +689,7 @@ impl BattleSimulation {
             if let Ok(EraseCallbacks(erase_callbacks)) =
                 self.entities.remove_one::<EraseCallbacks>(id)
             {
-                for callback in erase_callbacks {
+                for (_, callback) in erase_callbacks {
                     callback.call(game_io, resources, self, ());
                 }
             }
