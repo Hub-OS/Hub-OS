@@ -272,7 +272,8 @@ impl BattleScene {
                             if yes {
                                 event_sender.send(BattleEvent::AttemptFlee).unwrap();
                             }
-                        });
+                        })
+                        .with_default_response(false);
 
                         self.textbox.push_interface(interface);
                     } else {
