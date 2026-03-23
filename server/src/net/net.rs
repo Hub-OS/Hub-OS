@@ -1598,6 +1598,44 @@ impl Net {
         }
     }
 
+    pub fn is_player_equipment_locked(&self, id: ActorId) -> bool {
+        if let Some(client) = self.clients.get(&id) {
+            return client.equipment_locked;
+        }
+
+        false
+    }
+
+    pub fn lock_player_equipment(&mut self, id: ActorId) {
+        if let Some(client) = self.clients.get_mut(&id) {
+            if client.equipment_locked {
+                return;
+            }
+
+            client.equipment_locked = true;
+
+            self.packet_orchestrator.borrow_mut().send(
+                client.socket_address,
+                Reliability::ReliableOrdered,
+                ServerPacket::LockEquipment,
+            );
+        }
+    }
+
+    pub fn unlock_player_equipment(&mut self, id: ActorId) {
+        if let Some(client) = self.clients.get_mut(&id) {
+            if !client.equipment_locked {
+                return;
+            }
+
+            self.packet_orchestrator.borrow_mut().send(
+                client.socket_address,
+                Reliability::ReliableOrdered,
+                ServerPacket::UnlockEquipment,
+            );
+        }
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub fn transfer_player(
         &mut self,

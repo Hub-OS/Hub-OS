@@ -105,6 +105,8 @@ pub enum ServerPacket {
         package_id: PackageId,
         enabled: bool,
     },
+    LockEquipment,
+    UnlockEquipment,
     PlaySound {
         path: String,
     },

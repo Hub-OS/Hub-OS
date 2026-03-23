@@ -398,6 +398,10 @@ impl OverworldMenuManager {
         }
     }
 
+    pub fn set_equipment_locked(&mut self, locked: bool) {
+        self.navigation_menu.set_equipment_locked(locked);
+    }
+
     fn update_navigation_menu(
         &mut self,
         game_io: &mut GameIO,

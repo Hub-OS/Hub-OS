@@ -6,7 +6,7 @@ use crate::resources::*;
 use crate::scenes::*;
 use framework::prelude::*;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum SceneOption {
     Servers,
     Decks,
@@ -82,6 +82,7 @@ impl SceneOption {
     }
 }
 
+#[derive(Clone)]
 struct NavigationItem {
     icon_sprite: Sprite,
     target_scene: SceneOption,
@@ -109,6 +110,7 @@ pub struct NavigationMenu {
     fade_sprite: Sprite,
     item_start: Vec2,
     item_next: Vec2,
+    original_items: Vec<NavigationItem>,
     items: Vec<NavigationItem>,
     item_label_sprite: Sprite,
     item_text_style: TextStyle,
@@ -136,7 +138,7 @@ impl NavigationMenu {
         scroll_tracker.set_total_items(items.len());
 
         // menu items
-        let items = items
+        let items: Vec<NavigationItem> = items
             .into_iter()
             .enumerate()
             .map(|(i, target_scene)| {
@@ -214,6 +216,7 @@ impl NavigationMenu {
             fade_sprite,
             item_start,
             item_next,
+            original_items: items.clone(),
             items,
             item_label_sprite,
             item_text_style,
@@ -255,6 +258,46 @@ impl NavigationMenu {
     pub fn close(&mut self) {
         self.open_state = OpenState::Closing;
         self.animation_time = 0;
+    }
+
+    pub fn set_equipment_locked(&mut self, locked: bool) {
+        // directly manipulating items since this is the only filter
+
+        if !locked {
+            self.items.clone_from_slice(&self.original_items);
+            return;
+        }
+
+        // remember prev selection
+        let prev_target = self
+            .items
+            .get(self.scroll_tracker.selected_index())
+            .map(|i| i.target_scene);
+
+        // filter items
+        self.items.clear();
+        self.items.extend(
+            self.original_items
+                .iter()
+                .filter(|item| {
+                    !matches!(
+                        item.target_scene,
+                        SceneOption::Decks | SceneOption::Character | SceneOption::BattleSelect,
+                    )
+                })
+                .cloned(),
+        );
+
+        // restore prev selection
+        if let Some(i) = prev_target.and_then(|target| {
+            self.items
+                .iter()
+                .position(|item| item.target_scene == target)
+        }) {
+            self.scroll_tracker.set_selected_index(i);
+        }
+
+        self.scroll_tracker.set_total_items(self.items.len());
     }
 
     pub fn update_info(&mut self, player_data: &OverworldPlayerData) {

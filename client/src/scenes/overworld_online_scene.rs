@@ -601,6 +601,13 @@ impl OverworldOnlineScene {
                 let restrictions = &mut globals.restrictions;
                 restrictions.enable_player_character(package_id, enabled);
             }
+
+            ServerPacket::LockEquipment => {
+                self.menu_manager.set_equipment_locked(true);
+            }
+            ServerPacket::UnlockEquipment => {
+                self.menu_manager.set_equipment_locked(false);
+            }
             ServerPacket::PlaySound { path } => {
                 if self.area.visible {
                     let sound = self.assets.audio(game_io, &path);

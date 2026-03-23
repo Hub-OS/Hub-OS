@@ -354,4 +354,38 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         lua.pack_multi(())
     });
+
+    lua_api.add_dynamic_function(
+        "Net",
+        "is_player_equipment_locked",
+        |api_ctx, lua, params| {
+            let player_id: ActorId = lua.unpack_multi(params)?;
+
+            let net = api_ctx.net_ref.borrow();
+
+            let is_locked = net.is_player_equipment_locked(player_id);
+
+            lua.pack_multi(is_locked)
+        },
+    );
+
+    lua_api.add_dynamic_function("Net", "lock_player_equipment", |api_ctx, lua, params| {
+        let player_id: ActorId = lua.unpack_multi(params)?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+
+        net.lock_player_equipment(player_id);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function("Net", "unlock_player_equipment", |api_ctx, lua, params| {
+        let player_id: ActorId = lua.unpack_multi(params)?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+
+        net.unlock_player_equipment(player_id);
+
+        lua.pack_multi(())
+    });
 }
