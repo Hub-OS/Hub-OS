@@ -201,6 +201,7 @@ impl ActorPropertyAnimator {
     ) -> ActorProperty {
         match property_id {
             ActorPropertyId::Animation => ActorProperty::Animation(String::new()),
+            ActorPropertyId::AnimationLoop => ActorProperty::AnimationLoop(String::new()),
             ActorPropertyId::AnimationSpeed => ActorProperty::AnimationSpeed(1.0),
             ActorPropertyId::X => ActorProperty::X(position.x),
             ActorPropertyId::Y => ActorProperty::Y(position.y),
@@ -262,14 +263,18 @@ impl ActorPropertyAnimator {
 
                 // update property
                 match property_id {
-                    ActorPropertyId::Animation => {
-                        property_animator.animating_sprite = !active_string_value.is_empty();
+                    ActorPropertyId::Animation | ActorPropertyId::AnimationLoop => {
+                        property_animator.animating_sprite =
+                            animator.has_state(active_string_value);
 
                         if animator.current_state() != Some(active_string_value)
                             && animator.has_state(active_string_value)
                         {
                             animator.set_state(active_string_value);
-                            animator.set_loop_mode(AnimatorLoopMode::Loop);
+
+                            if property_id == ActorPropertyId::AnimationLoop {
+                                animator.set_loop_mode(AnimatorLoopMode::Loop);
+                            }
 
                             property_animator.sprite_animation_time = 0;
                             property_animator.sprite_animation_base_time = 0;
@@ -436,6 +441,7 @@ impl ActorPropertyAnimator {
             ActorPropertyId::Direction
             | ActorPropertyId::AnimationSpeed
             | ActorPropertyId::Animation
+            | ActorPropertyId::AnimationLoop
             | ActorPropertyId::SoundEffect
             | ActorPropertyId::SoundEffectLoop => {
                 log::error!("Called apply_f32_property for invalid ActorPropertyId")

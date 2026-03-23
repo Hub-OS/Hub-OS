@@ -19,6 +19,7 @@ pub fn parse_animation(keyframe_tables: Vec<mlua::Table>) -> mlua::Result<Vec<Ac
 
             let property = match property_name_str {
                 "Animation" => ActorProperty::Animation(property_table.get("value")?),
+                "Animation Loop" => ActorProperty::AnimationLoop(property_table.get("value")?),
                 "Animation Speed" => ActorProperty::AnimationSpeed(property_table.get("value")?),
                 "X" => ActorProperty::X(property_table.get("value")?),
                 "Y" => ActorProperty::Y(property_table.get("value")?),

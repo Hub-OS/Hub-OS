@@ -39,6 +39,7 @@ impl Ease {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Enum)]
 pub enum ActorPropertyId {
     Animation,
+    AnimationLoop,
     AnimationSpeed,
     X,
     Y,
@@ -54,6 +55,7 @@ pub enum ActorPropertyId {
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub enum ActorProperty {
     Animation(String),
+    AnimationLoop(String),
     AnimationSpeed(f32),
     X(f32),
     Y(f32),
@@ -90,6 +92,7 @@ impl ActorProperty {
     pub fn id(&self) -> ActorPropertyId {
         match self {
             Self::Animation(_) => ActorPropertyId::Animation,
+            Self::AnimationLoop(_) => ActorPropertyId::AnimationLoop,
             Self::AnimationSpeed(_) => ActorPropertyId::AnimationSpeed,
             Self::X(_) => ActorPropertyId::X,
             Self::Y(_) => ActorPropertyId::Y,
