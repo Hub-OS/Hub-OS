@@ -494,7 +494,10 @@ pub fn parse_text_style(table: mlua::Table) -> mlua::Result<TextStyleBlueprint> 
             .map(parse_rgba_table)
             .transpose()?
             .unwrap_or_default(),
-        custom_atlas: parse_texture_animation_pair(table).ok(),
+        custom_atlas: get_option::<mlua::Table>(&table, "custom_atlas").and_then(|pair| {
+            pair.map(|pair| parse_texture_animation_pair(pair))
+                .transpose()
+        })?,
     })
 }
 
