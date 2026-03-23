@@ -345,13 +345,23 @@ impl BattleState {
         }
 
         if let Some(local_team) = local_team {
-            // detect success
+            // disable the turn gauge if all enemies are deleted
             let enemies_alive = entities
                 .query_mut::<(&Entity, &Character)>()
                 .into_iter()
-                .any(|(_, (entity, _))| entity.team != local_team);
+                .any(|(_, (entity, _))| !entity.team.is_allied(local_team) && !entity.deleted);
 
             if !enemies_alive {
+                simulation.turn_gauge.set_enabled(false);
+            }
+
+            // detect success
+            let enemies_exist = entities
+                .query_mut::<(&Entity, &Character)>()
+                .into_iter()
+                .any(|(_, (entity, _))| !entity.team.is_allied(local_team));
+
+            if !enemies_exist {
                 self.succeed(game_io, resources, simulation);
             }
         }
