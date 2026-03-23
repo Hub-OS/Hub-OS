@@ -787,11 +787,17 @@ impl OverworldOnlineScene {
                 textbox_options,
             } => {
                 let event_sender = self.area.event_sender.clone();
-                let interface = TextboxQuestion::new(game_io, message, move |response| {
+                let mut interface = TextboxQuestion::new(game_io, message, move |response| {
                     event_sender
                         .send(OverworldEvent::TextboxResponse(response as u8))
                         .unwrap();
                 });
+
+                if textbox_options.default_response == "0" {
+                    interface = interface.with_default_response(false);
+                } else if textbox_options.default_response == "1" {
+                    interface = interface.with_default_response(true);
+                }
 
                 self.push_textbox_interface_with_options(game_io, interface, textbox_options);
                 self.set_textbox_doorstop();
@@ -805,27 +811,34 @@ impl OverworldOnlineScene {
                 let options: &[&str; 3] = &[&option_a, &option_b, &option_c];
 
                 let event_sender = self.area.event_sender.clone();
-                let interface = TextboxQuiz::new(options, move |response| {
+                let mut interface = TextboxQuiz::new(options, move |response| {
                     event_sender
                         .send(OverworldEvent::TextboxResponse(response as u8))
                         .unwrap();
                 });
 
+                if let Ok(n) = textbox_options.default_response.parse() {
+                    interface = interface.with_default_response(n);
+                }
+
                 self.push_textbox_interface_with_options(game_io, interface, textbox_options);
                 self.set_textbox_doorstop();
             }
-            ServerPacket::Prompt {
-                character_limit,
-                default_text,
-            } => {
+            ServerPacket::Prompt { textbox_options } => {
                 let event_sender = self.area.event_sender.clone();
-                let prompt_interface = TextboxPrompt::new(move |response| {
+                let mut interface = TextboxPrompt::new(move |response| {
                     event_sender
                         .send(OverworldEvent::PromptResponse(response))
                         .unwrap();
                 });
 
-                self.menu_manager.push_textbox_interface(prompt_interface);
+                interface = interface.with_str(&textbox_options.default_response);
+
+                if textbox_options.character_limit > 0 {
+                    interface = interface.with_character_limit(textbox_options.character_limit);
+                }
+
+                self.push_textbox_interface_with_options(game_io, interface, textbox_options);
                 self.set_textbox_doorstop();
             }
             ServerPacket::TextBoxResponseAck => {

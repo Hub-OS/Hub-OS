@@ -41,6 +41,11 @@ impl TextboxQuestion {
             input_tracker: UiInputTracker::new(),
         }
     }
+
+    pub fn with_default_response(mut self, selection: bool) -> Self {
+        self.selection = selection;
+        self
+    }
 }
 
 impl TextboxInterface for TextboxQuestion {

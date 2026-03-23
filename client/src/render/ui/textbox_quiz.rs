@@ -26,6 +26,11 @@ impl TextboxQuiz {
         }
     }
 
+    pub fn with_default_response(mut self, selection: usize) -> Self {
+        self.selection = selection.min(2);
+        self
+    }
+
     fn update_cursor(&mut self, text_style: &TextStyle) {
         let cursor = self.cursor.as_mut().unwrap();
 

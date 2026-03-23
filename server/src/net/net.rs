@@ -857,22 +857,14 @@ impl Net {
         }
     }
 
-    pub fn prompt_player(&mut self, id: ActorId, character_limit: u16, default_text: Option<&str>) {
+    pub fn prompt_player(&mut self, id: ActorId, textbox_options: TextboxOptions) {
         if let Some(client) = self.clients.get_mut(&id) {
             client.widget_tracker.track_textbox(self.active_plugin);
-
-            // reliability + id + type + u16 size
-            let available_space = self.config.args.max_payload_size - 1 - 8 - 4 - 2 - 4;
-
-            let character_limit = std::cmp::min(character_limit, available_space);
 
             self.packet_orchestrator.borrow_mut().send(
                 client.socket_address,
                 Reliability::ReliableOrdered,
-                ServerPacket::Prompt {
-                    character_limit,
-                    default_text: default_text.map(|s| s.to_string()),
-                },
+                ServerPacket::Prompt { textbox_options },
             );
         }
     }

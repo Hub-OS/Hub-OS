@@ -129,19 +129,16 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 
     lua_api.add_dynamic_function("Net", "_prompt_player", |api_ctx, lua, params| {
-        let (player_id, character_limit, message): (ActorId, Option<u16>, Option<mlua::String>) =
-            lua.unpack_multi(params)?;
+        let (player_id, rest): (ActorId, mlua::MultiValue) = lua.unpack_multi(params)?;
+
+        let textbox_options = parse_textbox_options(lua, rest)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
         if let Some(tracker) = api_ctx.widget_tracker_ref.borrow_mut().get_mut(&player_id) {
             tracker.track_textbox(api_ctx.script_index);
 
-            net.prompt_player(
-                player_id,
-                character_limit.unwrap_or(u16::MAX),
-                optional_lua_string_to_optional_str(&message)?,
-            );
+            net.prompt_player(player_id, textbox_options);
         }
 
         lua.pack_multi(())
@@ -447,6 +444,11 @@ fn parse_textbox_options<'lua>(
                 .get::<_, Option<mlua::Table>>("text_style")?
                 .map(parse_text_style)
                 .transpose()?;
+
+            // parse default response
+            textbox_options.default_response = table
+                .get::<_, Option<String>>("default_response")?
+                .unwrap_or_default();
         }
         mlua::Value::String(mug_texture_path) => {
             // deprecation compatibility
@@ -456,6 +458,20 @@ fn parse_textbox_options<'lua>(
                 texture: mug_texture_path.to_str()?.to_string().into(),
                 animation: mug_animation_path.into(),
             });
+        }
+        mlua::Value::Integer(character_limit) => {
+            // assuming Net.prompt_player
+            let default_response: Option<String> = lua.unpack_multi(rest)?;
+
+            textbox_options.character_limit = character_limit as _;
+            textbox_options.default_response = default_response.unwrap_or_default();
+        }
+        mlua::Value::Number(character_limit) => {
+            // assuming Net.prompt_player
+            let default_response: Option<String> = lua.unpack_multi(rest)?;
+
+            textbox_options.character_limit = character_limit as _;
+            textbox_options.default_response = default_response.unwrap_or_default();
         }
         _ => {}
     }

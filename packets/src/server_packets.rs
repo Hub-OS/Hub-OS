@@ -181,8 +181,7 @@ pub enum ServerPacket {
         textbox_options: TextboxOptions,
     },
     Prompt {
-        character_limit: u16,
-        default_text: Option<String>,
+        textbox_options: TextboxOptions,
     },
     TextBoxResponseAck,
     OpenBoard {
