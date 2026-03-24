@@ -722,14 +722,14 @@ mod tests {
     use super::*;
 
     fn create_orchestrator() -> PacketOrchestrator {
-        let socket = UdpSocket::bind("127.0.0.1:8765").unwrap();
+        let socket = UdpSocket::bind("127.0.0.1:7370").unwrap();
         socket.take_error().unwrap();
 
         let config = ServerConfig {
             max_silence_duration: 0.0,
             heartbeat_rate: 0.0,
             args: crate::args::Args {
-                port: 8765,
+                port: 7370,
                 log_connections: false,
                 log_packets: false,
                 max_payload_size: 1000,

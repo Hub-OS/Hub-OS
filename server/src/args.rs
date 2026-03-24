@@ -5,7 +5,7 @@ pub struct Args {
     #[arg(
         short,
         long,
-        default_value = "8765",
+        default_value = "7370",
         value_parser = clap::value_parser!(u16).range(1..)
     )]
     pub port: u16,

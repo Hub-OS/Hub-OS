@@ -51,7 +51,7 @@ impl ServerEditScene {
                 name: name.clone().unwrap_or_else(|| String::from("New Server")),
                 address: address
                     .clone()
-                    .unwrap_or_else(|| String::from("localhost:8765")),
+                    .unwrap_or_else(|| String::from("localhost:7370")),
                 uuid: Uuid::new_v4(),
                 update_time: 0,
             },
