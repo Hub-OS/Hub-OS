@@ -152,6 +152,8 @@ pub enum ServerPacket {
     UnlockCamera,
     LockInput,
     UnlockInput,
+    LockMovement,
+    UnlockMovement,
     Teleport {
         warp: bool,
         x: f32,

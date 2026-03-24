@@ -23,6 +23,7 @@ pub struct OverworldArea {
     pub world_time: FrameTime,
     pub visible: bool,
     input_locks: usize,
+    movement_locks: usize,
     background: Background,
     foreground: Background,
     camera_controller: CameraController,
@@ -76,6 +77,7 @@ impl OverworldArea {
             event_receiver,
             world_time: 0,
             input_locks: 0,
+            movement_locks: 0,
             visible: false,
             background: Background::new_blank(game_io),
             foreground: Background::new_blank(game_io),
@@ -167,6 +169,10 @@ impl OverworldArea {
             || self.animating_position()
     }
 
+    pub fn is_movement_locked(&self, game_io: &GameIO) -> bool {
+        self.is_input_locked(game_io) || self.movement_locks > 0
+    }
+
     fn animating_position(&self) -> bool {
         let entities = &self.entities;
         let Ok(mut query) = entities.query_one::<&ActorPropertyAnimator>(self.player_data.entity)
@@ -195,6 +201,16 @@ impl OverworldArea {
     pub fn remove_input_lock(&mut self) {
         if self.input_locks > 0 {
             self.input_locks -= 1;
+        }
+    }
+
+    pub fn add_movement_lock(&mut self) {
+        self.movement_locks += 1;
+    }
+
+    pub fn remove_movement_lock(&mut self) {
+        if self.movement_locks > 0 {
+            self.movement_locks -= 1;
         }
     }
 

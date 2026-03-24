@@ -648,6 +648,42 @@ impl Net {
         }
     }
 
+    pub fn is_player_movement_locked(&self, id: ActorId) -> bool {
+        if let Some(client) = self.clients.get(&id) {
+            return client.movement_locks > 0;
+        }
+
+        false
+    }
+
+    pub fn lock_player_movement(&mut self, id: ActorId) {
+        if let Some(client) = self.clients.get_mut(&id) {
+            client.movement_locks += 1;
+
+            self.packet_orchestrator.borrow_mut().send(
+                client.socket_address,
+                Reliability::ReliableOrdered,
+                ServerPacket::LockMovement,
+            );
+        }
+    }
+
+    pub fn unlock_player_movement(&mut self, id: ActorId) {
+        if let Some(client) = self.clients.get_mut(&id) {
+            if client.movement_locks == 0 {
+                return;
+            }
+
+            client.movement_locks -= 1;
+
+            self.packet_orchestrator.borrow_mut().send(
+                client.socket_address,
+                Reliability::ReliableOrdered,
+                ServerPacket::UnlockMovement,
+            );
+        }
+    }
+
     pub fn teleport_player(
         &mut self,
         id: ActorId,

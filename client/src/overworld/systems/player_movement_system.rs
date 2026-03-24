@@ -1,5 +1,5 @@
 use super::find_state_from_movement;
-use crate::overworld::{components::*, OverworldArea, TileClass};
+use crate::overworld::{OverworldArea, TileClass, components::*};
 use crate::resources::*;
 use framework::prelude::*;
 use packets::structures::{ActorKeyFrame, ActorProperty, Ease};
@@ -20,7 +20,7 @@ pub fn system_player_movement(
 fn system_base(game_io: &GameIO, area: &mut OverworldArea) {
     let input_util = InputUtil::new(game_io);
 
-    let input_direction = if area.is_input_locked(game_io) {
+    let input_direction = if area.is_movement_locked(game_io) {
         Direction::None
     } else {
         input_util.direction()

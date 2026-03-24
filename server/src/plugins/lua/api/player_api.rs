@@ -1,8 +1,8 @@
 use packets::structures::{ActorId, BattleId};
 
+use super::LuaApi;
 use super::lua_errors::{create_area_error, create_player_error};
 use super::lua_helpers::*;
-use super::LuaApi;
 use crate::net::Direction;
 
 #[allow(clippy::type_complexity)]
@@ -399,16 +399,6 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         lua.pack_multi(())
     });
 
-    lua_api.add_dynamic_function("Net", "is_player_input_locked", |api_ctx, lua, params| {
-        let player_id: ActorId = lua.unpack_multi(params)?;
-
-        let net = api_ctx.net_ref.borrow();
-
-        let is_locked = net.is_player_input_locked(player_id);
-
-        lua.pack_multi(is_locked)
-    });
-
     lua_api.add_dynamic_function("Net", "unlock_player_camera", |api_ctx, lua, params| {
         let player_id: ActorId = lua.unpack_multi(params)?;
 
@@ -417,6 +407,16 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         net.unlock_player_camera(player_id);
 
         lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function("Net", "is_player_input_locked", |api_ctx, lua, params| {
+        let player_id: ActorId = lua.unpack_multi(params)?;
+
+        let net = api_ctx.net_ref.borrow();
+
+        let is_locked = net.is_player_input_locked(player_id);
+
+        lua.pack_multi(is_locked)
     });
 
     lua_api.add_dynamic_function("Net", "lock_player_input", |api_ctx, lua, params| {
@@ -435,6 +435,40 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         net.unlock_player_input(player_id);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(
+        "Net",
+        "is_player_movement_locked",
+        |api_ctx, lua, params| {
+            let player_id: ActorId = lua.unpack_multi(params)?;
+
+            let net = api_ctx.net_ref.borrow();
+
+            let is_locked = net.is_player_movement_locked(player_id);
+
+            lua.pack_multi(is_locked)
+        },
+    );
+
+    lua_api.add_dynamic_function("Net", "lock_player_movement", |api_ctx, lua, params| {
+        let player_id: ActorId = lua.unpack_multi(params)?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+
+        net.lock_player_movement(player_id);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function("Net", "unlock_player_movement", |api_ctx, lua, params| {
+        let player_id: ActorId = lua.unpack_multi(params)?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+
+        net.unlock_player_movement(player_id);
 
         lua.pack_multi(())
     });

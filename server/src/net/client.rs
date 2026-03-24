@@ -35,6 +35,7 @@ pub(super) struct Client {
     pub battle_tracker: VecDeque<BattleTrackingInfo>,
     pub player_data: PlayerData,
     pub input_locks: usize,
+    pub movement_locks: usize,
     pub equipment_locked: bool,
 }
 
@@ -101,6 +102,7 @@ impl Client {
             battle_tracker: VecDeque::new(),
             player_data: PlayerData::new(identity),
             input_locks: 0,
+            movement_locks: 0,
             equipment_locked: false,
         }
     }

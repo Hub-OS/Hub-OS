@@ -714,6 +714,12 @@ impl OverworldOnlineScene {
             ServerPacket::UnlockInput => {
                 self.area.remove_input_lock();
             }
+            ServerPacket::LockMovement => {
+                self.area.add_movement_lock();
+            }
+            ServerPacket::UnlockMovement => {
+                self.area.remove_movement_lock();
+            }
             ServerPacket::Teleport {
                 warp,
                 x,
