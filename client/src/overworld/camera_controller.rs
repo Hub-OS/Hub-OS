@@ -142,7 +142,14 @@ impl CameraController {
                 CameraAction::Fade { color, duration } => {
                     camera.fade(color, (duration * 60.0) as _)
                 }
-                CameraAction::TrackEntity { entity } => self.tracked_entity = Some(entity),
+                CameraAction::TrackEntity { entity } => {
+                    if entity == self.player_entity {
+                        self.tracked_entity = None;
+                        self.locked = !self.queue.is_empty();
+                    } else {
+                        self.tracked_entity = Some(entity)
+                    }
+                }
                 CameraAction::Unlock => {
                     // unlock as long as nothing else is queued
                     self.locked = !self.queue.is_empty();
