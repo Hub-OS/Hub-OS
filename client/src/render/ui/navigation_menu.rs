@@ -264,7 +264,9 @@ impl NavigationMenu {
         // directly manipulating items since this is the only filter
 
         if !locked {
-            self.items.clone_from_slice(&self.original_items);
+            self.items.clear();
+            self.items.extend(self.original_items.iter().cloned());
+            self.scroll_tracker.set_total_items(self.items.len());
             return;
         }
 
