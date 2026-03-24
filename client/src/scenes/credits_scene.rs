@@ -41,6 +41,7 @@ const SECTIONS: &[(&str, &[&str])] = &[
             "PlayerZero",
             "Region Locking",
             "Sefaia",
+            "TeeJay",
             "Tim (Tchomp)",
             "timinatoor",
             "Void.ExE",
