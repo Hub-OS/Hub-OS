@@ -23,6 +23,7 @@ pub struct CardProperties<L = HitFlags, D = VecMap<HitFlags, FrameTime>> {
     pub element: Element,
     pub secondary_element: Element,
     pub card_class: CardClass,
+    pub limit: usize,
     pub hit_flags: L,
     pub status_durations: D,
     pub can_boost: bool,
@@ -49,6 +50,7 @@ impl<L: Default, F: Default> Default for CardProperties<L, F> {
             secondary_element: Element::None,
             time_freeze: false,
             card_class: CardClass::Standard,
+            limit: 0,
             hit_flags: Default::default(),
             status_durations: Default::default(),
             can_boost: true,
@@ -215,6 +217,7 @@ impl CardProperties<Vec<String>, VecMap<String, CardPackageStatusDuration>> {
             element: self.element,
             secondary_element: self.secondary_element,
             card_class: self.card_class,
+            limit: self.limit,
             hit_flags: self
                 .hit_flags
                 .iter()
@@ -279,6 +282,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CardProperties {
             element: table.get("element").unwrap_or_default(),
             secondary_element: table.get("secondary_element").unwrap_or_default(),
             card_class: table.get("card_class").unwrap_or_default(),
+            limit: table.get("limit").unwrap_or_default(),
             hit_flags: table.get("hit_flags").unwrap_or_default(),
             status_durations: table
                 .get("status_durations")
@@ -328,6 +332,7 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for &CardProperties {
         table.set("element", self.element)?;
         table.set("secondary_element", self.secondary_element)?;
         table.set("card_class", self.card_class)?;
+        table.set("limit", self.limit)?;
         table.set("hit_flags", self.hit_flags)?;
         table.set("status_durations", self.status_durations.to_lua_table(lua)?)?;
 

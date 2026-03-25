@@ -136,7 +136,7 @@ impl Card {
             icon_texture_path = package.icon_texture_path.as_str();
             short_name = package.card_properties.short_name.as_ref();
             element = package.card_properties.element;
-            limit = package.limit;
+            limit = package.card_properties.limit;
             card_class = package.card_properties.card_class;
         } else {
             icon_texture_path = ResourcePaths::CARD_ICON_MISSING;

@@ -1321,7 +1321,7 @@ fn transfer_to_deck(
         .filter(|item| item.card.package_id == card_item.card.package_id)
         .count();
 
-    if package_count >= package.limit {
+    if package_count >= package.card_properties.limit {
         return Err(());
     }
 
@@ -1754,7 +1754,7 @@ impl CardListItem {
                             code: code.clone(),
                         };
 
-                        (valid_package, card, package.limit)
+                        (valid_package, card, package.card_properties.limit)
                     })
                 })
                 .map(map_to_item_with_count)

@@ -245,7 +245,7 @@ impl<'a> DeckValidator<'a> {
             .cloned()
             .unwrap_or_default();
 
-        if package_count > package.limit {
+        if package_count > package.card_properties.limit {
             return false;
         }
 

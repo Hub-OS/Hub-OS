@@ -113,7 +113,11 @@ impl CardRecipes {
 
         let mut push = |start_id: String, recipe: &CardRecipe| {
             let recipe_list = data.recipes.entry(start_id.clone()).or_default();
-            recipe_list.push((info.id.clone(), recipe.clone(), package.limit));
+            recipe_list.push((
+                info.id.clone(),
+                recipe.clone(),
+                package.card_properties.limit,
+            ));
             recipe_list.sort_by(|(a, ..), (b, ..)| a.cmp(b));
 
             tracking.insert(start_id);

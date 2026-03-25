@@ -199,7 +199,7 @@ impl Restrictions {
                 .package_or_fallback(PackageNamespace::Local, &card.package_id)
                 .map(|package| {
                     if package.default_codes.contains(&card.code) {
-                        package.limit
+                        package.card_properties.limit
                     } else {
                         0
                     }

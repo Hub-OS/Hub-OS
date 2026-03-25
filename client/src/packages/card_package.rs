@@ -60,7 +60,6 @@ pub struct CardPackage {
     pub default_codes: Vec<String>,
     pub regular_allowed: bool,
     pub hidden: bool,
-    pub limit: usize,
     pub recipes: Vec<CardRecipe>,
     pub search_name: String,
 }
@@ -213,7 +212,7 @@ impl Package for CardPackage {
             .regular_allowed
             .unwrap_or(card_class == CardClass::Standard);
 
-        package.limit = meta.limit.unwrap_or_else(|| {
+        package.card_properties.limit = meta.limit.unwrap_or_else(|| {
             if package.card_properties.card_class == CardClass::Recipe {
                 1
             } else {

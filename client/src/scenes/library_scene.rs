@@ -276,7 +276,8 @@ impl Dock {
                     return !package.recipes.is_empty();
                 }
 
-                package.card_properties.card_class == card_class && package.limit > 0
+                package.card_properties.card_class == card_class
+                    && package.card_properties.limit > 0
             })
             .map(|package| Card {
                 package_id: package.package_info.id.clone(),
