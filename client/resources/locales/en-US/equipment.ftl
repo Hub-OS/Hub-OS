@@ -1,4 +1,5 @@
 character-status-scene-title = Status
+character-status-options-header = Here is my status.
 character-status-blocks-option = Blocks
 character-status-switch-drives-option = Drives
 character-status-navis-option = Navis

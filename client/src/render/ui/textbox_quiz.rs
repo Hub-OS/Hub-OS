@@ -4,20 +4,23 @@ use crate::resources::*;
 use framework::prelude::*;
 
 pub struct TextboxQuiz {
+    header: String,
     message: String,
     valid_options: [bool; 3],
     selection: usize,
     complete: bool,
     never_complete: bool,
     callback: Box<dyn Fn(usize)>,
-    animate_cursor: bool,
     cursor: Option<TextboxCursor>,
+    cursor_shift: usize,
+    animate_cursor: bool,
     input_tracker: UiInputTracker,
 }
 
 impl TextboxQuiz {
     pub fn new(options: &[&str; 3], callback: impl Fn(usize) + 'static) -> Self {
         Self {
+            header: Default::default(),
             message: format!("\x02  {}\n  {}\n  {}", options[0], options[1], options[2]),
             valid_options: options.map(|s| !s.is_empty()),
             selection: 0,
@@ -25,6 +28,7 @@ impl TextboxQuiz {
             never_complete: false,
             callback: Box::new(callback),
             cursor: None,
+            cursor_shift: 0,
             animate_cursor: false,
             input_tracker: UiInputTracker::new(),
         }
@@ -45,13 +49,19 @@ impl TextboxQuiz {
         self
     }
 
+    pub fn with_header(mut self, header: String) -> Self {
+        self.header = header;
+        self
+    }
+
     fn update_cursor(&mut self, text_style: &TextStyle) {
         let cursor = self.cursor.as_mut().unwrap();
 
+        let cursor_line = self.cursor_shift + self.selection;
         let line_height = text_style.line_height();
         let relative_position = Vec2::new(
             text_style.measure("  ").size.x,
-            line_height * 0.5 + line_height * self.selection as f32,
+            line_height * 0.5 + line_height * cursor_line as f32,
         );
 
         cursor.set_position(text_style.bounds.position() + relative_position);
@@ -104,6 +114,24 @@ impl TextboxQuiz {
 }
 
 impl TextboxInterface for TextboxQuiz {
+    fn prepare_text(&mut self, text_style: &TextStyle) {
+        if self.header.is_empty() {
+            return;
+        }
+
+        let header = std::mem::take(&mut self.header);
+
+        let metrics = text_style.measure(&header);
+        let header_lines = metrics.line_ranges.len();
+        let option_lines =
+            self.valid_options.len() - self.valid_options.iter().rev().take_while(|&&v| !v).count();
+
+        if header_lines + option_lines <= 3 {
+            self.message = format!("{header}\n{}", self.message.trim_end());
+            self.cursor_shift = metrics.line_ranges.len();
+        }
+    }
+
     fn text(&self) -> &str {
         &self.message
     }

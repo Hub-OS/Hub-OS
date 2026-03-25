@@ -19,7 +19,10 @@ const IMMEDIATE_CHAR_DELAY: FrameTime = 0;
 const DRAMATIC_CHAR_DELAY: FrameTime = 40;
 
 pub trait TextboxInterface {
-    /// This should not change after the first call
+    fn prepare_text(&mut self, _text_style: &TextStyle) {}
+
+    /// This should not change after the first call.
+    /// Use prepare_text() if you need to adjust based on text_style.
     fn text(&self) -> &str;
 
     fn hides_avatar(&self) -> bool {
@@ -579,10 +582,13 @@ impl Textbox {
         let page_height = self.text_style.bounds.height;
 
         let (text, style) = match self.interface_queue.front_mut() {
-            Some((interface, custom_style)) => (
-                interface.text(),
-                &*resolve_text_style(custom_style, &mut self.text_style),
-            ),
+            Some((interface, custom_style)) => {
+                let text_style = &*resolve_text_style(custom_style, &mut self.text_style);
+
+                interface.prepare_text(text_style);
+
+                (interface.text(), text_style)
+            }
             None => ("", &self.text_style),
         };
 

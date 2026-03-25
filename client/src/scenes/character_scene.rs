@@ -120,6 +120,7 @@ impl CharacterScene {
         });
 
         interface = interface
+            .with_header(globals.translate("character-status-options-header"))
             .with_never_complete(true)
             .with_animate_cursor(true);
 
