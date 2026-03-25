@@ -8,26 +8,40 @@ pub struct TextboxQuiz {
     valid_options: [bool; 3],
     selection: usize,
     complete: bool,
-    callback: Option<Box<dyn FnOnce(usize)>>,
+    never_complete: bool,
+    callback: Box<dyn Fn(usize)>,
+    animate_cursor: bool,
     cursor: Option<TextboxCursor>,
     input_tracker: UiInputTracker,
 }
 
 impl TextboxQuiz {
-    pub fn new(options: &[&str; 3], callback: impl FnOnce(usize) + 'static) -> Self {
+    pub fn new(options: &[&str; 3], callback: impl Fn(usize) + 'static) -> Self {
         Self {
             message: format!("\x02  {}\n  {}\n  {}", options[0], options[1], options[2]),
             valid_options: options.map(|s| !s.is_empty()),
             selection: 0,
             complete: false,
-            callback: Some(Box::new(callback)),
+            never_complete: false,
+            callback: Box::new(callback),
             cursor: None,
+            animate_cursor: false,
             input_tracker: UiInputTracker::new(),
         }
     }
 
     pub fn with_default_response(mut self, selection: usize) -> Self {
         self.selection = selection.min(2);
+        self
+    }
+
+    pub fn with_never_complete(mut self, never_complete: bool) -> Self {
+        self.never_complete = never_complete;
+        self
+    }
+
+    pub fn with_animate_cursor(mut self, animate_cursor: bool) -> Self {
+        self.animate_cursor = animate_cursor;
         self
     }
 
@@ -82,12 +96,9 @@ impl TextboxQuiz {
             let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_select);
 
-            self.complete = true;
-        }
+            self.complete = !self.never_complete;
 
-        if self.complete {
-            let callback = self.callback.take().unwrap();
-            callback(self.selection);
+            (self.callback)(self.selection);
         }
     }
 }
@@ -111,12 +122,20 @@ impl TextboxInterface for TextboxQuiz {
             self.update_cursor(text_style);
         }
 
+        if self.animate_cursor {
+            self.update_cursor(text_style);
+        }
+
         if !game_io.is_in_transition() {
             self.handle_input(game_io, text_style);
         }
     }
 
-    fn draw(&mut self, _game_io: &framework::prelude::GameIO, sprite_queue: &mut SpriteColorQueue) {
+    fn draw(&mut self, game_io: &framework::prelude::GameIO, sprite_queue: &mut SpriteColorQueue) {
+        if game_io.is_in_transition() {
+            return;
+        }
+
         let Some(cursor) = &mut self.cursor else {
             return;
         };

@@ -8,17 +8,40 @@ use packets::structures::{
 use std::borrow::Cow;
 use std::collections::{HashMap, HashSet};
 
-#[derive(Default)]
 pub struct Restrictions {
+    // packages
     hash_whitelist: HashSet<FileHash>,
     id_whitelist: HashSet<PackageId>,
     tag_whitelist: HashSet<String>,
     id_blacklist: HashSet<PackageId>,
     tag_blacklist: HashSet<String>,
+    // deck
     base_deck_restrictions: DeckRestrictions,
+    // augments
+    pub blocks_enabled: bool,
+    pub drives_enabled: bool,
+    // ownership
     owned_cards: HashMap<Card, usize>,
     owned_blocks: HashMap<(Cow<'static, PackageId>, BlockColor), usize>,
     owned_players: HashSet<PackageId>,
+}
+
+impl Default for Restrictions {
+    fn default() -> Self {
+        Self {
+            hash_whitelist: Default::default(),
+            id_whitelist: Default::default(),
+            tag_whitelist: Default::default(),
+            id_blacklist: Default::default(),
+            tag_blacklist: Default::default(),
+            base_deck_restrictions: Default::default(),
+            blocks_enabled: true,
+            drives_enabled: true,
+            owned_cards: Default::default(),
+            owned_blocks: Default::default(),
+            owned_players: Default::default(),
+        }
+    }
 }
 
 impl Restrictions {
@@ -27,6 +50,19 @@ impl Restrictions {
             log::error!("Failed to parse restrictions: {err}");
             toml::Table::default()
         });
+
+        // [augments]
+        if let Some(value) = root_table.remove("augments") {
+            self.blocks_enabled = value
+                .get("blocks_enabled")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(true);
+
+            self.drives_enabled = value
+                .get("drives_enabled")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(true);
+        }
 
         // [deck]
         self.base_deck_restrictions = root_table
@@ -176,6 +212,10 @@ impl Restrictions {
     }
 
     pub fn block_count(&self, game_io: &GameIO, id: &PackageId, color: BlockColor) -> usize {
+        if !self.blocks_enabled {
+            return 0;
+        }
+
         if self.owned_blocks.is_empty() {
             // use package info
             let globals = Globals::from_resources(game_io);
@@ -295,6 +335,10 @@ impl Restrictions {
         }
 
         blocks.into_iter().filter(move |block| {
+            if !self.blocks_enabled {
+                return false;
+            }
+
             let id = &block.package_id;
 
             // test ownership
@@ -323,6 +367,10 @@ impl Restrictions {
         let augment_packages = &globals.augment_packages;
 
         iter.filter(move |drive| {
+            if !self.drives_enabled {
+                return false;
+            }
+
             let id = &drive.package_id;
             let Some(augment) = augment_packages.package_or_fallback(namespace, id) else {
                 return false;

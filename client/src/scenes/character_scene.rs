@@ -4,13 +4,14 @@ use crate::bindable::SpriteColorMode;
 use crate::packages::{PackageNamespace, PlayerPackage};
 use crate::render::ui::{
     ElementSprite, FontName, PageTracker, PlayerHealthUi, SceneTitle, ScrollableList,
-    SubSceneFrame, Text, Textbox, TextboxCharacterNavigation, UiInputTracker, UiNode,
+    SubSceneFrame, Text, Textbox, TextboxQuiz, UiInputTracker, UiNode,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
 use crate::resources::*;
 use framework::prelude::*;
 use std::sync::Arc;
 
+#[derive(Clone)]
 enum Event {
     BlockCustomization,
     CharacterSelect,
@@ -77,16 +78,50 @@ impl CharacterScene {
     }
 
     fn reload_textbox(&mut self, game_io: &GameIO) {
-        let event_sender = self.event_sender.clone();
-        let interface = TextboxCharacterNavigation::new(game_io, move |i| {
-            let event = match i {
-                0 => Event::BlockCustomization,
-                1 => Event::EquipDrives,
-                _ => Event::CharacterSelect,
-            };
+        let globals = Globals::from_resources(game_io);
 
-            event_sender.send(event).unwrap();
+        // resolve options
+        let mut options = Vec::new();
+
+        if globals.restrictions.blocks_enabled {
+            options.push(Event::BlockCustomization);
+        }
+
+        if globals.restrictions.drives_enabled {
+            options.push(Event::EquipDrives);
+        }
+
+        options.push(Event::CharacterSelect);
+
+        // resolve text
+        let mut options_text: Vec<_> = options
+            .iter()
+            .map(|event| {
+                let key = match event {
+                    Event::BlockCustomization => "character-status-blocks-option",
+                    Event::EquipDrives => "character-status-switch-drives-option",
+                    Event::CharacterSelect => "character-status-navis-option",
+                };
+
+                globals.translate(key)
+            })
+            .collect();
+
+        options_text.resize(3, String::new());
+
+        let options_text: Vec<_> = options_text.iter().map(|s| s.as_str()).collect();
+        let options_text = options_text.try_into().unwrap();
+
+        let event_sender = self.event_sender.clone();
+        let mut interface = TextboxQuiz::new(&options_text, move |i| {
+            if let Some(event) = options.get(i) {
+                let _ = event_sender.send(event.clone());
+            }
         });
+
+        interface = interface
+            .with_never_complete(true)
+            .with_animate_cursor(true);
 
         self.textbox = Textbox::new_navigation(game_io)
             .begin_open()
