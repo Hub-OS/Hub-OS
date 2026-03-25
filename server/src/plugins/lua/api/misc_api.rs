@@ -38,6 +38,11 @@ pub fn inject_static(lua_api: &mut LuaApi) {
             })?,
         )?;
 
+        net_table.set(
+            "protocol_version",
+            lua.create_function(|lua, _: ()| lua.pack_multi(packets::VERSION_ITERATION))?,
+        )?;
+
         Ok(())
     });
 }
