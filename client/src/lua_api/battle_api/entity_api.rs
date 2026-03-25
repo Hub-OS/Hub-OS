@@ -708,6 +708,19 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
+    getter::<&mut Entity, _>(lua_api, "frozen", |entity: &mut Entity, lua, _: ()| {
+        lua.pack_multi(entity.time_frozen)
+    });
+
+    setter(
+        lua_api,
+        "set_frozen",
+        |entity: &mut Entity, _lua, frozen: Option<bool>| {
+            entity.time_frozen = frozen.unwrap_or(true);
+            Ok(())
+        },
+    );
+
     lua_api.add_dynamic_function(ENTITY_TABLE, "queue_action", |api_ctx, lua, params| {
         let (table, action_table): (rollback_mlua::Table, rollback_mlua::Table) =
             lua.unpack_multi(params)?;
