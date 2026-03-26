@@ -7,7 +7,6 @@ use crate::render::ui::BattleBannerMessage;
 use crate::render::ui::BattleBannerPopup;
 use crate::render::*;
 use crate::resources::*;
-use crate::structures::VecSet;
 use framework::prelude::*;
 
 const TOTAL_MESSAGE_TIME: FrameTime = 3 * 60;
@@ -304,12 +303,12 @@ impl BattleState {
         let mut local_team = None;
 
         if let Ok(entity) = entities.query_one_mut::<&Entity>(simulation.local_player_id.into()) {
-            if entity.deleted {
-                // wait until the entity has been erased
-                return;
-            }
-
             local_team = Some(entity.team);
+
+            if entity.deleted && spectate_on_delete {
+                // convert to spectator
+                simulation.local_player_id = EntityId::default();
+            }
         } else if spectate_on_delete {
             // convert to spectator
             simulation.local_player_id = EntityId::default();
@@ -325,33 +324,41 @@ impl BattleState {
         // detect failure + find team for success detection
 
         if simulation.local_player_id == EntityId::default() {
-            // spectator
-            let mut player_teams = VecSet::default();
-
+            // try to spectate a team
             for (_, (entity, _)) in entities.query_mut::<(&Entity, &Player)>() {
-                player_teams.insert(entity.team);
+                local_team = Some(entity.team);
+
+                if !entity.deleted {
+                    // prioritize living teams
+                    break;
+                }
             }
 
-            let Some(team) = player_teams.iter().next() else {
+            if local_team.is_none() {
                 // no one left to spectate
                 self.fail(game_io, resources, simulation);
                 return;
             };
-
-            if player_teams.len() == 1 {
-                // detect remaining enemies for the final team by setting as the local team
-                local_team = Some(*team);
-            }
         }
 
         if let Some(local_team) = local_team {
-            // disable the turn gauge if all enemies are deleted
-            let enemies_alive = entities
-                .query_mut::<(&Entity, &Character)>()
-                .into_iter()
-                .any(|(_, (entity, _))| !entity.team.is_allied(local_team) && !entity.deleted);
+            // disable the turn gauge if all enemies or all allies are deleted
+            let mut enemies_alive = false;
+            let mut allies_alive = false;
 
-            if !enemies_alive {
+            for (_, (entity, _)) in entities.query_mut::<(&Entity, &Character)>() {
+                if entity.deleted {
+                    continue;
+                }
+
+                if local_team.is_allied(entity.team) {
+                    allies_alive = true;
+                } else {
+                    enemies_alive = true;
+                }
+            }
+
+            if !enemies_alive || !allies_alive {
                 simulation.turn_gauge.set_enabled(false);
             }
 
