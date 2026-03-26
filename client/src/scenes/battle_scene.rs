@@ -43,6 +43,7 @@ struct Backup {
 }
 
 pub struct BattleScene {
+    original_package_pair: Option<(PackageNamespace, PackageId)>,
     meta: BattleMeta,
     comms: BattleComms,
     server_messages: usize,
@@ -76,6 +77,7 @@ pub struct BattleScene {
 
 impl BattleScene {
     pub fn new(game_io: &mut GameIO, mut props: BattleProps) -> Self {
+        let original_package_pair = props.meta.encounter_package_pair.clone();
         let mut is_playing_back_recording = false;
 
         let mut initial_external_events = Default::default();
@@ -191,6 +193,7 @@ impl BattleScene {
         Player::initialize_uninitialized(&resources, &mut simulation);
 
         Self {
+            original_package_pair,
             meta,
             comms,
             server_messages: 0,
@@ -1099,7 +1102,31 @@ impl BattleScene {
         }
     }
 
-    fn handle_exit_requests(&mut self, game_io: &GameIO) {
+    fn handle_exit_requests(&mut self, game_io: &mut GameIO) {
+        if self.next_scene.is_some() {
+            return;
+        }
+
+        // check for reload requests
+        let input = game_io.input();
+
+        if (self.is_playing_back_recording || self.is_offline())
+            && input.is_key_down(Key::F3)
+            && input.was_key_just_pressed(Key::R)
+        {
+            self.meta
+                .reload_packages(game_io, self.original_package_pair.as_ref());
+
+            let globals = Globals::from_resources(game_io);
+            globals.audio.pop_music_stack();
+
+            let props = BattleProps::new_with_defaults(game_io, self.original_package_pair.take());
+            let scene = BattleScene::new(game_io, props);
+            let transition = crate::transitions::new_battle(game_io);
+            self.next_scene = NextScene::new_swap(scene).with_transition(transition);
+        }
+
+        // see if a synced exit request occured
         let requested_exit = if self.is_playing_back_recording {
             let input_util = InputUtil::new(game_io);
             input_util.was_just_pressed(Input::Cancel)

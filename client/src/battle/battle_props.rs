@@ -8,6 +8,7 @@ use crate::saves::BlockGrid;
 use crate::saves::Deck;
 use crate::saves::PlayerInputBuffer;
 use framework::prelude::*;
+use itertools::Itertools;
 use packets::structures::{
     BattleId, BattleStatistics, Emotion, InstalledBlock, InstalledSwitchDrive, MemoryCell,
 };
@@ -309,6 +310,61 @@ impl BattleMeta {
         recording.load_packages(game_io, ignored_package_ids);
 
         Some(recording)
+    }
+
+    pub fn reload_packages(
+        &self,
+        game_io: &mut GameIO,
+        original_encounter_package_pair: Option<&(PackageNamespace, PackageId)>,
+    ) {
+        let mut overrides = Default::default();
+        let globals = Globals::from_resources_mut(game_io);
+
+        globals.assets.clear_local_mod_assets();
+
+        if let Some(package) = original_encounter_package_pair
+            .and_then(|(ns, id)| globals.encounter_packages.package_or_fallback(*ns, id))
+            && package.recording_path.is_some()
+        {
+            // reload recording to resolve latest overrides
+            let info = &package.package_info;
+            let path = info.base_path.clone();
+            let ns = info.namespace;
+            let id = info.id.clone();
+
+            globals.unload_package(PackageCategory::Encounter, ns, &id);
+            globals.load_package(PackageCategory::Encounter, ns, &path);
+
+            if let Some(package) = globals.encounter_packages.package_or_fallback(ns, &id) {
+                overrides = package.recording_overrides.clone();
+            }
+        }
+
+        let loaded_packages: Vec<_> = self
+            .encounter_dependencies(game_io)
+            .into_iter()
+            .chain(self.player_dependencies(game_io))
+            .filter(|(p, _)| {
+                p.category != PackageCategory::Character
+                    && (p.namespace == PackageNamespace::Local
+                        || p.namespace == PackageNamespace::BuiltIn
+                        || overrides.contains(&p.id))
+            })
+            .map(|(p, _)| p.triplet())
+            .unique()
+            .collect();
+
+        let globals = Globals::from_resources_mut(game_io);
+
+        for (category, namespace, id) in loaded_packages {
+            let Some(info) = globals.package_info(category, namespace, &id) else {
+                continue;
+            };
+
+            let path = info.base_path.clone();
+            globals.unload_package(category, namespace, &id);
+            globals.load_package(category, namespace, &path);
+        }
     }
 }
 
