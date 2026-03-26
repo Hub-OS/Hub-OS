@@ -1664,6 +1664,7 @@ impl OverworldOnlineScene {
                             health: player_data.health,
                             emotion: player_data.emotion.clone(),
                             ran: true,
+                            connection_failed: true,
                             ..Default::default()
                         },
                     };

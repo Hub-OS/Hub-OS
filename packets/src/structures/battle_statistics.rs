@@ -7,6 +7,7 @@ pub struct BattleStatistics {
     pub won: bool,
     pub emotion: Emotion, // todo: track
     pub ran: bool,
+    pub connection_failed: bool,
     pub turns: u32,
     pub time: i64,
 

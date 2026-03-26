@@ -842,6 +842,7 @@ impl PluginInterface for LuaPluginInterface {
                 event.set("health", battle_stats.health)?;
                 event.set("time", battle_stats.time)?;
                 event.set("ran", battle_stats.ran)?;
+                event.set("connection_failed", battle_stats.connection_failed)?;
                 event.set("emotion", battle_stats.emotion.as_str())?;
                 event.set("turns", battle_stats.turns)?;
 
