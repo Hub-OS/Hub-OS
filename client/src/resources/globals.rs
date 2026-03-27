@@ -75,31 +75,13 @@ pub struct Globals {
 }
 
 impl Globals {
-    pub fn new(game_io: &mut GameIO, args: Args) -> Self {
-        let assets = LocalAssetManager::new(game_io);
-
-        // load save
-        let mut global_save = GlobalSave::load(&assets);
-
-        // apply resource overrides
-        let mut resource_packages: PackageManager<ResourcePackage> =
-            PackageManager::new(PackageCategory::Resource);
-
-        let _ = resource_packages.load_packages_in_folder(
-            &assets,
-            PackageNamespace::BuiltIn,
-            &ResourcePaths::game_folder_absolute(resource_packages.category().built_in_path()),
-            |_, _| -> Result<(), ()> { Ok(()) },
-        );
-
-        let _ = resource_packages.load_packages_in_folder(
-            &assets,
-            PackageNamespace::Local,
-            &ResourcePaths::data_folder_absolute(resource_packages.category().mod_path()),
-            |_, _| -> Result<(), ()> { Ok(()) },
-        );
-        resource_packages.apply(game_io, &mut global_save, &assets);
-
+    pub fn new(
+        game_io: &mut GameIO,
+        args: Args,
+        assets: LocalAssetManager,
+        global_save: GlobalSave,
+        resource_packages: PackageManager<ResourcePackage>,
+    ) -> Self {
         // load config
         let config = Config::load(&assets);
         let music_volume = config.music_volume();

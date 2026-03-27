@@ -1,13 +1,8 @@
 use super::*;
-use crate::ResourcePaths;
 use crate::render::ui::{PackageListing, PackagePreviewData};
-use crate::resources::LocalAssetManager;
-use crate::saves::GlobalSave;
-use framework::prelude::GameIO;
 use packets::structures::FileHash;
 use serde::Deserialize;
 use std::sync::Arc;
-use walkdir::WalkDir;
 
 #[derive(Deserialize, Default)]
 #[serde(default)]
@@ -29,28 +24,6 @@ pub struct ResourcePackage {
 }
 
 impl ResourcePackage {
-    pub fn apply(&self, game_io: &GameIO, assets: &LocalAssetManager) {
-        let base_path = &self.package_info.base_path;
-        let resources_path = base_path.clone() + "resources";
-        let path_skip = resources_path.len() - "resources".len();
-
-        for entry in WalkDir::new(resources_path).into_iter().flatten() {
-            let Ok(metadata) = entry.metadata() else {
-                continue;
-            };
-
-            if metadata.is_dir() {
-                continue;
-            }
-
-            let file_path = &entry.path().to_string_lossy()[..];
-            let file_path = file_path.replace(std::path::MAIN_SEPARATOR, ResourcePaths::SEPARATOR);
-            let resource_path = &file_path[path_skip..];
-
-            assets.override_cache(game_io, resource_path, &file_path);
-        }
-    }
-
     pub fn default_package_listing() -> PackageListing {
         let name: Arc<str> = "Default".into();
 
@@ -125,33 +98,5 @@ impl Package for ResourcePackage {
         package.preview_texture_path = meta.preview_texture_path;
 
         package
-    }
-}
-
-impl PackageManager<ResourcePackage> {
-    pub fn apply(
-        &self,
-        game_io: &GameIO,
-        global_save: &mut GlobalSave,
-        assets: &LocalAssetManager,
-    ) {
-        if global_save.include_new_resources(self) {
-            global_save.save();
-        }
-
-        // apply the final order
-        let saved_order = &mut global_save.resource_package_order;
-
-        for (id, enabled) in saved_order.iter() {
-            if !enabled {
-                continue;
-            }
-
-            let Some(package) = self.package_or_fallback(PackageNamespace::Local, id) else {
-                continue;
-            };
-
-            package.apply(game_io, assets);
-        }
     }
 }

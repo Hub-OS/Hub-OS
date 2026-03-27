@@ -37,12 +37,8 @@ mod transitions;
 pub mod crash_reports;
 
 use crate::args::Args;
-use crate::overlays::*;
-use crate::render::PostProcessAdjust;
-use crate::render::PostProcessColorBlindness;
-use crate::render::PostProcessGhosting;
 use crate::resources::*;
-use crate::scenes::BootScene;
+use crate::scenes::BootStage1;
 use clap::Parser;
 use framework::logging::*;
 use framework::prelude::*;
@@ -91,27 +87,10 @@ pub fn main(app: PlatformApp) -> anyhow::Result<()> {
     log::info!("Version {}", env!("CARGO_PKG_VERSION"));
 
     let random_title = TITLE_LIST.choose(&mut rand::rng()).unwrap();
-    let game = Game::<GameLoop>::new(random_title, (RESOLUTION * 4).into())
+    Game::<GameLoop>::new(random_title, (RESOLUTION * 4).into())
         .with_platform_app(app)
         .with_resizable(true)
-        .with_setup(|game_io| {
-            let globals = Globals::new(game_io, args);
-            game_io.set_resource(globals);
-        })
-        .with_service(SupportingService::new)
-        .with_post_process(|game_io| PostProcessGhosting::new(game_io))
-        .with_post_process(|game_io| PostProcessAdjust::new(game_io))
-        .with_post_process(|game_io| PostProcessColorBlindness::new(game_io))
-        .with_overlay(GameOverlayTarget::Render, |game_io| {
-            DebugOverlay::new(game_io)
-        });
-
-    #[cfg(target_os = "android")]
-    let game = game.with_overlay(GameOverlayTarget::Window, |game_io| {
-        VirtualController::new(game_io)
-    });
-
-    game.run(|game_io| BootScene::new(game_io, log_receiver))?;
+        .run(|game_io| BootStage1::new(game_io, args, log_receiver))?;
 
     Ok(())
 }
