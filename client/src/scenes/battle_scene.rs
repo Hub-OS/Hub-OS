@@ -649,7 +649,7 @@ impl BattleScene {
         let mut pressed = Vec::new();
 
         if !self.textbox_is_blocking_input && !game_io.input().is_key_down(Key::F3) {
-            for input in Input::BATTLE {
+            for &input in Input::BATTLE {
                 if input_util.is_down(input) {
                     pressed.push(input);
                 }

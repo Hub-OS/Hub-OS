@@ -46,7 +46,7 @@ pub enum Input {
 }
 
 impl Input {
-    pub const REQUIRED: [Input; 10] = [
+    pub const REQUIRED: &[Input] = &[
         Input::Up,
         Input::Down,
         Input::Left,
@@ -59,7 +59,7 @@ impl Input {
         Input::ShoulderR,
     ];
 
-    pub const NON_OVERLAP: [Input; 11] = [
+    pub const NON_OVERLAP: &[Input] = &[
         Input::Up,
         Input::Down,
         Input::Left,
@@ -70,10 +70,10 @@ impl Input {
         Input::Option2,
         Input::ShoulderL,
         Input::ShoulderR,
-        Input::Special,
+        // Input::Special,
     ];
 
-    pub const BATTLE: [Input; 19] = [
+    pub const BATTLE: &[Input] = &[
         Input::Up,
         Input::Down,
         Input::Left,
