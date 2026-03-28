@@ -75,6 +75,7 @@ pub fn main(app: PlatformApp) -> anyhow::Result<()> {
         .with_global_level_filter(log::LevelFilter::Warn)
         .with_crate_level_filter(env!("CARGO_PKG_NAME"), log::LevelFilter::Trace)
         .with_crate_level_filter("framework", log::LevelFilter::Trace)
+        .with_crate_level_filter("gilrs", log::LevelFilter::Error) // warns about mapping when no controller is connected
         .with_listener(move |log| {
             let _ = log_sender.send(log);
         })
