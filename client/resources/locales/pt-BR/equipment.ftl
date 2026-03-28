@@ -1,5 +1,5 @@
 character-status-scene-title = Atributos
-character-status-options-header = Here is my status.
+character-status-options-header = Eis os atributos atuais!
 character-status-blocks-option = Blocos (NaviCust)
 character-status-switch-drives-option = Reforços
 character-status-navis-option = Navis
