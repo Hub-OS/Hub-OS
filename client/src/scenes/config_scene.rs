@@ -304,6 +304,16 @@ impl ConfigScene {
                     config.force_relay = value;
                 },
             )),
+            Box::new(UiConfigToggle::new(
+                game_io,
+                "config-package-update-check-on-launch",
+                config.borrow().package_update_check_on_launch,
+                config.clone(),
+                |_, mut config| {
+                    config.package_update_check_on_launch = !config.package_update_check_on_launch;
+                    config.package_update_check_on_launch
+                },
+            )),
         ]
     }
 
@@ -1033,7 +1043,7 @@ impl ConfigScene {
                 }
                 Event::UpdatePackages => {
                     let globals = Globals::from_resources(game_io);
-                    let request = globals.request_latest_hashes();
+                    let request = globals.request_latest_hashes(|_, _| {});
                     let event_sender = self.event_sender.clone();
                     let (doorstop, doorstop_key) = TextboxDoorstop::new();
                     self.doorstop_key = Some(doorstop_key);
@@ -1059,13 +1069,9 @@ impl ConfigScene {
                     let requires_update: Vec<_> = results
                         .into_iter()
                         .filter(|(category, id, hash)| {
-                            let Some(package_info) =
-                                globals.package_info(*category, PackageNamespace::Local, id)
-                            else {
-                                return false;
-                            };
-
-                            package_info.hash != *hash
+                            globals
+                                .package_info(*category, PackageNamespace::Local, id)
+                                .is_some_and(|info| info.hash != *hash)
                         })
                         .collect();
 

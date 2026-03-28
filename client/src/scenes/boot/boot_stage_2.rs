@@ -3,7 +3,7 @@ use crate::packages::*;
 use crate::render::ui::{FontName, LogBox, Text};
 use crate::render::*;
 use crate::resources::*;
-use crate::scenes::MainMenuScene;
+use crate::scenes::{MainMenuScene, PackageUpdatesScene};
 use crate::tips::Tip;
 use framework::logging::LogRecord;
 use framework::prelude::*;
@@ -28,6 +28,8 @@ pub enum Event {
     TileStateManager(PackageManager<TileStatePackage>),
     LibraryManager(PackageManager<LibraryPackage>),
     CharacterManager(PackageManager<CharacterPackage>),
+    ModsLoaded,
+    ReceivedLatestHashes(Vec<(PackageCategory, PackageId, FileHash)>),
     Done,
 }
 
@@ -42,7 +44,9 @@ pub struct BootStage2 {
     status_position: Vec2,
     log_box: LogBox,
     log_receiver: flume::Receiver<LogRecord>,
+    event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
+    requires_update: Vec<(PackageCategory, PackageId, FileHash)>,
     done: bool,
     next_scene: NextScene,
 }
@@ -88,7 +92,7 @@ impl BootStage2 {
         animator.apply(&mut log_frame_sprite);
 
         // work thread
-        let receiver = BootStage2Thread::spawn(game_io);
+        let (sender, receiver) = BootStage2Thread::spawn(game_io);
 
         BootStage2 {
             camera: Camera::new_ui(game_io),
@@ -100,7 +104,9 @@ impl BootStage2 {
             status_position,
             log_box,
             log_receiver,
+            event_sender: sender,
             event_receiver: receiver,
+            requires_update: Default::default(),
             done: false,
             next_scene: NextScene::None,
         }
@@ -128,9 +134,9 @@ impl BootStage2 {
             return;
         }
 
-        let globals = Globals::from_resources_mut(game_io);
-
         while let Ok(message) = self.event_receiver.try_recv() {
+            let globals = Globals::from_resources_mut(game_io);
+
             match message {
                 Event::ProgressUpdate(status_update) => {
                     // update progress text
@@ -176,6 +182,47 @@ impl BootStage2 {
                 Event::CharacterManager(character_packages) => {
                     globals.character_packages = character_packages;
                 }
+                Event::ModsLoaded => {
+                    if globals.config.package_update_check_on_launch {
+                        self.status_label.text = globals.translate("boot-checking-for-updates");
+                        self.update_progress_bar(0.0);
+
+                        let event_sender = self.event_sender.clone();
+                        let request = globals.request_latest_hashes(move |progress, total| {
+                            let progress_update = ProgressUpdate {
+                                label_translation_key: "boot-checking-for-updates",
+                                progress,
+                                total,
+                            };
+
+                            let _ = event_sender.send(Event::ProgressUpdate(progress_update));
+                        });
+
+                        let event_sender = self.event_sender.clone();
+
+                        game_io
+                            .spawn_local_task(async move {
+                                let results = request.await;
+                                let event = Event::ReceivedLatestHashes(results);
+                                event_sender.send(event).unwrap();
+                            })
+                            .detach();
+                    } else {
+                        let _ = self.event_sender.send(Event::Done);
+                    }
+                }
+                Event::ReceivedLatestHashes(results) => {
+                    self.requires_update = results
+                        .into_iter()
+                        .filter(|(category, id, hash)| {
+                            globals
+                                .package_info(*category, PackageNamespace::Local, id)
+                                .is_some_and(|info| info.hash != *hash)
+                        })
+                        .collect();
+
+                    let _ = self.event_sender.send(Event::Done);
+                }
                 Event::Done => {
                     let message = globals.translate("boot-press-any-button");
                     self.status_label.text = message;
@@ -198,6 +245,16 @@ impl BootStage2 {
     }
 
     fn transfer(&mut self, game_io: &mut GameIO) {
+        if !self.requires_update.is_empty() {
+            // bring to updates
+            let requires_update = std::mem::take(&mut self.requires_update);
+            let scene = PackageUpdatesScene::new(game_io, requires_update);
+            let transition = crate::transitions::new_sub_scene(game_io);
+            self.next_scene = NextScene::new_push(scene).with_transition(transition);
+            return;
+        }
+
+        // transfer to main menu
         let mut scene = MainMenuScene::new(game_io);
         scene.set_background(self.background.clone());
         let transition = crate::transitions::new_boot(game_io);
@@ -212,8 +269,9 @@ impl Scene for BootStage2 {
 
     fn enter(&mut self, game_io: &mut GameIO) {
         if self.done {
-            let scene = MainMenuScene::new(game_io);
-            let transition = crate::transitions::new_sub_scene_pop(game_io);
+            let mut scene = MainMenuScene::new(game_io);
+            scene.set_background(self.background.clone());
+            let transition = crate::transitions::new_sub_scene(game_io);
             self.next_scene = NextScene::new_swap(scene).with_transition(transition);
         }
     }
@@ -267,14 +325,15 @@ struct BootStage2Thread {
 }
 
 impl BootStage2Thread {
-    fn spawn(game_io: &GameIO) -> flume::Receiver<Event> {
+    fn spawn(game_io: &GameIO) -> (flume::Sender<Event>, flume::Receiver<Event>) {
         let (sender, receiver) = flume::unbounded();
         let globals = Globals::from_resources(game_io);
         let assets = globals.assets.clone();
 
+        let thread_sender = sender.clone();
         std::thread::spawn(move || {
             let mut context = Self {
-                sender,
+                sender: thread_sender,
                 assets,
                 child_packages: Vec::new(),
                 hashes: HashSet::new(),
@@ -287,7 +346,7 @@ impl BootStage2Thread {
             })();
         });
 
-        receiver
+        (sender, receiver)
     }
 
     fn load_audio(&mut self) -> anyhow::Result<()> {
@@ -418,7 +477,7 @@ impl BootStage2Thread {
         self.clean_cache_folder()?;
 
         // complete
-        self.sender.send(Event::Done)?;
+        self.sender.send(Event::ModsLoaded)?;
 
         Ok(())
     }
@@ -459,14 +518,13 @@ impl BootStage2Thread {
             namespace,
             path,
             |progress, total| {
-                let status_update = ProgressUpdate {
+                let progress_update = ProgressUpdate {
                     label_translation_key,
                     progress,
                     total,
                 };
 
-                let event = Event::ProgressUpdate(status_update);
-
+                let event = Event::ProgressUpdate(progress_update);
                 self.sender.send(event)
             },
         )?;

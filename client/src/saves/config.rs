@@ -78,6 +78,7 @@ pub struct Config {
     // online
     pub force_relay: bool,
     pub package_repo: String,
+    pub package_update_check_on_launch: bool,
 }
 
 impl Config {
@@ -363,6 +364,7 @@ impl Default for Config {
             // online
             force_relay: false,
             package_repo: String::from(DEFAULT_PACKAGE_REPO),
+            package_update_check_on_launch: true,
         }
     }
 }
@@ -410,6 +412,7 @@ impl From<&str> for Config {
             // online
             force_relay: false,
             package_repo: String::from(DEFAULT_PACKAGE_REPO),
+            package_update_check_on_launch: true,
         };
 
         use ini::Ini;
@@ -561,6 +564,9 @@ impl From<&str> for Config {
             if config.package_repo.is_empty() {
                 config.package_repo = String::from(DEFAULT_PACKAGE_REPO);
             }
+
+            config.package_update_check_on_launch =
+                parse_or(properties.get("PackageUpdateCheckOnLaunch"), true);
         }
 
         config
@@ -677,6 +683,12 @@ impl std::fmt::Display for Config {
         } else {
             writeln!(f, "PackageRepo = ",)?;
         }
+
+        writeln!(
+            f,
+            "PackageUpdateCheckOnLaunch = {}",
+            self.package_update_check_on_launch
+        )?;
 
         Ok(())
     }

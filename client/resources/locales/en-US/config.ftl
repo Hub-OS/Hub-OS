@@ -31,6 +31,7 @@ config-clear-cache-error = Failed to clear cache.
 config-clear-cache-connected-error = You should jack out before clearing cache.
 config-input-delay-label = Input Delay
 config-relay-label = Use Relay
+config-package-update-check-on-launch = Update Scan
 
 config-relay-auto = Auto
 config-relay-always = Always

@@ -671,9 +671,10 @@ impl Globals {
         }
     }
 
-    pub fn request_latest_hashes(
+    pub fn request_latest_hashes<P: FnMut(usize, usize) + 'static>(
         &self,
-    ) -> impl futures::Future<Output = Vec<(PackageCategory, PackageId, FileHash)>> + use<> {
+        mut progress_callback: P,
+    ) -> impl futures::Future<Output = Vec<(PackageCategory, PackageId, FileHash)>> + use<P> {
         let package_ids: Vec<_> = self
             .packages(PackageNamespace::Local)
             .filter(|info| info.category != PackageCategory::Character)
@@ -714,6 +715,8 @@ impl Globals {
                 log::info!("Requesting hashes: {ids_requested}/{}", package_ids.len());
 
                 let uri = format!("{repo}/api/mods/hashes?id={}", chunk.join(ID_JOIN_STR));
+
+                progress_callback(ids_requested, package_ids.len());
 
                 let Some(json) = crate::http::request_json(&uri).await else {
                     continue;
