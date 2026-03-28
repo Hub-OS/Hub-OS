@@ -9,7 +9,7 @@ use flume::Sender;
 use indexmap::IndexSet;
 use packets::{MAX_IDLE_DURATION, ReferOptions, Reliability, ServerPacket};
 use rand::{RngCore, thread_rng};
-use slotmap::{HopSlotMap, SlotMap};
+use slotmap::{DenseSlotMap, SlotMap};
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -24,8 +24,8 @@ pub struct Net {
     actor_id_registry: slotmap::SlotMap<ActorId, ()>,
     clients: HashMap<ActorId, Client>,
     bots: HashMap<ActorId, Actor>,
-    sprites: HopSlotMap<SpriteId, Sprite>,
-    public_sprites: HopSlotMap<PublicSpriteId, SpriteId>,
+    sprites: DenseSlotMap<SpriteId, Sprite>,
+    public_sprites: DenseSlotMap<PublicSpriteId, SpriteId>,
     asset_manager: AssetManager,
     active_plugin: usize,
     kick_list: Vec<Boot>,
