@@ -33,7 +33,7 @@ enum Event {
     },
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 enum ConnectionStage {
     #[default]
     ResolvingAddresses,
@@ -62,6 +62,8 @@ impl ConnectionStage {
             ConnectionStage::Failed => ConnectionStage::Complete,
             ConnectionStage::Complete => ConnectionStage::Complete,
         };
+
+        log::debug!("Connection Stage: {self:?}")
     }
 }
 
