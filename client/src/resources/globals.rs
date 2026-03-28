@@ -712,11 +712,9 @@ impl Globals {
             for chunk in id_chunk_iter {
                 ids_requested += chunk.len();
 
-                log::info!("Requesting hashes: {ids_requested}/{}", package_ids.len());
+                progress_callback(ids_requested, package_ids.len());
 
                 let uri = format!("{repo}/api/mods/hashes?id={}", chunk.join(ID_JOIN_STR));
-
-                progress_callback(ids_requested, package_ids.len());
 
                 let Some(json) = crate::http::request_json(&uri).await else {
                     continue;

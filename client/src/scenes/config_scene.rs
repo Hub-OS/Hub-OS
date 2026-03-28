@@ -1043,7 +1043,9 @@ impl ConfigScene {
                 }
                 Event::UpdatePackages => {
                     let globals = Globals::from_resources(game_io);
-                    let request = globals.request_latest_hashes(|_, _| {});
+                    let request = globals.request_latest_hashes(|progress, total| {
+                        log::info!("Requesting hashes: {progress}/{total}");
+                    });
                     let event_sender = self.event_sender.clone();
                     let (doorstop, doorstop_key) = TextboxDoorstop::new();
                     self.doorstop_key = Some(doorstop_key);
