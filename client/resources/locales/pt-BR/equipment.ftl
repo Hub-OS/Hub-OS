@@ -1,4 +1,5 @@
 character-status-scene-title = Atributos
+character-status-options-header = Eis os atributos atuais!
 character-status-blocks-option = Blocos (NaviCust)
 character-status-switch-drives-option = Reforços
 character-status-navis-option = Navis
@@ -56,6 +57,7 @@ deck-editor-properties-blind = Cegueira
 deck-editor-properties-confuse = Confusão
 deck-editor-properties-paralyze = Paralisia
 deck-editor-properties-freeze = Congelamento
+deck-editor-properties-root = Enraizar
 deck-editor-sort-menu-label = ORDENAR
 deck-editor-sort-id = ID
 deck-editor-sort-alphabetical = ABCDE
