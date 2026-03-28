@@ -9,6 +9,7 @@ boot-loading-status-mods = Carregando Atributos
 boot-loading-tile-state-mods = Carregando Painéis
 boot-loading-library-mods = Carregando Bibliotecas
 boot-cleaning-cache = Limpando Cachê
+boot-checking-for-updates = Verificando se há Atualizações
 boot-press-any-button = Aperte Qualquer Botão
 initial-setup-message =
     Mod. de Navi não encontrado!
