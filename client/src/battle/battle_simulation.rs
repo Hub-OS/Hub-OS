@@ -667,23 +667,15 @@ impl BattleSimulation {
     }
 
     fn cleanup_erased_entities(&mut self, game_io: &GameIO, resources: &SharedBattleResources) {
-        let mut pending_removal = Vec::new();
-
-        for (id, entity) in self.entities.query_mut::<&Entity>() {
-            if !entity.erased {
-                continue;
-            }
-
-            let entity_id = id.into();
-            self.field.drop_entity(entity_id);
-
-            self.sprite_trees.remove(entity.sprite_tree_index);
-            self.animators.remove(entity.animator_index);
-
-            pending_removal.push(id);
-        }
-
         self.call_pending_callbacks(game_io, resources);
+
+        let pending_removal: Vec<_> = self
+            .entities
+            .query_mut::<&Entity>()
+            .into_iter()
+            .filter(|(_, entity)| entity.erased)
+            .map(|(id, _)| id)
+            .collect();
 
         for id in pending_removal {
             if let Ok(EraseCallbacks(erase_callbacks)) =
@@ -694,7 +686,14 @@ impl BattleSimulation {
                 }
             }
 
+            if let Ok(entity) = self.entities.query_one_mut::<&Entity>(id) {
+                self.sprite_trees.remove(entity.sprite_tree_index);
+                self.animators.remove(entity.animator_index);
+            }
+
             let entity_id = id.into();
+
+            self.field.drop_entity(entity_id);
 
             // delete shadow
             EntityShadow::delete(self, entity_id);
