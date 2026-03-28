@@ -9,6 +9,7 @@ boot-loading-status-mods = Loading Statuses
 boot-loading-tile-state-mods = Loading Tile States
 boot-loading-library-mods = Loading Libraries
 boot-cleaning-cache = Cleaning Cache
+boot-checking-for-updates = Checking For Updates
 boot-press-any-button = Press Any Button
 initial-setup-message =
     Missing Navi mod.
