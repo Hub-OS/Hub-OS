@@ -5,7 +5,6 @@ use packets::structures::Input;
 pub enum Tip {
     ChangeDisplayName,
     ViewDisplayName,
-    UpdatingMods,
     ServerMusic,
     OpenMap,
     OpenEmotes,
@@ -23,7 +22,6 @@ impl Tip {
         let tips = &[
             Tip::ChangeDisplayName,
             Tip::ViewDisplayName,
-            Tip::UpdatingMods,
             Tip::ServerMusic,
             Tip::OpenMap,
             Tip::OpenEmotes,
@@ -48,7 +46,6 @@ impl Tip {
         match self {
             Tip::ChangeDisplayName => globals.translate("tip-change-display-name"),
             Tip::ViewDisplayName => globals.translate("tip-view-display-name"),
-            Tip::UpdatingMods => globals.translate("tip-updating-mods"),
             Tip::ServerMusic => globals.translate("tip-server-music"),
             Tip::OpenMap => Self::translate_with_input(globals, "tip-open-map", Input::Map),
             Tip::OpenEmotes => {
