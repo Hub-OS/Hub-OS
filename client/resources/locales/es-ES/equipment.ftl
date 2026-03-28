@@ -1,4 +1,5 @@
 character-status-scene-title = Status
+character-status-options-header = Here is my status.
 character-status-blocks-option = Blocks
 character-status-switch-drives-option = Drives
 character-status-navis-option = Navis
@@ -56,6 +57,7 @@ deck-editor-properties-blind = Blind
 deck-editor-properties-confuse = Confuse
 deck-editor-properties-paralyze = Paralyze
 deck-editor-properties-freeze = Freeze
+deck-editor-properties-root = Root
 deck-editor-sort-menu-label = SORT
 deck-editor-sort-id = ID
 deck-editor-sort-alphabetical = ABCDE
