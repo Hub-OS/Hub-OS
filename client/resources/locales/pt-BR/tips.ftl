@@ -1,7 +1,6 @@
 tip-prefixed = Dica: { $tip }
 tip-change-display-name = Seu apelido pode ser alterado em Configs. -> Online -> Trocar Apelido.
 tip-view-display-name = Você pode ver os apelidos ao colocar o cursor do mouse em outro personagem no Cibermundo.
-tip-updating-mods = Você deveria atualizar os mods de vez em quando em Configs. -> Mods -> Atualizar Mods.
 tip-server-music = Mods de Recursos podem personalizar Visuais, Sons e Música. Incluindo a musica padrão do servidor.
 tip-open-map = O mapa pode ser aberto com { $binding }.
 tip-open-emotes = Emotes podem ser acessados pressionando { $binding }.
