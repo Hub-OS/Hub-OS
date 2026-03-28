@@ -358,10 +358,6 @@ impl GlobalSave {
         match category {
             PackageCategory::Augment => {
                 // update blocks
-                if let Some(blocks) = self.installed_blocks.remove(old_id) {
-                    self.installed_blocks.insert(new_id.clone(), blocks);
-                }
-
                 for blocks in &mut self.installed_blocks.values_mut() {
                     for block in blocks {
                         if block.package_id == *old_id {
@@ -371,10 +367,6 @@ impl GlobalSave {
                 }
 
                 // update switch drive parts
-                if let Some(parts) = self.installed_drive_parts.remove(old_id) {
-                    self.installed_drive_parts.insert(new_id.clone(), parts);
-                }
-
                 for parts in &mut self.installed_drive_parts.values_mut() {
                     for part in parts {
                         if part.package_id == *old_id {
@@ -406,6 +398,16 @@ impl GlobalSave {
                 // update memories
                 if let Some(memory) = self.memories.remove(old_id) {
                     self.memories.insert(new_id.clone(), memory);
+                }
+
+                // update blocks
+                if let Some(blocks) = self.installed_blocks.remove(old_id) {
+                    self.installed_blocks.insert(new_id.clone(), blocks);
+                }
+
+                // update switch drives
+                if let Some(parts) = self.installed_drive_parts.remove(old_id) {
+                    self.installed_drive_parts.insert(new_id.clone(), parts);
                 }
             }
             PackageCategory::Resource => {
