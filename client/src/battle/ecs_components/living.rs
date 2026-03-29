@@ -693,6 +693,7 @@ impl Living {
 
                 aux_prop.process_body(&body_params);
                 aux_prop.process_card(Some(&action.properties));
+                aux_prop.mark_tested();
 
                 if !aux_prop.passed_all_tests() {
                     continue;
@@ -760,6 +761,7 @@ impl Living {
                 }
 
                 aux_prop.process_card(Some(&card_properties));
+                aux_prop.mark_tested();
 
                 if !aux_prop.passed_all_tests() {
                     continue;
@@ -807,6 +809,7 @@ impl Living {
             }
 
             aux_prop.process_card(Some(&card_properties));
+            aux_prop.mark_tested();
 
             if !aux_prop.passed_all_tests() {
                 continue;
@@ -919,6 +922,7 @@ impl Living {
             }
 
             aux_prop.process_card(Some(&action.properties));
+            aux_prop.mark_tested();
 
             if !aux_prop.passed_all_tests() {
                 continue;
@@ -1004,6 +1008,7 @@ impl Living {
 
         for aux_prop in aux_props {
             aux_prop.process_body(&body_params);
+            aux_prop.mark_tested();
 
             if !aux_prop.passed_all_tests() {
                 continue;

@@ -487,8 +487,8 @@ pub struct AuxProp {
     requirements: Vec<(AuxRequirement, RequirementState)>,
     effect: AuxEffect,
     callbacks: Vec<BattleCallback>,
-    deletes_on_activation: bool,
-    deletes_next_run: bool,
+    activation_limit: Option<usize>,
+    frame_limit: Option<FrameTime>,
     tested: bool,
     activated: bool,
 }
@@ -499,8 +499,8 @@ impl AuxProp {
             requirements: Vec::new(),
             effect: AuxEffect::None,
             callbacks: Vec::new(),
-            deletes_on_activation: false,
-            deletes_next_run: false,
+            activation_limit: None,
+            frame_limit: None,
             tested: false,
             activated: false,
         }
@@ -531,13 +531,12 @@ impl AuxProp {
         self
     }
 
-    pub fn delete_next_run(mut self) -> Self {
-        self.deletes_next_run = true;
-        self
-    }
-
     pub fn completed(&self) -> bool {
-        (self.deletes_next_run && self.tested) || (self.deletes_on_activation && self.activated)
+        self.frame_limit
+            .is_some_and(|limit| limit <= 0 && self.tested)
+            || self
+                .activation_limit
+                .is_some_and(|limit| limit == 0 && self.activated)
     }
 
     pub fn effect(&self) -> &AuxEffect {
@@ -561,7 +560,15 @@ impl AuxProp {
     }
 
     pub fn mark_tested(&mut self) {
+        if self.tested {
+            return;
+        }
+
         self.tested = self.requirements.iter().all(|(_, state)| state.tested);
+
+        if let Some(limit) = &mut self.frame_limit {
+            *limit = limit.saturating_sub(1);
+        }
     }
 
     pub fn activated(&self) -> bool {
@@ -569,7 +576,15 @@ impl AuxProp {
     }
 
     pub fn mark_activated(&mut self) {
+        if self.activated {
+            return;
+        }
+
         self.activated = true;
+
+        if let Some(limit) = &mut self.activation_limit {
+            *limit = limit.saturating_sub(1);
+        }
     }
 
     pub fn reset_tests(&mut self, rng: &mut SimulationRng) {
@@ -869,8 +884,8 @@ impl AuxProp {
 
         let effect = AuxEffect::from_lua(resources, lua, table.raw_get("effect")?)?;
         let callbacks = table.raw_get("callbacks").unwrap_or_default();
-        let deletes_on_activation = table.raw_get("delete_on_activate").unwrap_or_default();
-        let deletes_next_run = table.raw_get("delete_next_run").unwrap_or_default();
+        let activation_limit = table.raw_get("#activation_limit").unwrap_or_default();
+        let frame_limit = table.raw_get("#frame_limit").unwrap_or_default();
 
         let requirements_table: rollback_mlua::Table = table.raw_get("requirements")?;
         let requirements_len = requirements_table.raw_len();
@@ -885,8 +900,8 @@ impl AuxProp {
             requirements,
             effect,
             callbacks,
-            deletes_on_activation,
-            deletes_next_run,
+            activation_limit,
+            frame_limit,
             tested: false,
             activated: false,
         })

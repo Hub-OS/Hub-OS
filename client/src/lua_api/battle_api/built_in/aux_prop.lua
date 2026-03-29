@@ -91,12 +91,22 @@ for _, name in ipairs(eff_list) do
 end
 
 function AuxProp:once()
-  self.delete_on_activate = true
+  self["#activation_limit"] = 1
   return self
 end
 
 function AuxProp:immediate()
-  self.delete_next_run = true
+  self["#frame_limit"] = 1
+  return self
+end
+
+function AuxProp:limit(n)
+  self["#activation_limit"] = n
+  return self
+end
+
+function AuxProp:limit_frames(n)
+  self["#frame_limit"] = n
   return self
 end
 
