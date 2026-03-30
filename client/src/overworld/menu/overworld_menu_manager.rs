@@ -472,7 +472,7 @@ impl OverworldMenuManager {
             self.textbox.close();
         }
 
-        if handle_input {
+        if handle_input || self.textbox.interfaces_complete() {
             self.textbox.update(game_io);
         }
 

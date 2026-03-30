@@ -239,8 +239,19 @@ impl Textbox {
         key
     }
 
+    /// Returns true if the interface queue is empty.
+    /// Used to resolve if the textbox should automatically close.
     pub fn is_complete(&self) -> bool {
         self.interface_queue.is_empty()
+    }
+
+    /// Returns true if all interfaces in the queue are complete.
+    /// Used to flush the textbox to move onto `is_complete`
+    /// in cases where animations are normally disabled.
+    pub fn interfaces_complete(&self) -> bool {
+        self.interface_queue
+            .iter()
+            .all(|(interface, _)| interface.is_complete())
     }
 
     pub fn remaining_interfaces(&self) -> usize {
