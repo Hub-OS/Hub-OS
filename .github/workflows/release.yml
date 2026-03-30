@@ -34,8 +34,10 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo
 
+      - uses: cargo-bins/cargo-binstall@main
+
       - name: Install Cargo About
-        run: cargo install cargo-about --version=^0.6
+        run: cargo binstall cargo-about --version=^0.6
 
       - name: Build Windows Client
         run: cargo build -p hub_os --release --target x86_64-pc-windows-gnu
@@ -92,8 +94,10 @@ jobs:
         with:
           targets: x86_64-apple-darwin, aarch64-apple-darwin
 
+      - uses: cargo-bins/cargo-binstall@main
+
       - name: Install Cargo About
-        run: cargo install cargo-about --version=^0.6
+        run: cargo binstall cargo-about --version=^0.6
 
       - name: Build x86 Client
         run: cargo build --bin hub_os --target=x86_64-apple-darwin --release
