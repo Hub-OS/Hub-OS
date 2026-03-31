@@ -219,6 +219,7 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     rank_table.set("V3", CharacterRank::V3)?;
     rank_table.set("V4", CharacterRank::V4)?;
     rank_table.set("V5", CharacterRank::V5)?;
+    rank_table.set("V6", CharacterRank::V6)?;
     rank_table.set("SP", CharacterRank::SP)?;
     rank_table.set("EX", CharacterRank::EX)?;
     rank_table.set("Rare1", CharacterRank::Rare1)?;

@@ -9,6 +9,7 @@ pub enum CharacterRank {
     V3,
     V4,
     V5,
+    V6,
     Alpha,
     Beta,
     Omega,
@@ -29,6 +30,7 @@ impl CharacterRank {
             Self::V3 => "3", // alternate: "\u{e009}"
             Self::V4 => "4", // alternate: "\u{e00a}"
             Self::V5 => "5", // alternate: "\u{e00b}"
+            Self::V6 => "6",
             Self::Alpha => "α",
             Self::Beta => "β",
             Self::Omega => "Ω",
@@ -57,7 +59,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CharacterRank {
                     from: lua_value.type_name(),
                     to: "CharacterRank",
                     message: None,
-                })
+                });
             }
         };
 
