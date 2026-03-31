@@ -268,7 +268,12 @@ impl Character {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
-        loop {
+        let entities = &mut simulation.entities;
+        // limit to: characters * cards you can take into battle ^ 2 * 2
+        let loop_limit = entities.query_mut::<&Character>().into_iter().count() * 50;
+        let mut last_vm = None;
+
+        for _ in 0..loop_limit {
             let entities = &mut simulation.entities;
             let mut character_iter = entities
                 .query_mut::<(&mut Character, &PackageNamespace)>()
@@ -277,7 +282,8 @@ impl Character {
             let Some((id, (character, namespace))) =
                 character_iter.find(|(_, (character, _))| character.next_card_mutation.is_some())
             else {
-                break;
+                // exit the function
+                return;
             };
 
             // get next card index
@@ -287,7 +293,8 @@ impl Character {
             character.next_card_mutation = Some(lua_card_index + 1);
 
             let Some(card_index) = character.invert_card_index(lua_card_index) else {
-                break;
+                character.next_card_mutation = None;
+                continue;
             };
 
             // get the card or mark the mutate state as complete
@@ -311,9 +318,21 @@ impl Character {
                 continue;
             }
 
+            last_vm = Some(vm_index);
+
             let _ = simulation.call_global(game_io, resources, vm_index, "card_mutate", |lua| {
                 Ok((create_entity_table(lua, id.into())?, lua_card_index + 1))
             });
+        }
+
+        // did not return?
+        if let Some(vm_index) = last_vm {
+            let vm = &resources.vm_manager.vms[vm_index];
+
+            log::error!(
+                "Failed to resolve card boosts. Last package: {}",
+                vm.package_id
+            );
         }
     }
 
