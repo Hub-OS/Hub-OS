@@ -1261,9 +1261,9 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
 
             // fix next_card_mutation as indices were shifted
             if let Some(next_index) = &mut character.next_card_mutation
-                && *next_index == lua_index + 1
+                && *next_index >= lua_index
             {
-                *next_index = lua_index;
+                *next_index -= 1;
             }
 
             Ok(())
