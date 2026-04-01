@@ -1,6 +1,7 @@
 use super::LuaApi;
 use super::lua_errors::{create_area_error, create_bot_error};
 use crate::net::{Actor, Direction};
+use crate::plugins::lua::api::colors::*;
 use packets::structures::ActorId;
 
 pub fn inject_dynamic(lua_api: &mut LuaApi) {
@@ -259,12 +260,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        let color = (
-            color_table.get("r")?,
-            color_table.get("g")?,
-            color_table.get("b")?,
-            color_table.get("a").unwrap_or(255),
-        );
+        let color = parse_rgba_table(color_table)?;
 
         net.set_bot_map_color(bot_id, color);
 

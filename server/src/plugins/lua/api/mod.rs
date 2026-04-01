@@ -3,6 +3,7 @@ mod area_api;
 mod asset_api;
 mod async_api;
 mod bot_api;
+mod colors;
 mod logging_api;
 mod lua_errors;
 mod lua_helpers;

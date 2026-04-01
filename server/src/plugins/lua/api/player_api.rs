@@ -1,9 +1,9 @@
-use packets::structures::{ActorId, BattleId};
-
 use super::LuaApi;
 use super::lua_errors::{create_area_error, create_player_error};
 use super::lua_helpers::*;
 use crate::net::Direction;
+use crate::plugins::lua::api::colors::*;
+use packets::structures::{ActorId, BattleId};
 
 #[allow(clippy::type_complexity)]
 pub fn inject_dynamic(lua_api: &mut LuaApi) {
@@ -212,12 +212,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        let color = (
-            color_table.get("r")?,
-            color_table.get("g")?,
-            color_table.get("b")?,
-            color_table.get("a").unwrap_or(255),
-        );
+        let color = parse_rgba_table(color_table)?;
 
         net.set_player_map_color(player_id, color);
 
@@ -362,16 +357,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        net.fade_player_camera(
-            player_id,
-            (
-                color.get("r")?,
-                color.get("g")?,
-                color.get("b")?,
-                color.get("a").unwrap_or(255),
-            ),
-            duration,
-        );
+        net.fade_player_camera(player_id, parse_rgba_table(color)?, duration);
 
         lua.pack_multi(())
     });

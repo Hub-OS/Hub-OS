@@ -1,6 +1,7 @@
 use super::LuaApi;
 use super::lua_helpers::*;
 use crate::net::ShopItem;
+use crate::plugins::lua::api::colors::*;
 use packets::ReferOptions;
 use packets::structures::ActorId;
 use packets::structures::{PackageId, TextStyleBlueprint, TextboxOptions, TextureAnimPathPair};
@@ -513,19 +514,6 @@ pub fn parse_text_style(table: mlua::Table) -> mlua::Result<TextStyleBlueprint> 
                 .transpose()
         })?,
     })
-}
-
-fn parse_rgb_table(table: mlua::Table) -> mlua::Result<(u8, u8, u8)> {
-    Ok((table.get("r")?, table.get("g")?, table.get("b")?))
-}
-
-fn parse_rgba_table(table: mlua::Table) -> mlua::Result<(u8, u8, u8, u8)> {
-    Ok((
-        table.get("r")?,
-        table.get("g")?,
-        table.get("b")?,
-        table.get::<_, Option<u8>>("a")?.unwrap_or(255),
-    ))
 }
 
 fn table_to_shop_item(item_table: mlua::Table) -> mlua::Result<ShopItem> {
