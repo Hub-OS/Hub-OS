@@ -26,7 +26,7 @@ pub trait Menu {
     fn is_fullscreen(&self) -> bool;
     fn is_open(&self) -> bool;
     fn open(&mut self, game_io: &mut GameIO, area: &mut OverworldArea);
-    fn update(&mut self, game_io: &mut GameIO, area: &mut OverworldArea);
+    fn update(&mut self, game_io: &mut GameIO, assets: &dyn AssetManager, area: &mut OverworldArea);
     fn handle_input(
         &mut self,
         game_io: &mut GameIO,
@@ -441,7 +441,12 @@ impl OverworldMenuManager {
         next_scene
     }
 
-    pub fn update(&mut self, game_io: &mut GameIO, area: &mut OverworldArea) -> NextScene {
+    pub fn update(
+        &mut self,
+        game_io: &mut GameIO,
+        assets: &dyn AssetManager,
+        area: &mut OverworldArea,
+    ) -> NextScene {
         let textbox_animations_enabled = !self.shop.is_some();
         self.textbox
             .set_transition_animation_enabled(textbox_animations_enabled);
@@ -490,7 +495,7 @@ impl OverworldMenuManager {
                 menu.handle_input(game_io, area, &mut self.textbox);
             }
 
-            menu.update(game_io, area);
+            menu.update(game_io, assets, area);
 
             // skip other input checks while a registered menu is open
             handle_input = false;
@@ -503,7 +508,7 @@ impl OverworldMenuManager {
 
         // update menus fading away
         if let Some(index) = self.fading_menu {
-            self.menus[index].update(game_io, area);
+            self.menus[index].update(game_io, assets, area);
         }
 
         // update bbs
@@ -512,7 +517,7 @@ impl OverworldMenuManager {
                 bbs.handle_input(game_io, area, &mut self.textbox);
             }
 
-            bbs.update(game_io, area);
+            bbs.update(game_io, assets, area);
 
             // skip other input checks while a bbs is open
             handle_input = false;
@@ -524,7 +529,7 @@ impl OverworldMenuManager {
                 shop.handle_input(game_io, area, &mut self.textbox);
             }
 
-            shop.update(game_io, area);
+            shop.update(game_io, assets, area);
 
             // skip other input checks while a shop is open
             handle_input = false;

@@ -1,12 +1,21 @@
 use super::super::{Asset, Direction};
+use super::Tile;
 use super::map_layer::MapLayer;
 use super::map_object::{MapObject, MapObjectData, MapObjectSpecification};
-use super::Tile;
-use indexmap::IndexMap;
+use indexmap::{IndexMap, IndexSet};
 use packets::structures::FileHash;
 use std::collections::HashMap;
+use std::sync::LazyLock;
 use structures::parse_util::parse_or_default;
 use structures::shapes::Projection;
+
+// a map of object class to custom property keys that contain asset paths
+static CUSTOM_DEPENDENCY_MAP: LazyLock<HashMap<String, IndexSet<String>>> = LazyLock::new(|| {
+    HashMap::from([(
+        "Marker".to_string(),
+        ["Texture".to_string(), "Animation".to_string()].into(),
+    )])
+});
 
 #[derive(Clone)]
 pub struct TilesetInfo {
@@ -43,6 +52,7 @@ pub struct Map {
     next_layer_id: u32,
     objects: IndexMap<u32, MapObject>,
     next_object_id: u32,
+    custom_dependencies: IndexMap<String, usize>,
     asset_stale: bool,
     cached: bool,
     cached_string: String,
@@ -78,6 +88,7 @@ impl Map {
             next_layer_id: 0,
             objects: Default::default(),
             next_object_id: 0,
+            custom_dependencies: Default::default(),
             asset_stale: true,
             cached: false,
             cached_string: String::from(""),
@@ -158,7 +169,8 @@ impl Map {
                     if data_element.attribute("encoding") != Some("csv") {
                         log::warn!(
                             "{}: Layer {:?} is using incorrect format, only CSV format is supported! (Check map properties)",
-                            map.name, name
+                            map.name,
+                            name
                         );
                         MapLayer::new(id, name, map.width, map.height, Vec::new());
                         continue;
@@ -186,7 +198,12 @@ impl Map {
                     map.indicate_layer_offset_issues(name, object_layers, child);
 
                     if object_layers + 1 != map.layers.len() {
-                        log::warn!("{}: Layer {:?} will link to layer {}! (Layer order starting from bottom is Tile, Object, Tile, Object, etc)", map.name, name, object_layers);
+                        log::warn!(
+                            "{}: Layer {:?} will link to layer {}! (Layer order starting from bottom is Tile, Object, Tile, Object, etc)",
+                            map.name,
+                            name,
+                            object_layers
+                        );
                     }
 
                     for object_element in child.children() {
@@ -216,6 +233,8 @@ impl Map {
                                 map.spawn_direction = Direction::UpRight;
                             }
                         }
+
+                        map.increment_custom_dependencies(&map_object);
 
                         map.objects.insert(map_object.id, map_object);
                     }
@@ -547,6 +566,9 @@ impl Map {
             custom_properties: specification.custom_properties,
         };
 
+        // track custom dependencies
+        self.increment_custom_dependencies(&map_object);
+
         self.objects.insert(id, map_object);
 
         self.next_object_id += 1;
@@ -581,15 +603,21 @@ impl Map {
     }
 
     pub fn set_object_class(&mut self, id: u32, class: String) {
-        let Some(object) = self.objects.get_mut(&id) else {
+        let Some(mut object) = self.objects.swap_remove(&id) else {
             return;
         };
 
+        self.decrement_custom_dependencies(&object);
+
         object.class = class;
+
+        self.increment_custom_dependencies(&object);
 
         if !object.private {
             self.mark_dirty();
         }
+
+        self.objects.insert(id, object);
     }
 
     pub fn set_object_custom_property(&mut self, id: u32, name: String, value: String) {
@@ -597,7 +625,29 @@ impl Map {
             return;
         };
 
-        object.custom_properties.insert(name, value);
+        if let Some(properties) = CUSTOM_DEPENDENCY_MAP.get(&object.class)
+            && properties.contains(&name)
+        {
+            // track custom dependency
+            if let Some(count) = self.custom_dependencies.get_mut(&value) {
+                *count += 1;
+            } else {
+                self.custom_dependencies.insert(value.clone(), 1);
+            }
+
+            // drop previous custom dependency
+            if let Some(previous_value) = object.custom_properties.insert(name, value)
+                && let Some(count) = self.custom_dependencies.get_mut(&previous_value)
+            {
+                *count -= 1;
+
+                if *count == 0 {
+                    self.custom_dependencies.swap_remove(&previous_value);
+                }
+            }
+        } else {
+            object.custom_properties.insert(name, value);
+        }
 
         if !object.private {
             self.mark_dirty();
@@ -677,6 +727,42 @@ impl Map {
 
         if !object.private {
             self.mark_dirty();
+        }
+    }
+
+    fn increment_custom_dependencies(&mut self, object: &MapObject) {
+        if let Some(properties) = CUSTOM_DEPENDENCY_MAP.get(&object.class) {
+            for property in properties {
+                let Some(path) = object.custom_properties.get(property) else {
+                    continue;
+                };
+
+                if let Some(count) = self.custom_dependencies.get_mut(path) {
+                    *count += 1;
+                } else {
+                    self.custom_dependencies.insert(path.to_string(), 1);
+                }
+            }
+        }
+    }
+
+    fn decrement_custom_dependencies(&mut self, object: &MapObject) {
+        if let Some(properties) = CUSTOM_DEPENDENCY_MAP.get(&object.class) {
+            for property in properties {
+                let Some(path) = object.custom_properties.get(property) else {
+                    continue;
+                };
+
+                let Some(count) = self.custom_dependencies.get_mut(path) else {
+                    continue;
+                };
+
+                *count -= 1;
+
+                if *count == 0 {
+                    self.custom_dependencies.swap_remove(path);
+                }
+            }
         }
     }
 
@@ -763,6 +849,7 @@ impl Map {
             .chain(std::iter::once(&self.foreground_texture_path))
             .chain(std::iter::once(&self.foreground_animation_path))
             .chain(std::iter::once(&self.music_path))
+            .chain(self.custom_dependencies.keys())
             .filter(|path| path.starts_with("/server/")) // provided by server
             .cloned()
             .map(AssetId::AssetPath)

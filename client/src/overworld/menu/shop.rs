@@ -253,7 +253,12 @@ impl Menu for Shop {
 
     fn open(&mut self, _game_io: &mut GameIO, _area: &mut OverworldArea) {}
 
-    fn update(&mut self, game_io: &mut GameIO, _area: &mut OverworldArea) {
+    fn update(
+        &mut self,
+        game_io: &mut GameIO,
+        _assets: &dyn AssetManager,
+        _area: &mut OverworldArea,
+    ) {
         self.ui_input_tracker.update(game_io);
         self.time += 1;
         self.background.update();

@@ -8,6 +8,7 @@ pub enum ObjectType {
     Board,
     Shop,
     Bookmark,
+    Marker,
     Undefined,
 }
 
@@ -43,6 +44,7 @@ impl From<&str> for ObjectType {
             "board" => ObjectType::Board,
             "shop" => ObjectType::Shop,
             "bookmark" => ObjectType::Bookmark,
+            "marker" => ObjectType::Marker,
             _ => ObjectType::Undefined,
         }
     }

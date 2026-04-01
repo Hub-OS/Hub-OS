@@ -211,7 +211,12 @@ impl Menu for ItemsMenu {
 
     fn open(&mut self, _game_io: &mut GameIO, _area: &mut OverworldArea) {}
 
-    fn update(&mut self, game_io: &mut GameIO, area: &mut OverworldArea) {
+    fn update(
+        &mut self,
+        game_io: &mut GameIO,
+        _assets: &dyn AssetManager,
+        area: &mut OverworldArea,
+    ) {
         self.background.update();
         self.ui_input_tracker.update(game_io);
         self.update_health(area);

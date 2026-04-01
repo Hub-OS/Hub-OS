@@ -41,7 +41,7 @@ impl Animator {
         }
     }
 
-    pub fn load_new(assets: &impl AssetManager, path: &str) -> Self {
+    pub fn load_new(assets: &dyn AssetManager, path: &str) -> Self {
         let mut animator = Self::new();
         animator.load(assets, path);
 
@@ -69,7 +69,7 @@ impl Animator {
         self.states.clone_from(&other.states);
     }
 
-    pub fn load(&mut self, assets: &impl AssetManager, path: &str) {
+    pub fn load(&mut self, assets: &dyn AssetManager, path: &str) {
         let data = assets.text(path);
 
         self.load_from_str(&data);

@@ -168,7 +168,12 @@ impl Menu for Bbs {
 
     fn open(&mut self, _game_io: &mut GameIO, _area: &mut OverworldArea) {}
 
-    fn update(&mut self, _game_io: &mut GameIO, _area: &mut crate::overworld::OverworldArea) {
+    fn update(
+        &mut self,
+        _game_io: &mut GameIO,
+        _assets: &dyn AssetManager,
+        _area: &mut crate::overworld::OverworldArea,
+    ) {
         self.unread_animator.update();
     }
 

@@ -1,8 +1,8 @@
 use super::Menu;
-use crate::overworld::{idle_str, run_str, walk_str, OverworldArea, OverworldEvent};
+use crate::overworld::{OverworldArea, OverworldEvent, idle_str, run_str, walk_str};
 use crate::render::ui::{
-    build_9patch, FontName, NinePatch, ScrollTracker, TextInput, TextStyle, Textbox,
-    UiInputTracker, UiLayout, UiLayoutNode, UiStyle,
+    FontName, NinePatch, ScrollTracker, TextInput, TextStyle, Textbox, UiInputTracker, UiLayout,
+    UiLayoutNode, UiStyle, build_9patch,
 };
 use crate::render::{Animator, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, ResourcePaths, TEXT_DARK_SHADOW_COLOR};
@@ -139,20 +139,22 @@ impl EmoteMenu {
 
         self.search_layout = Some(UiLayout::new_horizontal(
             self.search_box_bounds,
-            vec![UiLayoutNode::new(
-                TextInput::new(game_io, FontName::ThinSmall)
-                    .with_color(Color::WHITE)
-                    .with_silent(true)
-                    .with_active(true)
-                    .on_change(move |value| event_sender.send(value.to_string()).unwrap()),
-            )
-            .with_style(UiStyle {
-                flex_grow: 1.0,
-                flex_shrink: 1.0,
-                nine_patch: Some(self.search_box_9patch.clone()),
-                // align_self: Some(AlignSelf::Center),
-                ..Default::default()
-            })],
+            vec![
+                UiLayoutNode::new(
+                    TextInput::new(game_io, FontName::ThinSmall)
+                        .with_color(Color::WHITE)
+                        .with_silent(true)
+                        .with_active(true)
+                        .on_change(move |value| event_sender.send(value.to_string()).unwrap()),
+                )
+                .with_style(UiStyle {
+                    flex_grow: 1.0,
+                    flex_shrink: 1.0,
+                    nine_patch: Some(self.search_box_9patch.clone()),
+                    // align_self: Some(AlignSelf::Center),
+                    ..Default::default()
+                }),
+            ],
         ));
     }
 }
@@ -211,7 +213,12 @@ impl Menu for EmoteMenu {
         self.update_total_items();
     }
 
-    fn update(&mut self, _game_io: &mut GameIO, _area: &mut OverworldArea) {
+    fn update(
+        &mut self,
+        _game_io: &mut GameIO,
+        _assets: &dyn AssetManager,
+        _area: &mut OverworldArea,
+    ) {
         if let Ok(mut search_text) = self.event_receiver.try_recv() {
             search_text.make_ascii_uppercase();
 

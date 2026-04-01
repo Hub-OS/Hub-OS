@@ -286,7 +286,9 @@ impl OverworldOnlineScene {
     fn update_ui(&mut self, game_io: &mut GameIO) {
         self.hud.update(&self.area);
 
-        let next_scene = self.menu_manager.update(game_io, &mut self.area);
+        let next_scene = self
+            .menu_manager
+            .update(game_io, &self.assets, &mut self.area);
 
         if self.next_scene.is_none() && next_scene.is_some() {
             self.auto_emotes.set_auto_emote(AutoEmote::Menu);

@@ -9,6 +9,7 @@ use crate::render::{
 use crate::resources::{AssetManager, Globals, Input, InputUtil, RESOLUTION_F, ResourcePaths};
 use framework::{prelude::*, wgpu};
 use packets::structures::Direction;
+use std::collections::HashMap;
 
 const CONCEALED_MULTIPLIER: f32 = 0.65; // 65% transparency, similar to world sprite darkening
 
@@ -23,12 +24,15 @@ pub struct MapMenu {
     background: Background,
     marker_animator: Animator,
     marker_sprite: Sprite,
+    custom_marker_animators: HashMap<String, Animator>,
+    custom_marker_sprites: HashMap<String, Sprite>,
     tile_marker_sprites: Vec<Sprite>,
     overlay_sprite: Sprite,
     overlay_arrows_sprite: Sprite,
     map_sprite: Sprite,
     tile_target: RenderTarget,
     edge_target: RenderTarget,
+    sorted_markers: Vec<(i32, i32, Sprite)>,
     scale: f32,
     scrollable: bool,
     scroll_offset: Vec2,
@@ -51,6 +55,8 @@ impl MapMenu {
                 ResourcePaths::OVERWORLD_MAP_MARKERS_ANIMATION,
             ),
             marker_sprite: assets.new_sprite(game_io, ResourcePaths::OVERWORLD_MAP_MARKERS),
+            custom_marker_animators: Default::default(),
+            custom_marker_sprites: Default::default(),
             tile_marker_sprites: Vec::new(),
             overlay_sprite: assets.new_sprite(game_io, ResourcePaths::OVERWORLD_MAP_OVERLAY),
             overlay_arrows_sprite: assets
@@ -58,6 +64,7 @@ impl MapMenu {
             map_sprite: assets.new_sprite(game_io, ResourcePaths::BLANK),
             tile_target: RenderTarget::new(game_io, UVec2::ONE),
             edge_target: RenderTarget::new(game_io, UVec2::ONE),
+            sorted_markers: Default::default(),
             scale: 1.0,
             scrollable: false,
             scroll_offset: Vec2::ZERO,
@@ -289,6 +296,36 @@ impl MapMenu {
         let map_position = -sprite_position + RESOLUTION_F * 0.5;
         self.map_sprite.set_position(map_position.floor());
     }
+
+    pub fn cache_custom_markers(
+        &mut self,
+        game_io: &GameIO,
+        assets: &dyn AssetManager,
+        area: &mut OverworldArea,
+    ) {
+        for (_, data) in area.map.object_entities_mut().query_mut::<&ObjectData>() {
+            if data.object_type != ObjectType::Marker {
+                continue;
+            }
+
+            let texture_path = data.custom_properties.get("texture");
+
+            if !self.custom_marker_sprites.contains_key(texture_path) {
+                self.custom_marker_sprites.insert(
+                    texture_path.to_string(),
+                    assets.new_sprite(game_io, texture_path),
+                );
+            }
+
+            let animation_path = data.custom_properties.get("animation");
+            if !self.custom_marker_animators.contains_key(animation_path) {
+                self.custom_marker_animators.insert(
+                    animation_path.to_string(),
+                    Animator::load_new(assets, animation_path),
+                );
+            }
+        }
+    }
 }
 
 impl Menu for MapMenu {
@@ -305,11 +342,17 @@ impl Menu for MapMenu {
         self.scroll_offset = Vec2::ZERO;
     }
 
-    fn update(&mut self, game_io: &mut GameIO, area: &mut OverworldArea) {
+    fn update(
+        &mut self,
+        game_io: &mut GameIO,
+        assets: &dyn AssetManager,
+        area: &mut OverworldArea,
+    ) {
         self.background.update();
 
         if self.last_map_update != area.last_map_update {
             self.update_map_sprites(game_io, &area.map);
+            self.cache_custom_markers(game_io, assets, area);
             self.last_map_update = area.last_map_update;
         }
 
@@ -397,6 +440,9 @@ impl Menu for MapMenu {
         let object_entities = area.map.object_entities();
 
         for (_, (&position, tile, object)) in object_entities.query::<ObjectQuery>().into_iter() {
+            let mut marker_sprite = &mut self.marker_sprite;
+            let mut marker_animator = &mut self.marker_animator;
+
             // resolve state
             let state = match object.object_type {
                 ObjectType::CustomWarp
@@ -407,16 +453,29 @@ impl Menu for MapMenu {
                 ObjectType::Board => "BOARD",
                 ObjectType::Shop => "SHOP",
                 ObjectType::Bookmark => "BOOKMARK",
+                ObjectType::Marker => {
+                    let texture_path = object.custom_properties.get("texture");
+                    let animation_path = object.custom_properties.get("animation");
+
+                    if let Some(sprite) = self.custom_marker_sprites.get_mut(texture_path) {
+                        marker_sprite = sprite;
+                    }
+                    if let Some(animator) = self.custom_marker_animators.get_mut(animation_path) {
+                        marker_animator = animator;
+                    }
+
+                    object.custom_properties.get("state")
+                }
                 _ => {
                     continue;
                 }
             };
 
             // reset scale
-            self.marker_sprite.set_scale(Vec2::ONE);
+            marker_sprite.set_scale(Vec2::ONE);
 
-            self.marker_animator.set_state(state);
-            self.marker_animator.apply(&mut self.marker_sprite);
+            marker_animator.set_state(state);
+            marker_animator.apply(marker_sprite);
 
             let mut screen_position = area.map.world_3d_to_screen(position);
             let mut center_offset = Vec2::ZERO;
@@ -434,7 +493,7 @@ impl Menu for MapMenu {
                     Vec2::ONE
                 };
 
-                self.marker_sprite.set_scale(marker_scale);
+                marker_sprite.set_scale(marker_scale);
 
                 // resolve offset
                 center_offset =
@@ -449,8 +508,7 @@ impl Menu for MapMenu {
                 screen_position.y += object.size.y * 0.5;
             }
 
-            self.marker_sprite
-                .set_position((screen_position * self.scale + map_offset).floor());
+            marker_sprite.set_position((screen_position * self.scale + map_offset).floor());
 
             // resolve color
             let color = if area.map.is_concealed(position) {
@@ -459,10 +517,11 @@ impl Menu for MapMenu {
                 Color::WHITE
             };
 
-            self.marker_sprite.set_color(color);
+            marker_sprite.set_color(color);
 
-            // draw
-            sprite_queue.draw_sprite(&self.marker_sprite);
+            let sort_y = marker_sprite.position().y as _;
+            self.sorted_markers
+                .push((position.z as _, sort_y, marker_sprite.clone()));
         }
 
         // draw actors
@@ -476,6 +535,8 @@ impl Menu for MapMenu {
             // resolve position
             let mut sprite_position =
                 area.map.world_3d_to_screen(position) * self.scale + map_offset;
+
+            let sort_y = sprite_position.y as _;
 
             // bobbing to make the player's marker grab focus
             if area.player_data.entity == entity {
@@ -493,8 +554,15 @@ impl Menu for MapMenu {
 
             self.marker_sprite.set_color(color);
 
-            // draw sprite
-            sprite_queue.draw_sprite(&self.marker_sprite);
+            self.sorted_markers
+                .push((position.z as _, sort_y, self.marker_sprite.clone()));
+        }
+
+        // sort markers by position, then render
+        self.sorted_markers.sort_by_key(|(z, y, _)| (*z, *y));
+
+        for (.., sprite) in self.sorted_markers.drain(..) {
+            sprite_queue.draw_sprite(&sprite);
         }
 
         // draw overlay
