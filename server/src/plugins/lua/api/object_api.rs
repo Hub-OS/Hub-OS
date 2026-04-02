@@ -62,7 +62,10 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         use std::collections::HashMap;
 
         let name: Option<String> = table.get("name")?;
-        let class: Option<String> = table.get("type").or_else(|_| table.get("class"))?;
+        let class: Option<String> = match table.get::<_, Option<String>>("type")? {
+            None => table.get::<_, Option<String>>("class")?,
+            some => some,
+        };
         let visible: Option<bool> = table.get("visible")?;
         let private: Option<bool> = table.get("privated")?;
         let x: Option<f32> = table.get("x")?;
