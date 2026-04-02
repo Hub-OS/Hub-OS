@@ -10,7 +10,7 @@ use packets::structures::PackageId;
 pub struct Augment {
     pub package_id: PackageId,
     pub namespace: PackageNamespace,
-    pub level: u8,
+    pub level: u16,
     pub attack_boost: i8,
     pub rapid_boost: i8,
     pub charge_boost: i8,
@@ -26,7 +26,7 @@ impl From<(&AugmentPackage, usize)> for Augment {
         Self {
             package_id: package.package_info.id.clone(),
             namespace: package.package_info.namespace,
-            level: level as u8,
+            level: level as u16,
             attack_boost: package.attack_boost,
             rapid_boost: package.rapid_boost,
             charge_boost: package.charge_boost,
@@ -63,8 +63,8 @@ impl Augment {
 
         if let Some((index, augment)) = existing_augment {
             // boost existing augment
-            let updated_level = (augment.level as i32 + level_boost).clamp(0, u8::MAX as _);
-            augment.level = updated_level as u8;
+            let updated_level = (augment.level as i32 + level_boost).clamp(0, u16::MAX as _);
+            augment.level = updated_level as u16;
             let prev_order = augment.boost_order;
             augment.boost_order = boost_order;
 
