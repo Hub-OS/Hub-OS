@@ -281,7 +281,7 @@ impl<'a> StatusData<'a> {
         Self {
             player_package,
             visible_augments,
-            health,
+            health: health.max(1),
             attack_level: attack_level.clamp(1, 5),
             rapid_level: rapid_level.clamp(1, 5),
             charge_level: charge_level.clamp(1, 5),

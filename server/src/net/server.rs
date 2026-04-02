@@ -401,12 +401,15 @@ impl Server {
                     if let Some(client) = net.get_client_mut(player_id) {
                         let player_data = &mut client.player_data;
 
-                        if player_data.health == player_data.max_health() {
-                            player_data.health = player_data.base_health + health_boost;
-                        }
+                        let previously_at_max = player_data.health == player_data.max_health();
 
                         player_data.health_boost = health_boost;
-                        player_data.health = player_data.max_health().min(player_data.health);
+
+                        if previously_at_max {
+                            player_data.health = player_data.max_health();
+                        } else {
+                            player_data.health = player_data.max_health().min(player_data.health);
+                        }
 
                         // max_health is applied in the client as well
                         // but reapplied through a packet in case of an in-flight packet overriding it

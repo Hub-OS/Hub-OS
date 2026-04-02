@@ -131,7 +131,7 @@ impl PlayerSetup {
         Self {
             package_id: player_package_info.id.clone(),
             script_enabled,
-            health: player_package.health + health_boost,
+            health: (player_package.health + health_boost).max(1),
             base_health: player_package.health,
             emotion: Emotion::default(),
             index: 0,

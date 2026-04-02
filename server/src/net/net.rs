@@ -1462,7 +1462,7 @@ impl Net {
         player_data.avatar_name = avatar_name;
         player_data.element = element;
         player_data.base_health = base_health;
-        player_data.health = base_health + player_data.health_boost;
+        player_data.health = player_data.max_health();
     }
 
     pub fn set_player_health(&mut self, player_id: ActorId, health: i32) {

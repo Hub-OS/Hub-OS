@@ -69,6 +69,6 @@ impl PlayerData {
     }
 
     pub fn max_health(&self) -> i32 {
-        self.base_health + self.health_boost
+        (self.base_health + self.health_boost).max(1)
     }
 }

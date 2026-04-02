@@ -158,7 +158,7 @@ impl Player {
             acc + package.health_boost * *level as i32
         });
 
-        living.max_health = setup.base_health + health_boost;
+        living.max_health = (setup.base_health + health_boost).max(1);
         living.health = setup.health.max(0);
 
         // idle callback

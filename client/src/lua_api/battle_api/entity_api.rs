@@ -2687,6 +2687,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         "boost_max_health",
         |living: &mut Living, _, health: i32| {
             living.max_health += health;
+            living.max_health = living.max_health.max(1);
             living.health = living.health.min(living.max_health);
             Ok(())
         },

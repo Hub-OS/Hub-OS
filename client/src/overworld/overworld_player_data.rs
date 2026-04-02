@@ -37,14 +37,13 @@ impl OverworldPlayerData {
 
         data.reload_character_data(game_io);
         data.process_boosts(game_io);
-        data.health = data.base_health + data.health_boost;
-        data.clamp_health();
+        data.health = data.max_health();
 
         data
     }
 
     pub fn max_health(&self) -> i32 {
-        self.base_health + self.health_boost
+        (self.base_health + self.health_boost).max(1)
     }
 
     pub fn reload_character_data(&mut self, game_io: &GameIO) {
