@@ -92,7 +92,17 @@ where
         let entry_iter = WalkDir::new(path)
             .into_iter()
             .flatten()
-            .sorted_by_cached_key(|entry| entry.path().to_path_buf());
+            .sorted_by_cached_key(|entry| {
+                // converting to a string
+                // path bufs appear to sort differently than regular strings
+                // which is an issue when we want a deterministic hash
+                entry
+                    .path()
+                    .strip_prefix(path)
+                    .unwrap_or(std::path::Path::new(""))
+                    .to_string_lossy()
+                    .to_string()
+            });
 
         for entry in entry_iter {
             let Ok(metadata) = entry.metadata() else {
