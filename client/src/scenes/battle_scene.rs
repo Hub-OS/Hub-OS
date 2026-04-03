@@ -1103,7 +1103,7 @@ impl BattleScene {
     }
 
     fn handle_exit_requests(&mut self, game_io: &mut GameIO) {
-        if self.next_scene.is_some() {
+        if self.exiting && game_io.is_in_transition() {
             return;
         }
 
@@ -1124,6 +1124,9 @@ impl BattleScene {
             let scene = BattleScene::new(game_io, props);
             let transition = crate::transitions::new_battle(game_io);
             self.next_scene = NextScene::new_swap(scene).with_transition(transition);
+
+            self.exiting = true;
+            return;
         }
 
         // see if a synced exit request occured
