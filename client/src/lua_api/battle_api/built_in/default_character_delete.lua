@@ -1,10 +1,40 @@
 ---@type Entity
 local entity, explosion_count = ...
 
-explosion_count = explosion_count or 2
+local animation = entity:animation()
 
-entity:animation():pause()
+animation:pause()
 entity:delete()
+
+if animation:has_state("CHARACTER_HIT") then
+  animation:set_state("CHARACTER_HIT", { { 1, 1 } })
+
+  explosion_count = explosion_count or 5
+
+  -- spawn shine artifact
+  local game_folder = Resources.game_folder()
+
+  local shine = Artifact.new()
+  shine:set_facing(entity:facing())
+  shine:set_texture(game_folder .. "resources/scenes/battle/shine.png")
+  shine:load_animation(game_folder .. "resources/scenes/battle/shine.animation")
+
+  shine:set_offset(0, -entity:height() // 2)
+
+  local shine_animation = shine:animation()
+  shine_animation:set_state("DEFAULT")
+  shine_animation:set_playback(Playback.Loop)
+
+  shine.on_update_func = function()
+    if entity:will_erase_eof() then
+      shine:delete()
+    end
+  end
+
+  Field.spawn(shine, entity:current_tile())
+else
+  explosion_count = explosion_count or 2
+end
 
 local END_DELAY = 4
 local EXPLOSION_RATE = 14
@@ -29,8 +59,8 @@ component.on_update_func = function()
     explosion:sprite():set_layer(-1)
 
     -- random offset
-    local x = math.random(-0.4, 0.4) * Tile:width()
-    local y = math.random(-0.5, 0.0) * Tile:height()
+    local x = math.random(-Tile:width() // 2, Tile:width() // 2)
+    local y = math.random(-Tile:height() // 2, 0.0)
 
     -- add the parent's offsets
     local parent_offset = entity:offset()
