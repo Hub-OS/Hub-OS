@@ -17,6 +17,8 @@ shine:set_facing(entity:facing())
 shine:set_texture(game_folder .. "resources/scenes/battle/shine.png")
 shine:load_animation(game_folder .. "resources/scenes/battle/shine.animation")
 
+shine:set_offset(0, -entity:height() // 2)
+
 local shine_animation = shine:animation()
 shine_animation:set_state("DEFAULT")
 shine_animation:on_complete(function()
