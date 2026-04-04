@@ -2765,6 +2765,10 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
+    getter::<&Player, _>(lua_api, "charge_progress", |player: &Player, lua, _: ()| {
+        lua.pack_multi(player.attack_charge.charge_progress())
+    });
+
     lua_api.add_dynamic_function(
         ENTITY_TABLE,
         "calculate_default_charge_time",

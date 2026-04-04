@@ -87,6 +87,13 @@ impl AttackCharge {
         self.charging_time >= self.max_charge_time + Self::CHARGE_DELAY
     }
 
+    pub fn charge_progress(&self) -> f32 {
+        let progress =
+            (self.charging_time - Self::CHARGE_DELAY) as f32 / self.max_charge_time as f32;
+
+        progress.clamp(0.0, 1.0)
+    }
+
     pub fn max_charge_time(&self) -> FrameTime {
         self.max_charge_time
     }
