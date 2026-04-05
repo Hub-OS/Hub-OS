@@ -461,13 +461,13 @@ impl BlocksScene {
         self.grid_context_menu.update(game_io, &self.input_tracker);
 
         let menu_size = self.grid_context_menu.bounds().size();
-        let mut position = Vec2::new(grid_x as _, (grid_y + 1) as _) * self.grid_increment;
+        let mut position = Vec2::new(grid_x as _, grid_y as _) * self.grid_increment;
         position.x += (self.grid_increment.x - menu_size.x) * 0.5;
 
         let min_x = self.grid_increment.x * 0.5;
         let max_x = self.grid_increment.x * (BlockGrid::SIDE_LEN as f32 - 0.5) - menu_size.x;
 
-        position.x = (position.x).clamp(self.grid_start.x + min_x, self.grid_start.x + max_x);
+        position.x = (position.x).clamp(min_x, max_x);
 
         if grid_y < 4 {
             position.y += self.grid_increment.y * 0.75;
@@ -475,7 +475,8 @@ impl BlocksScene {
             position.y -= menu_size.y + self.grid_increment.y * 0.25;
         }
 
-        self.grid_context_menu.set_position(position);
+        self.grid_context_menu
+            .set_position(self.grid_start + position);
     }
 
     fn handle_grid_option(&mut self, game_io: &mut GameIO, x: i8, y: i8, selection: GridOption) {
