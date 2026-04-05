@@ -96,12 +96,15 @@ where
                 // converting to a string
                 // path bufs appear to sort differently than regular strings
                 // which is an issue when we want a deterministic hash
-                entry
+                let path_string = entry
                     .path()
                     .strip_prefix(path)
                     .unwrap_or(std::path::Path::new(""))
                     .to_string_lossy()
-                    .to_string()
+                    .to_string();
+
+                // clean for consistency with windows
+                clean_path(&path_string)
             });
 
         for entry in entry_iter {

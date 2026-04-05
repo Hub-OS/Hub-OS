@@ -1768,7 +1768,7 @@ dependencies = [
 
 [[package]]
 name = "hub_os"
-version = "0.99.0"
+version = "0.99.1"
 dependencies = [
  "anyhow",
  "base64",
@@ -1826,7 +1826,7 @@ dependencies = [
 
 [[package]]
 name = "hub_os_android"
-version = "0.99.0"
+version = "0.99.1"
 dependencies = [
  "hub_os",
  "packets",
@@ -1834,7 +1834,7 @@ dependencies = [
 
 [[package]]
 name = "hub_os_server"
-version = "0.99.0"
+version = "0.99.1"
 dependencies = [
  "clap",
  "flate2",
@@ -4019,7 +4019,7 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 
 [[package]]
 name = "structures"
-version = "0.99.0"
+version = "0.99.1"
 
 [[package]]
 name = "strum"
