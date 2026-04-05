@@ -11,6 +11,7 @@ use enum_map::{Enum, EnumMap, enum_map};
 use framework::prelude::*;
 use itertools::Itertools;
 use packets::structures::{PackageCategory, SwitchDriveSlot};
+use unicode_segmentation::UnicodeSegmentation;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum ContextOption {
@@ -618,11 +619,24 @@ impl SwitchDrivesScene {
 
         match selection {
             ContextOption::Export => {
+                let globals = Globals::from_resources(game_io);
+                let augment_packages = &globals.augment_packages;
+
                 let text = EXPORT_ORDER
                     .iter()
                     .map(|&slot| self.equipment_map[slot].package_id.as_ref())
                     .map(|id| {
-                        id.map(|id| id.to_string())
+                        id.and_then(|id| augment_packages.package(PackageNamespace::Local, id))
+                            .map(|package| {
+                                let id = &package.package_info.id;
+                                let mut short_name = &*package.name;
+
+                                if let Some((i, _)) = package.name.grapheme_indices(true).nth(8) {
+                                    short_name = &package.name[..i];
+                                }
+
+                                format!("{short_name} {id}")
+                            })
                             .unwrap_or_else(|| String::from("---"))
                     })
                     .join("\n");
@@ -642,7 +656,6 @@ impl SwitchDrivesScene {
             }
             ContextOption::Import => {
                 let text = game_io.input_mut().request_clipboard_text();
-                let globals = Globals::from_resources_mut(game_io);
 
                 if !text.is_empty() {
                     // move drives back into the list
@@ -658,10 +671,17 @@ impl SwitchDrivesScene {
                     }
 
                     // import drives
+                    let globals = Globals::from_resources(game_io);
                     let augment_packages = &globals.augment_packages;
 
                     for (slot, line) in EXPORT_ORDER.iter().zip(text.lines()) {
-                        let package_id = PackageId::from(line);
+                        let Some((i, _)) = line.grapheme_indices(true).nth(9) else {
+                            continue;
+                        };
+
+                        let (_, remaining_line) = line.split_at(i);
+
+                        let package_id = PackageId::from(remaining_line);
 
                         let Some(package) =
                             augment_packages.package(PackageNamespace::Local, &package_id)
@@ -669,9 +689,27 @@ impl SwitchDrivesScene {
                             continue;
                         };
 
+                        // remove from the list
                         if let Ok(index) = self.package_ids.binary_search(&package_id) {
                             self.package_ids.remove(index);
-                            self.equipment_map[*slot].set_package(Some(package));
+                        }
+
+                        // import regardless of whether it is in the list
+                        let slot_ui = &mut self.equipment_map[*slot];
+                        slot_ui.set_package(Some(package));
+
+                        // check validity
+                        if package.slot != Some(*slot) {
+                            slot_ui.set_validity(DriveValidity::InvalidSlot);
+                        } else if !globals.restrictions.validate_package_tree(
+                            game_io,
+                            (
+                                PackageCategory::Augment,
+                                PackageNamespace::Local,
+                                package_id.clone(),
+                            ),
+                        ) {
+                            slot_ui.set_validity(DriveValidity::Invalid);
                         }
                     }
 
