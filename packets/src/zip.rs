@@ -92,22 +92,15 @@ where
         let entry_iter = WalkDir::new(path)
             .into_iter()
             .flatten()
-            .sorted_by_cached_key(|entry| {
-                // converting to a string
-                // path bufs appear to sort differently than regular strings
-                // which is an issue when we want a deterministic hash
-                let path_string = entry
-                    .path()
-                    .strip_prefix(path)
-                    .unwrap_or(std::path::Path::new(""))
-                    .to_string_lossy()
-                    .to_string();
+            .map(|entry| {
+                let stripped_path = entry.path().strip_prefix(root_path).unwrap();
+                let cleaned_path = clean_path(&stripped_path.to_string_lossy());
 
-                // clean for consistency with windows
-                clean_path(&path_string)
-            });
+                (cleaned_path, entry)
+            })
+            .sorted_by(|(path_a, _), (path_b, _)| path_a.cmp(path_b));
 
-        for entry in entry_iter {
+        for (cleaned_path, entry) in entry_iter {
             let Ok(metadata) = entry.metadata() else {
                 continue;
             };
@@ -122,9 +115,6 @@ where
             };
 
             let _ = file.read_to_end(&mut buffer);
-
-            let stripped_path = entry.path().strip_prefix(root_path).unwrap();
-            let cleaned_path = clean_path(&stripped_path.to_string_lossy());
 
             let _ = zip_writer.start_file(cleaned_path, file_options);
             let _ = zip_writer.write_all(&buffer);
