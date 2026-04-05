@@ -2,7 +2,7 @@ use crate::bindable::SpriteColorMode;
 use crate::packages::{AugmentPackage, PackageId, PackageNamespace};
 use crate::render::ui::{
     ContextMenu, FontName, SceneTitle, ScrollTracker, SubSceneFrame, Text, TextStyle, Textbox,
-    TextboxMessage, TextboxQuestion, UiInputTracker,
+    TextboxMessage, TextboxPrompt, TextboxQuestion, UiInputTracker,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, FrameTime, SpriteColorQueue};
 use crate::resources::*;
@@ -15,6 +15,7 @@ use unicode_segmentation::UnicodeSegmentation;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum ContextOption {
+    Search,
     Export,
     Import,
     Clear,
@@ -24,7 +25,8 @@ enum Event {
     Leave,
     AddSwitchDrive,
     RemoveSwitchDrive,
-    ApplyFilter(Option<SwitchDriveSlot>),
+    ApplyNameFilter(String),
+    ApplySlotFilter(Option<SwitchDriveSlot>),
     Clear,
 }
 
@@ -202,6 +204,12 @@ impl SlotUi {
     }
 }
 
+#[derive(Default)]
+struct SwitchDriveFilters {
+    name: String,
+    slot: Option<SwitchDriveSlot>,
+}
+
 pub struct SwitchDrivesScene {
     camera: Camera,
     background: Background,
@@ -218,10 +226,10 @@ pub struct SwitchDrivesScene {
     list_scroll_tracker: ScrollTracker,
     equipment_scroll_tracker: ScrollTracker,
     state: State,
+    drive_filters: SwitchDriveFilters,
     textbox: Textbox,
     time: FrameTime,
     package_ids: Vec<PackageId>,
-    filtered_packages: bool,
     context_menu: ContextMenu<ContextOption>,
     event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
@@ -261,7 +269,8 @@ impl SwitchDrivesScene {
         }
 
         // load list
-        let package_ids = collect_drive_package_ids(game_io, globals, None, &slot_map);
+        let drive_filters = SwitchDriveFilters::default();
+        let package_ids = collect_drive_package_ids(game_io, &drive_filters, &slot_map);
 
         let mut info_box_sprite = equipment_sprite.clone();
         animator.set_state("TEXTBOX");
@@ -306,6 +315,7 @@ impl SwitchDrivesScene {
                 .with_translated_options(
                     game_io,
                     &[
+                        ("augments-option-search", ContextOption::Search),
                         ("augments-option-export", ContextOption::Export),
                         ("augments-option-import", ContextOption::Import),
                         ("augments-option-clear", ContextOption::Clear),
@@ -336,10 +346,10 @@ impl SwitchDrivesScene {
             } else {
                 State::ListSelection
             },
+            drive_filters,
             textbox: Textbox::new_navigation(game_io).with_position(RESOLUTION_F * 0.5),
             time: 0,
             package_ids,
-            filtered_packages: false,
             context_menu,
             event_sender,
             event_receiver,
@@ -401,6 +411,15 @@ impl SwitchDrivesScene {
         result
     }
 
+    fn apply_filters(&mut self, game_io: &GameIO) {
+        self.package_ids =
+            collect_drive_package_ids(game_io, &self.drive_filters, &self.equipment_map);
+
+        self.list_scroll_tracker
+            .set_total_items(self.package_ids.len());
+        self.list_scroll_tracker.set_selected_index(0);
+    }
+
     fn request_leave(&mut self, game_io: &GameIO) {
         let event_sender = self.event_sender.clone();
 
@@ -438,8 +457,10 @@ impl SwitchDrivesScene {
         match self.state {
             State::ListSelection => {
                 if self.input_tracker.pulsed(Input::Cancel) {
-                    if self.filtered_packages {
-                        self.event_sender.send(Event::ApplyFilter(None)).unwrap();
+                    if self.drive_filters.slot.is_some() {
+                        self.event_sender
+                            .send(Event::ApplySlotFilter(None))
+                            .unwrap();
                         globals.audio.play_sound(&globals.sfx.cursor_cancel);
                     } else {
                         self.request_leave(game_io);
@@ -506,7 +527,7 @@ impl SwitchDrivesScene {
                         let event = if package_selected {
                             Event::RemoveSwitchDrive
                         } else {
-                            Event::ApplyFilter(Some(slot))
+                            Event::ApplySlotFilter(Some(slot))
                         };
 
                         event_sender.send(event).unwrap();
@@ -535,9 +556,11 @@ impl SwitchDrivesScene {
                     }
                 } else if self.input_tracker.pulsed(Input::Cancel) {
                     if self.package_ids.is_empty() {
-                        if self.filtered_packages {
+                        if self.drive_filters.slot.is_some() {
                             // remove filter if there's no packages to return to
-                            self.event_sender.send(Event::ApplyFilter(None)).unwrap();
+                            self.event_sender
+                                .send(Event::ApplySlotFilter(None))
+                                .unwrap();
                             globals.audio.play_sound(&globals.sfx.cursor_cancel);
                         } else {
                             self.request_leave(game_io);
@@ -618,6 +641,14 @@ impl SwitchDrivesScene {
         ];
 
         match selection {
+            ContextOption::Search => {
+                let sender = self.event_sender.clone();
+                let interface = TextboxPrompt::new(move |name| {
+                    let _ = sender.send(Event::ApplyNameFilter(name));
+                });
+                self.textbox.push_interface(interface);
+                self.textbox.open();
+            }
             ContextOption::Export => {
                 let globals = Globals::from_resources(game_io);
                 let augment_packages = &globals.augment_packages;
@@ -799,17 +830,14 @@ impl SwitchDrivesScene {
 
                     slot_ui.set_package(None);
                 }
-                Event::ApplyFilter(filter) => {
-                    let globals = Globals::from_resources(game_io);
-                    self.package_ids =
-                        collect_drive_package_ids(game_io, globals, filter, &self.equipment_map);
-
+                Event::ApplyNameFilter(name) => {
+                    self.drive_filters.name = name.to_lowercase();
+                    self.apply_filters(game_io);
+                }
+                Event::ApplySlotFilter(slot_filter) => {
+                    self.drive_filters.slot = slot_filter;
+                    self.apply_filters(game_io);
                     self.state = State::ListSelection;
-                    self.list_scroll_tracker
-                        .set_total_items(self.package_ids.len());
-                    self.list_scroll_tracker.set_selected_index(0);
-
-                    self.filtered_packages = filter.is_some();
                 }
                 Event::Clear => {
                     for slot_ui in self.equipment_map.values_mut() {
@@ -1021,10 +1049,10 @@ fn get_package<'a>(globals: &'a Globals, id: &PackageId) -> Option<&'a AugmentPa
 
 fn collect_drive_package_ids(
     game_io: &GameIO,
-    globals: &Globals,
-    filter: Option<SwitchDriveSlot>,
+    filters: &SwitchDriveFilters,
     equipment_map: &EnumMap<SwitchDriveSlot, SlotUi>,
 ) -> Vec<PackageId> {
+    let globals = Globals::from_resources(game_io);
     let restrictions = &globals.restrictions;
 
     let Some(player_package) = globals.global_save.player_package(game_io) else {
@@ -1040,8 +1068,18 @@ fn collect_drive_package_ids(
                 return false;
             };
 
-            filter.is_none_or(|filter| filter == slot)
-                && equipment_map[slot].package_id.as_ref() != Some(&package.package_info.id)
+            // test name
+            if !filters.name.is_empty() && !package.search_name.contains(&filters.name) {
+                return false;
+            }
+
+            // test slot
+            if filters.slot.is_some_and(|filter| filter != slot) {
+                return false;
+            }
+
+            // make sure it isn't already installed
+            equipment_map[slot].package_id.as_ref() != Some(&package.package_info.id)
         })
         .filter(|package| {
             restrictions.validate_package_tree(game_io, package.package_info.triplet())

@@ -70,6 +70,8 @@ pub struct AugmentPackage {
     pub byproducts: Vec<PackageId>,
     pub prevent_byproducts: bool,
     pub limit: usize,
+
+    pub search_name: String,
 }
 
 impl AugmentPackage {
@@ -195,6 +197,9 @@ impl Package for AugmentPackage {
                 package.package_info.tags.push(FLAT_BLOCK_TAG.clone());
             }
         }
+
+        package.search_name =
+            package.name.to_lowercase() + "\0" + &package.long_name.to_lowercase();
 
         package
     }

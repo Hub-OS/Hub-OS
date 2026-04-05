@@ -4,7 +4,7 @@ use crate::packages::{AugmentPackage, PackageId, PackageNamespace};
 use crate::render::ui::{
     BlockPreview, ContextMenu, FontName, GridArrow, GridArrowStatus, GridCursor, GridScrollTracker,
     SceneTitle, ScrollTracker, SubSceneFrame, Text, TextStyle, Textbox, TextboxMessage,
-    TextboxQuestion, UiInputTracker,
+    TextboxPrompt, TextboxQuestion, UiInputTracker,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, FrameTime, SpriteColorQueue};
 use crate::resources::*;
@@ -25,6 +25,7 @@ const COLOR_UI_DELAY: FrameTime = 24;
 enum Event {
     Leave,
     Applied,
+    AppliedNameFilter(String),
     Clear,
 }
 
@@ -33,6 +34,7 @@ enum GridOption {
     Move,
     Remove,
     More,
+    Search,
     Export,
     Import,
     Clear,
@@ -122,7 +124,6 @@ pub struct BlocksScene {
     information_label: Text,
     information_text: Text,
     input_tracker: UiInputTracker,
-    scroll_tracker: ScrollTracker,
     colors: Vec<BlockColor>,
     grid: BlockGrid,
     tracked_invalid: HashSet<(Cow<'static, PackageId>, BlockColor)>,
@@ -137,7 +138,7 @@ pub struct BlocksScene {
     state: State,
     textbox: Textbox,
     time: FrameTime,
-    list: Vec<ListItem>,
+    list: BlockList,
     variant_selector: VariantSelector,
     special_hold_time: FrameTime,
     event_sender: flume::Sender<Event>,
@@ -150,60 +151,8 @@ impl BlocksScene {
         let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
-        // installed blocks
         let global_save = &globals.global_save;
-        let restrictions = &globals.restrictions;
         let blocks = global_save.active_blocks().to_vec();
-
-        // track count
-        let mut placed_counts = HashMap::new();
-
-        for block in blocks.iter() {
-            let id = &block.package_id;
-
-            placed_counts
-                .entry((id, block.color))
-                .and_modify(|count| *count += 1)
-                .or_insert(1);
-        }
-
-        // load block packages
-        let player_package = globals.global_save.player_package(game_io).unwrap();
-        let player_info = &player_package.package_info;
-
-        let mut packages: Vec<_> = globals
-            .augment_packages
-            .packages(PackageNamespace::Local)
-            .filter(|package| !package.shapes.is_empty())
-            .filter(|package| {
-                restrictions.validate_package_tree(game_io, package.package_info.triplet())
-            })
-            .filter(|package| {
-                package.visible_to_tagged.is_empty()
-                    || package
-                        .visible_to_tagged
-                        .iter()
-                        .any(|tag| player_info.has_tag(tag))
-            })
-            .map(|package| {
-                let mut list_item = ListItem::new(game_io, restrictions, package);
-                let id = &package.package_info.id;
-
-                for (i, (color, count)) in list_item.colors.iter_mut().enumerate() {
-                    let placed_count = placed_counts.get(&(id, *color)).cloned().unwrap_or(0);
-                    *count = count.saturating_sub(placed_count);
-
-                    if placed_count > 0 && *count > 0 {
-                        list_item.selected_color = i;
-                    }
-                }
-
-                list_item
-            })
-            .filter(|list_item| !list_item.colors.is_empty())
-            .collect();
-
-        packages.sort_by(|a, b| a.id.cmp(&b.id));
 
         // load ui sprites
         let mut animator = Animator::load_new(assets, ResourcePaths::BLOCKS_UI_ANIMATION);
@@ -245,24 +194,11 @@ impl BlocksScene {
             .with_bounds(information_bounds)
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR);
 
-        // scroll tracker
-        let mut scroll_tracker = ScrollTracker::new(game_io, 4)
-            .with_view_margin(1)
-            .with_total_items(packages.len() + 1)
-            .with_custom_cursor(
-                game_io,
-                ResourcePaths::TEXTBOX_CURSOR_ANIMATION,
-                ResourcePaths::TEXTBOX_CURSOR,
-            );
-
-        animator.set_state("OPTION");
-        let list_next = animator.point_or_zero("STEP");
-        let list_start = animator.point_or_zero("START") + list_next;
-
-        scroll_tracker.define_cursor(list_start, list_next.y);
+        // block list
+        let list = BlockList::new(game_io, &mut animator, &blocks);
 
         // cursor
-        let cursor_position = scroll_tracker.selected_cursor_position();
+        let cursor_position = list.scroll_tracker.selected_cursor_position();
         let cursor = GridCursor::new(game_io).with_position(cursor_position);
 
         let (event_sender, event_receiver) = flume::unbounded();
@@ -282,7 +218,6 @@ impl BlocksScene {
             information_label,
             information_text,
             input_tracker: UiInputTracker::new(),
-            scroll_tracker,
             colors: Vec::new(),
             grid: BlockGrid::new(PackageNamespace::Local).with_blocks(game_io, blocks),
             tracked_invalid: HashSet::new(),
@@ -297,7 +232,7 @@ impl BlocksScene {
             block_returns_to_grid: false,
             textbox: Textbox::new_navigation(game_io).with_position(RESOLUTION_F * 0.5),
             time: 0,
-            list: packages,
+            list,
             variant_selector: VariantSelector::new(game_io, variant_selection_step),
             special_hold_time: 0,
             event_sender,
@@ -407,7 +342,7 @@ impl BlocksScene {
                 }
             }
             State::ListSelection => {
-                let index = self.scroll_tracker.selected_index();
+                let index = self.list.scroll_tracker.selected_index();
 
                 if let Some(list_item) = self.list.get(index) {
                     let globals = Globals::from_resources(game_io);
@@ -432,32 +367,7 @@ impl BlocksScene {
                         Color::ORANGE
                     };
 
-                    // update block preview
-                    self.animator.set_state("OPTION");
-                    let list_step = self.animator.point_or_zero("STEP");
-                    let mut position = self.animator.point_or_zero("START") + list_step;
-
-                    let index_offset = index - self.scroll_tracker.top_index();
-                    position += list_step * index_offset as f32;
-                    position += self.animator.point_or_zero("BLOCK_PREVIEW");
-
-                    let mut block_preview = BlockPreview::new(
-                        game_io,
-                        block_color,
-                        package.is_flat,
-                        package
-                            .shapes
-                            .get(list_item.selected_shape)
-                            .copied()
-                            .unwrap_or_default(),
-                    )
-                    .with_position(position);
-
-                    if package.shapes.len() > 1 || list_item.remaining_colors() > 1 {
-                        block_preview.add_multi_color_indicator(game_io);
-                    }
-
-                    self.block_preview = Some(block_preview);
+                    self.update_block_preview(game_io);
                 } else {
                     self.information_text.text = String::from("RUN?");
                     self.information_text.style.color = Color::WHITE;
@@ -493,10 +403,15 @@ impl BlocksScene {
     fn open_grid_context_menu(
         &mut self,
         game_io: &mut GameIO,
-        grid_x: i8,
-        grid_y: i8,
+        mut grid_x: i8,
+        mut grid_y: i8,
         has_block: bool,
     ) {
+        if !has_block {
+            grid_x = 3;
+            grid_y = 1;
+        }
+
         let options: &[(&str, GridOption)] = if has_block {
             if cfg_android!() {
                 &[
@@ -512,9 +427,13 @@ impl BlocksScene {
                 ]
             }
         } else if cfg_android!() {
-            &[("augments-option-clear", GridOption::Clear)]
+            &[
+                ("augments-option-search", GridOption::Search),
+                ("augments-option-clear", GridOption::Clear),
+            ]
         } else {
             &[
+                ("augments-option-search", GridOption::Search),
                 ("augments-option-export", GridOption::Export),
                 ("augments-option-import", GridOption::Import),
                 ("augments-option-clear", GridOption::Clear),
@@ -583,6 +502,15 @@ impl BlocksScene {
                     ],
                 );
             }
+            GridOption::Search => {
+                let sender = self.event_sender.clone();
+
+                let interface = TextboxPrompt::new(move |name| {
+                    let _ = sender.send(Event::AppliedNameFilter(name));
+                });
+                self.textbox.push_interface(interface);
+                self.textbox.open();
+            }
             GridOption::Export => {
                 let text = self.grid.export_string(game_io);
 
@@ -608,21 +536,21 @@ impl BlocksScene {
                     self.clear_grid(game_io);
 
                     for block in blocks {
-                        let Ok(i) = self
-                            .list
-                            .binary_search_by(|package| package.id.cmp(&block.package_id))
-                        else {
+                        let Some(list_item) = self.list.get_by_id(&block.package_id) else {
                             continue;
                         };
 
-                        let list_item = &self.list[i];
                         let Some(color_index) =
                             list_item.colors.iter().position(|(c, _)| *c == block.color)
                         else {
                             continue;
                         };
 
-                        if self.take_block_from_list(i, color_index).is_none() {
+                        if self
+                            .list
+                            .take_block(&block.package_id, color_index)
+                            .is_none()
+                        {
                             continue;
                         }
 
@@ -779,7 +707,8 @@ impl BlocksScene {
                     self.textbox.push_interface(question);
                     self.textbox.open();
                 } else if self.input_tracker.pulsed(Input::Left) {
-                    let y = self.scroll_tracker.selected_index() - self.scroll_tracker.top_index();
+                    let y = self.list.scroll_tracker.selected_index()
+                        - self.list.scroll_tracker.top_index();
 
                     self.state = State::GridSelection {
                         x: 5,
@@ -789,18 +718,19 @@ impl BlocksScene {
                     globals.audio.play_sound(&globals.sfx.cursor_select);
                 } else {
                     // handle scrolling
-                    let prev_index = self.scroll_tracker.selected_index();
+                    let prev_index = self.list.scroll_tracker.selected_index();
 
-                    self.scroll_tracker
+                    self.list
+                        .scroll_tracker
                         .handle_vertical_input(&self.input_tracker);
 
                     if self.input_tracker.pulsed(Input::End) {
-                        let last_index = self.scroll_tracker.total_items() - 1;
-                        self.scroll_tracker.set_selected_index(last_index);
+                        let last_index = self.list.scroll_tracker.total_items() - 1;
+                        self.list.scroll_tracker.set_selected_index(last_index);
                     }
 
                     // sfx
-                    let selected_index = self.scroll_tracker.selected_index();
+                    let selected_index = self.list.scroll_tracker.selected_index();
 
                     if prev_index != selected_index {
                         globals.audio.play_sound(&globals.sfx.cursor_move);
@@ -867,7 +797,9 @@ impl BlocksScene {
             State::VariantSelection => {
                 self.variant_selector.update(game_io, &self.input_tracker);
 
-                if let Some(list_item) = self.list.get_mut(self.scroll_tracker.selected_index()) {
+                if let Some(list_item) =
+                    self.list.get_mut(self.list.scroll_tracker.selected_index())
+                {
                     list_item.selected_shape = self.variant_selector.selected_shape_index();
                     list_item.selected_color = self.variant_selector.selected_color_index();
                 }
@@ -894,15 +826,15 @@ impl BlocksScene {
                     self.state = State::ListSelection;
 
                     if pressed_end {
-                        let last_index = self.scroll_tracker.total_items() - 1;
-                        self.scroll_tracker.set_selected_index(last_index);
+                        let last_index = self.list.scroll_tracker.total_items() - 1;
+                        self.list.scroll_tracker.set_selected_index(last_index);
                     }
 
                     globals.audio.play_sound(&globals.sfx.cursor_cancel);
                 } else if self.input_tracker.pulsed(Input::Confirm) && !prev_held {
                     self.open_grid_context_menu(game_io, old_x, old_y, has_block);
                 } else if self.input_tracker.pulsed(Input::Option2) {
-                    self.open_grid_context_menu(game_io, 3, 1, false);
+                    self.open_grid_context_menu(game_io, 0, 0, false);
                 } else {
                     let (mut x, mut y) = (old_x, old_y);
 
@@ -998,7 +930,7 @@ impl BlocksScene {
     }
 
     fn take_selected_block_from_list(&mut self) -> bool {
-        let selected_index = self.scroll_tracker.selected_index();
+        let selected_index = self.list.scroll_tracker.selected_index();
 
         let Some(list_item) = self.list.get_mut(selected_index) else {
             return false;
@@ -1008,7 +940,7 @@ impl BlocksScene {
         let shape_index = list_item.selected_shape;
         let package_id = list_item.id.clone();
 
-        let Some(color) = self.take_block_from_list(selected_index, color_index) else {
+        let Some(color) = self.list.take_block_by_index(selected_index, color_index) else {
             return false;
         };
 
@@ -1025,28 +957,6 @@ impl BlocksScene {
         true
     }
 
-    fn take_block_from_list(&mut self, index: usize, color_index: usize) -> Option<BlockColor> {
-        let list_item = self.list.get_mut(index)?;
-        let (color, count) = list_item.colors.get_mut(color_index)?;
-
-        if *count == 0 {
-            return None;
-        }
-
-        *count -= 1;
-        let new_count = *count;
-        let color = *color;
-
-        if list_item.colors.iter().all(|(_, count)| *count == 0) {
-            self.list.remove(index);
-            self.scroll_tracker.set_total_items(self.list.len() + 1);
-        } else if new_count == 0 {
-            list_item.select_next_color();
-        }
-
-        Some(color)
-    }
-
     /// Adds the block back to the list and updates colors
     fn uninstall(&mut self, game_io: &GameIO, block: InstalledBlock) {
         let tracked_invalid_key = (Cow::Borrowed(&block.package_id), block.color);
@@ -1058,46 +968,58 @@ impl BlocksScene {
             return;
         }
 
-        let index = self
-            .list
-            .binary_search_by(|package| package.id.cmp(&block.package_id));
+        self.list.add_installed_block(game_io, block);
+        self.update_colors();
+    }
 
-        match index {
-            Ok(index) => {
-                let list_item = &mut self.list[index];
-                let mut colors_iter = list_item.colors.iter_mut();
+    fn update_block_preview(&mut self, game_io: &GameIO) {
+        let index = self.list.scroll_tracker.selected_index();
 
-                if let Some(i) = colors_iter.position(|(color, _)| *color == block.color) {
-                    let (_, count) = &mut list_item.colors[i];
-                    *count += 1;
-
-                    list_item.selected_color = i;
-                }
-            }
-            Err(index) => {
-                let globals = Globals::from_resources(game_io);
-                let package = globals
-                    .augment_packages
-                    .package(PackageNamespace::Local, &block.package_id)
-                    .unwrap();
-
-                let mut list_item = ListItem::new(game_io, &globals.restrictions, package);
-
-                for (i, (color, count)) in list_item.colors.iter_mut().enumerate() {
-                    if *color == block.color {
-                        *count = 1;
-                        list_item.selected_color = i;
-                    } else {
-                        *count = 0;
-                    }
-                }
-
-                self.list.insert(index, list_item);
-                self.scroll_tracker.set_total_items(self.list.len() + 1);
-            }
+        let Some(list_item) = self.list.get(index) else {
+            self.block_preview = None;
+            return;
         };
 
-        self.update_colors();
+        let globals = Globals::from_resources(game_io);
+        let Some(package) = globals
+            .augment_packages
+            .package(PackageNamespace::Local, &list_item.id)
+        else {
+            log::warn!("Block data exists for missing package: {}", &list_item.id);
+            return;
+        };
+
+        let block_color = list_item
+            .colors
+            .get(list_item.selected_color)
+            .unwrap_or(&list_item.colors[0])
+            .0;
+
+        self.animator.set_state("OPTION");
+        let list_step = self.animator.point_or_zero("STEP");
+        let mut position = self.animator.point_or_zero("START") + list_step;
+
+        let index_offset = index - self.list.scroll_tracker.top_index();
+        position += list_step * index_offset as f32;
+        position += self.animator.point_or_zero("BLOCK_PREVIEW");
+
+        let mut block_preview = BlockPreview::new(
+            game_io,
+            block_color,
+            package.is_flat,
+            package
+                .shapes
+                .get(list_item.selected_shape)
+                .copied()
+                .unwrap_or_default(),
+        )
+        .with_position(position);
+
+        if package.shapes.len() > 1 || list_item.remaining_colors() > 1 {
+            block_preview.add_multi_color_indicator(game_io);
+        }
+
+        self.block_preview = Some(block_preview);
     }
 
     fn update_cursor_sprite(&mut self) {
@@ -1144,7 +1066,7 @@ impl BlocksScene {
                 self.cursor.set_target(position);
             }
             State::ListSelection => {
-                let position = self.scroll_tracker.selected_cursor_position();
+                let position = self.list.scroll_tracker.selected_cursor_position();
                 self.cursor.set_target(position);
             }
             _ => {}
@@ -1169,6 +1091,11 @@ impl BlocksScene {
                     self.state = State::ListSelection;
                     self.update_cursor_sprite();
                     self.update_text(game_io);
+                }
+                Event::AppliedNameFilter(name) => {
+                    self.list.name_filter = name.to_lowercase();
+                    self.list.apply_filters(game_io);
+                    self.update_block_preview(game_io);
                 }
                 Event::Clear => {
                     self.clear_grid(game_io);
@@ -1401,7 +1328,7 @@ impl Scene for BlocksScene {
         // draw package list
         let mut recycled_sprite = Sprite::new(game_io, self.grid_sprite.texture().clone());
         let selected_index = if self.state == State::ListSelection {
-            Some(self.scroll_tracker.selected_index())
+            Some(self.list.scroll_tracker.selected_index())
         } else {
             None
         };
@@ -1418,7 +1345,7 @@ impl Scene for BlocksScene {
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
             .with_bounds(text_bounds);
 
-        if self.scroll_tracker.top_index() == 0 {
+        if self.list.scroll_tracker.top_index() == 0 {
             offset += offset_jump;
         }
 
@@ -1429,12 +1356,12 @@ impl Scene for BlocksScene {
         let mut count_text_style = TextStyle::new_monospace(game_io, FontName::DuplicateCount);
         count_text_style.letter_spacing = 0.0;
 
-        for i in self.scroll_tracker.view_range() {
+        for i in self.list.scroll_tracker.view_range() {
             recycled_sprite.set_position(offset);
             text_style.bounds += offset_jump;
             offset += offset_jump;
 
-            if i == self.list.len() {
+            if i == self.list.visible_packages.len() {
                 // draw APPLY button
                 if Some(i) == selected_index {
                     self.animator.set_state("APPLY_BLINK");
@@ -1467,7 +1394,10 @@ impl Scene for BlocksScene {
             sprite_queue.draw_sprite(&recycled_sprite);
 
             // draw name
-            let list_item = &self.list[i];
+            let Some(list_item) = self.list.get(i) else {
+                log::error!("Index {i} out of bounds for the block list");
+                continue;
+            };
             text_style.draw(game_io, &mut sprite_queue, &list_item.name);
 
             // draw count
@@ -1658,5 +1588,237 @@ impl VariantSelector {
 
     fn selected_color_index(&self) -> usize {
         self.scroll_tracker.selected_index() % self.color_counts.len()
+    }
+}
+
+struct BlockList {
+    all_items: HashMap<PackageId, ListItem>,
+    visible_packages: Vec<PackageId>,
+    scroll_tracker: ScrollTracker,
+    name_filter: String,
+}
+
+impl BlockList {
+    fn new(game_io: &GameIO, animator: &mut Animator, blocks: &[InstalledBlock]) -> Self {
+        let globals = Globals::from_resources(game_io);
+        let restrictions = &globals.restrictions;
+
+        let player_package = globals.global_save.player_package(game_io).unwrap();
+        let player_info = &player_package.package_info;
+
+        // track count
+        let mut placed_counts = HashMap::new();
+
+        for block in blocks {
+            let id = &block.package_id;
+
+            placed_counts
+                .entry((id, block.color))
+                .and_modify(|count| *count += 1)
+                .or_insert(1);
+        }
+
+        // build items map
+        let items: HashMap<_, _> = globals
+            .augment_packages
+            .packages(PackageNamespace::Local)
+            .filter(|package| !package.shapes.is_empty())
+            .filter(|package| {
+                restrictions.validate_package_tree(game_io, package.package_info.triplet())
+            })
+            .filter(|package| {
+                package.visible_to_tagged.is_empty()
+                    || package
+                        .visible_to_tagged
+                        .iter()
+                        .any(|tag| player_info.has_tag(tag))
+            })
+            .map(|package| {
+                let mut list_item = ListItem::new(game_io, restrictions, package);
+                let id = &package.package_info.id;
+
+                for (i, (color, count)) in list_item.colors.iter_mut().enumerate() {
+                    let placed_count = placed_counts.get(&(id, *color)).cloned().unwrap_or(0);
+                    *count = count.saturating_sub(placed_count);
+
+                    if placed_count > 0 && *count > 0 {
+                        list_item.selected_color = i;
+                    }
+                }
+
+                list_item
+            })
+            .filter(|list_item| !list_item.colors.is_empty())
+            .map(|list_item| (list_item.id.clone(), list_item))
+            .collect();
+
+        let mut visible_packages: Vec<_> = items.keys().cloned().collect();
+        visible_packages.sort();
+
+        // scroll tracker
+        let mut scroll_tracker = ScrollTracker::new(game_io, 4)
+            .with_view_margin(1)
+            .with_custom_cursor(
+                game_io,
+                ResourcePaths::TEXTBOX_CURSOR_ANIMATION,
+                ResourcePaths::TEXTBOX_CURSOR,
+            );
+
+        animator.set_state("OPTION");
+        let list_next = animator.point_or_zero("STEP");
+        let list_start = animator.point_or_zero("START") + list_next;
+
+        scroll_tracker.define_cursor(list_start, list_next.y);
+
+        let mut list = Self {
+            visible_packages,
+            all_items: items,
+            scroll_tracker,
+            name_filter: Default::default(),
+        };
+
+        list.update_total_items();
+
+        list
+    }
+
+    fn get(&self, index: usize) -> Option<&ListItem> {
+        let id = self.visible_packages.get(index)?;
+        self.all_items.get(id)
+    }
+
+    fn get_by_id(&self, id: &PackageId) -> Option<&ListItem> {
+        self.all_items.get(id)
+    }
+
+    fn get_mut(&mut self, visible_index: usize) -> Option<&mut ListItem> {
+        let id = self.visible_packages.get(visible_index)?;
+        self.all_items.get_mut(id)
+    }
+
+    fn find_insertion_index(&self, package_id: &PackageId) -> Result<usize, usize> {
+        self.visible_packages.binary_search_by(|id| {
+            let item = self.all_items.get(id).unwrap();
+            item.id.cmp(package_id)
+        })
+    }
+
+    fn find_index(&self, package_id: &PackageId) -> Option<usize> {
+        self.find_insertion_index(package_id).ok()
+    }
+
+    fn take_block_by_index(
+        &mut self,
+        visible_index: usize,
+        color_index: usize,
+    ) -> Option<BlockColor> {
+        let id = self.visible_packages.get_mut(visible_index)?.clone();
+        self.take_block(&id, color_index)
+    }
+
+    fn take_block(&mut self, id: &PackageId, color_index: usize) -> Option<BlockColor> {
+        let list_item = self.all_items.get_mut(id)?;
+        let (color, count) = list_item.colors.get_mut(color_index)?;
+
+        if *count == 0 {
+            return None;
+        }
+
+        *count -= 1;
+        let new_count = *count;
+        let color = *color;
+
+        if list_item.colors.iter().all(|(_, count)| *count == 0) {
+            self.all_items.remove(id);
+
+            if let Some(i) = self
+                .visible_packages
+                .iter()
+                .position(|visible_id| visible_id == id)
+            {
+                self.visible_packages.remove(i);
+            }
+
+            self.scroll_tracker
+                .set_total_items(self.visible_packages.len() + 1);
+        } else if new_count == 0 {
+            list_item.select_next_color();
+        }
+
+        Some(color)
+    }
+
+    fn add_installed_block(&mut self, game_io: &GameIO, block: InstalledBlock) {
+        match self.find_insertion_index(&block.package_id) {
+            Ok(index) => {
+                let list_item = self.get_mut(index).unwrap();
+                let mut colors_iter = list_item.colors.iter_mut();
+
+                if let Some(i) = colors_iter.position(|(color, _)| *color == block.color) {
+                    let (_, count) = &mut list_item.colors[i];
+                    *count += 1;
+
+                    list_item.selected_color = i;
+                }
+            }
+            Err(index) => {
+                let globals = Globals::from_resources(game_io);
+                let package = globals
+                    .augment_packages
+                    .package(PackageNamespace::Local, &block.package_id)
+                    .unwrap();
+
+                let mut list_item = ListItem::new(game_io, &globals.restrictions, package);
+
+                for (i, (color, count)) in list_item.colors.iter_mut().enumerate() {
+                    if *color == block.color {
+                        *count = 1;
+                        list_item.selected_color = i;
+                    } else {
+                        *count = 0;
+                    }
+                }
+
+                self.visible_packages.insert(index, list_item.id.clone());
+                self.all_items.insert(list_item.id.clone(), list_item);
+                self.update_total_items();
+            }
+        };
+    }
+
+    fn apply_filters(&mut self, game_io: &GameIO) {
+        let globals = Globals::from_resources(game_io);
+        let augment_packages = &globals.augment_packages;
+
+        self.visible_packages.clear();
+        self.visible_packages.extend(
+            self.all_items
+                .keys()
+                .filter(|id| {
+                    if self.name_filter.is_empty() {
+                        return true;
+                    }
+
+                    let Some(package) = augment_packages.package(PackageNamespace::Local, id)
+                    else {
+                        log::warn!("Block data exists for missing package: {id}");
+                        return false;
+                    };
+
+                    package.search_name.contains(&self.name_filter)
+                })
+                .cloned(),
+        );
+
+        self.visible_packages.sort();
+
+        self.scroll_tracker.set_selected_index(0);
+        self.update_total_items();
+    }
+
+    fn update_total_items(&mut self) {
+        // +1 to include the RUN button
+        self.scroll_tracker
+            .set_total_items(self.visible_packages.len() + 1);
     }
 }
