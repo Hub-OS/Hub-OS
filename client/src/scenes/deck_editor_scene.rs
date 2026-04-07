@@ -295,8 +295,16 @@ impl DeckEditorScene {
 
     fn resolve_namespace_options(game_io: &GameIO) -> Vec<(String, usize)> {
         let globals = Globals::from_resources(game_io);
+        let restrictions = &globals.restrictions;
 
-        let namespaces = PackageId::prefixes_for_ids(globals.card_packages.package_ids(NAMESPACE));
+        let namespaces = PackageId::prefixes_for_ids(
+            globals
+                .card_packages
+                .packages(NAMESPACE)
+                .filter(pack_package_filter(game_io, restrictions))
+                .map(|package| &package.package_info.id),
+        );
+
         let mut namespaces: Vec<_> = namespaces.into_iter().collect();
         namespaces.sort();
         namespaces.insert(0, "");
@@ -1740,13 +1748,9 @@ impl CardListItem {
             // use all packages for pack
             package_manager
                 .packages(NAMESPACE)
-                .filter(|package| {
-                    !package.hidden && package.card_properties.card_class != CardClass::Recipe
-                })
+                .filter(pack_package_filter(game_io, restrictions))
                 .flat_map(|package| {
                     let package_info = package.package_info();
-                    let triplet = package.package_info.triplet();
-                    let valid_package = restrictions.validate_package_tree(game_io, triplet);
 
                     package.default_codes.iter().map(move |code| {
                         let card = Card {
@@ -1754,10 +1758,10 @@ impl CardListItem {
                             code: code.clone(),
                         };
 
-                        (valid_package, card, package.card_properties.limit)
+                        (card, package.card_properties.limit)
                     })
                 })
-                .map(map_to_item_with_count)
+                .map(|(card, limit)| map_to_item_with_count((true, card, limit)))
                 .filter(|item| item.count != 0)
                 .map(Some)
                 .collect()
@@ -1808,5 +1812,22 @@ impl CardListItem {
         label.style.bounds.set_position(COUNT_OFFSET + position);
         label.text = format!("{:>2}", self.count.min(99));
         label.draw(game_io, sprite_queue);
+    }
+}
+
+fn pack_package_filter(
+    game_io: &GameIO,
+    restrictions: &Restrictions,
+) -> impl Fn(&&CardPackage) -> bool {
+    |package| {
+        if package.hidden
+            || package.card_properties.card_class == CardClass::Recipe
+            || package.card_properties.limit == 0
+        {
+            return false;
+        }
+
+        let triplet = package.package_info.triplet();
+        restrictions.validate_package_tree(game_io, triplet)
     }
 }

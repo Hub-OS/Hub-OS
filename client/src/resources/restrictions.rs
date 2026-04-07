@@ -12,6 +12,7 @@ pub struct Restrictions {
     // packages
     hash_whitelist: HashSet<FileHash>,
     id_whitelist: HashSet<PackageId>,
+    namespace_whitelist: Vec<String>,
     tag_whitelist: HashSet<String>,
     id_blacklist: HashSet<PackageId>,
     tag_blacklist: HashSet<String>,
@@ -31,6 +32,7 @@ impl Default for Restrictions {
         Self {
             hash_whitelist: Default::default(),
             id_whitelist: Default::default(),
+            namespace_whitelist: Default::default(),
             tag_whitelist: Default::default(),
             id_blacklist: Default::default(),
             tag_blacklist: Default::default(),
@@ -115,6 +117,17 @@ impl Restrictions {
             })
         };
 
+        let string_vec_mapper = |mut value: toml::Value| {
+            value.as_array_mut().map(|array| {
+                let values = std::mem::take(array);
+
+                values
+                    .into_iter()
+                    .flat_map(|value| value.as_str().map(String::from))
+                    .collect::<Vec<String>>()
+            })
+        };
+
         if let Some(mut packages_table) = packages_table {
             // packages.hash_whitelist
             self.hash_whitelist = packages_table
@@ -126,6 +139,12 @@ impl Restrictions {
             self.id_whitelist = packages_table
                 .remove("id_whitelist")
                 .and_then(id_hash_set_mapper)
+                .unwrap_or_default();
+
+            // packages.namespace_whitelist
+            self.namespace_whitelist = packages_table
+                .remove("namespace_whitelist")
+                .and_then(string_vec_mapper)
                 .unwrap_or_default();
 
             // packages.tag_whitelist
@@ -149,9 +168,14 @@ impl Restrictions {
     }
 
     fn is_package_allowed(&self, info: &PackageInfo) -> bool {
-        if !self.id_blacklist.is_empty() && self.id_blacklist.contains(&info.id) {
+        if self.id_blacklist.contains(&info.id) {
             // directly blacklisted
             return false;
+        }
+
+        if self.id_whitelist.contains(&info.id) || self.hash_whitelist.contains(&info.hash) {
+            // directly whitelisted
+            return true;
         }
 
         if !self.tag_blacklist.is_empty() && tag_overlap(info, &self.tag_blacklist) {
@@ -159,22 +183,29 @@ impl Restrictions {
             return false;
         }
 
-        if self.id_whitelist.is_empty() && self.tag_whitelist.is_empty() {
-            // no whitelist, everything is allowed
-            return true;
-        }
-
-        if !self.id_whitelist.is_empty() && self.id_whitelist.contains(&info.id) {
-            // id whitelisted
-            return true;
-        }
-
         if !self.tag_whitelist.is_empty() && tag_overlap(info, &self.tag_whitelist) {
             // tag whitelisted
             return true;
         }
 
-        false
+        if !self.namespace_whitelist.is_empty() && self.is_namespace_allowed(info.id.as_str()) {
+            // namespace whitelisted, should be the check before the default
+            return true;
+        }
+
+        // everything is allowed if there's no whitelist
+        self.hash_whitelist.is_empty()
+            && self.id_whitelist.is_empty()
+            && self.namespace_whitelist.is_empty()
+            && self.tag_whitelist.is_empty()
+    }
+
+    pub fn is_namespace_allowed(&self, namespace_or_id: &str) -> bool {
+        self.namespace_whitelist.is_empty()
+            || self
+                .namespace_whitelist
+                .iter()
+                .any(|namespace| namespace_or_id.starts_with(namespace))
     }
 
     pub fn base_deck_restrictions(&self) -> DeckRestrictions {
