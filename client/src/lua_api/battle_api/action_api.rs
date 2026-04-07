@@ -444,9 +444,10 @@ fn inject_step_api(lua_api: &mut BattleLuaApi) {
 
             let api_ctx = &mut *api_ctx.borrow_mut();
             let actions = &mut api_ctx.simulation.actions;
-            let action = actions.get_mut(id).ok_or_else(action_not_found)?;
 
-            if let Some(step) = action.steps.get_mut(index) {
+            if let Some(action) = actions.get_mut(id)
+                && let Some(step) = action.steps.get_mut(index)
+            {
                 step.completed = true;
             }
 
