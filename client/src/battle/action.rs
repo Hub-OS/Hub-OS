@@ -566,16 +566,27 @@ impl Action {
             let entities = &mut simulation.entities;
             let entity_id = action.entity;
 
-            let Ok((entity, action_queue, movement)) =
-                entities.query_one_mut::<(&mut Entity, &mut ActionQueue, Option<&Movement>)>(
-                    entity_id.into(),
-                )
+            let Ok((entity, action_queue, movement, living)) =
+                entities.query_one_mut::<(
+                    &mut Entity,
+                    &mut ActionQueue,
+                    Option<&Movement>,
+                    Option<&Living>,
+                )>(entity_id.into())
             else {
                 continue;
             };
 
             if !entity.spawned || entity.deleted || entity.time_frozen {
                 continue;
+            }
+
+            if living.is_some_and(|living| {
+                living
+                    .status_director
+                    .is_inactionable(&resources.status_registry)
+            }) {
+                return;
             }
 
             let animator_index = entity.animator_index;
@@ -599,10 +610,6 @@ impl Action {
                     Living::update_action_context(simulation, ActionType::SCRIPT, entity_id);
                     // call auxprop callbacks
                     simulation.call_pending_callbacks(game_io, resources);
-                }
-
-                if !simulation.is_entity_actionable(resources, entity_id) {
-                    continue;
                 }
 
                 Action::execute(game_io, resources, simulation, action_index);
