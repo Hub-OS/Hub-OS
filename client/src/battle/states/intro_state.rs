@@ -301,14 +301,18 @@ impl IntroState {
         ));
 
         // resume sprite animations when battle begins
-        let mut component = Component::new(entity_id, ComponentLifetime::Battle);
-        component.update_callback = BattleCallback::new(move |_, _, simulation, _| {
-            if let Some(animator) = simulation.animators.get_mut(animator_index) {
-                animator.enable();
-            };
-        });
+        simulation.components.insert_with_key(move |key| {
+            let mut component = Component::new(entity_id, ComponentLifetime::Battle);
 
-        simulation.components.insert(component);
+            component.update_callback = BattleCallback::new(move |_, _, simulation, _| {
+                if let Some(animator) = simulation.animators.get_mut(animator_index) {
+                    animator.enable();
+                };
+                simulation.components.remove(key);
+            });
+
+            component
+        });
 
         Some(action_index)
     }
