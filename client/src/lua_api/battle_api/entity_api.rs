@@ -248,7 +248,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let living_hittable = entities
             .query_one_mut::<&mut Living>(id.into())
             .ok()
-            .map(|living| living.hitbox_enabled || living.health > 0)
+            .map(|living| living.hitbox_enabled && living.health > 0)
             .unwrap_or_default();
 
         let entity = entities
