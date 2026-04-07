@@ -280,10 +280,13 @@ impl Action {
         animator.on_interrupt(interrupt_callback);
 
         // update attachments
-        let entity = simulation
+        let Ok((entity, action_queue)) = simulation
             .entities
-            .query_one_mut::<&mut Entity>(entity_id.into())
-            .unwrap();
+            .query_one_mut::<(&mut Entity, &ActionQueue)>(entity_id.into())
+        else {
+            log::error!("Action is missing associated entity and ActionQueue?");
+            return;
+        };
 
         if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
             if let Some(sprite) = sprite_tree.get_mut(action.sprite_index) {
@@ -293,6 +296,20 @@ impl Action {
             for attachment in &mut action.attachments {
                 attachment.apply_animation(sprite_tree, &mut simulation.animators);
             }
+        }
+
+        // display action properties to opponents
+        if action_queue.action_type == ActionType::CARD
+            && action.entity != simulation.local_player_id
+            && !action.properties.package_id.is_blank()
+            && !action.properties.conceal
+            && !action.properties.time_freeze
+            && !simulation.time_freeze_tracker.time_is_frozen()
+        {
+            simulation.action_displays.insert(
+                entity.team,
+                (action.properties.clone().into(), simulation.time),
+            );
         }
     }
 

@@ -8,13 +8,14 @@ use crate::render::*;
 use crate::resources::*;
 use crate::saves::{BattleZoomConfig, RecordedPreview};
 use crate::scenes::BattleEvent;
-use crate::structures::{DenseSlotMap, SlotMap};
+use crate::structures::{DenseSlotMap, SlotMap, VecMap};
 use framework::prelude::*;
 use packets::NetplaySignal;
 use packets::structures::BattleStatistics;
 use rand::SeedableRng;
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 pub use rand_xoshiro::Xoshiro256PlusPlus as SimulationRng;
 
@@ -49,6 +50,7 @@ pub struct BattleSimulation {
     pub sprite_trees: SlotMap<Tree<SpriteNode>>,
     pub animators: SlotMap<BattleAnimator>,
     pub actions: DenseSlotMap<Action>,
+    pub action_displays: VecMap<Team, (Rc<CardProperties>, FrameTime)>,
     pub time_freeze_tracker: TimeFreezeTracker,
     pub components: DenseSlotMap<Component>,
     pub pending_callbacks: Vec<BattleCallback>,
@@ -99,6 +101,7 @@ impl BattleSimulation {
             sprite_trees,
             animators: Default::default(),
             actions: Default::default(),
+            action_displays: Default::default(),
             time_freeze_tracker: TimeFreezeTracker::new(),
             components: Default::default(),
             pending_callbacks: Vec::new(),
@@ -181,6 +184,7 @@ impl BattleSimulation {
             sprite_trees: self.sprite_trees.clone(),
             animators: self.animators.clone(),
             actions: self.actions.clone(),
+            action_displays: self.action_displays.clone(),
             time_freeze_tracker: self.time_freeze_tracker.clone(),
             components: self.components.clone(),
             pending_callbacks: self.pending_callbacks.clone(),
@@ -1176,6 +1180,26 @@ impl BattleSimulation {
             if let Some(tree) = emotion_sprite_tree {
                 tree.draw(sprite_queue);
             }
+        }
+
+        // draw action properties
+        for (team, (properties, time)) in self.action_displays.iter() {
+            if self.time - time > 60 {
+                // display for a single second
+                continue;
+            }
+
+            let mut position = match team {
+                Team::Red => Vec2::new(RESOLUTION_F.x * 0.25, RESOLUTION_F.y * 0.225),
+                Team::Blue => Vec2::new(RESOLUTION_F.x * 0.75, RESOLUTION_F.y * 0.225),
+                _ => Vec2::new(RESOLUTION_F.x * 0.5, RESOLUTION_F.y * 0.325),
+            };
+
+            if self.local_team.flips_perspective() {
+                position.x = RESOLUTION_F.x - position.x;
+            }
+
+            properties.draw_summary(game_io, sprite_queue, position, Vec2::ONE, true);
         }
 
         // draw banners
