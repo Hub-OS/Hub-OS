@@ -133,8 +133,35 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         entity.team = team;
         Ok(())
     });
-    getter::<&Entity, _>(lua_api, "is_team", |entity: &Entity, lua, team| {
-        lua.pack_multi(entity.team.is_allied(team))
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "is_team", |api_ctx, lua, params| {
+        let (table, possibly_ally): (rollback_mlua::Table, rollback_mlua::Value) =
+            lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let entities = &mut api_ctx.simulation.entities;
+        let entity = entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        // see if a team was passed
+        if let Ok(team) = lua.unpack::<Team>(possibly_ally.clone()) {
+            return lua.pack_multi(entity.team.is_allied(team));
+        }
+
+        // see if an entity was passed
+        let entity_team = entity.team;
+
+        let ally_table = lua.unpack::<rollback_mlua::Table>(possibly_ally)?;
+        let ally_id: EntityId = ally_table.raw_get("#id")?;
+
+        let ally_entity = entities
+            .query_one_mut::<&mut Entity>(ally_id.into())
+            .map_err(|_| entity_not_found())?;
+
+        lua.pack_multi(id == ally_id || entity_team.is_allied(ally_entity.team))
     });
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "set_owner", |api_ctx, lua, params| {
