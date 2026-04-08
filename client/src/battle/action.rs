@@ -603,7 +603,7 @@ impl Action {
                     .status_director
                     .is_inactionable(&resources.status_registry)
             }) {
-                return;
+                continue;
             }
 
             let animator_index = entity.animator_index;
