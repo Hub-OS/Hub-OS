@@ -65,10 +65,14 @@ impl<'a> CardSelectRestriction<'a> {
 
     pub fn allows_card(self, card: &Card) -> bool {
         match self {
-            Self::Code(code) => card.code == code || card.code == "*",
+            Self::Code(code) => (card.code == code && code != "!") || card.code == "*",
             Self::Package(package_id) => card.package_id == *package_id,
             Self::Mixed { package_id, code } => {
-                card.package_id == *package_id || card.code == code || card.code == "*"
+                if code == "!" && card.code == "!" {
+                    false
+                } else {
+                    card.package_id == *package_id || card.code == code || card.code == "*"
+                }
             }
             Self::Any => true,
         }
