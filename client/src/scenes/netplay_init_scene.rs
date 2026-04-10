@@ -821,7 +821,11 @@ impl NetplayInitScene {
                 }
             }
             ConnectionStage::SharingPackageList => {
-                if self.spectating || self.check_peers(|c| c.requested_packages.is_some()) {
+                let spectating = self.spectating;
+
+                if self.check_peers(|c| {
+                    (spectating || c.requested_packages.is_some()) && c.received_package_list
+                }) {
                     self.stage.advance();
                     self.broadcast(NetplayPacketData::ReadyForPackages);
                 }
@@ -833,8 +837,7 @@ impl NetplayInitScene {
                 }
             }
             ConnectionStage::SharingPackages => {
-                if self.check_peers(|c| c.received_package_list) && self.missing_packages.is_empty()
-                {
+                if self.missing_packages.is_empty() {
                     self.stage.advance();
                     self.broadcast(NetplayPacketData::Ready);
                 }
