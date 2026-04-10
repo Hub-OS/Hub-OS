@@ -356,7 +356,11 @@ impl BattleMeta {
 
         let globals = Globals::from_resources_mut(game_io);
 
-        for (category, namespace, id) in loaded_packages {
+        for (category, mut namespace, id) in loaded_packages {
+            if overrides.contains(&id) {
+                namespace = PackageNamespace::Local;
+            }
+
             let Some(info) = globals.package_info(category, namespace, &id) else {
                 continue;
             };
