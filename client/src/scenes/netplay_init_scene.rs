@@ -33,7 +33,7 @@ enum Event {
     },
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, PartialEq, Eq, Clone, Copy)]
 enum ConnectionStage {
     #[default]
     ResolvingAddresses,
@@ -387,6 +387,17 @@ impl NetplayInitScene {
             }
             NetplayPacketData::Ping => {
                 self.send(index, NetplayPacketData::Pong { sender: index });
+            }
+            NetplayPacketData::Status { status } => {
+                let label = if connection.spectating {
+                    "Spectator"
+                } else if !self.identified_spectators() {
+                    "Unresolved"
+                } else {
+                    "Player"
+                };
+
+                log::debug!("Peer {index} ({label}): {status}");
             }
             NetplayPacketData::PlayerSetup {
                 player_package,
@@ -962,6 +973,8 @@ impl Scene for NetplayInitScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
+        let prev_stage = self.stage;
+
         while let Ok(event) = self.event_receiver.try_recv() {
             match event {
                 Event::ResolvedAddresses { players } => {
@@ -1007,6 +1020,12 @@ impl Scene for NetplayInitScene {
         }
 
         self.handle_stage(game_io);
+
+        if self.stage != prev_stage {
+            self.broadcast(NetplayPacketData::Status {
+                status: format!("{:?}", self.stage),
+            });
+        }
     }
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {

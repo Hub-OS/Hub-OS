@@ -37,6 +37,9 @@ pub enum NetplayPacketData {
     Pong {
         sender: usize,
     },
+    Status {
+        status: String,
+    },
     PlayerSetup {
         player_package: PackageId,
         script_enabled: bool,

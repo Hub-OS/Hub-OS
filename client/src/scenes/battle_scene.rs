@@ -521,6 +521,16 @@ impl BattleScene {
                     controller.lead_tolerance = frame_rtt.div_ceil(2) + 1;
                 }
             }
+            NetplayPacketData::Status { status } => {
+                let config = self.resources.config.borrow();
+                let label = if config.spectators.contains(&index) {
+                    "Spectator"
+                } else {
+                    "Player"
+                };
+
+                log::debug!("Peer {index} ({label}): {status}");
+            }
             NetplayPacketData::Heartbeat => {}
             data => {
                 let name: &'static str = (&data).into();
