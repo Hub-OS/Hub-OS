@@ -527,6 +527,10 @@ impl TimeFreezeTracker {
         let time_freeze_tracker = &mut simulation.time_freeze_tracker;
         time_freeze_tracker.increment_time();
 
+        if time_freeze_tracker.state == ActionFreezeState::DisplaySummary.into() {
+            simulation.action_displays.clear();
+        }
+
         // skip text animation if the action was deleted
         if let TimeFreezeState::Action(action_freeze_state) = time_freeze_tracker.state {
             let action_index = time_freeze_tracker.active_action_index();

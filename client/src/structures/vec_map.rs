@@ -39,6 +39,10 @@ where
         };
     }
 
+    pub fn clear(&mut self) {
+        self.list.clear();
+    }
+
     pub fn iter(&self) -> impl Iterator<Item = &(K, V)> {
         self.list.iter()
     }
