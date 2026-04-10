@@ -4,6 +4,8 @@ local package_ids = {
   "BattleNetwork3.Canodumb",
   "BattleNetwork6.Mettaur",
   "BattleNetwork.Assets",
+  "dev.konstinople.library.turn_based",
+  "BattleNetwork6.TileStates.Poison"
 }
 
 ModDownloader.maintain(package_ids)
