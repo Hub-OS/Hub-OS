@@ -70,8 +70,8 @@ end
 
 ---An interpreter using map objects as script nodes.
 ---
----A script node is an object with Type: `Script Node: [node type]`.
----An entry node is an object with Type: `Script Entry: [entry type]`
+---A script node is an object with Class: `Script Node: [node class]`.
+---An entry node is an object with Class: `Script Entry: [entry class]`
 ---
 ---Call :load() on every area_id that scripts should be enabled on.
 ---
@@ -79,7 +79,7 @@ end
 ---@class ScriptNodes
 ---@field private _instancer Instancer
 ---@field private _variables ScriptNodeVariables
----@field private _node_types table<string, fun(context: table, object: Net.Object)>
+---@field private _node_classes table<string, fun(context: table, object: Net.Object)>
 ---@field private _bot_script_ids table<string, table<string, Net.ActorId>>
 ---@field private _bot_script_ids_reversed table<Net.ActorId, [string, string]>
 ---@field private _tagged table<string, Net.ActorId[]>
@@ -97,8 +97,8 @@ end
 ---@field private _server_listeners [string, fun()][]
 ---@field private _destroy_callbacks fun()[]
 local ScriptNodes = {
-  NODE_TYPE_PREFIX = "Script Node: ",
-  ENTRY_TYPE_PREFIX = "Script Entry: ",
+  NODE_CLASS_PREFIX = "Script Node: ",
+  ENTRY_CLASS_PREFIX = "Script Entry: ",
   ASSET_PREFIX = "/server/assets/",
 }
 
@@ -111,7 +111,7 @@ function ScriptNodes:new_empty()
   local s = {
     _instancer = instancer,
     _variables = variables,
-    _node_types = {},
+    _node_classes = {},
     _bot_script_ids = {},
     _bot_script_ids_reversed = {},
     _tagged = {},
@@ -236,30 +236,30 @@ function ScriptNodes:on_load(callback)
 end
 
 ---Adds a listener to detect script nodes found during :load().
----@param node_type string
+---@param node_class string
 ---@param callback fun(area_id: string, object: Net.Object)
-function ScriptNodes:on_script_node_load(node_type, callback)
-  local type = node_type:lower()
-  local callbacks = self._script_load_callbacks[type]
+function ScriptNodes:on_script_node_load(node_class, callback)
+  local class = node_class:lower()
+  local callbacks = self._script_load_callbacks[class]
 
   if callbacks then
     callback[#callback + 1] = callback
   else
-    self._script_load_callbacks[type] = { callback }
+    self._script_load_callbacks[class] = { callback }
   end
 end
 
 ---Adds a listener to detect entry nodes found during :load().
----@param node_type string
+---@param node_class string
 ---@param callback fun(area_id: string, object: Net.Object)
-function ScriptNodes:on_entry_node_load(node_type, callback)
-  local type = node_type:lower()
-  local callbacks = self._entry_load_callbacks[type]
+function ScriptNodes:on_entry_node_load(node_class, callback)
+  local class = node_class:lower()
+  local callbacks = self._entry_load_callbacks[class]
 
   if callbacks then
     callback[#callback + 1] = callback
   else
-    self._entry_load_callbacks[type] = { callback }
+    self._entry_load_callbacks[class] = { callback }
   end
 end
 
@@ -276,8 +276,8 @@ end
 
 ---@param callback_map table<string, fun(area_id: string, object: Net.Object)[]>
 local function call_node_load_callbacks(area_id, object, prefix, callback_map)
-  local entry_type = object.type:sub(#prefix + 1):lower()
-  local callbacks = callback_map[entry_type]
+  local entry_class = object.class:sub(#prefix + 1):lower()
+  local callbacks = callback_map[entry_class]
 
   if callbacks then
     for _, callback in ipairs(callbacks) do
@@ -305,9 +305,9 @@ function ScriptNodes:load(area_id)
 
       for _, object in pairs(cached_objects) do
         if self:is_script_node(object) then
-          call_node_load_callbacks(area_id, object, self.NODE_TYPE_PREFIX, self._script_load_callbacks)
+          call_node_load_callbacks(area_id, object, self.NODE_CLASS_PREFIX, self._script_load_callbacks)
         elseif self:is_entry_node(object) then
-          call_node_load_callbacks(area_id, object, self.ENTRY_TYPE_PREFIX, self._entry_load_callbacks)
+          call_node_load_callbacks(area_id, object, self.ENTRY_CLASS_PREFIX, self._entry_load_callbacks)
         end
       end
 
@@ -332,7 +332,7 @@ function ScriptNodes:load(area_id)
     if self:is_script_node(object) then
       self:cache_object(area_id, object)
       Net.set_object_privacy(area_id, object.id, true)
-      call_node_load_callbacks(area_id, object, self.NODE_TYPE_PREFIX, self._script_load_callbacks)
+      call_node_load_callbacks(area_id, object, self.NODE_CLASS_PREFIX, self._script_load_callbacks)
     elseif self:is_entry_node(object) then
       self:cache_object(area_id, object)
       Net.set_object_privacy(area_id, object.id, true)
@@ -345,7 +345,7 @@ function ScriptNodes:load(area_id)
 
   for _, object in pairs(cached_objects) do
     if self:is_entry_node(object) then
-      call_node_load_callbacks(area_id, object, self.ENTRY_TYPE_PREFIX, self._entry_load_callbacks)
+      call_node_load_callbacks(area_id, object, self.ENTRY_CLASS_PREFIX, self._entry_load_callbacks)
     end
   end
 end
@@ -422,20 +422,20 @@ function ScriptNodes:emit_bot_remove(bot_id)
 end
 
 ---Used to create new script nodes
----@param node_type string
+---@param node_class string
 ---@param callback fun(context: table, object: Net.Object)
-function ScriptNodes:implement_node(node_type, callback)
-  self._node_types[node_type:lower()] = callback
+function ScriptNodes:implement_node(node_class, callback)
+  self._node_classes[node_class:lower()] = callback
 end
 
 ---@param object Net.Object
 function ScriptNodes:is_script_node(object)
-  return starts_with(object.type, self.NODE_TYPE_PREFIX)
+  return starts_with(object.class, self.NODE_CLASS_PREFIX)
 end
 
 ---@param object Net.Object
 function ScriptNodes:is_entry_node(object)
-  return starts_with(object.type, self.ENTRY_TYPE_PREFIX)
+  return starts_with(object.class, self.ENTRY_CLASS_PREFIX)
 end
 
 ---@param context table
@@ -469,14 +469,14 @@ end
 ---@param context table
 ---@param object Net.Object
 function ScriptNodes:execute_node(context, object)
-  local node_type = object.type:sub(#self.NODE_TYPE_PREFIX + 1)
-  local callback = self._node_types[node_type:lower()]
+  local node_class = object.class:sub(#self.NODE_CLASS_PREFIX + 1)
+  local callback = self._node_classes[node_class:lower()]
 
   if not callback then
     if self:is_script_node(object) then
-      error(prefix_node_context(context, object, 'invalid script node: "' .. object.type .. '"'))
+      error(prefix_node_context(context, object, 'invalid script node: "' .. object.class .. '"'))
     else
-      error(prefix_node_context(context, object, '"' .. object.type .. '" is not implemented'))
+      error(prefix_node_context(context, object, '"' .. object.class .. '" is not implemented'))
     end
   else
     local function error_handler(err)
@@ -488,14 +488,14 @@ function ScriptNodes:execute_node(context, object)
   end
 end
 
----@param node_type string
+---@param node_class string
 ---@param context table
 ---@param object Net.Object
-function ScriptNodes:execute_node_as(node_type, context, object)
-  local callback = self._node_types[node_type:lower()]
+function ScriptNodes:execute_node_as(node_class, context, object)
+  local callback = self._node_classes[node_class:lower()]
 
   if not callback then
-    error(prefix_node_context(context, object, '"' .. node_type .. '" is not implemented'))
+    error(prefix_node_context(context, object, '"' .. node_class .. '" is not implemented'))
   else
     local function error_handler(err)
       err = prefix_node_context(context, object, err)
@@ -758,12 +758,12 @@ function ScriptNodes:resolve_teleport_properties(object, target_area_id)
   return warp_in, x, y, z, direction
 end
 
----Implements support for the `Load`, `Server Event`, and `Player Interaction` entry types
+---Implements support for the `Load`, `Server Event`, and `Player Interaction` entry classes
 ---and the `On Load` property on all script nodes.
 ---
 ---When :load() is called on an area, any script nodes with `On Load` set to true will execute using a context containing `area_id`.
 ---
----As a reminder: entry nodes have a type starting with `Script Entry: ` such as `Script Entry: Load`
+---As a reminder: entry nodes have a class starting with `Script Entry: ` such as `Script Entry: Load`
 ---
 ---Custom properties supported by `Load`:
 --- - `Next [1]` a link to the next node (optional)
@@ -3065,7 +3065,7 @@ end
 
 ---Implements support for the `Collision` entry node, and the `Set Collider` script node.
 ---
----As a reminder: entry nodes have a type starting with `Script Entry: ` such as `Script Entry: Collision`
+---As a reminder: entry nodes have a class starting with `Script Entry: ` such as `Script Entry: Collision`
 ---
 ---Custom properties supported by `Collision`:
 --- - `On Enter` a link to a script node (optional)

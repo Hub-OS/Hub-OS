@@ -150,6 +150,23 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         }
     });
 
+    lua_api.add_dynamic_function("Net", "set_object_class", |api_ctx, lua, params| {
+        let (area_id, id, class): (mlua::String, u32, String) = lua.unpack_multi(params)?;
+        let area_id_str = area_id.to_str()?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+
+        if let Some(area) = net.get_area_mut(area_id_str) {
+            let map = area.map_mut();
+
+            map.set_object_class(id, class);
+
+            lua.pack_multi(())
+        } else {
+            Err(create_area_error(area_id_str))
+        }
+    });
+
     lua_api.add_dynamic_function(
         "Net",
         "set_object_custom_property",
