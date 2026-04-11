@@ -1656,6 +1656,8 @@ impl Net {
                 return;
             }
 
+            client.equipment_locked = false;
+
             self.packet_orchestrator.borrow_mut().send(
                 client.socket_address,
                 Reliability::ReliableOrdered,
