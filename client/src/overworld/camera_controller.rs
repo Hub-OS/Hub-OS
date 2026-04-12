@@ -4,6 +4,7 @@ use crate::resources::Globals;
 use framework::prelude::*;
 use std::collections::VecDeque;
 
+#[derive(Debug)]
 pub enum CameraAction {
     Snap {
         target: Vec2,
@@ -145,14 +146,14 @@ impl CameraController {
                 CameraAction::TrackEntity { entity } => {
                     if entity == self.player_entity {
                         self.tracked_entity = None;
-                        self.locked = !self.queue.is_empty();
+                        self.locked = self.queue.iter().any(|action| action.locks_camera());
                     } else {
                         self.tracked_entity = Some(entity)
                     }
                 }
                 CameraAction::Unlock => {
                     // unlock as long as nothing else is queued
-                    self.locked = !self.queue.is_empty();
+                    self.locked = self.queue.iter().any(|action| action.locks_camera());
                 }
             }
         }
