@@ -30,7 +30,7 @@ Net:on("actor_interaction", function(event)
 
   local player_pos = Net.get_actor_position(player_id)
 
-  Net.set_bot_direction(bot_id, Direction.diagonal_from_points(bot_data, player_pos))
+  Net.set_actor_direction(bot_id, Direction.diagonal_from_points(bot_data, player_pos))
 
   Async.question_player(player_id, "HELLO! ARE YOU DOING WELL TODAY?", mug_texture_path, mug_animation_path)
       .and_then(function(response)

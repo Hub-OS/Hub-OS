@@ -2482,20 +2482,12 @@ function ScriptNodes:implement_actor_api()
 
           ::continue::
         end
-      elseif actor_id and Net.is_player(actor_id) then
-        -- todo: add Net.set_actor_direction?
+      elseif actor_id and Net.is_actor(actor_id) then
         if target_position then
           direction = resolve_direction(Net.get_actor_position(actor_id), target_position)
         end
 
-        local keyframes = { { properties = { { property = "Direction", value = direction } } } }
-        Net.animate_actor_properties(actor_id, keyframes)
-      elseif actor_id and Net.is_bot(actor_id) then
-        if target_position then
-          direction = resolve_direction(Net.get_actor_position(actor_id), target_position)
-        end
-
-        Net.set_bot_direction(actor_id, direction)
+        Net.set_actor_direction(actor_id, direction)
       end
     end
 
@@ -2552,7 +2544,7 @@ function ScriptNodes:implement_actor_api()
       Net.move_bot(actor_id, x, y, z)
 
       if direction then
-        Net.set_bot_direction(actor_id, direction)
+        Net.set_actor_direction(actor_id, direction)
       end
     end
 

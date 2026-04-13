@@ -161,6 +161,9 @@ pub enum ServerPacket {
         z: f32,
         direction: Direction,
     },
+    FaceDirection {
+        direction: Direction,
+    },
     HideHud,
     ShowHud,
     Message {

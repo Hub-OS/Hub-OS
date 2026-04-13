@@ -753,6 +753,15 @@ impl OverworldOnlineScene {
                     *set_direction = direction;
                 }
             }
+            ServerPacket::FaceDirection { direction } => {
+                let player_entity = self.area.player_data.entity;
+                let entities = &mut self.area.entities;
+                let (set_direction) = entities
+                    .query_one_mut::<(&mut Direction)>(player_entity)
+                    .unwrap();
+
+                *set_direction = direction;
+            }
             ServerPacket::HideHud => {
                 self.hud.set_visible(false);
             }

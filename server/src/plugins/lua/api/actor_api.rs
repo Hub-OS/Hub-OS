@@ -1,7 +1,7 @@
 use super::LuaApi;
 use super::lua_errors::create_actor_error;
 use crate::plugins::lua::api::colors::*;
-use packets::structures::ActorId;
+use packets::structures::{ActorId, Direction};
 
 pub fn inject_dynamic(lua_api: &mut LuaApi) {
     lua_api.add_dynamic_function("Net", "is_actor", |api_ctx, lua, params| {
@@ -58,6 +58,16 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         } else {
             Err(create_actor_error(actor_id))
         }
+    });
+
+    lua_api.add_dynamic_function("Net", "set_actor_direction", |api_ctx, lua, params| {
+        let (bot_id, direction_string): (ActorId, String) = lua.unpack_multi(params)?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+
+        net.set_actor_direction(bot_id, Direction::from(&direction_string));
+
+        lua.pack_multi(())
     });
 
     lua_api.add_dynamic_function("Net", "get_actor_position", |api_ctx, lua, params| {

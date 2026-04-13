@@ -264,6 +264,23 @@ impl Net {
         );
     }
 
+    pub fn set_actor_direction(&mut self, id: ActorId, direction: Direction) {
+        if !self.clients.contains_key(&id) {
+            // possibly a bot, set direction immediately
+            if let Some(actor) = self.actors.get_mut(id) {
+                actor.set_direction(direction);
+            }
+
+            return;
+        }
+
+        self.packet_orchestrator.borrow_mut().send_by_id(
+            id,
+            Reliability::ReliableOrdered,
+            ServerPacket::FaceDirection { direction },
+        );
+    }
+
     pub fn set_actor_avatar(&mut self, id: ActorId, texture_path: &str, animation_path: &str) {
         let Some(actor) = self.actors.get_mut(id) else {
             return;
@@ -2339,17 +2356,6 @@ impl Net {
             }
 
             actor.set_position(x, y, z);
-        }
-    }
-
-    pub fn set_bot_direction(&mut self, id: ActorId, direction: Direction) {
-        if self.clients.contains_key(&id) {
-            // this is a player not a bot
-            return;
-        }
-
-        if let Some(bot) = self.actors.get_mut(id) {
-            bot.set_direction(direction);
         }
     }
 

@@ -104,16 +104,6 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         lua.pack_multi(())
     });
 
-    lua_api.add_dynamic_function("Net", "set_bot_direction", |api_ctx, lua, params| {
-        let (bot_id, direction_string): (ActorId, String) = lua.unpack_multi(params)?;
-
-        let mut net = api_ctx.net_ref.borrow_mut();
-
-        net.set_bot_direction(bot_id, Direction::from(&direction_string));
-
-        lua.pack_multi(())
-    });
-
     lua_api.add_dynamic_function("Net", "move_bot", |api_ctx, lua, params| {
         let (bot_id, x, y, z): (ActorId, f32, f32, f32) = lua.unpack_multi(params)?;
 
