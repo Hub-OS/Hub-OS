@@ -16,7 +16,6 @@ pub(super) struct BattleTrackingInfo {
 pub(super) struct Client {
     pub socket_address: SocketAddr,
     pub force_relay: bool,
-    pub actor: Actor,
     pub warp_in: bool,
     pub warp_area: String,
     pub warp_x: f32,
@@ -42,8 +41,8 @@ pub(super) struct Client {
 impl Client {
     #[allow(clippy::too_many_arguments)]
     pub(super) fn new(
-        socket_address: SocketAddr,
         id: ActorId,
+        socket_address: SocketAddr,
         name: String,
         identity: Vec<u8>,
         area_id: String,
@@ -51,39 +50,13 @@ impl Client {
         spawn_y: f32,
         spawn_z: f32,
         spawn_direction: Direction,
-    ) -> Client {
+    ) -> (Client, Actor) {
         use super::asset;
         use std::time::Instant;
 
-        Client {
+        let client = Client {
             socket_address,
             force_relay: true,
-            actor: Actor {
-                id,
-                name,
-                area_id,
-                texture_path: asset::get_player_texture_path(id),
-                animation_path: asset::get_player_animation_path(id),
-                mugshot_texture_path: asset::get_player_mugshot_texture_path(id),
-                mugshot_animation_path: asset::get_player_mugshot_animation_path(id),
-                direction: if spawn_direction.is_none() {
-                    Direction::Down
-                } else {
-                    spawn_direction
-                },
-                x: spawn_x,
-                y: spawn_y,
-                z: spawn_z,
-                last_movement_time: Instant::now(),
-                scale_x: 1.0,
-                scale_y: 1.0,
-                rotation: 0.0,
-                map_color: (248, 248, 0, 255),
-                current_animation: None,
-                loop_animation: false,
-                solid: false,
-                child_sprites: Vec::new(),
-            },
             warp_in: true,
             warp_area: String::new(),
             warp_x: spawn_x,
@@ -104,7 +77,35 @@ impl Client {
             input_locks: 0,
             movement_locks: 0,
             equipment_locked: false,
-        }
+        };
+
+        let actor = Actor {
+            name,
+            area_id,
+            texture_path: asset::get_player_texture_path(id),
+            animation_path: asset::get_player_animation_path(id),
+            mugshot_texture_path: asset::get_player_mugshot_texture_path(id),
+            mugshot_animation_path: asset::get_player_mugshot_animation_path(id),
+            direction: if spawn_direction.is_none() {
+                Direction::Down
+            } else {
+                spawn_direction
+            },
+            x: spawn_x,
+            y: spawn_y,
+            z: spawn_z,
+            last_movement_time: Instant::now(),
+            scale_x: 1.0,
+            scale_y: 1.0,
+            rotation: 0.0,
+            map_color: (248, 248, 0, 255),
+            current_animation: None,
+            loop_animation: false,
+            solid: false,
+            child_sprites: Vec::new(),
+        };
+
+        (client, actor)
     }
 
     pub fn is_in_widget(&self) -> bool {

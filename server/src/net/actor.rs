@@ -1,10 +1,9 @@
 use super::Direction;
-use packets::structures::{ActorId, SpriteId};
 use packets::ServerPacket;
+use packets::structures::{ActorId, SpriteId};
 use std::time::Instant;
 
 pub struct Actor {
-    pub id: ActorId,
     pub name: String,
     pub area_id: String,
     pub texture_path: String,
@@ -27,9 +26,16 @@ pub struct Actor {
 }
 
 impl Actor {
-    pub fn create_spawn_packet(&self, x: f32, y: f32, z: f32, warp_in: bool) -> ServerPacket {
+    pub fn create_spawn_packet(
+        &self,
+        id: ActorId,
+        x: f32,
+        y: f32,
+        z: f32,
+        warp_in: bool,
+    ) -> ServerPacket {
         ServerPacket::ActorConnected {
-            actor_id: self.id,
+            actor_id: id,
             name: self.name.clone(),
             texture_path: self.texture_path.clone(),
             animation_path: self.animation_path.clone(),

@@ -363,7 +363,9 @@ impl Server {
                         && client.ready
                         && creation_time > client.area_join_time
                     {
-                        if !client.actor.position_matches(x, y, z) {
+                        if let Some(actor) = net.get_actor(player_id)
+                            && !actor.position_matches(x, y, z)
+                        {
                             self.plugin_wrapper
                                 .handle_player_move(net, player_id, x, y, z);
                         }
@@ -374,11 +376,19 @@ impl Server {
                 ClientPacket::Ready { time } => {
                     if let Some(client) = net.get_client_mut(player_id) {
                         client.area_join_time = time;
-                        client.actor.x = client.warp_x;
-                        client.actor.y = client.warp_y;
-                        client.actor.z = client.warp_z;
 
-                        if client.transferring {
+                        let transferring = client.transferring;
+                        let x = client.warp_x;
+                        let y = client.warp_y;
+                        let z = client.warp_z;
+
+                        if let Some(actor) = net.get_actor_mut(player_id) {
+                            actor.x = x;
+                            actor.y = y;
+                            actor.z = z;
+                        }
+
+                        if transferring {
                             self.plugin_wrapper.handle_player_transfer(net, player_id);
                         } else {
                             self.plugin_wrapper.handle_player_join(net, player_id);
@@ -454,7 +464,7 @@ impl Server {
                         );
 
                         if !prevent_default {
-                            net.set_player_avatar(player_id, &texture_path, &animation_path);
+                            net.set_actor_avatar(player_id, &texture_path, &animation_path);
                         }
                     }
                 }
@@ -464,7 +474,7 @@ impl Server {
                         .handle_player_emote(net, player_id, &emote_id);
 
                     if !prevent_default {
-                        net.set_player_emote(player_id, emote_id);
+                        net.set_actor_emote(player_id, emote_id);
                     }
                 }
                 ClientPacket::AnimationUpdated {
@@ -474,11 +484,11 @@ impl Server {
                     y,
                     z,
                 } => {
-                    if let Some(client) = net.get_client_mut(player_id)
-                        && client.actor.position_matches(x, y, z)
+                    if let Some(actor) = net.get_actor_mut(player_id)
+                        && actor.position_matches(x, y, z)
                     {
-                        client.actor.current_animation = Some(animation);
-                        client.actor.loop_animation = loop_animation;
+                        actor.current_animation = Some(animation);
+                        actor.loop_animation = loop_animation;
                     }
                 }
                 ClientPacket::ObjectInteraction {

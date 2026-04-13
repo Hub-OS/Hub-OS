@@ -28,7 +28,7 @@ Net:on("actor_interaction", function(event)
 
   Net.lock_player_input(player_id)
 
-  local player_pos = Net.get_player_position(player_id)
+  local player_pos = Net.get_actor_position(player_id)
 
   Net.set_bot_direction(bot_id, Direction.diagonal_from_points(bot_data, player_pos))
 

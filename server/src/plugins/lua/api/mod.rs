@@ -1,3 +1,4 @@
+mod actor_api;
 mod actor_property_animation;
 mod area_api;
 mod asset_api;
@@ -69,6 +70,7 @@ impl LuaApi {
         player_data_api::inject_dynamic(&mut lua_api);
         widget_api::inject_dynamic(&mut lua_api);
         bot_api::inject_dynamic(&mut lua_api);
+        actor_api::inject_dynamic(&mut lua_api);
         sprite_api::inject_dynamic(&mut lua_api);
         synchronization_api::inject_dynamic(&mut lua_api);
 

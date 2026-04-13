@@ -43,11 +43,11 @@ impl Area {
         }
     }
 
-    pub fn required_assets(&self) -> &Vec<String> {
+    pub fn required_assets(&self) -> &[String] {
         &self.required_assets
     }
 
-    pub fn connected_players(&self) -> &Vec<ActorId> {
+    pub fn connected_players(&self) -> &[ActorId] {
         &self.connected_players
     }
 
@@ -66,7 +66,7 @@ impl Area {
             .map(|position| self.connected_players.swap_remove(position));
     }
 
-    pub fn connected_bots(&self) -> &Vec<ActorId> {
+    pub fn connected_bots(&self) -> &[ActorId] {
         &self.connected_bots
     }
 

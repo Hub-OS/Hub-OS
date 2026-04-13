@@ -936,7 +936,7 @@ function ScriptNodes:implement_event_entry_api()
     end
 
     if event.player_id then
-      local area_id = Net.get_player_area(event.player_id)
+      local area_id = Net.get_actor_area(event.player_id)
 
       local object_ids = area_map[area_id]
 
@@ -966,7 +966,7 @@ function ScriptNodes:implement_event_entry_api()
       return
     end
 
-    local area_id = Net.get_player_area(event.player_id)
+    local area_id = Net.get_actor_area(event.player_id)
     local object_ids = player_interaction_event_map[area_id]
 
     if not object_ids then
@@ -984,7 +984,7 @@ function ScriptNodes:implement_event_entry_api()
       return
     end
 
-    local area_id = Net.get_player_area(event.player_id)
+    local area_id = Net.get_actor_area(event.player_id)
     local object_ids = tile_interaction_event_map[area_id]
 
     if not object_ids then
@@ -1005,7 +1005,7 @@ function ScriptNodes:implement_event_entry_api()
       return
     end
 
-    local area_id = Net.get_player_area(event.player_id)
+    local area_id = Net.get_actor_area(event.player_id)
     local object_ids = help_event_map[area_id]
 
     if not object_ids then
@@ -1038,7 +1038,7 @@ function ScriptNodes:implement_event_entry_api()
   end)
 
   self:on_server_event("item_use", function(event)
-    local area_id = Net.get_player_area(event.player_id)
+    local area_id = Net.get_actor_area(event.player_id)
     local item_map = item_event_map[area_id]
     local next_id = item_map and item_map[event.item_id]
 
@@ -1267,7 +1267,7 @@ function ScriptNodes:implement_object_api()
       return
     end
 
-    local area_id = Net.get_player_area(event.player_id)
+    local area_id = Net.get_actor_area(event.player_id)
 
     if not self:is_loaded(area_id) then
       return
@@ -1287,7 +1287,7 @@ function ScriptNodes:implement_object_api()
   end)
 
   self:on_server_event("custom_warp", function(event)
-    local area_id = Net.get_player_area(event.player_id)
+    local area_id = Net.get_actor_area(event.player_id)
 
     if not self:is_loaded(area_id) then
       return
@@ -1918,11 +1918,8 @@ function ScriptNodes:implement_camera_api()
         properties.x = target_object.x
         properties.y = target_object.y
         properties.z = target_object.z
-      elseif Net.is_player(actor_id) then
-        properties.x, properties.y, properties.z = Net.get_player_position_multi(actor_id)
-        properties.actor_id = actor_id
-      elseif Net.is_bot(actor_id) then
-        properties.x, properties.y, properties.z = Net.get_bot_position_multi(actor_id)
+      elseif Net.is_actor(actor_id) then
+        properties.x, properties.y, properties.z = Net.get_actor_position_multi(actor_id)
         properties.actor_id = actor_id
       end
     else
@@ -1963,7 +1960,7 @@ function ScriptNodes:implement_camera_api()
       elseif context.player_ids then
         for _, player_id in ipairs(context.player_ids) do
           if object.custom_properties.Target == "Player" then
-            properties.x, properties.y, properties.z = Net.get_player_position_multi(player_id)
+            properties.x, properties.y, properties.z = Net.get_actor_position_multi(player_id)
             properties.actor_id = player_id
           end
 
@@ -2348,7 +2345,7 @@ function ScriptNodes:implement_actor_api()
       return
     end
 
-    local area_id = Net.get_player_area(event.player_id)
+    local area_id = Net.get_actor_area(event.player_id)
     local context = {
       area_id = area_id,
       player_id = event.player_id,
@@ -2432,12 +2429,10 @@ function ScriptNodes:implement_actor_api()
 
     if (not actor_string or actor_string == "Player") and context.player_ids then
       for _, player_id in ipairs(context.player_ids) do
-        Net.set_player_emote(player_id, emote_id)
+        Net.set_actor_emote(player_id, emote_id)
       end
-    elseif actor_id and Net.is_player(actor_id) then
-      Net.set_player_emote(actor_id, emote_id)
-    elseif actor_id and Net.is_bot(actor_id) then
-      Net.set_bot_emote(actor_id, emote_id)
+    elseif actor_id then
+      Net.set_actor_emote(actor_id, emote_id)
     end
 
     self:execute_next_node(context, context.area_id, object)
@@ -2464,10 +2459,8 @@ function ScriptNodes:implement_actor_api()
 
       if not target_actor_id then
         target_position = self:resolve_object(context.area_id, object.custom_properties.Target)
-      elseif Net.is_player(target_actor_id) then
-        target_position = Net.get_player_position(target_actor_id)
-      elseif Net.is_bot(target_actor_id) then
-        target_position = Net.get_bot_position(target_actor_id)
+      elseif Net.is_actor(target_actor_id) then
+        target_position = Net.get_actor_position(target_actor_id)
       end
     end
 
@@ -2480,25 +2473,26 @@ function ScriptNodes:implement_actor_api()
           end
 
           if target_position then
-            direction = resolve_direction(Net.get_player_position(player_id), target_position)
+            direction = resolve_direction(Net.get_actor_position(player_id), target_position)
           end
 
           local keyframes = { { properties = { { property = "Direction", value = direction } } } }
 
-          Net.animate_player_properties(player_id, keyframes)
+          Net.animate_actor_properties(player_id, keyframes)
 
           ::continue::
         end
       elseif actor_id and Net.is_player(actor_id) then
+        -- todo: add Net.set_actor_direction?
         if target_position then
-          direction = resolve_direction(Net.get_player_position(actor_id), target_position)
+          direction = resolve_direction(Net.get_actor_position(actor_id), target_position)
         end
 
         local keyframes = { { properties = { { property = "Direction", value = direction } } } }
-        Net.animate_player_properties(actor_id, keyframes)
+        Net.animate_actor_properties(actor_id, keyframes)
       elseif actor_id and Net.is_bot(actor_id) then
         if target_position then
-          direction = resolve_direction(Net.get_bot_position(actor_id), target_position)
+          direction = resolve_direction(Net.get_actor_position(actor_id), target_position)
         end
 
         Net.set_bot_direction(actor_id, direction)
@@ -2521,12 +2515,10 @@ function ScriptNodes:implement_actor_api()
 
     if ((not context.bot_id and not actor_string) or actor_string == "Player") and context.player_ids then
       for _, player_id in ipairs(context.player_ids) do
-        Net.animate_player(player_id, state, loop)
+        Net.animate_actor(player_id, state, loop)
       end
-    elseif actor_id and Net.is_player(actor_id) then
-      Net.animate_player(actor_id, state, loop)
-    elseif actor_id and Net.is_bot(actor_id) then
-      Net.animate_bot(actor_id, state, loop)
+    elseif actor_id and Net.is_actor(actor_id) then
+      Net.animate_actor(actor_id, state, loop)
     end
 
     self:execute_next_node(context, context.area_id, object)
@@ -2704,16 +2696,16 @@ function ScriptNodes:implement_common_animations_api()
     -- animate player and fade out
     for_each_player_safe(context, function(player_id)
       if walk_distance then
-        local x, y = Net.get_player_position_multi(player_id)
+        local x, y = Net.get_actor_position_multi(player_id)
         local offset_x, offset_y = Direction.unit_vector_multi(
-          direction or Net.get_player_direction(player_id)
+          direction or Net.get_actor_direction(player_id)
         )
 
         keyframe_properties[1].value = x + offset_x * walk_distance
         keyframe_properties[2].value = y + offset_y * walk_distance
       end
 
-      Net.animate_player_properties(player_id, keyframes)
+      Net.animate_actor_properties(player_id, keyframes)
       Net.lock_player_input(player_id)
       Net.fade_player_camera(player_id, fade_color, HALF_DURATION)
     end)
@@ -2923,12 +2915,12 @@ function ScriptNodes:implement_path_api()
     local dist = screen_distance(
       context.area_id,
       first_node.x, first_node.y, first_node.z,
-      Net.get_player_position_multi(player_id)
+      Net.get_actor_position_multi(player_id)
     )
     local duration = dist / (speed * 20)
 
     keyframes[1].duration = duration
-    Net.animate_player_properties(player_id, keyframes)
+    Net.animate_actor_properties(player_id, keyframes)
 
     return duration
   end
@@ -3136,7 +3128,7 @@ function ScriptNodes:implement_collision_api()
         return
       end
 
-      local x, y, z = Net.get_player_position_multi(player_id)
+      local x, y, z = Net.get_actor_position_multi(player_id)
       object_options.x = x - radius
       object_options.y = y - radius
       object_options.z = z
@@ -3165,7 +3157,7 @@ function ScriptNodes:implement_collision_api()
       object_colliders:remove_all_on_actor(actor_id)
 
       if radius then
-        local x, y, z = Net.get_bot_position_multi(actor_id)
+        local x, y, z = Net.get_actor_position_multi(actor_id)
         object_options.x = x - radius
         object_options.y = y - radius
         object_options.z = z
@@ -3521,10 +3513,8 @@ function ScriptNodes:implement_party_api()
     local radius_sqr = radius * radius
     local center_x, center_y, center_z
 
-    if target_id and Net.is_player(target_id) then
-      center_x, center_y, center_z = Net.get_player_position_multi(target_id)
-    elseif target_id and Net.is_bot(target_id) then
-      center_x, center_y, center_z = Net.get_player_position_multi(target_id)
+    if target_id and Net.is_actor(target_id) then
+      center_x, center_y, center_z = Net.get_actor_position_multi(target_id)
     else
       local target_object = self:resolve_object(context.area_id, target_id --[[@as number]])
 
@@ -3543,7 +3533,7 @@ function ScriptNodes:implement_party_api()
           goto continue
         end
 
-        local x, y, z = Net.get_player_position_multi(player_id)
+        local x, y, z = Net.get_actor_position_multi(player_id)
         local x_diff = x - center_x
         local y_diff = y - center_y
         local z_diff = z - center_z
@@ -3572,7 +3562,7 @@ function ScriptNodes:implement_party_api()
         goto continue
       end
 
-      local x, y, z = Net.get_player_position_multi(player_id)
+      local x, y, z = Net.get_actor_position_multi(player_id)
 
       if object.z ~= z then
         goto continue

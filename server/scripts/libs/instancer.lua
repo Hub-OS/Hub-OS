@@ -38,7 +38,7 @@ function Instancer:new()
     ---@type string | nil
     local previous_area = player_areas[event.player_id]
     ---@type string | nil
-    local current_area = Net.get_player_area(event.player_id)
+    local current_area = Net.get_actor_area(event.player_id)
 
     if event_name == "player_disconnect" then
       current_area = nil

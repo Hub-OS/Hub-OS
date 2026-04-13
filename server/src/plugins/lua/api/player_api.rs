@@ -33,21 +33,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         let net = api_ctx.net_ref.borrow();
 
-        let player_exists = net.get_player(player_id).is_some();
-
-        lua.pack_multi(player_exists)
-    });
-
-    lua_api.add_dynamic_function("Net", "get_player_area", |api_ctx, lua, params| {
-        let player_id: ActorId = lua.unpack_multi(params)?;
-
-        let net = api_ctx.net_ref.borrow_mut();
-
-        if let Some(player) = net.get_player(player_id) {
-            lua.pack_multi(player.area_id.as_str())
-        } else {
-            Err(create_player_error(player_id))
-        }
+        lua.pack_multi(net.is_player(player_id))
     });
 
     lua_api.add_dynamic_function("Net", "get_player_ip", |api_ctx, lua, params| {
@@ -62,81 +48,12 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         }
     });
 
-    lua_api.add_dynamic_function("Net", "get_player_name", |api_ctx, lua, params| {
-        let player_id: ActorId = lua.unpack_multi(params)?;
-
-        let net = api_ctx.net_ref.borrow_mut();
-
-        if let Some(player) = net.get_player(player_id) {
-            lua.pack_multi(player.name.as_str())
-        } else {
-            Err(create_player_error(player_id))
-        }
-    });
-
-    lua_api.add_dynamic_function("Net", "set_player_name", |api_ctx, lua, params| {
-        let (player_id, name): (ActorId, mlua::String) = lua.unpack_multi(params)?;
-
-        let mut net = api_ctx.net_ref.borrow_mut();
-
-        net.set_player_name(player_id, name.to_str()?);
-
-        lua.pack_multi(())
-    });
-
-    lua_api.add_dynamic_function("Net", "get_player_direction", |api_ctx, lua, params| {
-        let player_id: ActorId = lua.unpack_multi(params)?;
-
-        let net = api_ctx.net_ref.borrow();
-
-        if let Some(player) = net.get_player(player_id) {
-            let direction_str: &str = player.direction.into();
-
-            lua.pack_multi(direction_str)
-        } else {
-            Err(create_player_error(player_id))
-        }
-    });
-
-    lua_api.add_dynamic_function("Net", "get_player_position", |api_ctx, lua, params| {
-        let player_id: ActorId = lua.unpack_multi(params)?;
-
-        let net = api_ctx.net_ref.borrow();
-
-        if let Some(player) = net.get_player(player_id) {
-            let table = lua.create_table()?;
-            table.set("x", player.x)?;
-            table.set("y", player.y)?;
-            table.set("z", player.z)?;
-
-            lua.pack_multi(table)
-        } else {
-            Err(create_player_error(player_id))
-        }
-    });
-
-    lua_api.add_dynamic_function(
-        "Net",
-        "get_player_position_multi",
-        |api_ctx, lua, params| {
-            let player_id: ActorId = lua.unpack_multi(params)?;
-
-            let net = api_ctx.net_ref.borrow();
-
-            if let Some(player) = net.get_player(player_id) {
-                lua.pack_multi((player.x, player.y, player.z))
-            } else {
-                Err(create_player_error(player_id))
-            }
-        },
-    );
-
     lua_api.add_dynamic_function("Net", "get_player_mugshot", |api_ctx, lua, params| {
         let player_id: ActorId = lua.unpack_multi(params)?;
 
         let net = api_ctx.net_ref.borrow();
 
-        if let Some(player) = net.get_player(player_id) {
+        if let Some(player) = net.get_actor(player_id) {
             let table = lua.create_table()?;
             table.set("texture_path", player.mugshot_texture_path.as_str())?;
             table.set("animation_path", player.mugshot_animation_path.as_str())?;
@@ -145,33 +62,6 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         } else {
             Err(create_player_error(player_id))
         }
-    });
-
-    lua_api.add_dynamic_function("Net", "get_player_avatar", |api_ctx, lua, params| {
-        let player_id: ActorId = lua.unpack_multi(params)?;
-
-        let net = api_ctx.net_ref.borrow();
-
-        if let Some(player) = net.get_player(player_id) {
-            let table = lua.create_table()?;
-            table.set("texture_path", player.texture_path.as_str())?;
-            table.set("animation_path", player.animation_path.as_str())?;
-
-            lua.pack_multi(table)
-        } else {
-            Err(create_player_error(player_id))
-        }
-    });
-
-    lua_api.add_dynamic_function("Net", "set_player_avatar", |api_ctx, lua, params| {
-        let (player_id, texture_path, animation_path): (ActorId, mlua::String, mlua::String) =
-            lua.unpack_multi(params)?;
-
-        let mut net = api_ctx.net_ref.borrow_mut();
-
-        net.set_player_avatar(player_id, texture_path.to_str()?, animation_path.to_str()?);
-
-        lua.pack_multi(())
     });
 
     lua_api.add_dynamic_function("Net", "get_player_avatar_name", |api_ctx, lua, params| {
@@ -185,71 +75,6 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             Err(create_player_error(player_id))
         }
     });
-
-    lua_api.add_dynamic_function("Net", "set_player_emote", |api_ctx, lua, params| {
-        let (player_id, emote_id): (ActorId, String) = lua.unpack_multi(params)?;
-
-        let mut net = api_ctx.net_ref.borrow_mut();
-
-        net.set_player_emote(player_id, emote_id);
-
-        lua.pack_multi(())
-    });
-
-    lua_api.add_dynamic_function("Net", "exclusive_player_emote", |api_ctx, lua, params| {
-        let (target_id, emoter_id, emote_id): (ActorId, ActorId, String) =
-            lua.unpack_multi(params)?;
-
-        let mut net = api_ctx.net_ref.borrow_mut();
-
-        net.exclusive_player_emote(target_id, emoter_id, emote_id);
-
-        lua.pack_multi(())
-    });
-
-    lua_api.add_dynamic_function("Net", "set_player_map_color", |api_ctx, lua, params| {
-        let (player_id, color_table): (ActorId, mlua::Table) = lua.unpack_multi(params)?;
-
-        let mut net = api_ctx.net_ref.borrow_mut();
-
-        let color = parse_rgba_table(color_table)?;
-
-        net.set_player_map_color(player_id, color);
-
-        lua.pack_multi(())
-    });
-
-    lua_api.add_dynamic_function("Net", "animate_player", |api_ctx, lua, params| {
-        let (player_id, name, loop_option): (ActorId, mlua::String, Option<bool>) =
-            lua.unpack_multi(params)?;
-        let name_str = name.to_str()?;
-
-        let mut net = api_ctx.net_ref.borrow_mut();
-
-        let loop_animation = loop_option.unwrap_or_default();
-
-        net.animate_player(player_id, name_str, loop_animation);
-
-        lua.pack_multi(())
-    });
-
-    lua_api.add_dynamic_function(
-        "Net",
-        "animate_player_properties",
-        |api_ctx, lua, params| {
-            use super::actor_property_animation::parse_animation;
-
-            let (player_id, keyframe_tables): (ActorId, Vec<mlua::Table>) =
-                lua.unpack_multi(params)?;
-
-            let mut net = api_ctx.net_ref.borrow_mut();
-
-            let animation = parse_animation(keyframe_tables)?;
-            net.animate_player_properties(player_id, animation);
-
-            lua.pack_multi(())
-        },
-    );
 
     lua_api.add_dynamic_function("Net", "is_player_busy", |api_ctx, lua, params| {
         let player_id: ActorId = lua.unpack_multi(params)?;
@@ -319,6 +144,21 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         lua.pack_multi(())
     });
+
+    lua_api.add_dynamic_function(
+        "Net",
+        "exclusive_actor_emote_for_player",
+        |api_ctx, lua, params| {
+            let (target_id, emoter_id, emote_id): (ActorId, ActorId, String) =
+                lua.unpack_multi(params)?;
+
+            let mut net = api_ctx.net_ref.borrow_mut();
+
+            net.exclusive_actor_emote(target_id, emoter_id, emote_id);
+
+            lua.pack_multi(())
+        },
+    );
 
     lua_api.add_dynamic_function("Net", "move_player_camera", |api_ctx, lua, params| {
         let (player_id, x, y, z, duration): (ActorId, f32, f32, f32, Option<f32>) =
@@ -580,7 +420,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let y;
         let z;
 
-        if let Some(player) = net.get_player(player_id) {
+        if let Some(player) = net.get_actor(player_id) {
             x = x_option.unwrap_or(player.x);
             y = y_option.unwrap_or(player.y);
             z = z_option.unwrap_or(player.z);

@@ -86,7 +86,7 @@ Net:on("textbox_response", function(event)
   else
     -- we're making a request for the other player
     requests[other_id][player_id] = true
-    Net.exclusive_player_emote(other_id, player_id, Emotes.PVP) -- sword emote
+    Net.exclusive_actor_emote_for_player(other_id, player_id, Emotes.PVP) -- sword emote
   end
 
   questioned_requests[player_id] = nil

@@ -21,9 +21,8 @@ pub struct Net {
     config: Rc<ServerConfig>,
     message_sender: Sender<ThreadMessage>,
     areas: HashMap<String, Area>,
-    actor_id_registry: slotmap::SlotMap<ActorId, ()>,
+    actors: slotmap::SlotMap<ActorId, Actor>,
     clients: HashMap<ActorId, Client>,
-    bots: HashMap<ActorId, Actor>,
     sprites: DenseSlotMap<SpriteId, Sprite>,
     public_sprites: DenseSlotMap<PublicSpriteId, SpriteId>,
     asset_manager: AssetManager,
@@ -84,9 +83,8 @@ impl Net {
             config,
             message_sender,
             areas,
-            actor_id_registry: Default::default(),
+            actors: Default::default(),
             clients: HashMap::new(),
-            bots: HashMap::new(),
             sprites: Default::default(),
             public_sprites: Default::default(),
             asset_manager,
@@ -95,14 +93,6 @@ impl Net {
             item_registry: HashMap::new(),
             active_battles: Default::default(),
         }
-    }
-
-    pub fn create_actor_id(&mut self) -> ActorId {
-        self.actor_id_registry.insert(())
-    }
-
-    fn free_actor_id(&mut self, id: ActorId) {
-        self.actor_id_registry.remove(id);
     }
 
     pub fn get_asset(&self, path: &str) -> Option<&Asset> {
@@ -179,8 +169,20 @@ impl Net {
         self.asset_manager.remove_asset(path);
     }
 
-    pub fn get_player(&self, id: ActorId) -> Option<&Actor> {
-        self.clients.get(&id).map(|client| &client.actor)
+    pub fn get_actor(&self, id: ActorId) -> Option<&Actor> {
+        self.actors.get(id)
+    }
+
+    pub(super) fn get_actor_mut(&mut self, id: ActorId) -> Option<&mut Actor> {
+        self.actors.get_mut(id)
+    }
+
+    pub fn is_player(&self, id: ActorId) -> bool {
+        self.clients.contains_key(&id)
+    }
+
+    pub fn is_bot(&self, id: ActorId) -> bool {
+        self.actors.contains_key(id) && !self.is_player(id)
     }
 
     pub fn get_player_addr(&self, id: ActorId) -> Option<std::net::SocketAddr> {
@@ -233,20 +235,19 @@ impl Net {
         }
     }
 
-    pub fn set_player_name(&mut self, id: ActorId, name: &str) {
-        let Some(client) = self.clients.get_mut(&id) else {
+    pub fn set_actor_name(&mut self, id: ActorId, name: &str) {
+        let Some(actor) = self.actors.get_mut(id) else {
             return;
         };
 
-        client.actor.name = name.to_string();
+        actor.name = name.to_string();
 
-        if !client.ready {
+        if self.clients.get(&id).is_some_and(|client| !client.ready) {
             // skip if client has not even been sent to anyone yet
             return;
         }
 
-        let Some(area) = self.areas.get(&client.actor.area_id) else {
-            // area deleted, should be getting kicked
+        let Some(area) = self.areas.get(&actor.area_id) else {
             return;
         };
 
@@ -263,18 +264,18 @@ impl Net {
         );
     }
 
-    pub fn set_player_avatar(&mut self, id: ActorId, texture_path: &str, animation_path: &str) {
-        let Some(client) = self.clients.get_mut(&id) else {
+    pub fn set_actor_avatar(&mut self, id: ActorId, texture_path: &str, animation_path: &str) {
+        let Some(actor) = self.actors.get_mut(id) else {
             return;
         };
 
-        let Some(area) = self.areas.get(&client.actor.area_id) else {
+        let Some(area) = self.areas.get(&actor.area_id) else {
             // area deleted, should be getting kicked
             return;
         };
 
-        client.actor.texture_path = texture_path.to_string();
-        client.actor.animation_path = animation_path.to_string();
+        actor.texture_path = texture_path.to_string();
+        actor.animation_path = animation_path.to_string();
 
         let packet = ServerPacket::ActorSetAvatar {
             actor_id: id,
@@ -288,7 +289,7 @@ impl Net {
 
         let packet_orchestrator = &mut *self.packet_orchestrator.borrow_mut();
 
-        if area.connected_players().contains(&client.actor.id) {
+        if area.connected_players().contains(&id) {
             ensure_assets(
                 packet_orchestrator,
                 self.config.args.max_payload_size,
@@ -304,7 +305,7 @@ impl Net {
                 Reliability::ReliableOrdered,
                 packet,
             );
-        } else {
+        } else if self.clients.contains_key(&id) {
             // player in the middle of tranferring
             // send their updated avatar
 
@@ -321,12 +322,12 @@ impl Net {
         }
     }
 
-    pub fn set_player_emote(&mut self, id: ActorId, emote_id: String) {
-        let Some(client) = self.clients.get(&id) else {
+    pub fn set_actor_emote(&mut self, id: ActorId, emote_id: String) {
+        let Some(actor) = self.actors.get(id) else {
             return;
         };
 
-        let Some(area) = self.areas.get(&client.actor.area_id) else {
+        let Some(area) = self.areas.get(&actor.area_id) else {
             // area deleted, should be getting kicked
             return;
         };
@@ -344,7 +345,7 @@ impl Net {
         );
     }
 
-    pub fn exclusive_player_emote(
+    pub fn exclusive_actor_emote(
         &mut self,
         target_id: ActorId,
         emoter_id: ActorId,
@@ -360,14 +361,14 @@ impl Net {
             .send_by_id(target_id, Reliability::Reliable, packet);
     }
 
-    pub fn set_player_map_color(&mut self, id: ActorId, color: (u8, u8, u8, u8)) {
-        let Some(client) = self.clients.get_mut(&id) else {
+    pub fn set_actor_map_color(&mut self, id: ActorId, color: (u8, u8, u8, u8)) {
+        let Some(actor) = self.actors.get_mut(id) else {
             return;
         };
 
-        client.actor.map_color = color;
+        actor.map_color = color;
 
-        let Some(area) = self.areas.get(&client.actor.area_id) else {
+        let Some(area) = self.areas.get(&actor.area_id) else {
             // area deleted, should be getting kicked
             return;
         };
@@ -383,15 +384,15 @@ impl Net {
         );
     }
 
-    pub fn animate_player(&mut self, id: ActorId, state: &str, loop_animation: bool) {
-        let Some(client) = self.clients.get_mut(&id) else {
+    pub fn animate_actor(&mut self, id: ActorId, state: &str, loop_animation: bool) {
+        let Some(actor) = self.actors.get_mut(id) else {
             return;
         };
 
-        client.actor.current_animation = Some(state.to_string());
-        client.actor.loop_animation = loop_animation;
+        actor.current_animation = Some(state.to_string());
+        actor.loop_animation = loop_animation;
 
-        let Some(area) = self.areas.get(&client.actor.area_id) else {
+        let Some(area) = self.areas.get(&actor.area_id) else {
             // area deleted, should be getting kicked
             return;
         };
@@ -408,31 +409,45 @@ impl Net {
         );
     }
 
-    pub fn animate_player_properties(&mut self, id: ActorId, animation: Vec<ActorKeyFrame>) {
+    pub fn animate_actor_properties(&mut self, id: ActorId, animation: Vec<ActorKeyFrame>) {
         use std::collections::HashSet;
 
-        let Some(client) = self.clients.get_mut(&id) else {
+        let Some(actor) = self.actors.get_mut(id) else {
             return;
         };
 
-        let Some(area) = self.areas.get(&client.actor.area_id) else {
+        let Some(area) = self.areas.get(&actor.area_id) else {
             // area deleted, should be getting kicked
             return;
         };
 
         let mut asset_paths = HashSet::<&str>::new();
+        let mut final_x = actor.x;
+        let mut final_y = actor.y;
+        let mut final_z = actor.z;
+        let mut final_direction = actor.direction;
+
+        let is_player = self.clients.contains_key(&id);
 
         // store final values for new players, also track assets
         for keyframe in &animation {
             for (property, _) in &keyframe.property_steps {
                 match property {
                     ActorProperty::Animation(value) => {
-                        client.actor.current_animation = Some(value.clone());
-                        client.actor.loop_animation = false;
+                        actor.current_animation = Some(value.clone());
+                        actor.loop_animation = false;
                     }
-                    ActorProperty::ScaleX(value) => client.actor.scale_x = *value,
-                    ActorProperty::ScaleY(value) => client.actor.scale_y = *value,
-                    ActorProperty::Rotation(value) => client.actor.rotation = *value,
+                    ActorProperty::AnimationLoop(value) => {
+                        actor.current_animation = Some(value.clone());
+                        actor.loop_animation = true;
+                    }
+                    ActorProperty::X(value) => final_x = *value,
+                    ActorProperty::Y(value) => final_y = *value,
+                    ActorProperty::Z(value) => final_z = *value,
+                    ActorProperty::ScaleX(value) => actor.scale_x = *value,
+                    ActorProperty::ScaleY(value) => actor.scale_y = *value,
+                    ActorProperty::Rotation(value) => actor.rotation = *value,
+                    ActorProperty::Direction(value) => final_direction = *value,
                     ActorProperty::SoundEffect(value) | ActorProperty::SoundEffectLoop(value) => {
                         if value.starts_with("/server/") {
                             asset_paths.insert(value);
@@ -441,6 +456,14 @@ impl Net {
                     _ => {}
                 }
             }
+        }
+
+        if !is_player {
+            // set position directly, to avoid reseting the animation
+            actor.x = final_x;
+            actor.y = final_y;
+            actor.z = final_z;
+            actor.direction = final_direction;
         }
 
         ensure_assets(
@@ -725,42 +748,12 @@ impl Net {
         z: f32,
         direction: Direction,
     ) {
-        let client = self.clients.get_mut(&id).unwrap();
-
-        client.actor.set_position(x, y, z);
-        client.actor.set_direction(direction);
-
-        // skip if client has not even been sent to anyone yet
-        if !client.ready {
-            return;
-        }
-
-        let idle_duration = client.actor.last_movement_time.elapsed();
-
-        // skip if we've been sending idle packets for too long
-        if idle_duration > MAX_IDLE_DURATION {
-            return;
-        }
-
-        let Some(area) = self.areas.get(&client.actor.area_id) else {
-            // area deleted, should be getting kicked
+        let Some(actor) = self.actors.get_mut(id) else {
             return;
         };
 
-        let packet = ServerPacket::ActorMove {
-            actor_id: id,
-            x,
-            y,
-            z,
-            direction,
-        };
-
-        broadcast_to_area(
-            &mut self.packet_orchestrator.borrow_mut(),
-            area,
-            Reliability::UnreliableSequenced,
-            packet,
-        );
+        actor.set_position(x, y, z);
+        actor.set_direction(direction);
     }
 
     pub fn set_hud_visibility(&mut self, id: ActorId, visible: bool) {
@@ -1686,7 +1679,12 @@ impl Net {
             return;
         };
 
-        let Some(previous_area) = self.areas.get_mut(&client.actor.area_id) else {
+        let Some(actor) = self.actors.get_mut(id) else {
+            log::error!("Missing actor for player {id:?}?");
+            return;
+        };
+
+        let Some(previous_area) = self.areas.get_mut(&actor.area_id) else {
             // area deleted, should be getting kicked
             return;
         };
@@ -1700,7 +1698,7 @@ impl Net {
         if !previous_area.connected_players().contains(&id) {
             // client has not been added to any area yet
             // assume client was transferred on initial connection by a plugin
-            client.actor.area_id = area_id.to_string();
+            actor.area_id = area_id.to_string();
             return;
         }
 
@@ -1733,8 +1731,13 @@ impl Net {
         }
     }
 
-    pub(super) fn complete_transfer(&mut self, player_id: ActorId) {
-        let Some(client) = self.clients.get_mut(&player_id) else {
+    pub(super) fn complete_transfer(&mut self, id: ActorId) {
+        let Some(client) = self.clients.get_mut(&id) else {
+            return;
+        };
+
+        let Some(actor) = self.actors.get_mut(id) else {
+            log::error!("Missing actor for player {id:?}?");
             return;
         };
 
@@ -1746,12 +1749,12 @@ impl Net {
 
         let area_id = client.warp_area.clone();
         let Some(area) = self.areas.get_mut(&area_id) else {
-            self.kick_player(player_id, "Area destroyed", true);
+            self.kick_player(id, "Area destroyed", true);
             return;
         };
 
-        let texture_path = client.actor.texture_path.clone();
-        let animation_path = client.actor.animation_path.clone();
+        let texture_path = actor.texture_path.clone();
+        let animation_path = actor.animation_path.clone();
 
         self.packet_orchestrator
             .borrow_mut()
@@ -1766,12 +1769,20 @@ impl Net {
             [texture_path.as_str(), animation_path.as_str()].iter(),
         );
 
-        area.add_player(player_id);
-        self.send_area(player_id, &area_id);
+        area.add_player(id);
+        self.send_area(id, &area_id);
 
-        let client = self.clients.get_mut(&player_id).unwrap();
+        let Some(client) = self.clients.get_mut(&id) else {
+            log::error!("Client removed in the middle of complete_transfer?");
+            return;
+        };
 
-        client.actor.area_id = area_id.to_string();
+        let Some(actor) = self.actors.get_mut(id) else {
+            log::error!("Missing actor for player {id:?}?");
+            return;
+        };
+
+        actor.area_id = area_id.to_string();
         client.transferring = true;
         client.ready = false;
 
@@ -1854,34 +1865,32 @@ impl Net {
         name: String,
         identity: Vec<u8>,
     ) -> ActorId {
-        let id = self.create_actor_id();
-
         let area_id = String::from("default");
         let area = self.get_area_mut(&area_id).unwrap();
         let map = area.map();
         let (spawn_x, spawn_y, spawn_z) = map.spawn_position();
         let spawn_direction = map.spawn_direction();
 
-        let client = Client::new(
-            socket_address,
-            id,
-            name,
-            identity,
-            area_id.clone(),
-            spawn_x,
-            spawn_y,
-            spawn_z,
-            spawn_direction,
-        );
+        self.actors.insert_with_key(|id| {
+            let (client, actor) = Client::new(
+                id,
+                socket_address,
+                name,
+                identity,
+                area_id.clone(),
+                spawn_x,
+                spawn_y,
+                spawn_z,
+                spawn_direction,
+            );
 
-        let id = client.actor.id;
+            let mut packet_orchestrator = self.packet_orchestrator.borrow_mut();
+            packet_orchestrator.register_client(client.socket_address, id);
 
-        let mut packet_orchestrator = self.packet_orchestrator.borrow_mut();
-        packet_orchestrator.register_client(client.socket_address, id);
+            self.clients.insert(id, client);
 
-        self.clients.insert(id, client);
-
-        id
+            actor
+        })
     }
 
     pub(super) fn store_player_assets(&mut self, player_id: ActorId) -> Option<(String, String)> {
@@ -1959,18 +1968,27 @@ impl Net {
         Some((texture_path, animation_path))
     }
 
-    pub(super) fn spawn_client(&mut self, player_id: ActorId) {
-        let client = self.clients.get(&player_id).unwrap();
-        let area_id = client.actor.area_id.clone();
-        let texture_path = client.actor.texture_path.clone();
-        let animation_path = client.actor.animation_path.clone();
+    pub(super) fn spawn_client(&mut self, id: ActorId) {
+        let Some(client) = self.clients.get(&id) else {
+            log::error!("Attempting to spawn a player without client data?");
+            return;
+        };
+
+        let Some(actor) = self.actors.get_mut(id) else {
+            log::error!("Missing actor for player {id:?}?");
+            return;
+        };
+
+        let area_id = actor.area_id.clone();
+        let texture_path = actor.texture_path.clone();
+        let animation_path = actor.animation_path.clone();
 
         let Some(area) = self.areas.get_mut(&area_id) else {
             // area deleted, should be getting kicked
             return;
         };
 
-        area.add_player(client.actor.id);
+        area.add_player(id);
 
         {
             let packet_orchestrator = &mut self.packet_orchestrator.borrow_mut();
@@ -1986,12 +2004,12 @@ impl Net {
             );
         }
 
-        self.send_area(player_id, &area_id);
+        self.send_area(id, &area_id);
 
-        let client = self.clients.get_mut(&player_id).unwrap();
+        let client = self.clients.get_mut(&id).unwrap();
 
         let packet = ServerPacket::Login {
-            actor_id: player_id,
+            actor_id: id,
             warp_in: client.warp_in,
             spawn_x: client.warp_x,
             spawn_y: client.warp_y,
@@ -2020,7 +2038,7 @@ impl Net {
         let area = self.areas.get(area_id).unwrap();
 
         let mut packets: Vec<ServerPacket> = Vec::new();
-        let mut asset_paths: Vec<String> = area.required_assets().clone();
+        let mut asset_paths: Vec<String> = area.required_assets().to_vec();
 
         // send map
         let map_path = get_map_path(area_id);
@@ -2028,35 +2046,47 @@ impl Net {
         packets.push(ServerPacket::MapUpdate { map_path });
 
         // send clients
-        for other_player_id in area.connected_players() {
-            if *other_player_id == player_id {
+        for &other_player_id in area.connected_players() {
+            if other_player_id == player_id {
                 continue;
             }
 
-            let other_client = self.clients.get(other_player_id).unwrap();
-            let actor = &other_client.actor;
+            let Some(actor) = self.actors.get(other_player_id) else {
+                log::error!("Area {area_id:?} contains deleted player actor?");
+                continue;
+            };
 
             asset_paths.push(actor.texture_path.clone());
             asset_paths.push(actor.animation_path.clone());
 
-            packets.push(actor.create_spawn_packet(actor.x, actor.y, actor.z, false));
+            packets.push(actor.create_spawn_packet(
+                other_player_id,
+                actor.x,
+                actor.y,
+                actor.z,
+                false,
+            ));
         }
 
         // send bots
-        for bot_id in area.connected_bots() {
-            let bot = self.bots.get(bot_id).unwrap();
+        for &bot_id in area.connected_bots() {
+            let Some(actor) = self.actors.get(bot_id) else {
+                log::error!("Area {area_id:?} contains deleted bot actor?");
+                continue;
+            };
 
-            asset_paths.push(bot.texture_path.clone());
-            asset_paths.push(bot.animation_path.clone());
+            asset_paths.push(actor.texture_path.clone());
+            asset_paths.push(actor.animation_path.clone());
 
-            packets.push(bot.create_spawn_packet(bot.x, bot.y, bot.z, false));
+            packets.push(actor.create_spawn_packet(bot_id, actor.x, actor.y, actor.z, false));
         }
 
         // send public sprites
         for &sprite_id in self.public_sprites.values() {
             let sprite = &self.sprites[sprite_id];
 
-            let Some(scope) = Self::resolve_sprite_packet_scope(&self.clients, &self.bots, sprite)
+            let Some(scope) =
+                Self::resolve_sprite_packet_scope(&self.clients, &self.actors, sprite)
             else {
                 continue;
             };
@@ -2124,7 +2154,12 @@ impl Net {
             return;
         };
 
-        let Some(area) = self.areas.get(&client.actor.area_id) else {
+        let Some(actor) = self.actors.get_mut(id) else {
+            log::error!("Missing actor for player {id:?}?");
+            return;
+        };
+
+        let Some(area) = self.areas.get(&actor.area_id) else {
             // area deleted, should be getting kicked
             return;
         };
@@ -2132,7 +2167,8 @@ impl Net {
         client.ready = true;
         client.transferring = false;
 
-        let spawn_packet = client.actor.create_spawn_packet(
+        let spawn_packet = actor.create_spawn_packet(
+            id,
             client.warp_x,
             client.warp_y,
             client.warp_z,
@@ -2145,7 +2181,7 @@ impl Net {
             spawn_packet,
         );
 
-        for sprite_id in client.actor.child_sprites.clone() {
+        for sprite_id in actor.child_sprites.clone() {
             let sprite = self.sprites.get(sprite_id).unwrap();
             let definition = sprite.definition.clone();
             let attachment = sprite.attachment.clone();
@@ -2167,8 +2203,6 @@ impl Net {
             self.end_battle_for_player(tracker.battle_id, id);
         }
 
-        self.free_actor_id(id);
-
         // remove assets
         let remove_list = [
             asset::get_player_texture_path(id),
@@ -2181,8 +2215,13 @@ impl Net {
             self.asset_manager.remove_asset(asset_path);
         }
 
+        let Some(actor) = self.actors.remove(id) else {
+            log::error!("Player {id:?}'s actor already removed?");
+            return;
+        };
+
         // delete sprites
-        for id in client.actor.child_sprites {
+        for id in actor.child_sprites {
             let Some(sprite) = self.sprites.remove(id) else {
                 continue;
             };
@@ -2198,11 +2237,11 @@ impl Net {
         packet_orchestrator.unregister_client(client.socket_address);
 
         // remove player from the area
-        let Some(area) = self.areas.get_mut(&client.actor.area_id) else {
+        let Some(area) = self.areas.get_mut(&actor.area_id) else {
             return;
         };
 
-        area.remove_player(client.actor.id);
+        area.remove_player(id);
 
         let packet = ServerPacket::ActorDisconnected {
             actor_id: id,
@@ -2217,52 +2256,43 @@ impl Net {
         );
     }
 
-    pub fn get_bot(&self, id: ActorId) -> Option<&Actor> {
-        self.bots.get(&id)
-    }
+    pub fn add_bot(&mut self, actor: Actor, warp_in: bool) -> ActorId {
+        self.actors.insert_with_key(|id| {
+            if let Some(area) = self.areas.get_mut(&actor.area_id) {
+                area.add_bot(id);
 
-    pub fn add_bot(&mut self, bot: Actor, warp_in: bool) {
-        if self.bots.contains_key(&bot.id) {
-            log::warn!("A bot with id {:?} already exists!", bot.id);
-            return;
-        }
+                let packet = actor.create_spawn_packet(id, actor.x, actor.y, actor.z, warp_in);
 
-        if self.clients.contains_key(&bot.id) {
-            log::warn!("A player with id {:?} exists, can't create bot!", bot.id);
-            return;
-        }
+                ensure_assets(
+                    &mut self.packet_orchestrator.borrow_mut(),
+                    self.config.args.max_payload_size,
+                    &self.asset_manager,
+                    &mut self.clients,
+                    area.connected_players(),
+                    [actor.texture_path.as_str(), actor.animation_path.as_str()].iter(),
+                );
 
-        if let Some(area) = self.areas.get_mut(&bot.area_id) {
-            area.add_bot(bot.id);
+                broadcast_to_area(
+                    &mut self.packet_orchestrator.borrow_mut(),
+                    area,
+                    Reliability::ReliableOrdered,
+                    packet,
+                );
+            }
 
-            let packet = bot.create_spawn_packet(bot.x, bot.y, bot.z, warp_in);
-
-            ensure_assets(
-                &mut self.packet_orchestrator.borrow_mut(),
-                self.config.args.max_payload_size,
-                &self.asset_manager,
-                &mut self.clients,
-                area.connected_players(),
-                [bot.texture_path.as_str(), bot.animation_path.as_str()].iter(),
-            );
-
-            broadcast_to_area(
-                &mut self.packet_orchestrator.borrow_mut(),
-                area,
-                Reliability::ReliableOrdered,
-                packet,
-            );
-
-            self.bots.insert(bot.id, bot);
-        }
+            actor
+        })
     }
 
     pub fn remove_bot(&mut self, id: ActorId, warp_out: bool) {
-        let Some(bot) = self.bots.remove(&id) else {
+        if self.clients.contains_key(&id) {
+            // this is a player not a bot
+            return;
+        }
+
+        let Some(bot) = self.actors.remove(id) else {
             return;
         };
-
-        self.free_actor_id(id);
 
         // delete sprites
         for id in bot.child_sprites {
@@ -2280,7 +2310,7 @@ impl Net {
             return;
         };
 
-        area.remove_bot(bot.id);
+        area.remove_bot(id);
 
         let packet = ServerPacket::ActorDisconnected {
             actor_id: id,
@@ -2295,199 +2325,31 @@ impl Net {
         );
     }
 
-    pub fn set_bot_name(&mut self, id: ActorId, name: &str) {
-        let Some(bot) = self.bots.get_mut(&id) else {
-            return;
-        };
-
-        bot.name = name.to_string();
-
-        let Some(area) = self.areas.get(&bot.area_id) else {
-            return;
-        };
-
-        let packet = ServerPacket::ActorSetName {
-            actor_id: id,
-            name: name.to_string(),
-        };
-
-        broadcast_to_area(
-            &mut self.packet_orchestrator.borrow_mut(),
-            area,
-            Reliability::Reliable,
-            packet,
-        );
-    }
-
     pub fn move_bot(&mut self, id: ActorId, x: f32, y: f32, z: f32) {
-        if let Some(bot) = self.bots.get_mut(&id) {
-            let updated_direction = Direction::from_offset((x - bot.x, y - bot.y));
+        if self.clients.contains_key(&id) {
+            // this is a player not a bot
+            return;
+        }
+
+        if let Some(actor) = self.actors.get_mut(id) {
+            let updated_direction = Direction::from_offset((x - actor.x, y - actor.y));
 
             if !matches!(updated_direction, Direction::None) {
-                bot.set_direction(updated_direction);
+                actor.set_direction(updated_direction);
             }
 
-            bot.set_position(x, y, z);
+            actor.set_position(x, y, z);
         }
     }
 
     pub fn set_bot_direction(&mut self, id: ActorId, direction: Direction) {
-        if let Some(bot) = self.bots.get_mut(&id) {
-            bot.set_direction(direction);
+        if self.clients.contains_key(&id) {
+            // this is a player not a bot
+            return;
         }
-    }
 
-    pub fn set_bot_avatar(&mut self, id: ActorId, texture_path: &str, animation_path: &str) {
-        let Some(bot) = self.bots.get_mut(&id) else {
-            return;
-        };
-
-        bot.texture_path = texture_path.to_string();
-        bot.animation_path = animation_path.to_string();
-
-        update_cached_clients(
-            &mut self.packet_orchestrator.borrow_mut(),
-            self.config.args.max_payload_size,
-            &self.asset_manager,
-            &mut self.clients,
-            texture_path,
-        );
-
-        update_cached_clients(
-            &mut self.packet_orchestrator.borrow_mut(),
-            self.config.args.max_payload_size,
-            &self.asset_manager,
-            &mut self.clients,
-            animation_path,
-        );
-
-        let Some(area) = self.areas.get(&bot.area_id) else {
-            return;
-        };
-
-        let packet = ServerPacket::ActorSetAvatar {
-            actor_id: id,
-            texture_path: texture_path.to_string(),
-            animation_path: animation_path.to_string(),
-        };
-
-        broadcast_to_area(
-            &mut self.packet_orchestrator.borrow_mut(),
-            area,
-            Reliability::ReliableOrdered,
-            packet,
-        );
-    }
-
-    pub fn set_bot_emote(&mut self, id: ActorId, emote_id: String) {
-        let Some(bot) = self.bots.get(&id) else {
-            return;
-        };
-
-        let Some(area) = self.areas.get(&bot.area_id) else {
-            return;
-        };
-
-        let packet = ServerPacket::ActorEmote {
-            actor_id: id,
-            emote_id,
-        };
-
-        broadcast_to_area(
-            &mut self.packet_orchestrator.borrow_mut(),
-            area,
-            Reliability::Reliable,
-            packet,
-        );
-    }
-
-    pub fn set_bot_map_color(&mut self, id: ActorId, color: (u8, u8, u8, u8)) {
-        let Some(bot) = self.bots.get_mut(&id) else {
-            return;
-        };
-
-        bot.map_color = color;
-
-        let Some(area) = self.areas.get(&bot.area_id) else {
-            return;
-        };
-
-        broadcast_to_area(
-            &mut self.packet_orchestrator.borrow_mut(),
-            area,
-            Reliability::Reliable,
-            ServerPacket::ActorMapColor {
-                actor_id: id,
-                color,
-            },
-        );
-    }
-
-    pub fn animate_bot(&mut self, id: ActorId, state: &str, loop_animation: bool) {
-        let Some(bot) = self.bots.get_mut(&id) else {
-            return;
-        };
-
-        bot.current_animation = Some(state.to_string());
-        bot.loop_animation = loop_animation;
-
-        let Some(area) = self.areas.get(&bot.area_id) else {
-            return;
-        };
-
-        broadcast_to_area(
-            &mut self.packet_orchestrator.borrow_mut(),
-            area,
-            Reliability::Reliable,
-            ServerPacket::ActorAnimate {
-                actor_id: id,
-                state: state.to_string(),
-                loop_animation,
-            },
-        );
-    }
-
-    pub fn animate_bot_properties(&mut self, id: ActorId, animation: Vec<ActorKeyFrame>) {
-        if let Some(bot) = self.bots.get_mut(&id) {
-            // store final values for new players
-            let Some(area) = self.areas.get(&bot.area_id) else {
-                return;
-            };
-
-            let mut final_x = bot.x;
-            let mut final_y = bot.y;
-            let mut final_z = bot.z;
-
-            for keyframe in &animation {
-                for (property, _) in &keyframe.property_steps {
-                    match property {
-                        ActorProperty::Animation(value) => {
-                            bot.current_animation = Some(value.clone());
-                            bot.loop_animation = false;
-                        }
-                        ActorProperty::X(value) => final_x = *value,
-                        ActorProperty::Y(value) => final_y = *value,
-                        ActorProperty::Z(value) => final_z = *value,
-                        ActorProperty::ScaleX(value) => bot.scale_x = *value,
-                        ActorProperty::ScaleY(value) => bot.scale_y = *value,
-                        ActorProperty::Rotation(value) => bot.rotation = *value,
-                        ActorProperty::Direction(value) => bot.direction = *value,
-                        _ => {}
-                    }
-                }
-            }
-
-            // set position directly, to avoid reseting the animation
-            bot.x = final_x;
-            bot.y = final_y;
-            bot.z = final_z;
-
-            broadcast_actor_keyframes(
-                &mut self.packet_orchestrator.borrow_mut(),
-                area,
-                id,
-                animation,
-            );
+        if let Some(bot) = self.actors.get_mut(id) {
+            bot.set_direction(direction);
         }
     }
 
@@ -2505,7 +2367,12 @@ impl Net {
             return;
         }
 
-        let Some(bot) = self.bots.get_mut(&id) else {
+        if self.clients.contains_key(&id) {
+            // this is a player not a bot
+            return;
+        }
+
+        let Some(bot) = self.actors.get_mut(id) else {
             return;
         };
 
@@ -2544,13 +2411,13 @@ impl Net {
             &mut self.packet_orchestrator.borrow_mut(),
             area,
             Reliability::ReliableOrdered,
-            bot.create_spawn_packet(bot.x, bot.y, bot.z, warp_in),
+            bot.create_spawn_packet(id, bot.x, bot.y, bot.z, warp_in),
         );
 
-        let bot = self.bots.get(&id).unwrap();
+        let actor = self.actors.get(id).unwrap();
         let area = self.areas.get(area_id).unwrap();
 
-        for sprite_id in &bot.child_sprites {
+        for sprite_id in &actor.child_sprites {
             let sprite = self.sprites.get(*sprite_id).unwrap();
 
             ensure_assets(
@@ -2562,7 +2429,8 @@ impl Net {
                 sprite.definition.dependencies(),
             );
 
-            let Some(scope) = Self::resolve_sprite_packet_scope(&self.clients, &self.bots, sprite)
+            let Some(scope) =
+                Self::resolve_sprite_packet_scope(&self.clients, &self.actors, sprite)
             else {
                 continue;
             };
@@ -2602,17 +2470,15 @@ impl Net {
             }
         });
 
-        if let SpriteParent::Actor(actor_id) = &attachment.parent {
-            if let Some(client) = self.clients.get_mut(actor_id) {
-                client.actor.child_sprites.push(id);
-            } else if let Some(bot) = self.bots.get_mut(actor_id) {
-                bot.child_sprites.push(id);
-            }
+        if let SpriteParent::Actor(actor_id) = &attachment.parent
+            && let Some(bot) = self.actors.get_mut(*actor_id)
+        {
+            bot.child_sprites.push(id);
         }
 
         // resolve relevant scope for notifying creation
         let sprite = &self.sprites[id];
-        let scope = Self::resolve_sprite_packet_scope(&self.clients, &self.bots, sprite)
+        let scope = Self::resolve_sprite_packet_scope(&self.clients, &self.actors, sprite)
             .map(|scope| scope.into_owned());
 
         let Some(scope) = scope else {
@@ -2689,10 +2555,8 @@ impl Net {
         if let SpriteParent::Actor(actor_id) = &sprite.attachment.parent {
             let mut empty = Vec::new();
 
-            let id_list = if let Some(client) = self.clients.get_mut(actor_id) {
-                &mut client.actor.child_sprites
-            } else if let Some(bot) = self.bots.get_mut(actor_id) {
-                &mut bot.child_sprites
+            let id_list = if let Some(actor) = self.actors.get_mut(*actor_id) {
+                &mut actor.child_sprites
             } else {
                 &mut empty
             };
@@ -2712,7 +2576,7 @@ impl Net {
             return;
         };
 
-        let Some(scope) = Self::resolve_sprite_packet_scope(&self.clients, &self.bots, sprite)
+        let Some(scope) = Self::resolve_sprite_packet_scope(&self.clients, &self.actors, sprite)
         else {
             return;
         };
@@ -2730,7 +2594,7 @@ impl Net {
 
     fn resolve_sprite_packet_scope<'a>(
         clients: &'a HashMap<ActorId, Client>,
-        bots: &'a HashMap<ActorId, Actor>,
+        actors: &'a slotmap::SlotMap<ActorId, Actor>,
         sprite: &'a Sprite,
     ) -> Option<PacketScope<'a>> {
         if let Some(client_id) = &sprite.client_id_restriction {
@@ -2755,17 +2619,13 @@ impl Net {
 
         if let SpriteParent::Actor(actor_id) = &sprite.attachment.parent {
             // send just to clients in the same area as the actor
-            let area_id = if let Some(client) = clients.get(actor_id) {
-                if !client.ready {
-                    // if the client isn't ready only send to the client
-                    // we'll send sprites again when the client is marked ready
-                    return Some(PacketScope::Client(client.actor.id));
-                }
+            if clients.get(actor_id).is_some_and(|client| !client.ready) {
+                // if the client isn't ready only send to the client
+                // we'll send sprites again when the client is marked ready
+                return Some(PacketScope::Client(*actor_id));
+            }
 
-                Some(&client.actor.area_id)
-            } else {
-                bots.get(actor_id).map(|actor| &actor.area_id)
-            };
+            let area_id = actors.get(*actor_id).map(|actor| &actor.area_id);
 
             return Some(PacketScope::Area(Cow::Borrowed(area_id?)));
         }
@@ -2834,32 +2694,32 @@ impl Net {
     }
 
     pub(super) fn tick(&mut self) {
-        self.broadcast_bot_positions();
+        self.broadcast_actor_positions();
         self.broadcast_map_changes();
     }
 
-    fn broadcast_bot_positions(&mut self) {
+    fn broadcast_actor_positions(&mut self) {
         use std::time::Instant;
 
         let now = Instant::now();
 
-        for bot in self.bots.values() {
-            let time_since_last_movement = now - bot.last_movement_time;
+        for (id, actor) in &self.actors {
+            let time_since_last_movement = now - actor.last_movement_time;
 
             if time_since_last_movement > MAX_IDLE_DURATION {
                 continue;
             }
 
-            let Some(area) = self.areas.get(&bot.area_id) else {
+            let Some(area) = self.areas.get(&actor.area_id) else {
                 continue;
             };
 
             let packet = ServerPacket::ActorMove {
-                actor_id: bot.id,
-                x: bot.x,
-                y: bot.y,
-                z: bot.z,
-                direction: bot.direction,
+                actor_id: id,
+                x: actor.x,
+                y: actor.y,
+                z: actor.z,
+                direction: actor.direction,
             };
 
             broadcast_to_area(

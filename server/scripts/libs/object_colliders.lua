@@ -191,18 +191,12 @@ end
 ---@param self ObjectColliders
 local function tick(self)
   for _, actor in ipairs(self._actors.list) do
-    local area_id
-    local x, y, z
-
-    if Net.is_bot(actor.id) then
-      area_id = Net.get_bot_area(actor.id)
-      x, y, z = Net.get_bot_position_multi(actor.id)
-    elseif Net.is_player(actor.id) then
-      area_id = Net.get_player_area(actor.id)
-      x, y, z = Net.get_player_position_multi(actor.id)
-    else
+    if not Net.is_actor(actor.id) then
       goto continue
     end
+
+    local area_id = Net.get_actor_area(actor.id)
+    local x, y, z = Net.get_actor_position_multi(actor.id)
 
     local transferred = area_id ~= actor.area_id
     local moved = transferred or actor.x ~= x or actor.y ~= y or actor.z ~= actor.z
@@ -293,13 +287,13 @@ function ObjectColliders:new()
   local player_tracking = object_colliders._player_tracking
 
   local function init_player(player_id)
-    local x, y, z = Net.get_player_position_multi(player_id)
+    local x, y, z = Net.get_actor_position_multi(player_id)
     player_tracking:insert(player_id, {
       player_id = player_id,
       x = x,
       y = y,
       z = z,
-      area_id = Net.get_player_area(player_id),
+      area_id = Net.get_actor_area(player_id),
       collisions = {},
       prev_collisions = {}
     })
@@ -327,8 +321,8 @@ function ObjectColliders:new()
     player_area_transfer = function(event)
       local data = player_tracking:get(event.player_id)
       data.prev_area_id = data.area_id
-      data.area_id = Net.get_player_area(event.player_id)
-      data.x, data.y, data.z = Net.get_player_position_multi(event.player_id)
+      data.area_id = Net.get_actor_area(event.player_id)
+      data.x, data.y, data.z = Net.get_actor_position_multi(event.player_id)
       data.moved = true
     end,
 
@@ -423,18 +417,9 @@ function ObjectColliders:attach_to_actor(area_id, object_id, actor_id, offset_x,
   local actor_area_id
   local x, y, z
 
-  if Net.is_bot(actor_id) then
-    actor_area_id = Net.get_bot_area(actor_id)
-    x, y, z = Net.get_bot_position_multi(actor_id)
-
-    if actor_area_id ~= area_id then
-      transfer_collider(self, collider, actor_area_id, x, y, z)
-    else
-      move_collider(self, collider, x, y, z)
-    end
-  elseif Net.is_player(actor_id) then
-    actor_area_id = Net.get_player_area(actor_id)
-    x, y, z = Net.get_player_position_multi(actor_id)
+  if Net.is_actor(actor_id) then
+    actor_area_id = Net.get_actor_area(actor_id)
+    x, y, z = Net.get_actor_position_multi(actor_id)
   end
 
   if actor_area_id then

@@ -7,11 +7,11 @@ local player_trackers = {}
 local area_tables = {}
 
 function lib.track_player(player_id)
-    local area_id = Net.get_player_area(player_id)
+    local area_id = Net.get_actor_position(player_id)
     local area_table = area_tables[area_id]
 
     player_trackers[player_id] = {
-        last_pos = Net.get_player_position(player_id),
+        last_pos = Net.get_actor_position(player_id),
         area = area_id,
         total_dist = 0,
         last_test = ((area_table and area_table.min_travel) or lib.CHECK_DISTANCE) - lib.CHECK_DISTANCE
@@ -54,7 +54,7 @@ function lib.handle_player_move(player_id, x, y, z)
         return
     end
 
-    local area_id = Net.get_player_area(player_id)
+    local area_id = Net.get_actor_area(player_id)
     local player_tracker = player_trackers[player_id]
 
     if area_id ~= player_tracker.area then

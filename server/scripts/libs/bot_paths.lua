@@ -55,8 +55,8 @@ function BotPaths:new()
         goto continue
       end
 
-      local area_id = Net.get_bot_area(id)
-      local x, y, z = Net.get_bot_position_multi(id)
+      local area_id = Net.get_actor_area(id)
+      local x, y, z = Net.get_actor_position_multi(id)
 
       -- todo: use some type of spatial map
       if bot.interrupt_radius > 0 then
@@ -64,7 +64,7 @@ function BotPaths:new()
 
         -- see if a player is in the way
         for _, player_id in ipairs(Net.list_players(area_id)) do
-          local player_x, player_y, player_z = Net.get_player_position_multi(player_id)
+          local player_x, player_y, player_z = Net.get_actor_position_multi(player_id)
           local player_diff_x = player_x - x
           local player_diff_y = player_y - y
           local player_diff_z = player_z - z
