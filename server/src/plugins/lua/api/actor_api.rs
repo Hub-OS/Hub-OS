@@ -1,6 +1,7 @@
 use super::LuaApi;
 use super::lua_errors::create_actor_error;
 use crate::plugins::lua::api::colors::*;
+use crate::plugins::lua::api::lua_helpers::optional_lua_string_to_str;
 use packets::structures::{ActorId, Direction};
 
 pub fn inject_dynamic(lua_api: &mut LuaApi) {
@@ -171,6 +172,39 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let color = parse_rgba_table(color_table)?;
 
         net.set_actor_map_color(actor_id, color);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function("Net", "transfer_actor", |api_ctx, lua, params| {
+        #[allow(clippy::type_complexity)]
+        let (actor_id, area_id, warp_in_option, x_option, y_option, z_option, direction_option): (
+            ActorId,
+            String,
+            Option<bool>,
+            Option<f32>,
+            Option<f32>,
+            Option<f32>,
+            Option<mlua::String>,
+        ) = lua.unpack_multi(params)?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+        let warp_in = warp_in_option.unwrap_or(true);
+        let x;
+        let y;
+        let z;
+
+        if let Some(bot) = net.get_actor(actor_id) {
+            x = x_option.unwrap_or(bot.x);
+            y = y_option.unwrap_or(bot.y);
+            z = z_option.unwrap_or(bot.z);
+        } else {
+            return Err(create_actor_error(actor_id));
+        }
+
+        let direction = Direction::from(optional_lua_string_to_str(&direction_option)?);
+
+        net.transfer_actor(actor_id, &area_id, warp_in, x, y, z, direction);
 
         lua.pack_multi(())
     });

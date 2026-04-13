@@ -5,7 +5,6 @@ use crate::net::Direction;
 use crate::plugins::lua::api::colors::*;
 use packets::structures::{ActorId, BattleId};
 
-#[allow(clippy::type_complexity)]
 pub fn inject_dynamic(lua_api: &mut LuaApi) {
     lua_api.add_dynamic_function("Net", "list_players", |api_ctx, lua, params| {
         let area_id: mlua::String = lua.unpack_multi(params)?;
@@ -400,39 +399,6 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let is_busy = net.is_player_busy(player_id);
 
         lua.pack_multi(is_busy)
-    });
-
-    lua_api.add_dynamic_function("Net", "transfer_player", |api_ctx, lua, params| {
-        let (player_id, area_id, warp_in_option, x_option, y_option, z_option, direction_option): (
-            ActorId,
-            mlua::String,
-            Option<bool>,
-            Option<f32>,
-            Option<f32>,
-            Option<f32>,
-            Option<mlua::String>,
-        ) = lua.unpack_multi(params)?;
-        let area_id_str = area_id.to_str()?;
-
-        let mut net = api_ctx.net_ref.borrow_mut();
-        let warp_in = warp_in_option.unwrap_or(true);
-        let x;
-        let y;
-        let z;
-
-        if let Some(player) = net.get_actor(player_id) {
-            x = x_option.unwrap_or(player.x);
-            y = y_option.unwrap_or(player.y);
-            z = z_option.unwrap_or(player.z);
-        } else {
-            return Err(create_player_error(player_id));
-        }
-
-        let direction = Direction::from(optional_lua_string_to_str(&direction_option)?);
-
-        net.transfer_player(player_id, area_id_str, warp_in, x, y, z, direction);
-
-        lua.pack_multi(())
     });
 
     lua_api.add_dynamic_function("Net", "transfer_server", |api_ctx, lua, params| {

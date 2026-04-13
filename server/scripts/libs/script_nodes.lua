@@ -1161,10 +1161,10 @@ function ScriptNodes:implement_area_api()
 
     if context.player_ids then
       for _, player_id in ipairs(context.player_ids) do
-        Net.transfer_player(player_id, area_id, warp_in, x, y, z, direction)
+        Net.transfer_actor(player_id, area_id, warp_in, x, y, z, direction)
       end
     else
-      Net.transfer_player(context.player_id, area_id, warp_in, x, y, z, direction)
+      Net.transfer_actor(context.player_id, area_id, warp_in, x, y, z, direction)
     end
 
     self:execute_next_node(context, context.area_id, object)
@@ -1189,7 +1189,7 @@ function ScriptNodes:implement_area_api()
     end
 
     for_each_player(context, function(player_id)
-      Net.transfer_player(player_id, new_area_id, warp_in, x, y, z, direction)
+      Net.transfer_actor(player_id, new_area_id, warp_in, x, y, z, direction)
     end)
 
     self:execute_next_node(context, context.area_id, object)
@@ -1222,7 +1222,7 @@ function ScriptNodes:implement_area_api()
     end
 
     for_each_player(context, function(player_id)
-      Net.transfer_player(player_id, new_area_id, warp_in, x, y, z, direction)
+      Net.transfer_actor(player_id, new_area_id, warp_in, x, y, z, direction)
     end)
 
     self:execute_next_node(context, context.area_id, object)

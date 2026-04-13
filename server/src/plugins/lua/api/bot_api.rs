@@ -1,5 +1,5 @@
 use super::LuaApi;
-use super::lua_errors::{create_area_error, create_bot_error};
+use super::lua_errors::create_area_error;
 use crate::net::{Actor, Direction};
 use packets::structures::ActorId;
 
@@ -110,35 +110,6 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         net.move_bot(bot_id, x, y, z);
-
-        lua.pack_multi(())
-    });
-
-    lua_api.add_dynamic_function("Net", "transfer_bot", |api_ctx, lua, params| {
-        let (bot_id, area_id, warp_in_option, x_option, y_option, z_option): (
-            ActorId,
-            String,
-            Option<bool>,
-            Option<f32>,
-            Option<f32>,
-            Option<f32>,
-        ) = lua.unpack_multi(params)?;
-
-        let mut net = api_ctx.net_ref.borrow_mut();
-        let warp_in = warp_in_option.unwrap_or(true);
-        let x;
-        let y;
-        let z;
-
-        if let Some(bot) = net.get_actor(bot_id) {
-            x = x_option.unwrap_or(bot.x);
-            y = y_option.unwrap_or(bot.y);
-            z = z_option.unwrap_or(bot.z);
-        } else {
-            return Err(create_bot_error(bot_id));
-        }
-
-        net.transfer_bot(bot_id, &area_id, warp_in, x, y, z);
 
         lua.pack_multi(())
     });

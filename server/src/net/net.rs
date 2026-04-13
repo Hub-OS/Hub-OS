@@ -1677,7 +1677,25 @@ impl Net {
     }
 
     #[allow(clippy::too_many_arguments)]
-    pub fn transfer_player(
+    pub fn transfer_actor(
+        &mut self,
+        id: ActorId,
+        area_id: &str,
+        warp_in: bool,
+        x: f32,
+        y: f32,
+        z: f32,
+        direction: Direction,
+    ) {
+        if self.is_player(id) {
+            self.transfer_player(id, area_id, warp_in, x, y, z, direction);
+        } else {
+            self.transfer_bot(id, area_id, warp_in, x, y, z, direction);
+        }
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn transfer_player(
         &mut self,
         id: ActorId,
         area_id: &str,
@@ -2307,12 +2325,12 @@ impl Net {
             return;
         }
 
-        let Some(bot) = self.actors.remove(id) else {
+        let Some(actor) = self.actors.remove(id) else {
             return;
         };
 
         // delete sprites
-        for id in bot.child_sprites {
+        for id in actor.child_sprites {
             let Some(sprite) = self.sprites.remove(id) else {
                 continue;
             };
@@ -2323,7 +2341,7 @@ impl Net {
         }
 
         // remove bot from the area
-        let Some(area) = self.areas.get_mut(&bot.area_id) else {
+        let Some(area) = self.areas.get_mut(&actor.area_id) else {
             return;
         };
 
@@ -2359,7 +2377,8 @@ impl Net {
         }
     }
 
-    pub fn transfer_bot(
+    #[allow(clippy::too_many_arguments)]
+    fn transfer_bot(
         &mut self,
         id: ActorId,
         area_id: &str,
@@ -2367,6 +2386,7 @@ impl Net {
         x: f32,
         y: f32,
         z: f32,
+        direction: Direction,
     ) {
         if !self.areas.contains_key(area_id) {
             // non existent area
@@ -2378,11 +2398,11 @@ impl Net {
             return;
         }
 
-        let Some(bot) = self.actors.get_mut(id) else {
+        let Some(actor) = self.actors.get_mut(id) else {
             return;
         };
 
-        if let Some(previous_area) = self.areas.get_mut(&bot.area_id) {
+        if let Some(previous_area) = self.areas.get_mut(&actor.area_id) {
             previous_area.remove_bot(id);
 
             broadcast_to_area(
@@ -2396,10 +2416,14 @@ impl Net {
             );
         }
 
-        bot.area_id = area_id.to_string();
-        bot.x = x;
-        bot.y = y;
-        bot.z = z;
+        actor.area_id = area_id.to_string();
+        actor.x = x;
+        actor.y = y;
+        actor.z = z;
+
+        if !direction.is_none() {
+            actor.direction = direction;
+        }
 
         let area = self.areas.get_mut(area_id).unwrap();
         area.add_bot(id);
@@ -2410,14 +2434,14 @@ impl Net {
             &self.asset_manager,
             &mut self.clients,
             area.connected_players(),
-            [bot.texture_path.as_str(), bot.animation_path.as_str()].iter(),
+            [actor.texture_path.as_str(), actor.animation_path.as_str()].iter(),
         );
 
         broadcast_to_area(
             &mut self.packet_orchestrator.borrow_mut(),
             area,
             Reliability::ReliableOrdered,
-            bot.create_spawn_packet(id, bot.x, bot.y, bot.z, warp_in),
+            actor.create_spawn_packet(id, actor.x, actor.y, actor.z, warp_in),
         );
 
         let actor = self.actors.get(id).unwrap();
@@ -2477,9 +2501,9 @@ impl Net {
         });
 
         if let SpriteParent::Actor(actor_id) = &attachment.parent
-            && let Some(bot) = self.actors.get_mut(*actor_id)
+            && let Some(actor) = self.actors.get_mut(*actor_id)
         {
-            bot.child_sprites.push(id);
+            actor.child_sprites.push(id);
         }
 
         // resolve relevant scope for notifying creation
