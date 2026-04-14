@@ -44,6 +44,13 @@ impl HpChanges {
 
         let entities = &mut simulation.entities;
 
+        if let Ok(entity) = entities.query_one_mut::<&mut Entity>(id.into())
+            && !entity.spawned
+        {
+            // ignore health changes if the entity hasn't spawned yet
+            return;
+        };
+
         if let Ok(hp_changes) = entities.query_one_mut::<&mut HpChanges>(id.into()) {
             hp_changes.track_source_change_inner(source, hp_diff);
         } else {
