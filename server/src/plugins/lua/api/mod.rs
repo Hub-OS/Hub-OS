@@ -17,17 +17,15 @@ mod synchronization_api;
 mod widget_api;
 
 use crate::jobs::JobPromiseManager;
-use crate::net::{Net, WidgetTracker};
-use packets::structures::ActorId;
+use crate::net::Net;
+use crate::plugins::lua::lua_plugin_interface::LuaPluginEventTrackers;
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::collections::VecDeque;
 
 pub struct ApiContext<'lua_scope, 'a> {
     pub script_index: usize,
     pub net_ref: &'lua_scope RefCell<&'a mut Net>,
-    pub widget_tracker_ref: &'lua_scope RefCell<&'a mut HashMap<ActorId, WidgetTracker<usize>>>,
-    pub battle_tracker_ref: &'lua_scope RefCell<&'a mut HashMap<ActorId, VecDeque<usize>>>,
+    pub trackers_ref: &'lua_scope RefCell<&'a mut LuaPluginEventTrackers>,
     pub promise_manager_ref: &'lua_scope RefCell<&'a mut JobPromiseManager>,
 }
 

@@ -54,7 +54,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        if let Some(tracker) = api_ctx.widget_tracker_ref.borrow_mut().get_mut(&player_id) {
+        if let Some(tracker) = api_ctx.trackers_ref.borrow_mut().widget.get_mut(&player_id) {
             tracker.track_textbox(api_ctx.script_index);
 
             net.message_player(player_id, message_str, textbox_options);
@@ -75,7 +75,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        if let Some(tracker) = api_ctx.widget_tracker_ref.borrow_mut().get_mut(&player_id) {
+        if let Some(tracker) = api_ctx.trackers_ref.borrow_mut().widget.get_mut(&player_id) {
             tracker.track_textbox(api_ctx.script_index);
 
             net.message_player_auto(player_id, message_str, close_delay, textbox_options);
@@ -92,7 +92,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        if let Some(tracker) = api_ctx.widget_tracker_ref.borrow_mut().get_mut(&player_id) {
+        if let Some(tracker) = api_ctx.trackers_ref.borrow_mut().widget.get_mut(&player_id) {
             tracker.track_textbox(api_ctx.script_index);
 
             net.question_player(player_id, message_str, textbox_options);
@@ -114,7 +114,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        if let Some(tracker) = api_ctx.widget_tracker_ref.borrow_mut().get_mut(&player_id) {
+        if let Some(tracker) = api_ctx.trackers_ref.borrow_mut().widget.get_mut(&player_id) {
             tracker.track_textbox(api_ctx.script_index);
 
             net.quiz_player(
@@ -148,7 +148,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        if let Some(tracker) = api_ctx.widget_tracker_ref.borrow_mut().get_mut(&player_id) {
+        if let Some(tracker) = api_ctx.trackers_ref.borrow_mut().widget.get_mut(&player_id) {
             tracker.track_textbox(api_ctx.script_index);
 
             net.prompt_player(player_id, textbox_options);
@@ -170,7 +170,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        if let Some(tracker) = api_ctx.widget_tracker_ref.borrow_mut().get_mut(&player_id) {
+        if let Some(tracker) = api_ctx.trackers_ref.borrow_mut().widget.get_mut(&player_id) {
             tracker.track_board(api_ctx.script_index);
 
             let color = parse_rgb_table(color_table)?;
@@ -293,7 +293,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         let textbox_options = parse_textbox_options(lua, rest)?;
 
-        if let Some(tracker) = api_ctx.widget_tracker_ref.borrow_mut().get_mut(&player_id) {
+        if let Some(tracker) = api_ctx.trackers_ref.borrow_mut().widget.get_mut(&player_id) {
             tracker.track_shop(api_ctx.script_index);
             let mut net = api_ctx.net_ref.borrow_mut();
 

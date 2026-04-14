@@ -319,8 +319,9 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let package_id_str = package_id.to_str()?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
+        let mut trackers = api_ctx.trackers_ref.borrow_mut();
 
-        if let Some(tracker) = api_ctx.battle_tracker_ref.borrow_mut().get_mut(&player_id) {
+        if let Some(tracker) = trackers.battle.get_mut(&player_id) {
             tracker.push_back(api_ctx.script_index);
         }
 
@@ -335,10 +336,10 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
-        let mut battle_tracker = api_ctx.battle_tracker_ref.borrow_mut();
+        let mut trackers = api_ctx.trackers_ref.borrow_mut();
 
         for player_id in &player_ids {
-            if let Some(tracker) = battle_tracker.get_mut(player_id) {
+            if let Some(tracker) = trackers.battle.get_mut(player_id) {
                 tracker.push_back(api_ctx.script_index);
             }
         }
