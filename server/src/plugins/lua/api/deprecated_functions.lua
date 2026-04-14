@@ -47,7 +47,7 @@ backwards_compat(Net, "set_player_map_color", "set_actor_map_color")
 backwards_compat(Net, "set_bot_map_color", "set_actor_map_color")
 backwards_compat(Net, "move_bot", "move_actor")
 backwards_compat(Net, "transfer_player", "transfer_actor")
-backwards_compat(Net, "transfer_bot", "transfer_bot")
+backwards_compat(Net, "transfer_bot", "transfer_actor")
 
 function Net.teleport_player(player_id, warp, x, y, z, direction)
   warn_once("Net.teleport_player() is deprecated, use Net.move_actor() or Net.warp_actor() instead.")
