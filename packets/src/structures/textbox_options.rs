@@ -61,7 +61,8 @@ impl TextStyleBlueprint {
 pub struct TextboxOptions {
     pub mug: Option<TextureAnimPathPair<'static>>,
     pub text_style: Option<TextStyleBlueprint>,
-    pub default_response: String,
+    pub initial_response: String,
+    pub cancel_response: Option<String>,
     pub character_limit: usize,
 }
 

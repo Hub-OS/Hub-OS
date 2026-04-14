@@ -135,12 +135,12 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let textbox_options = match rest.get(0) {
             Some(mlua::Value::Table(_)) => parse_textbox_options(lua, rest)?,
             _ => {
-                let (character_limit, default_response): (Option<usize>, Option<String>) =
+                let (character_limit, initial_response): (Option<usize>, Option<String>) =
                     lua.unpack_multi(rest)?;
 
                 TextboxOptions {
                     character_limit: character_limit.unwrap_or_default(),
-                    default_response: default_response.unwrap_or_default(),
+                    initial_response: initial_response.unwrap_or_default(),
                     ..TextboxOptions::default()
                 }
             }
@@ -458,10 +458,13 @@ fn parse_textbox_options<'lua>(
                 .map(parse_text_style)
                 .transpose()?;
 
-            // parse default response
-            textbox_options.default_response = table
-                .get::<_, Option<String>>("default_response")?
+            // parse initial response
+            textbox_options.initial_response = table
+                .get::<_, Option<String>>("initial_response")?
                 .unwrap_or_default();
+
+            // parse cancelled response
+            textbox_options.cancel_response = table.get::<_, Option<String>>("cancel_response")?;
         }
         mlua::Value::String(mug_texture_path) => {
             // deprecation compatibility

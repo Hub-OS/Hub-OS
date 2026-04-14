@@ -8,6 +8,7 @@ pub struct TextboxQuiz {
     message: String,
     valid_options: [bool; 3],
     selection: usize,
+    cancel_selection: Option<usize>,
     complete: bool,
     never_complete: bool,
     callback: Box<dyn Fn(usize)>,
@@ -24,6 +25,7 @@ impl TextboxQuiz {
             message: format!("\x02  {}\n  {}\n  {}", options[0], options[1], options[2]),
             valid_options: options.map(|s| !s.is_empty()),
             selection: 0,
+            cancel_selection: None,
             complete: false,
             never_complete: false,
             callback: Box::new(callback),
@@ -34,8 +36,13 @@ impl TextboxQuiz {
         }
     }
 
-    pub fn with_default_response(mut self, selection: usize) -> Self {
+    pub fn with_initial_response(mut self, selection: usize) -> Self {
         self.selection = selection.min(2);
+        self
+    }
+
+    pub fn with_cancel_response(mut self, selection: usize) -> Self {
+        self.cancel_selection = Some(selection);
         self
     }
 
@@ -100,6 +107,17 @@ impl TextboxQuiz {
             let globals = Globals::from_resources(game_io);
             globals.audio.play_sound(&globals.sfx.cursor_move);
             self.update_cursor(text_style);
+        }
+
+        if let Some(fallback) = self.cancel_selection
+            && input_util.was_just_pressed(Input::Cancel)
+        {
+            let globals = Globals::from_resources(game_io);
+            globals.audio.play_sound(&globals.sfx.cursor_cancel);
+
+            self.complete = !self.never_complete;
+
+            (self.callback)(fallback);
         }
 
         if input_util.was_just_pressed(Input::Confirm) {

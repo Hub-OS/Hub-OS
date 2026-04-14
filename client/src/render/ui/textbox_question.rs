@@ -42,7 +42,7 @@ impl TextboxQuestion {
         }
     }
 
-    pub fn with_default_response(mut self, selection: bool) -> Self {
+    pub fn with_initial_response(mut self, selection: bool) -> Self {
         self.selection = selection;
         self
     }

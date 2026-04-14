@@ -810,10 +810,10 @@ impl OverworldOnlineScene {
                         .unwrap();
                 });
 
-                if textbox_options.default_response == "0" {
-                    interface = interface.with_default_response(false);
-                } else if textbox_options.default_response == "1" {
-                    interface = interface.with_default_response(true);
+                if textbox_options.initial_response == "0" {
+                    interface = interface.with_initial_response(false);
+                } else if textbox_options.initial_response == "1" {
+                    interface = interface.with_initial_response(true);
                 }
 
                 self.push_textbox_interface_with_options(game_io, interface, textbox_options);
@@ -823,7 +823,7 @@ impl OverworldOnlineScene {
                 option_a,
                 option_b,
                 option_c,
-                textbox_options,
+                mut textbox_options,
             } => {
                 let options: &[&str; 3] = &[&option_a, &option_b, &option_c];
 
@@ -834,14 +834,24 @@ impl OverworldOnlineScene {
                         .unwrap();
                 });
 
-                if let Ok(n) = textbox_options.default_response.parse() {
-                    interface = interface.with_default_response(n);
+                if let Ok(n) = textbox_options.initial_response.parse() {
+                    interface = interface.with_initial_response(n);
+                }
+
+                if let Some(response) = textbox_options.cancel_response.take()
+                    && let Ok(n) = response
+                        .parse()
+                        .inspect_err(|err| log::error!("Failed to parse cancel_response: {err:?}"))
+                {
+                    interface = interface.with_cancel_response(n);
                 }
 
                 self.push_textbox_interface_with_options(game_io, interface, textbox_options);
                 self.set_textbox_doorstop();
             }
-            ServerPacket::Prompt { textbox_options } => {
+            ServerPacket::Prompt {
+                mut textbox_options,
+            } => {
                 let event_sender = self.area.event_sender.clone();
                 let mut interface = TextboxPrompt::new(move |response| {
                     event_sender
@@ -849,7 +859,11 @@ impl OverworldOnlineScene {
                         .unwrap();
                 });
 
-                interface = interface.with_str(&textbox_options.default_response);
+                interface = interface.with_str(&textbox_options.initial_response);
+
+                if let Some(cancel_response) = textbox_options.cancel_response.take() {
+                    interface = interface.with_cancel_response(cancel_response);
+                }
 
                 if textbox_options.character_limit > 0 {
                     interface = interface.with_character_limit(textbox_options.character_limit);

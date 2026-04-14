@@ -7,6 +7,7 @@ pub struct TextboxPrompt {
     layout: Option<UiLayout>,
     character_limit: Option<usize>,
     initial_text: String,
+    cancel_text: String,
     ui_input_tracker: UiInputTracker,
     text_sender: flume::Sender<String>,
     text_receiver: flume::Receiver<String>,
@@ -22,6 +23,7 @@ impl TextboxPrompt {
             layout: None,
             character_limit: None,
             initial_text: String::new(),
+            cancel_text: String::new(),
             ui_input_tracker: UiInputTracker::new(),
             text_sender,
             text_receiver,
@@ -32,6 +34,11 @@ impl TextboxPrompt {
 
     pub fn with_str(mut self, text: &str) -> Self {
         self.initial_text = text.to_string();
+        self
+    }
+
+    pub fn with_cancel_response(mut self, text: String) -> Self {
+        self.cancel_text = text;
         self
     }
 
@@ -89,8 +96,13 @@ impl TextboxInterface for TextboxPrompt {
             self.layout = Some(layout);
         }
 
-        if let Ok(value) = self.text_receiver.try_recv() {
+        if let Ok(mut value) = self.text_receiver.try_recv() {
             let callback = self.callback.take().unwrap();
+
+            if value.is_empty() {
+                std::mem::swap(&mut value, &mut self.cancel_text);
+            }
+
             callback(value);
         }
     }
