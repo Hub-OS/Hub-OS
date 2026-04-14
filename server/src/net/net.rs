@@ -724,7 +724,7 @@ impl Net {
         }
     }
 
-    pub fn teleport_player(
+    pub fn move_actor(
         &mut self,
         id: ActorId,
         warp: bool,
@@ -754,6 +754,14 @@ impl Net {
             client.warp_direction = direction;
 
             // don't update internal position, allow the client to update this
+        } else if let Some(actor) = self.actors.get_mut(id) {
+            let updated_direction = Direction::from_offset((x - actor.x, y - actor.y));
+
+            if !matches!(updated_direction, Direction::None) {
+                actor.set_direction(updated_direction);
+            }
+
+            actor.set_position(x, y, z);
         }
     }
 
@@ -2358,23 +2366,6 @@ impl Net {
             Reliability::ReliableOrdered,
             packet,
         );
-    }
-
-    pub fn move_bot(&mut self, id: ActorId, x: f32, y: f32, z: f32) {
-        if self.clients.contains_key(&id) {
-            // this is a player not a bot
-            return;
-        }
-
-        if let Some(actor) = self.actors.get_mut(id) {
-            let updated_direction = Direction::from_offset((x - actor.x, y - actor.y));
-
-            if !matches!(updated_direction, Direction::None) {
-                actor.set_direction(updated_direction);
-            }
-
-            actor.set_position(x, y, z);
-        }
     }
 
     #[allow(clippy::too_many_arguments)]

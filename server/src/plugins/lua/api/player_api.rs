@@ -1,7 +1,6 @@
 use super::LuaApi;
 use super::lua_errors::{create_area_error, create_player_error};
 use super::lua_helpers::*;
-use crate::net::Direction;
 use crate::plugins::lua::api::colors::*;
 use packets::structures::{ActorId, BattleId};
 
@@ -294,25 +293,6 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         net.unlock_player_movement(player_id);
-
-        lua.pack_multi(())
-    });
-
-    lua_api.add_dynamic_function("Net", "teleport_player", |api_ctx, lua, params| {
-        let (player_id, warp, x, y, z, direction_option): (
-            ActorId,
-            bool,
-            f32,
-            f32,
-            f32,
-            Option<mlua::String>,
-        ) = lua.unpack_multi(params)?;
-
-        let mut net = api_ctx.net_ref.borrow_mut();
-
-        let direction = Direction::from(optional_lua_string_to_str(&direction_option)?);
-
-        net.teleport_player(player_id, warp, x, y, z, direction);
 
         lua.pack_multi(())
     });

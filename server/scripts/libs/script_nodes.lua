@@ -2536,15 +2536,17 @@ function ScriptNodes:implement_actor_api()
 
     if ((not context.bot_id and not actor_string) or actor_string == "Player") and context.player_ids then
       for _, player_id in ipairs(context.player_ids) do
-        Net.teleport_player(player_id, warp_in, x, y, z, direction)
+        if warp_in then
+          Net.warp_actor(player_id, x, y, z, direction)
+        else
+          Net.move_actor(player_id, x, y, z, direction)
+        end
       end
-    elseif actor_id and Net.is_player(actor_id) then
-      Net.teleport_player(actor_id, warp_in, x, y, z, direction)
-    elseif actor_id and Net.is_bot(actor_id) then
-      Net.move_bot(actor_id, x, y, z)
-
-      if direction then
-        Net.set_actor_direction(actor_id, direction)
+    elseif actor_id and Net.is_actor(actor_id) then
+      if warp_in then
+        Net.warp_actor(actor_id, x, y, z, direction)
+      else
+        Net.move_actor(actor_id, x, y, z, direction)
       end
     end
 

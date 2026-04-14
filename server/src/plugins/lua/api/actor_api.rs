@@ -176,6 +176,30 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         lua.pack_multi(())
     });
 
+    lua_api.add_dynamic_function("Net", "move_actor", |api_ctx, lua, params| {
+        let (actor_id, x, y, z, direction_option): (ActorId, f32, f32, f32, Option<mlua::String>) =
+            lua.unpack_multi(params)?;
+        let direction = Direction::from(optional_lua_string_to_str(&direction_option)?);
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+
+        net.move_actor(actor_id, false, x, y, z, direction);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function("Net", "warp_actor", |api_ctx, lua, params| {
+        let (actor_id, x, y, z, direction_option): (ActorId, f32, f32, f32, Option<mlua::String>) =
+            lua.unpack_multi(params)?;
+        let direction = Direction::from(optional_lua_string_to_str(&direction_option)?);
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+
+        net.move_actor(actor_id, true, x, y, z, direction);
+
+        lua.pack_multi(())
+    });
+
     lua_api.add_dynamic_function("Net", "transfer_actor", |api_ctx, lua, params| {
         #[allow(clippy::type_complexity)]
         let (actor_id, area_id, warp_in_option, x_option, y_option, z_option, direction_option): (

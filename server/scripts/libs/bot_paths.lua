@@ -119,7 +119,7 @@ function BotPaths:new()
         end
       end
 
-      Net.move_bot(id, x, y, z)
+      Net.move_actor(id, x, y, z)
 
       ::continue::
     end

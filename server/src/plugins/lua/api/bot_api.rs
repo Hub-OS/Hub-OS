@@ -25,6 +25,14 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         }
     });
 
+    lua_api.add_dynamic_function("Net", "is_bot", |api_ctx, lua, params| {
+        let bot_id: ActorId = lua.unpack_multi(params)?;
+
+        let net = api_ctx.net_ref.borrow();
+
+        lua.pack_multi(net.is_bot(bot_id))
+    });
+
     lua_api.add_dynamic_function("Net", "create_bot", |api_ctx, lua, params| {
         use std::time::Instant;
 
@@ -86,30 +94,12 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         }
     });
 
-    lua_api.add_dynamic_function("Net", "is_bot", |api_ctx, lua, params| {
-        let bot_id: ActorId = lua.unpack_multi(params)?;
-
-        let net = api_ctx.net_ref.borrow();
-
-        lua.pack_multi(net.is_bot(bot_id))
-    });
-
     lua_api.add_dynamic_function("Net", "remove_bot", |api_ctx, lua, params| {
         let (bot_id, warp_out): (ActorId, Option<bool>) = lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
         net.remove_bot(bot_id, warp_out.unwrap_or_default());
-
-        lua.pack_multi(())
-    });
-
-    lua_api.add_dynamic_function("Net", "move_bot", |api_ctx, lua, params| {
-        let (bot_id, x, y, z): (ActorId, f32, f32, f32) = lua.unpack_multi(params)?;
-
-        let mut net = api_ctx.net_ref.borrow_mut();
-
-        net.move_bot(bot_id, x, y, z);
 
         lua.pack_multi(())
     });

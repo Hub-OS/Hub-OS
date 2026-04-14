@@ -1,12 +1,14 @@
+local warnings = {}
+local warn_once = function(warning)
+  if not warnings[warning] then
+    warnings[warning] = true
+    warn(warning)
+  end
+end
+
 local function backwards_compat(table, old_name, new_name)
   table[old_name] = function(...)
-    warn(old_name .. "() is deprecated, use " .. new_name .. "() instead.")
-
-    -- we'll only warn once
-    table[old_name] = function(...)
-      return table[new_name](...)
-    end
-
+    warn_once(old_name .. "() is deprecated, use " .. new_name .. "() instead.")
     return table[new_name](...)
   end
 end
@@ -43,5 +45,16 @@ backwards_compat(Net, "set_bot_emote", "set_actor_emote")
 backwards_compat(Net, "exclusive_player_emote", "exclusive_actor_emote_for_player")
 backwards_compat(Net, "set_player_map_color", "set_actor_map_color")
 backwards_compat(Net, "set_bot_map_color", "set_actor_map_color")
+backwards_compat(Net, "move_bot", "move_actor")
 backwards_compat(Net, "transfer_player", "transfer_actor")
 backwards_compat(Net, "transfer_bot", "transfer_bot")
+
+function Net.teleport_player(player_id, warp, x, y, z, direction)
+  warn_once("Net.teleport_player() is deprecated, use Net.move_actor() or Net.warp_actor() instead.")
+
+  if warp then
+    Net.warp_actor(player_id, x, y, z, direction)
+  else
+    Net.move_actor(player_id, x, y, z, direction)
+  end
+end
