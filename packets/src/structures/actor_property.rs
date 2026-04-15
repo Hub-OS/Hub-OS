@@ -16,6 +16,7 @@ pub enum Ease {
     Out,
     InOut,
     Floor, // similar to steps
+    Ceil,
 }
 
 impl Ease {
@@ -30,6 +31,7 @@ impl Ease {
             Self::Out => 2.0 * progress - progress.powf(1.7),
             Self::InOut => (-2.0 * progress * progress * progress) + (3.0 * progress * progress),
             Self::Floor => progress.floor(),
+            Self::Ceil => progress.ceil(),
         };
 
         (b - a) * curve + a

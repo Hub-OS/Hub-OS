@@ -1,7 +1,7 @@
 use crate::overworld::components::{MovementAnimator, MovementState};
 use crate::render::{Animator, AnimatorLoopMode, FrameTime};
 use crate::resources::{AssetManager, AudioBehavior, Globals, OVERWORLD_RUN_THRESHOLD};
-use enum_map::EnumMap;
+use crate::structures::VecMap;
 use framework::prelude::{GameIO, Sprite, Vec3, Vec3Swizzles};
 use packets::structures::{ActorKeyFrame, ActorProperty, ActorPropertyId, Direction, Ease};
 
@@ -28,7 +28,6 @@ impl PropertyKeyFrame {
 
 #[derive(Default)]
 struct PropertyState {
-    done: bool,
     current_key_frame: usize,
     key_frames: Vec<PropertyKeyFrame>,
 }
@@ -45,8 +44,7 @@ pub struct ActorPropertyAnimator {
     animating_direction: bool,
     actor_direction: Direction,
     audio_enabled: bool,
-    property_states: EnumMap<ActorPropertyId, PropertyState>,
-    relevant_properties: Vec<ActorPropertyId>,
+    property_states: VecMap<ActorPropertyId, PropertyState>,
 }
 
 impl ActorPropertyAnimator {
@@ -63,8 +61,7 @@ impl ActorPropertyAnimator {
             animating_direction: false,
             actor_direction: Direction::None,
             audio_enabled: true,
-            property_states: EnumMap::default(),
-            relevant_properties: Vec::new(),
+            property_states: Default::default(),
         }
     }
 
@@ -86,10 +83,6 @@ impl ActorPropertyAnimator {
         for (property, ease) in keyframe.property_steps {
             let property_id = property.id();
 
-            if !self.relevant_properties.contains(&property_id) {
-                self.relevant_properties.push(property_id);
-            }
-
             let property_key_frame = PropertyKeyFrame {
                 ease,
                 property: property.clone(),
@@ -98,8 +91,13 @@ impl ActorPropertyAnimator {
                 previous_time_point: 0.0,
             };
 
-            let state = &mut self.property_states[property_id];
-            state.key_frames.push(property_key_frame);
+            if let Some(property_state) = self.property_states.get_mut(&property_id) {
+                property_state.key_frames.push(property_key_frame);
+            } else {
+                let mut property_state = PropertyState::default();
+                property_state.key_frames.push(property_key_frame);
+                self.property_states.insert(property_id, property_state);
+            }
         }
     }
 
@@ -127,8 +125,8 @@ impl ActorPropertyAnimator {
         property_animator.movement_animator_moved = movement_animator.movement_enabled();
         property_animator.sprite_animation_base_time = animator.calculate_time();
 
-        for property_id in property_animator.relevant_properties.iter().cloned() {
-            let state = &mut property_animator.property_states[property_id];
+        for (property_id, state) in property_animator.property_states.iter_mut() {
+            let property_id = *property_id;
 
             // set previous_* data
             let first_frame = &mut state.key_frames[0];
@@ -238,10 +236,8 @@ impl ActorPropertyAnimator {
 
             let previous_position = *position;
 
-            let mut property_remove_list = Vec::new();
-
-            for property_id in property_animator.relevant_properties.iter().cloned() {
-                let state = &mut property_animator.property_states[property_id];
+            for (property_id, state) in property_animator.property_states.iter_mut() {
+                let property_id = *property_id;
                 let mut key_frame = &state.key_frames[state.current_key_frame];
                 let mut swapped_key_frame = false;
 
@@ -255,7 +251,9 @@ impl ActorPropertyAnimator {
                 }
 
                 // use previous string, we should only use a string if the time point has been passed
-                let active_string_value = if property_animator.time < key_frame.time_point {
+                let active_string_value = if property_animator.time < key_frame.time_point
+                    && key_frame.ease != Ease::Ceil
+                {
                     key_frame.previous_property.get_str()
                 } else {
                     key_frame.property.get_str()
@@ -312,7 +310,10 @@ impl ActorPropertyAnimator {
                         }
                     }
                     ActorPropertyId::Direction => {
-                        if let ActorProperty::Direction(new_direction) = key_frame.property {
+                        if let ActorProperty::Direction(new_direction) = key_frame.property
+                            && (key_frame.ease == Ease::Ceil
+                                || property_animator.time >= key_frame.time_point)
+                        {
                             property_animator.actor_direction = new_direction;
                             *direction = new_direction;
                         }
@@ -325,27 +326,6 @@ impl ActorPropertyAnimator {
                             position,
                         );
                     }
-                }
-
-                // mark deletion for this tracker if it has completed
-                if property_animator.time > key_frame.time_point {
-                    property_remove_list.push(property_id);
-                }
-            }
-
-            // drop finished properties
-            for property in property_remove_list {
-                property_animator.property_states[property]
-                    .key_frames
-                    .clear();
-
-                let index = property_animator
-                    .relevant_properties
-                    .iter()
-                    .position(|p| *p == property);
-
-                if let Some(index) = index {
-                    property_animator.relevant_properties.remove(index);
                 }
             }
 
@@ -390,7 +370,7 @@ impl ActorPropertyAnimator {
             movement_animator.set_animation_enabled(!property_animator.animating_sprite);
             property_animator.sprite_animation_time += 1;
 
-            if property_animator.relevant_properties.is_empty() {
+            if property_animator.time > property_animator.total_time {
                 movement_animator.set_animation_enabled(true);
                 movement_animator.set_movement_enabled(property_animator.movement_animator_moved);
                 animator_remove_list.push(entity);

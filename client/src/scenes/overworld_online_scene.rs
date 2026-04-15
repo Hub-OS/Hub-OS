@@ -1384,17 +1384,18 @@ impl OverworldOnlineScene {
                 if let Some(entity) = self.actor_id_map.get_by_left(&actor_id) {
                     let entities = &mut self.area.entities;
 
-                    let animating_properties = entities
-                        .satisfies::<(&ActorPropertyAnimator)>(*entity)
-                        .unwrap_or(false);
-
-                    if let Ok(interpolator) =
-                        entities.query_one_mut::<(&mut MovementInterpolator)>(*entity)
-                    {
+                    if let Ok((interpolator, property_animator)) = entities.query_one_mut::<(
+                        &mut MovementInterpolator,
+                        Option<&ActorPropertyAnimator>,
+                    )>(
+                        *entity
+                    ) {
                         let tile_position = Vec3::new(x, y, z);
                         let position = self.area.map.tile_3d_to_world(tile_position);
 
-                        if animating_properties {
+                        if property_animator
+                            .is_some_and(|animator| animator.is_animating_position())
+                        {
                             interpolator.force_position(position)
                         } else if interpolator.is_movement_impossible(&self.area.map, position) {
                             if !self.excluded_actors.contains_key(&actor_id) {

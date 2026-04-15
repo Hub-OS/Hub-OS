@@ -51,6 +51,7 @@ pub fn parse_animation(keyframe_tables: Vec<mlua::Table>) -> mlua::Result<Vec<Ac
                         "Out" => Ease::Out,
                         "InOut" => Ease::InOut,
                         "Floor" => Ease::Floor,
+                        "Ceil" => Ease::Ceil,
                         _ => {
                             let error_string = format!("Unknown Ease: {ease_name_str}");
                             return Err(mlua::Error::RuntimeError(error_string));

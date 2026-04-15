@@ -26,6 +26,13 @@ where
             .map(|(_, value)| value)
     }
 
+    pub fn get_mut(&mut self, key: &K) -> Option<&mut V> {
+        self.list
+            .iter_mut()
+            .find(|(k, _)| key == k)
+            .map(|(_, value)| value)
+    }
+
     pub fn insert(&mut self, key: K, value: V) {
         if let Some(stored) = self
             .list
@@ -45,6 +52,10 @@ where
 
     pub fn iter(&self) -> impl Iterator<Item = &(K, V)> {
         self.list.iter()
+    }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = (&K, &mut V)> {
+        self.list.iter_mut().map(|(key, value)| (&*key, value))
     }
 
     pub fn from_unique_vec(v: Vec<(K, V)>) -> Self {
