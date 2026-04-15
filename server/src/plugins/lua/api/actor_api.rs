@@ -62,11 +62,11 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 
     lua_api.add_dynamic_function("Net", "set_actor_direction", |api_ctx, lua, params| {
-        let (bot_id, direction_string): (ActorId, String) = lua.unpack_multi(params)?;
+        let (actor_id, direction_string): (ActorId, String) = lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        net.set_actor_direction(bot_id, Direction::from(&direction_string));
+        net.set_actor_direction(actor_id, Direction::from(&direction_string));
 
         lua.pack_multi(())
     });
@@ -218,10 +218,10 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let y;
         let z;
 
-        if let Some(bot) = net.get_actor(actor_id) {
-            x = x_option.unwrap_or(bot.x);
-            y = y_option.unwrap_or(bot.y);
-            z = z_option.unwrap_or(bot.z);
+        if let Some(actor) = net.get_actor(actor_id) {
+            x = x_option.unwrap_or(actor.x);
+            y = y_option.unwrap_or(actor.y);
+            z = z_option.unwrap_or(actor.z);
         } else {
             return Err(create_actor_error(actor_id));
         }
