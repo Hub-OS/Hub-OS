@@ -1116,8 +1116,11 @@ impl BattleState {
             if entity.time_frozen {
                 // we can only clear statuses
                 callbacks.extend(living.status_director.take_ready_destructors());
-            } else if !living.status_director.is_dragged() {
+            } else if !living.status_director.is_dragged()
+                && !simulation.time_freeze_tracker.time_is_frozen()
+            {
                 // process statuses as long as the entity isn't being dragged and time is not frozen
+                // we want to avoid statuses ticking even when we're acting in time freeze, so we check the simulation's tracker
                 living.status_director.update_remaining_time();
 
                 StatusDirector::apply_status_changes(
