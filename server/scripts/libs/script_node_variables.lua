@@ -188,6 +188,7 @@ function ScriptNodeVariables:resolve_variable(context, tagged_variable)
   local match_start, match_end = tagged_variable:find(": ")
 
   local variable = tagged_variable
+  local scope_name
 
   if match_start then
     scope_name = variable:sub(1, match_start - 1)
@@ -367,6 +368,7 @@ function ScriptNodeVariables:set_variable(context, tagged_variable, value)
   local match_start, match_end = tagged_variable:find(": ")
 
   local variable = tagged_variable
+  local scope_name
 
   if match_start then
     scope_name = variable:sub(1, match_start - 1)
