@@ -35,6 +35,8 @@ const SECTIONS: &[(&str, &[&str])] = &[
         &[
             "Astrayisso",
             "DeltaFiend",
+            "Entropy",
+            "GabyMogaX",
             "Jack",
             "KayThree",
             "Kyqurikan",
