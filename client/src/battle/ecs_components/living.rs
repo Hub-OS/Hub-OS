@@ -493,14 +493,10 @@ impl Living {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
-        if simulation.time_freeze_tracker.time_is_frozen() {
-            return;
-        }
-
         let mut pending_cancel = Vec::new();
 
         for (id, (entity, living)) in simulation.entities.query_mut::<(&Entity, &mut Living)>() {
-            if !living.status_director.is_dragged() {
+            if !living.status_director.is_dragged() || entity.time_frozen {
                 continue;
             }
 
@@ -528,12 +524,10 @@ impl Living {
         let mut pending_movements = Vec::new();
         let mut pending_animation: Vec<EntityId> = Vec::new();
 
-        for (id, (living, movement)) in entities.query_mut::<(&mut Living, Option<&Movement>)>() {
-            if movement.is_some() {
-                continue;
-            }
-
-            if !living.status_director.is_dragged() {
+        for (id, (entity, living, movement)) in
+            entities.query_mut::<(&Entity, &mut Living, Option<&Movement>)>()
+        {
+            if !living.status_director.is_dragged() || entity.time_frozen || movement.is_some() {
                 continue;
             }
 
