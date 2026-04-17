@@ -20,7 +20,7 @@ pub struct SupportingServiceComm {
 
 impl SupportingServiceComm {
     pub fn send(&self, event: SupportingServiceEvent) {
-        self.sender.send(event).unwrap();
+        let _ = self.sender.send(event);
     }
 }
 
