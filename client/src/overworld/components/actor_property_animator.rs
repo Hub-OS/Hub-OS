@@ -226,6 +226,7 @@ impl ActorPropertyAnimator {
         );
 
         let mut animator_remove_list = Vec::new();
+        let mut warping_position = false;
 
         for (
             entity,
@@ -319,6 +320,12 @@ impl ActorPropertyAnimator {
                         }
                     }
                     _ => {
+                        if matches!(property_id, ActorPropertyId::X | ActorPropertyId::Y)
+                            && matches!(key_frame.ease, Ease::Floor | Ease::Ceil)
+                        {
+                            warping_position = true
+                        }
+
                         Self::apply_f32_property(
                             key_frame,
                             property_animator.time,
@@ -356,7 +363,7 @@ impl ActorPropertyAnimator {
 
                 let distance = position_difference.length();
 
-                let movement_state = if distance == 0.0 {
+                let movement_state = if warping_position || distance == 0.0 {
                     MovementState::Idle
                 } else if distance > OVERWORLD_RUN_THRESHOLD * 60.0 * elapsed {
                     MovementState::Walking
