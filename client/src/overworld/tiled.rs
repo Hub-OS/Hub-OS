@@ -420,6 +420,7 @@ fn parse_tile_metas(tileset_element: &roxmltree::Node, tileset: Rc<Tileset>) -> 
         tile_meta.minimap = get_or_fallback("minimap") != "false";
         tile_meta.shadow = TileShadow::from(get_or_fallback("shadow"));
         tile_meta.direction = Direction::from(custom_properties.get("direction"));
+        tile_meta.layer = get_or_fallback("layer").parse().unwrap_or_default();
         tile_meta.custom_properties = custom_properties;
         tile_meta.collision_shapes = collision_shapes;
 

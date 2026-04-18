@@ -1,12 +1,12 @@
 use super::Map;
-use crate::render::{ui::Text, SpriteColorQueue};
+use crate::render::{SpriteColorQueue, ui::Text};
 use framework::prelude::*;
-use std::cmp::Ordering;
 
 struct SortableSpriteReference {
     world_index: usize,
     entity: hecs::Entity,
     position: Vec3,
+    priority: i32,
     screen_y: f32,
 }
 
@@ -21,21 +21,23 @@ impl OverworldSpriteLayer {
         map: &Map,
         world_index: usize,
         entity: hecs::Entity,
+        priority: i32,
         position: Vec3,
     ) {
         self.sprites.push(SortableSpriteReference {
             world_index,
             entity,
             position,
+            priority,
             screen_y: map.world_to_screen(position.xy()).y,
         });
     }
 
     pub fn sort(&mut self) {
-        self.sprites.sort_unstable_by(|a, b| {
-            a.screen_y
-                .partial_cmp(&b.screen_y)
-                .unwrap_or(Ordering::Equal)
+        self.sprites.sort_by(|a, b| {
+            (-a.priority)
+                .cmp(&(-b.priority))
+                .then(a.screen_y.total_cmp(&b.screen_y))
         });
     }
 

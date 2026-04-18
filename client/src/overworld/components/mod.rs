@@ -8,6 +8,7 @@ mod movement_animator;
 mod movement_interpolator;
 mod name_label;
 mod player_map_marker;
+mod sprite_layer_priority;
 mod warp_effect;
 
 pub use actor_collider::*;
@@ -20,6 +21,7 @@ pub use movement_animator::*;
 pub use movement_interpolator::*;
 pub use name_label::*;
 pub use player_map_marker::*;
+pub use sprite_layer_priority::*;
 pub use warp_effect::*;
 
 // not necesssary but self documenting

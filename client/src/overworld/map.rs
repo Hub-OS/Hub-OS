@@ -185,6 +185,15 @@ impl Map {
 
         if let Some(sprite) = sprite {
             entity.add(sprite);
+
+            let gid = tile_object.tile.gid as usize;
+
+            if let Some(tile_meta) = self.tile_metas.get(gid)
+                && let Some(tile_meta) = tile_meta
+                && tile_meta.layer != 0
+            {
+                entity.add(SpriteLayerPriority(tile_meta.layer));
+            }
         }
 
         let entity = self.object_entities.spawn(entity.build());
@@ -742,13 +751,20 @@ impl Map {
         let mut sprite_layers: Vec<OverworldSpriteLayer> = Vec::new();
         sprite_layers.resize_with(self.tile_layers.len() + 1, Default::default);
 
-        type Query<'a> =
-            hecs::Without<(&'a Vec3, Option<&'a Sprite>, Option<&'a Text>), &'a Excluded>;
+        type Query<'a> = hecs::Without<
+            (
+                &'a Vec3,
+                Option<&'a Sprite>,
+                Option<&'a Text>,
+                Option<&'a SpriteLayerPriority>,
+            ),
+            &'a Excluded,
+        >;
 
         let queries = worlds.iter().map(|entities| entities.query::<Query>());
 
         for (world_index, mut query) in queries.enumerate() {
-            for (entity_id, (&position, sprite, text)) in query.iter() {
+            for (entity_id, (&position, sprite, text, priority)) in query.iter() {
                 if sprite.is_none() && text.is_none() {
                     continue;
                 }
@@ -760,7 +776,13 @@ impl Map {
 
                 let sprite_layer = &mut sprite_layers[layer_index];
 
-                sprite_layer.add_sprite(self, world_index, entity_id, position);
+                sprite_layer.add_sprite(
+                    self,
+                    world_index,
+                    entity_id,
+                    priority.copied().unwrap_or_default().0,
+                    position,
+                );
             }
         }
 
