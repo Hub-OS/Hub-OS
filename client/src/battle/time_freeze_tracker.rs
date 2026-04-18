@@ -293,9 +293,14 @@ impl TimeFreezeTracker {
     }
 
     pub fn active_action_index(&self) -> Option<GenerationalIndex> {
-        if self.state != ActionFreezeState::Action.into()
-            && self.state != ActionFreezeState::BeginAction.into()
-        {
+        if matches!(
+            self.state,
+            TimeFreezeState::Action(
+                ActionFreezeState::Action
+                    | ActionFreezeState::BeginAction
+                    | ActionFreezeState::ActionCleanup
+            )
+        ) {
             return None;
         }
 
