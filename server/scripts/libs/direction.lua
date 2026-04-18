@@ -138,4 +138,65 @@ function Direction.unit_vector_multi(direction)
   end
 end
 
+local split_directions = {
+  [Direction.UP] = { "", Direction.UP },
+  [Direction.DOWN] = { "", Direction.DOWN },
+  [Direction.LEFT] = { Direction.LEFT, "" },
+  [Direction.RIGHT] = { Direction.RIGHT, "" },
+  [Direction.UP_LEFT] = { Direction.LEFT, Direction.UP },
+  [Direction.UP_RIGHT] = { Direction.RIGHT, Direction.UP },
+  [Direction.DOWN_LEFT] = { Direction.LEFT, Direction.DOWN },
+  [Direction.DOWN_RIGHT] = { Direction.RIGHT, Direction.DOWN },
+}
+
+--- Returns two directions, a horizontal direction and vertical direction.
+---
+--- Blank strings will be returned for neutral directions
+---@param direction string
+function Direction.split(direction)
+  direction = direction:upper()
+
+  local split_list = split_directions[direction]
+
+  if split_list then
+    return split_list[1], split_list[2]
+  end
+
+  return "", ""
+end
+
+---@param direction_a string
+---@param direction_b string
+function Direction.join(direction_a, direction_b)
+  local a_x, a_y = Direction.split(direction_a)
+  local b_x, b_y = Direction.split(direction_b)
+
+  local x = ""
+  local y = ""
+
+  if a_x ~= b_x then
+    if a_x == "" then
+      x = b_x
+    else
+      x = a_x
+    end
+  end
+
+  if a_y ~= b_y then
+    if a_y == "" then
+      y = b_y
+    elseif b_y == "" then
+      y = a_y
+    end
+  end
+
+  if x == "" then
+    return y
+  elseif y == "" then
+    return x
+  end
+
+  return y .. " " .. x
+end
+
 return Direction
