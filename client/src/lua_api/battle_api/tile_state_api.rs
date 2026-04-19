@@ -3,7 +3,8 @@ use super::field_api::get_field_compat_table;
 use super::tile_api::create_tile_table;
 use super::{
     BattleLuaApi, CAN_REPLACE_FN, CUSTOM_TILE_STATE_TABLE, ENTITY_ENTER_FN, ENTITY_LEAVE_FN,
-    ENTITY_STOP_FN, REPLACE_FN, TILE_STATE_TABLE, TILE_TABLE, UPDATE_FN, create_entity_table,
+    ENTITY_STOP_FN, ON_SET_FN, REPLACE_FN, TILE_STATE_TABLE, TILE_TABLE, UPDATE_FN,
+    create_entity_table,
 };
 use crate::battle::{BattleCallback, TileState};
 use crate::lua_api::helpers::inherit_metatable;
@@ -66,6 +67,13 @@ fn inject_custom_tile_state_api(lua_api: &mut BattleLuaApi) {
 
         lua.pack_multi(field_table)
     });
+
+    callback_setter(
+        lua_api,
+        ON_SET_FN,
+        |tile_state| &mut tile_state.set_callback,
+        |lua, table, (x, y)| lua.pack_multi((table, create_tile_table(lua, (x, y))?)),
+    );
 
     callback_setter(
         lua_api,

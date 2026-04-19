@@ -89,6 +89,9 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         tile.set_state_index(state_index, tile_state.max_lifetime);
 
         if state_index != old_state_index {
+            // save the set_callback for later
+            let set_callback = tile_state.set_callback.clone();
+
             // activate entity_enter_callback for every entity on this tile
             let tile_callback = tile_state.entity_enter_callback.clone();
 
@@ -104,9 +107,12 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
             }
 
             // let the old state know it was replaced
-            let old_tile_state = simulation.tile_states.get(old_state_index).unwrap();
+            let old_tile_state = &simulation.tile_states[old_state_index];
             let replace_callback = old_tile_state.replace_callback.clone();
             replace_callback.call(game_io, resources, simulation, (x, y));
+
+            // let the new tile know it was set
+            set_callback.call(game_io, resources, simulation, (x, y));
         }
 
         lua.pack_multi(())

@@ -149,6 +149,7 @@ pub const FILTER_HIT_PROPS_FN: &str = "filter_func";
 pub const REPLACE_FN: &str = "on_replace_func";
 
 // tile states
+pub const ON_SET_FN: &str = "on_set_func";
 pub const CAN_REPLACE_FN: &str = "can_replace_func";
 pub const ENTITY_ENTER_FN: &str = "on_entity_enter_func";
 pub const ENTITY_LEAVE_FN: &str = "on_entity_leave_func";

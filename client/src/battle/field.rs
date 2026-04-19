@@ -307,6 +307,8 @@ impl Field {
         }
 
         // revert state timers
+        let normal_tile_state = &simulation.tile_states[TileState::NORMAL];
+
         for tile in &mut simulation.field.tiles {
             let prev_state_index = tile.state_index();
 
@@ -320,8 +322,11 @@ impl Field {
             let tile_callback = tile_state.replace_callback.clone();
             let tile_position = tile.position();
 
+            let normal_state_set_callback = normal_tile_state.set_callback.clone();
+
             let callback = BattleCallback::new(move |game_io, resources, simulation, ()| {
                 tile_callback.call(game_io, resources, simulation, tile_position);
+                normal_state_set_callback.call(game_io, resources, simulation, tile_position);
             });
 
             simulation.pending_callbacks.push(callback);

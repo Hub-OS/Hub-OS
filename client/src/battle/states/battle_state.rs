@@ -828,6 +828,9 @@ impl BattleState {
         Living::aux_prop_cleanup(simulation, |aux_prop| aux_prop.effect().hit_related());
 
         // resolve wash
+        let normal_tile_state = &simulation.tile_states[TileState::NORMAL];
+        let normal_state_set_callback = normal_tile_state.set_callback.clone();
+
         for (state_index, (x, y)) in washed_tiles {
             let Some(tile) = simulation.field.tile_at_mut((x, y)) else {
                 continue;
@@ -847,6 +850,7 @@ impl BattleState {
                 if let Some(tile) = simulation.field.tile_at_mut((x, y)) {
                     tile.set_state_index(TileState::NORMAL, None);
                     replace_callback.call(game_io, resources, simulation, (x, y));
+                    normal_state_set_callback.call(game_io, resources, simulation, (x, y));
                 }
             }
         }
