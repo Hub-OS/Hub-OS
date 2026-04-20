@@ -293,7 +293,7 @@ impl TimeFreezeTracker {
     }
 
     pub fn active_action_index(&self) -> Option<GenerationalIndex> {
-        if matches!(
+        if !matches!(
             self.state,
             TimeFreezeState::Action(
                 ActionFreezeState::Action
