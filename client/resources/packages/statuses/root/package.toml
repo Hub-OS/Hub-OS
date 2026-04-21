@@ -6,4 +6,5 @@ flag_name = "Root"
 mutual_exclusions = []
 blocks_actions = false
 blocks_mobility = true
+ailment = true
 durations = [90]

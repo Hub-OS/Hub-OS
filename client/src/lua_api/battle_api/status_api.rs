@@ -193,6 +193,13 @@ pub fn inject_hit_flag_api(lua_api: &mut BattleLuaApi) {
 
         lua.pack_multi(status_registry.immobilizing_flags())
     });
+
+    lua_api.add_dynamic_function(HIT_HELPER_TABLE, "ailments", |api_ctx, lua, _| {
+        let api_ctx = api_ctx.borrow();
+        let status_registry = &api_ctx.resources.status_registry;
+
+        lua.pack_multi(status_registry.ailment_flags())
+    });
 }
 
 pub fn create_status_table(

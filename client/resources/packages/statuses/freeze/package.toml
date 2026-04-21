@@ -6,4 +6,5 @@ flag_name = "Freeze"
 mutual_exclusions = ["Confuse", "Paralyze"]
 blocks_actions = true
 blocks_mobility = false
+ailment = true
 durations = [150]

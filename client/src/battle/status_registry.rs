@@ -28,6 +28,7 @@ pub struct RegisterStatusRequest<'a> {
     pub durations: &'a [i64],
     pub blocks_actions: bool,
     pub blocks_mobility: bool,
+    pub ailment: bool,
     pub vm_index: usize,
 }
 
@@ -57,6 +58,7 @@ pub struct StatusRegistry {
     overrides: HashMap<HitFlags, HitFlags>,
     immobilizing_flags: HitFlags,
     inactionable_flags: HitFlags,
+    ailment_flags: HitFlags,
 }
 
 impl StatusRegistry {
@@ -68,6 +70,7 @@ impl StatusRegistry {
             overrides: Default::default(),
             immobilizing_flags: HitFlag::NONE,
             inactionable_flags: HitFlag::NONE,
+            ailment_flags: HitFlag::NONE,
         }
     }
 
@@ -100,6 +103,7 @@ impl StatusRegistry {
                 durations: &package.durations,
                 blocks_actions: package.blocks_actions,
                 blocks_mobility: package.blocks_mobility,
+                ailment: package.ailment,
                 vm_index,
             });
         }
@@ -150,6 +154,7 @@ impl StatusRegistry {
             // overwrite existing flag
             self.immobilizing_flags &= !flag;
             self.inactionable_flags &= !flag;
+            self.ailment_flags &= !flag;
         } else {
             // use a new flag
             if self.next_shift >= STATUS_LIMIT {
@@ -198,6 +203,10 @@ impl StatusRegistry {
 
         if request.blocks_mobility {
             self.immobilizing_flags |= flag;
+        }
+
+        if request.ailment {
+            self.ailment_flags |= flag;
         }
 
         Some(flag)
@@ -270,5 +279,9 @@ impl StatusRegistry {
 
     pub fn inactionable_flags(&self) -> HitFlags {
         self.inactionable_flags
+    }
+
+    pub fn ailment_flags(&self) -> HitFlags {
+        self.ailment_flags
     }
 }

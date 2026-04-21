@@ -6,3 +6,4 @@ flag_name = "Flinch"
 mutual_exclusions = []
 blocks_actions = false
 blocks_mobility = false
+ailment = true

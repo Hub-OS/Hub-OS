@@ -470,6 +470,7 @@ mod test {
                 durations: request.durations,
                 blocks_actions: request.blocks_actions,
                 blocks_mobility: request.blocks_mobility,
+                ailment: false,
                 vm_index: 0, // unused
             })
             .unwrap()

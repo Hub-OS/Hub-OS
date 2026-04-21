@@ -19,6 +19,7 @@ struct StatusMeta {
     blocks_flags: Vec<String>,
     blocks_actions: bool,
     blocks_mobility: bool,
+    ailment: bool,
     durations: Vec<FrameTime>,
     tags: Vec<String>,
 }
@@ -36,6 +37,7 @@ pub struct StatusPackage {
     pub blocks_flags: Vec<String>,
     pub blocks_actions: bool,
     pub blocks_mobility: bool,
+    pub ailment: bool,
     pub durations: Vec<FrameTime>,
 }
 
@@ -101,6 +103,7 @@ impl Package for StatusPackage {
         package.blocks_flags = meta.blocks_flags;
         package.blocks_actions = meta.blocks_actions;
         package.blocks_mobility = meta.blocks_mobility;
+        package.ailment = meta.ailment;
         package.durations = meta.durations;
 
         if package.durations.is_empty() {

@@ -6,4 +6,5 @@ flag_name = "Blind"
 mutual_exclusions = []
 blocks_actions = false
 blocks_mobility = false
+ailment = true
 durations = [480, 1200]
