@@ -378,7 +378,10 @@ impl Living {
             }
 
             // handle drag
-            if hit_props.drags() && !living.status_director.is_dragged() {
+            if hit_props.drags()
+                && !living.status_director.is_dragged()
+                && living.status_director.immunities() & HitFlag::DRAG == 0
+            {
                 living.status_director.set_drag(hit_props.drag);
 
                 // cancel movement
