@@ -138,6 +138,55 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
 
     lua_api.add_dynamic_function(
         PLAYER_FORM_TABLE,
+        "activate",
+        move |api_ctx, lua, params| {
+            let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+            let entity_id: EntityId = table.raw_get("#entity_id")?;
+            let index: usize = table.raw_get("#index")?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let simulation = &mut *api_ctx.simulation;
+            let entities = &mut simulation.entities;
+            let player = entities
+                .query_one_mut::<&mut Player>(entity_id.into())
+                .map_err(|_| entity_not_found())?;
+
+            if player.active_form == Some(index) {
+                // already active
+                return lua.pack_multi(());
+            }
+
+            // deactivate previous form
+            if let Some(prev_index) = player.active_form.take()
+                && let Some(prev_form) = player.forms.get_mut(prev_index)
+            {
+                prev_form.deactivated = true;
+
+                if let Some(callback) = &prev_form.deactivate_callback {
+                    simulation.pending_callbacks.push(callback.clone());
+                }
+            }
+
+            // activate new form
+            let form = player.forms.get_mut(index).ok_or_else(form_not_found)?;
+            form.activated = true;
+
+            player.active_form = Some(index);
+            player.form_boost_order = player.augments.len();
+
+            if let Some(callback) = &form.activate_callback {
+                simulation.pending_callbacks.push(callback.clone());
+            }
+
+            simulation.call_pending_callbacks(api_ctx.game_io, api_ctx.resources);
+
+            lua.pack_multi(())
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        PLAYER_FORM_TABLE,
         "deactivate",
         move |api_ctx, lua, params| {
             let table: rollback_mlua::Table = lua.unpack_multi(params)?;
