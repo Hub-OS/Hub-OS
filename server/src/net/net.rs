@@ -477,22 +477,22 @@ impl Net {
             }
         }
 
-        if !is_player {
-            // set position directly, to avoid reseting the animation
+        if is_player {
+            ensure_assets(
+                &mut self.packet_orchestrator.borrow_mut(),
+                self.config.args.max_payload_size,
+                &self.asset_manager,
+                &mut self.clients,
+                &[id],
+                asset_paths.iter(),
+            );
+        } else {
+            // set position directly, to avoid resetting the animation
             actor.x = final_x;
             actor.y = final_y;
             actor.z = final_z;
             actor.direction = final_direction;
         }
-
-        ensure_assets(
-            &mut self.packet_orchestrator.borrow_mut(),
-            self.config.args.max_payload_size,
-            &self.asset_manager,
-            &mut self.clients,
-            &[id],
-            asset_paths.iter(),
-        );
 
         broadcast_actor_keyframes(
             &mut self.packet_orchestrator.borrow_mut(),
@@ -2927,7 +2927,9 @@ fn ensure_asset<PI, P>(
         let mut byte_vecs = Vec::new();
 
         for player_id in player_ids.clone() {
-            let client = clients.get_mut(player_id.deref()).unwrap();
+            let Some(client) = clients.get_mut(player_id.deref()) else {
+                continue;
+            };
 
             if asset.cachable && client.cached_assets.contains(asset_path) {
                 continue;
