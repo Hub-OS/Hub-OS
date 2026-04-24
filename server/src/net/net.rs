@@ -44,7 +44,6 @@ impl Net {
         let mut asset_manager = AssetManager::new();
         asset_manager.load_assets_from_dir("assets");
         asset_manager.load_mods_from_dir("mods");
-        asset_manager.print_missing();
 
         let mut areas = HashMap::new();
         let mut default_area_provided = false;
@@ -78,6 +77,8 @@ impl Net {
         if !default_area_provided {
             panic!("No default (default.tmx) area data found");
         }
+
+        asset_manager.print_missing();
 
         Net {
             packet_orchestrator,
