@@ -73,6 +73,56 @@ impl AssetManager {
         }
     }
 
+    pub fn print_missing(&self) {
+        use std::collections::HashSet;
+
+        #[derive(Clone, PartialEq, Eq, Hash)]
+        enum RequestedAsset<'a> {
+            Path(&'a str),
+            Package(&'a PackageId),
+        }
+
+        impl<'a> From<&'a AssetId> for RequestedAsset<'a> {
+            fn from(value: &'a AssetId) -> Self {
+                match value {
+                    AssetId::AssetPath(path) => RequestedAsset::Path(path.as_str()),
+                    AssetId::Package(package_info) => RequestedAsset::Package(&package_info.id),
+                }
+            }
+        }
+
+        let mut requested: HashSet<_> = self
+            .assets
+            .values()
+            .flat_map(|asset| asset.dependencies.iter().map(RequestedAsset::from))
+            .collect();
+
+        for (key, asset) in &self.assets {
+            requested.remove(&RequestedAsset::Path(key));
+
+            for name in &asset.alternate_names {
+                requested.remove(&RequestedAsset::from(name));
+            }
+        }
+
+        if requested.is_empty() {
+            return;
+        }
+
+        let mut message = String::from("Missing assets:");
+
+        for requested_name in requested {
+            message += "\n  ";
+
+            match requested_name {
+                RequestedAsset::Path(name) => message += name,
+                RequestedAsset::Package(package_id) => message += package_id.as_str(),
+            }
+        }
+
+        log::warn!("{message}")
+    }
+
     pub fn get_asset(&self, path: &str) -> Option<&Asset> {
         self.assets.get(path)
     }
