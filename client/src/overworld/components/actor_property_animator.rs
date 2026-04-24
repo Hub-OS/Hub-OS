@@ -239,6 +239,7 @@ impl ActorPropertyAnimator {
 
             for (property_id, state) in property_animator.property_states.iter_mut() {
                 let property_id = *property_id;
+                let last_tick_key_frame_index = state.current_key_frame;
                 let mut key_frame = &state.key_frames[state.current_key_frame];
                 let mut swapped_key_frame = false;
 
@@ -260,15 +261,27 @@ impl ActorPropertyAnimator {
                     key_frame.property.get_str()
                 };
 
+                let active_string_swapped = if key_frame.ease == Ease::Ceil {
+                    // just started this keyframe
+                    property_animator.time == elapsed || swapped_key_frame
+                } else {
+                    let last_frame_waits_for_swap =
+                        state.key_frames[last_tick_key_frame_index].ease == Ease::Floor;
+
+                    // we never played the animation from the last keyframe
+                    let skipped_key_frames =
+                        state.current_key_frame - last_tick_key_frame_index > 1;
+
+                    swapped_key_frame && (last_frame_waits_for_swap || skipped_key_frames)
+                };
+
                 // update property
                 match property_id {
                     ActorPropertyId::Animation | ActorPropertyId::AnimationLoop => {
                         property_animator.animating_sprite =
                             animator.has_state(active_string_value);
 
-                        if animator.current_state() != Some(active_string_value)
-                            && animator.has_state(active_string_value)
-                        {
+                        if active_string_swapped && animator.has_state(active_string_value) {
                             animator.set_state(active_string_value);
 
                             if property_id == ActorPropertyId::AnimationLoop {
@@ -291,7 +304,7 @@ impl ActorPropertyAnimator {
                     }
                     ActorPropertyId::SoundEffect => {
                         if property_animator.audio_enabled
-                            && swapped_key_frame
+                            && active_string_swapped
                             && !active_string_value.is_empty()
                         {
                             let sfx = assets.audio(game_io, active_string_value);
