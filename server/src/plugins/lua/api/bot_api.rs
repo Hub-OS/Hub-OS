@@ -50,6 +50,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let x: Option<f32> = table.get("x")?;
         let y: Option<f32> = table.get("y")?;
         let z: Option<f32> = table.get("z")?;
+        let sprite_layer: Option<i32> = table.get("sprite_layer")?;
         let direction: Option<String> = table.get("direction")?;
         let solid: Option<bool> = table.get("solid")?;
 
@@ -79,6 +80,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
                 scale_x: 1.0,
                 scale_y: 1.0,
                 rotation: 0.0,
+                sprite_layer: sprite_layer.unwrap_or_default(),
                 map_color: (0, 0, 0, 0),
                 current_animation: animation,
                 loop_animation: loop_animation.unwrap_or(false),

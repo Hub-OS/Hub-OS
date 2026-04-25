@@ -341,6 +341,30 @@ impl Net {
         }
     }
 
+    pub fn set_actor_sprite_layer(&mut self, id: ActorId, sprite_layer: i32) {
+        let Some(actor) = self.actors.get_mut(id) else {
+            return;
+        };
+
+        actor.sprite_layer = sprite_layer;
+
+        let Some(area) = self.areas.get(&actor.area_id) else {
+            // area deleted, should be getting kicked
+            return;
+        };
+
+        let packet_orchestrator = &mut *self.packet_orchestrator.borrow_mut();
+        broadcast_to_area(
+            packet_orchestrator,
+            area,
+            Reliability::ReliableOrdered,
+            ServerPacket::ActorSetSpriteLayer {
+                actor_id: id,
+                sprite_layer,
+            },
+        );
+    }
+
     pub fn set_actor_emote(&mut self, id: ActorId, emote_id: String) {
         let Some(actor) = self.actors.get(id) else {
             return;

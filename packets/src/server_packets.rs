@@ -282,6 +282,7 @@ pub enum ServerPacket {
         scale_x: f32,
         scale_y: f32,
         rotation: f32,
+        sprite_layer: i32,
         map_color: (u8, u8, u8, u8),
         animation: Option<String>,
         loop_animation: bool,
@@ -305,6 +306,10 @@ pub enum ServerPacket {
         actor_id: ActorId,
         texture_path: String,
         animation_path: String,
+    },
+    ActorSetSpriteLayer {
+        actor_id: ActorId,
+        sprite_layer: i32,
     },
     ActorEmote {
         actor_id: ActorId,

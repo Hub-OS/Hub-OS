@@ -1256,6 +1256,7 @@ impl OverworldOnlineScene {
                 scale_x,
                 scale_y,
                 rotation,
+                sprite_layer,
                 map_color,
                 animation,
                 loop_animation,
@@ -1288,9 +1289,11 @@ impl OverworldOnlineScene {
                     entity
                 };
 
-                if entity != self.area.player_data.entity {
-                    let entities = &mut self.area.entities;
+                // update shared properties
+                let entities = &mut self.area.entities;
+                let _ = entities.insert_one(entity, SpriteLayerPriority(sprite_layer));
 
+                if entity != self.area.player_data.entity {
                     // tweak existing properties
                     let (sprite, direction, collider, map_marker) = entities
                         .query_one_mut::<(
@@ -1307,7 +1310,7 @@ impl OverworldOnlineScene {
                     collider.solid = solid;
                     map_marker.color = map_color.into();
 
-                    // setup remote player specific components
+                    // set up remote player specific components
                     let _ = entities.insert(
                         entity,
                         (
@@ -1318,7 +1321,7 @@ impl OverworldOnlineScene {
                     );
 
                     if let Some(state) = animation {
-                        // setup initial animation
+                        // set up initial animation
                         let (animator, movement_animator) = entities
                             .query_one_mut::<(&mut Animator, &mut MovementAnimator)>(entity)
                             .unwrap();
@@ -1432,6 +1435,16 @@ impl OverworldOnlineScene {
                     animator.load(&self.assets, &animation_path);
 
                     movement_animator.set_animation_enabled(true);
+                }
+            }
+            ServerPacket::ActorSetSpriteLayer {
+                actor_id,
+                sprite_layer,
+            } => {
+                if let Some(&entity) = self.actor_id_map.get_by_left(&actor_id) {
+                    // update shared properties
+                    let entities = &mut self.area.entities;
+                    let _ = entities.insert_one(entity, SpriteLayerPriority(sprite_layer));
                 }
             }
             ServerPacket::ActorEmote { actor_id, emote_id } => {

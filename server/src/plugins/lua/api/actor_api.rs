@@ -154,6 +154,28 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         lua.pack_multi(())
     });
 
+    lua_api.add_dynamic_function("Net", "set_actor_sprite_layer", |api_ctx, lua, params| {
+        let (actor_id, sprite_layer): (ActorId, i32) = lua.unpack_multi(params)?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+
+        net.set_actor_sprite_layer(actor_id, sprite_layer);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function("Net", "get_actor_sprite_layer", |api_ctx, lua, params| {
+        let actor_id: ActorId = lua.unpack_multi(params)?;
+
+        let net = api_ctx.net_ref.borrow();
+
+        if let Some(actor) = net.get_actor(actor_id) {
+            lua.pack_multi(actor.sprite_layer)
+        } else {
+            Err(create_actor_error(actor_id))
+        }
+    });
+
     lua_api.add_dynamic_function("Net", "set_actor_emote", |api_ctx, lua, params| {
         let (actor_id, emote_id): (ActorId, String) = lua.unpack_multi(params)?;
 

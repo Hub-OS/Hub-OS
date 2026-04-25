@@ -98,6 +98,7 @@ impl Client {
             scale_x: 1.0,
             scale_y: 1.0,
             rotation: 0.0,
+            sprite_layer: 0,
             map_color: (248, 248, 0, 255),
             current_animation: None,
             loop_animation: false,
