@@ -265,14 +265,22 @@ impl ActorPropertyAnimator {
                     // just started this keyframe
                     property_animator.time == elapsed || swapped_key_frame
                 } else {
-                    let last_frame_waits_for_swap =
-                        state.key_frames[last_tick_key_frame_index].ease == Ease::Floor;
+                    // floor ease
+                    let prev_tick_key_frame = &state.key_frames[last_tick_key_frame_index];
+                    let prev_frame_waits_for_swap = prev_tick_key_frame.ease == Ease::Floor;
 
-                    // we never played the animation from the last keyframe
+                    // we never played the animation from the prev keyframe
                     let skipped_key_frames =
                         state.current_key_frame - last_tick_key_frame_index > 1;
 
-                    swapped_key_frame && (last_frame_waits_for_swap || skipped_key_frames)
+                    // floor ease, and this is the last keyframe, see if we would've switched this frame
+                    let is_last_keyframe = state.current_key_frame == state.key_frames.len() - 1;
+                    let would_have_switched = is_last_keyframe
+                        && property_animator.time - elapsed < key_frame.time_point
+                        && property_animator.time >= key_frame.time_point;
+
+                    (is_last_keyframe && would_have_switched)
+                        || (swapped_key_frame && (prev_frame_waits_for_swap || skipped_key_frames))
                 };
 
                 // update property
