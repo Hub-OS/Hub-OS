@@ -1750,41 +1750,44 @@ impl BlockList {
     }
 
     fn add_installed_block(&mut self, game_io: &GameIO, block: InstalledBlock) {
-        match self.find_insertion_index(&block.package_id) {
-            Ok(index) => {
-                let list_item = self.get_mut(index).unwrap();
-                let mut colors_iter = list_item.colors.iter_mut();
+        if let Some(list_item) = self.all_items.get_mut(&block.package_id) {
+            // update existing list item
+            let mut colors_iter = list_item.colors.iter_mut();
 
-                if let Some(i) = colors_iter.position(|(color, _)| *color == block.color) {
-                    let (_, count) = &mut list_item.colors[i];
-                    *count += 1;
+            if let Some(i) = colors_iter.position(|(color, _)| *color == block.color) {
+                let (_, count) = &mut list_item.colors[i];
+                *count += 1;
 
+                list_item.selected_color = i;
+            }
+        } else {
+            // create a new list item
+            let globals = Globals::from_resources(game_io);
+            let package = globals
+                .augment_packages
+                .package(PackageNamespace::Local, &block.package_id)
+                .unwrap();
+
+            let mut list_item = ListItem::new(game_io, &globals.restrictions, package);
+
+            for (i, (color, count)) in list_item.colors.iter_mut().enumerate() {
+                if *color == block.color {
+                    *count = 1;
                     list_item.selected_color = i;
+                } else {
+                    *count = 0;
                 }
             }
-            Err(index) => {
-                let globals = Globals::from_resources(game_io);
-                let package = globals
-                    .augment_packages
-                    .package(PackageNamespace::Local, &block.package_id)
-                    .unwrap();
 
-                let mut list_item = ListItem::new(game_io, &globals.restrictions, package);
+            self.all_items.insert(list_item.id.clone(), list_item);
+        }
 
-                for (i, (color, count)) in list_item.colors.iter_mut().enumerate() {
-                    if *color == block.color {
-                        *count = 1;
-                        list_item.selected_color = i;
-                    } else {
-                        *count = 0;
-                    }
-                }
-
-                self.visible_packages.insert(index, list_item.id.clone());
-                self.all_items.insert(list_item.id.clone(), list_item);
-                self.update_total_items();
-            }
-        };
+        // make sure this item is visible to allow players to quickly place it back
+        if let Err(index) = self.find_insertion_index(&block.package_id) {
+            let package_id = block.package_id.clone();
+            self.visible_packages.insert(index, package_id);
+            self.update_total_items();
+        }
     }
 
     fn apply_filters(&mut self, game_io: &GameIO) {
