@@ -8,7 +8,7 @@ pub const SERVER_TICK_RATE: Duration = Duration::from_millis(50); // 1 / 20 of a
 pub const MAX_IDLE_DURATION: Duration = Duration::from_secs(1);
 
 pub const MULTICAST_V4: Ipv4Addr = Ipv4Addr::new(224, 0, 2, 88);
-pub const MULTICAST_PORT: u16 = 7370;
+pub const MULTICAST_PORT: u16 = 7878;
 pub const MULTICAST_ADDR: SocketAddr =
     SocketAddr::V4(SocketAddrV4::new(MULTICAST_V4, MULTICAST_PORT));
 
