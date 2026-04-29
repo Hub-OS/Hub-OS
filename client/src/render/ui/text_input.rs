@@ -264,7 +264,7 @@ impl UiNode for TextInput {
 
         if holding_ctrl && input.was_key_just_pressed(Key::V) {
             // pasting
-            incoming_text.clone_from(&input.request_clipboard_text());
+            incoming_text.clone_from(&input.clipboard_mut().request_text());
         }
 
         if updated_pre_edit || !incoming_text.is_empty() {

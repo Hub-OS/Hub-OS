@@ -442,14 +442,6 @@ impl SwitchDrivesScene {
     fn handle_input(&mut self, game_io: &mut GameIO) {
         let globals = Globals::from_resources(game_io);
 
-        // clipboard isn't available on android
-        #[cfg(not(target_os = "android"))]
-        if self.input_tracker.pulsed(Input::Option2) {
-            self.context_menu.open();
-            globals.audio.play_sound(&globals.sfx.cursor_select);
-            return;
-        }
-
         let prev_state = self.state;
         let prev_slot_index = self.equipment_scroll_tracker.selected_index();
         let prev_list_index = self.list_scroll_tracker.selected_index();
@@ -672,7 +664,7 @@ impl SwitchDrivesScene {
                     })
                     .join("\n");
 
-                let copied = game_io.input_mut().set_clipboard_text(text);
+                let copied = game_io.input_mut().clipboard_mut().set_text(text);
 
                 let globals = Globals::from_resources(game_io);
                 let message = if copied {
@@ -686,7 +678,7 @@ impl SwitchDrivesScene {
                 self.textbox.open();
             }
             ContextOption::Import => {
-                let text = game_io.input_mut().request_clipboard_text();
+                let text = game_io.input_mut().clipboard_mut().request_text();
 
                 if !text.is_empty() {
                     // move drives back into the list

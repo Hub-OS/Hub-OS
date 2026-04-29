@@ -30,7 +30,6 @@ enum DeckOption {
 impl DeckOption {
     const FRESH_PAGE: &[(&'static str, DeckOption)] = &[
         ("deck-list-option-new", DeckOption::New),
-        #[cfg(not(target_os = "android"))]
         ("deck-list-option-import", DeckOption::Import),
     ];
 
@@ -45,9 +44,7 @@ impl DeckOption {
     const PAGE_2: &[(&'static str, DeckOption)] = &[
         ("deck-list-option-back", DeckOption::Back),
         ("deck-list-option-clone", DeckOption::Clone),
-        #[cfg(not(target_os = "android"))]
         ("deck-list-option-export", DeckOption::Export),
-        #[cfg(not(target_os = "android"))]
         ("deck-list-option-import", DeckOption::Import),
         ("deck-list-option-delete", DeckOption::Delete),
     ];
@@ -581,7 +578,7 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
             let index = scene.deck_scroll_tracker.selected_index();
             let deck = &globals.global_save.decks[index];
             let text = deck.export_string(game_io);
-            let copied = game_io.input_mut().set_clipboard_text(text);
+            let copied = game_io.input_mut().clipboard_mut().set_text(text);
 
             let globals = Globals::from_resources(game_io);
             let message = if copied {
@@ -598,7 +595,7 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
             let next_index = scene.deck_scroll_tracker.selected_index() + 1;
             let insert_index = globals.global_save.decks.len().min(next_index);
 
-            let text = game_io.input_mut().request_clipboard_text();
+            let text = game_io.input_mut().clipboard_mut().request_text();
 
             if let Some(mut deck) = Deck::import_string(&text) {
                 let globals = Globals::from_resources(game_io);

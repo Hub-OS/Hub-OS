@@ -9,7 +9,6 @@ use crate::render::ui::{
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, FrameTime, SpriteColorQueue};
 use crate::resources::*;
 use crate::saves::{BlockGrid, BlockShape, GlobalSave, InstalledBlock};
-use framework::cfg_macros::cfg_android;
 use framework::prelude::*;
 use itertools::Itertools;
 use packets::structures::PackageCategory;
@@ -413,23 +412,10 @@ impl BlocksScene {
         }
 
         let options: &[(&str, GridOption)] = if has_block {
-            if cfg_android!() {
-                &[
-                    ("blocks-option-move", GridOption::Move),
-                    ("blocks-option-remove", GridOption::Remove),
-                    ("augments-option-clear", GridOption::Clear),
-                ]
-            } else {
-                &[
-                    ("blocks-option-move", GridOption::Move),
-                    ("blocks-option-remove", GridOption::Remove),
-                    ("blocks-option-more", GridOption::More),
-                ]
-            }
-        } else if cfg_android!() {
             &[
-                ("augments-option-search", GridOption::Search),
-                ("augments-option-clear", GridOption::Clear),
+                ("blocks-option-move", GridOption::Move),
+                ("blocks-option-remove", GridOption::Remove),
+                ("blocks-option-more", GridOption::More),
             ]
         } else {
             &[
@@ -515,7 +501,7 @@ impl BlocksScene {
             GridOption::Export => {
                 let text = self.grid.export_string(game_io);
 
-                let copied = game_io.input_mut().set_clipboard_text(text);
+                let copied = game_io.input_mut().clipboard_mut().set_text(text);
 
                 let globals = Globals::from_resources(game_io);
                 let message = if copied {
@@ -529,7 +515,7 @@ impl BlocksScene {
                 self.textbox.open();
             }
             GridOption::Import => {
-                let text = game_io.input_mut().request_clipboard_text();
+                let text = game_io.input_mut().clipboard_mut().request_text();
 
                 let blocks = BlockGrid::import_string(&text);
 
