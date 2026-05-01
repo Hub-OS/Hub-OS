@@ -442,6 +442,12 @@ impl SwitchDrivesScene {
     fn handle_input(&mut self, game_io: &mut GameIO) {
         let globals = Globals::from_resources(game_io);
 
+        if self.input_tracker.pulsed(Input::Option2) {
+            self.context_menu.open();
+            globals.audio.play_sound(&globals.sfx.cursor_select);
+            return;
+        }
+
         let prev_state = self.state;
         let prev_slot_index = self.equipment_scroll_tracker.selected_index();
         let prev_list_index = self.list_scroll_tracker.selected_index();
