@@ -17,6 +17,8 @@ pub(super) struct Client {
     pub socket_address: SocketAddr,
     pub force_relay: bool,
     pub warp_in: bool,
+    /// The area this client's actor should be updated to when completing transfer.
+    /// Also used to tell if this client is transferring areas in `net.remove_area()`
     pub warp_area: String,
     pub warp_x: f32,
     pub warp_y: f32,
@@ -58,7 +60,7 @@ impl Client {
             socket_address,
             force_relay: true,
             warp_in: true,
-            warp_area: String::new(),
+            warp_area: area_id.to_string(),
             warp_x: spawn_x,
             warp_y: spawn_y,
             warp_z: spawn_z,

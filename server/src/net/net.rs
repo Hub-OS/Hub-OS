@@ -158,10 +158,19 @@ impl Net {
         let map_path = get_map_path(id);
         self.asset_manager.remove_asset(&map_path);
 
-        if let Some(area) = self.areas.remove(id) {
-            let player_ids = area.connected_players();
+        let Some(area) = self.areas.remove(id) else {
+            return;
+        };
 
-            for player_id in player_ids {
+        let player_ids = area.connected_players();
+
+        for player_id in player_ids {
+            let Some(client) = self.clients.get(player_id) else {
+                continue;
+            };
+
+            // kick players that aren't warping away
+            if client.warp_area == id {
                 self.kick_player(*player_id, "Area destroyed", true);
             }
         }
@@ -1763,6 +1772,7 @@ impl Net {
         client.warp_y = y;
         client.warp_z = z;
         client.warp_direction = direction;
+        client.warp_area = area_id.to_string();
 
         if !previous_area.connected_players().contains(&id) {
             // client has not been added to any area yet
@@ -1776,8 +1786,6 @@ impl Net {
         self.packet_orchestrator
             .borrow_mut()
             .leave_room(client.socket_address, previous_area.id());
-
-        client.warp_area = area_id.to_string();
 
         broadcast_to_area(
             &mut self.packet_orchestrator.borrow_mut(),
