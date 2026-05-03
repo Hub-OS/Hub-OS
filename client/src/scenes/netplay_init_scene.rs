@@ -381,6 +381,7 @@ impl NetplayInitScene {
                 // handled earlier
             }
             NetplayPacketData::HelloAck
+            | NetplayPacketData::HolesPunched
             | NetplayPacketData::Heartbeat
             | NetplayPacketData::Pong { .. } => {
                 // response unnecessary
@@ -1054,7 +1055,6 @@ async fn punch_holes(
     fallback_sender_receiver: &(NetplayPacketSender, NetplayPacketReceiver),
 ) -> HolePunchStatus {
     use futures::StreamExt;
-    use futures::future::FutureExt;
 
     for (send, _) in senders_and_receivers {
         send(NetplayPacket {
@@ -1073,13 +1073,14 @@ async fn punch_holes(
                     let out = !matches!(packet.data, NetplayPacketData::Hello);
                     async move { out }
                 })
-                .take(2),
+                .take(3),
         )
     });
 
     let mut hello_stream = futures::stream::select_all(hello_streams);
     let mut total_responses = 0;
-    let mut total_hello = 0;
+    let mut total_ready = 0;
+    let total_expected = senders_and_receivers.len();
 
     // if we receive anything from the fallback future we'll switch to it
     let fallback_stream = fallback_sender_receiver.1.stream().skip_while(|packet| {
@@ -1089,16 +1090,18 @@ async fn punch_holes(
     });
 
     // a short amount of time for responses
-    let timer = async_sleep(Duration::from_secs(2)).fuse();
+    let timer = smol::Timer::interval(Duration::from_secs(2)).fuse();
+    let mut refreshed = false;
     futures::pin_mut!(fallback_stream, timer);
 
     loop {
         futures::select! {
             packet = hello_stream.select_next_some() => {
+                let packet_name: &'static str = (&packet.data).into();
+                log::debug!("Received {packet_name} from {}", packet.index);
+
                 match packet.data {
                     NetplayPacketData::Hello => {
-                        log::debug!("Received Hello");
-
                         if let Some(slice_index) = remote_index_map.iter().position(|i| *i == packet.index) {
                             log::debug!("Sending HelloAck");
 
@@ -1107,28 +1110,38 @@ async fn punch_holes(
                                 index: local_index,
                                 data: NetplayPacketData::HelloAck
                             });
-
-                            total_hello += 1;
                         }
                     }
                     NetplayPacketData::HelloAck => {
-                        log::debug!("Received HelloAck");
-
                         total_responses += 1;
+
+                        if total_responses == total_expected {
+                            // looks like we're able to communicate with everyone
+                            // now we need to see if our peers can also communicate with each other
+                            refreshed = true;
+
+                            for (send, _) in senders_and_receivers {
+                                send(NetplayPacket {
+                                    index: local_index,
+                                    data: NetplayPacketData::HolesPunched
+                                });
+                            }
+                        }
+                    }
+                    NetplayPacketData::HolesPunched => {
+                        total_ready += 1;
+
+                        if total_ready == total_expected {
+                            // everyone was able to connect
+                            return HolePunchStatus::Success;
+                        }
                     }
                     _ => {
                         let name: &'static str = (&packet.data).into();
                         let index = packet.index;
 
-                        log::error!("Expecting Hello or HelloAck during hole punching phase, received: {name} from {index}");
+                        log::error!("Received unexpected packet during hole punching: {name} from {index}");
                     }
-                }
-
-                let total_expected = senders_and_receivers.len();
-
-                if total_hello == total_expected && total_responses == total_expected {
-                    // responded and received a response from everyone, looks like we all support hole punching
-                    return HolePunchStatus::Success;
                 }
             }
             packet = fallback_stream.select_next_some() => {
@@ -1137,10 +1150,13 @@ async fn punch_holes(
                     return HolePunchStatus::Failed { received_hello: true };
                 }
             }
-            _ = timer => {
-                // out of time, we'll assume hole punching failed
-                log::debug!("Hole punch timer exhausted");
-                return HolePunchStatus::Failed { received_hello: false };
+            _ = timer.select_next_some() => {
+                if !refreshed {
+                    // out of time, we'll assume hole punching failed
+                    log::debug!("Hole punch timer exhausted");
+                    return HolePunchStatus::Failed { received_hello: false };
+                }
+                refreshed = false;
             }
         }
     }

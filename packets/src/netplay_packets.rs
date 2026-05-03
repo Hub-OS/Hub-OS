@@ -33,6 +33,7 @@ pub enum NetplayPacketData {
     Heartbeat,
     Hello,
     HelloAck,
+    HolesPunched,
     Ping,
     Pong {
         sender: usize,
