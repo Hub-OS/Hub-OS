@@ -172,6 +172,7 @@ function ScriptNodes:new()
   s:implement_camera_api()
   s:implement_encounter_api()
   s:implement_inventory_api()
+  s:implement_equipment_api()
   s:implement_link_api()
   s:implement_actor_api()
   s:implement_tag_api()
@@ -2225,6 +2226,33 @@ function ScriptNodes:implement_inventory_api()
     else
       self:execute_next_node(context, context.area_id, object)
     end
+  end)
+end
+
+---Implements support for the `Lock Equipment` and `Unlock Equipment` nodes.
+---
+---Expects `area_id` and `player_id` or `player_ids` to be defined on the context table.
+---
+---Supported custom properties for `Lock Equipment`:
+--- - `Next [1]` a link to the next node (optional)
+---
+---Supported custom properties for `Unlock Equipment`:
+--- - `Next [1]` a link to the next node (optional)
+function ScriptNodes:implement_equipment_api()
+  self:implement_node("lock equipment", function(context, object)
+    for_each_player_safe(context, function(player_id)
+      Net.lock_player_equipment(player_id)
+    end)
+
+    self:execute_next_node(context, context.area_id, object)
+  end)
+
+  self:implement_node("unlock equipment", function(context, object)
+    for_each_player_safe(context, function(player_id)
+      Net.unlock_player_equipment(player_id)
+    end)
+
+    self:execute_next_node(context, context.area_id, object)
   end)
 end
 
