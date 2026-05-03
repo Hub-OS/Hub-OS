@@ -1860,6 +1860,7 @@ end
 ---
 ---Supported custom properties:
 --- - `Target` "Player [1+]" (optional)
+--- - `Sound` string
 --- - `Next [1]` a link to the next node (optional)
 function ScriptNodes:implement_sound_api()
   self:implement_node("play sound", function(context, object)
@@ -2229,7 +2230,7 @@ function ScriptNodes:implement_inventory_api()
   end)
 end
 
----Implements support for the `Lock Equipment` and `Unlock Equipment` nodes.
+---Implements support for the `Lock Equipment`, `Unlock Equipment`, and `Set Restrictions` nodes.
 ---
 ---Expects `area_id` and `player_id` or `player_ids` to be defined on the context table.
 ---
@@ -2238,9 +2239,13 @@ end
 ---
 ---Supported custom properties for `Unlock Equipment`:
 --- - `Next [1]` a link to the next node (optional)
+---
+---Supported custom properties for `Set Restrictions`:
+--- - `Path` string
+--- - `Next [1]` a link to the next node (optional)
 function ScriptNodes:implement_equipment_api()
   self:implement_node("lock equipment", function(context, object)
-    for_each_player_safe(context, function(player_id)
+    for_each_player(context, function(player_id)
       Net.lock_player_equipment(player_id)
     end)
 
@@ -2248,8 +2253,18 @@ function ScriptNodes:implement_equipment_api()
   end)
 
   self:implement_node("unlock equipment", function(context, object)
-    for_each_player_safe(context, function(player_id)
+    for_each_player(context, function(player_id)
       Net.unlock_player_equipment(player_id)
+    end)
+
+    self:execute_next_node(context, context.area_id, object)
+  end)
+
+  self:implement_node("set restrictions", function(context, object)
+    local path = self.ASSET_PREFIX .. object.custom_properties.Path
+
+    for_each_player(context, function(player_id)
+      Net.set_player_restrictions(player_id, path)
     end)
 
     self:execute_next_node(context, context.area_id, object)
