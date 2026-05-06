@@ -47,8 +47,8 @@ impl PlayerForm {
     pub fn deactivate(simulation: &mut BattleSimulation, id: EntityId, form_index: usize) {
         let entities = &mut simulation.entities;
 
-        let Ok((player, hand)) =
-            entities.query_one_mut::<(&mut Player, &mut PlayerHand)>(id.into())
+        let Ok((player, living, entity, hand)) =
+            entities.query_one_mut::<(&mut Player, &Living, &Entity, &mut PlayerHand)>(id.into())
         else {
             return;
         };
@@ -72,55 +72,61 @@ impl PlayerForm {
             return;
         }
 
-        simulation.time_freeze_tracker.queue_animation(
-            30,
-            BattleCallback::new(move |game_io, resources, simulation, _| {
-                let entities = &mut simulation.entities;
+        if living.health <= 0 || entity.deleted {
+            // skip decross if we're already deleted
+            return;
+        }
 
-                let Ok((entity, living, player)) =
-                    entities.query_one_mut::<(&Entity, &mut Living, &mut Player)>(id.into())
-                else {
-                    return;
-                };
+        let callback = BattleCallback::new(move |game_io, resources, simulation, _| {
+            let entities = &mut simulation.entities;
 
-                if living.health <= 0 || entity.deleted {
-                    // skip decross if we're already deleted
-                    return;
-                }
+            let Ok((entity, living, player)) =
+                entities.query_one_mut::<(&Entity, &mut Living, &mut Player)>(id.into())
+            else {
+                return 0;
+            };
 
-                if player.active_form != Some(form_index) {
-                    // this is a different form
-                    // must have switched in cust with some frame perfect shenanigans
-                    return;
-                }
+            if living.health <= 0 || entity.deleted {
+                // skip decross if we're already deleted
+                return 0;
+            }
 
-                player.active_form = None;
+            if player.active_form != Some(form_index) {
+                // this is a different form
+                // must have switched in cust with some frame perfect shenanigans
+                return 0;
+            }
 
-                let form = &mut player.forms[form_index];
+            player.active_form = None;
 
-                if let Some(callback) = form.deactivate_callback.clone() {
-                    simulation.pending_callbacks.push(callback);
-                }
+            let form = &mut player.forms[form_index];
 
-                // resolve shine fx position
-                let mut shine_position = entity.full_position();
-                shine_position.offset += Vec2::new(0.0, -entity.height * 0.5);
+            if let Some(callback) = form.deactivate_callback.clone() {
+                simulation.pending_callbacks.push(callback);
+            }
 
-                // play revert sfx
-                let sfx = &Globals::from_resources(game_io).sfx;
-                simulation.play_sound(game_io, resources, &sfx.form_deactivate);
+            // resolve shine fx position
+            let mut shine_position = entity.full_position();
+            shine_position.offset += Vec2::new(0.0, -entity.height * 0.5);
 
-                // actual shine creation as indicated above
-                let shine_id = Artifact::create_transformation_shine(game_io, simulation);
-                let shine_entity = simulation
-                    .entities
-                    .query_one_mut::<&mut Entity>(shine_id.into())
-                    .unwrap();
+            // play revert sfx
+            let sfx = &Globals::from_resources(game_io).sfx;
+            simulation.play_sound(game_io, resources, &sfx.form_deactivate);
 
-                // shine position, set to spawn
-                shine_entity.copy_full_position(shine_position);
-                shine_entity.pending_spawn = true;
-            }),
-        );
+            // actual shine creation as indicated above
+            let shine_id = Artifact::create_transformation_shine(game_io, simulation);
+            let shine_entity = simulation
+                .entities
+                .query_one_mut::<&mut Entity>(shine_id.into())
+                .unwrap();
+
+            // shine position, set to spawn
+            shine_entity.copy_full_position(shine_position);
+            shine_entity.pending_spawn = true;
+
+            30
+        });
+
+        simulation.time_freeze_tracker.queue_animation(callback);
     }
 }

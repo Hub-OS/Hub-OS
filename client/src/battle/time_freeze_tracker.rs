@@ -130,7 +130,7 @@ pub struct TimeFreezeTracker {
     skipping_intros: bool,
     chain_limit: TimeFreezeChainLimit,
     character_backup: Option<TimeFreezeEntityBackup>,
-    animation_queue: VecDeque<(BattleCallback, FrameTime)>,
+    animation_queue: VecDeque<BattleCallback<(), FrameTime>>,
 }
 
 impl TimeFreezeTracker {
@@ -237,14 +237,15 @@ impl TimeFreezeTracker {
         dropped_action_index
     }
 
-    pub fn queue_animation(&mut self, duration: FrameTime, begin_callback: BattleCallback) {
+    /// Return the duration of the animation from the callback
+    pub fn queue_animation(&mut self, begin_callback: BattleCallback<(), FrameTime>) {
         if !self.time_is_frozen() {
             // set the state to an immediately completed animation
             // it will trigger the queue to pop
             self.state = TimeFreezeState::Animation(0);
         }
 
-        self.animation_queue.push_back((begin_callback, duration));
+        self.animation_queue.push_back(begin_callback);
     }
 
     pub fn current_user(&self) -> Option<(EntityId, Team)> {
@@ -324,13 +325,12 @@ impl TimeFreezeTracker {
     }
 
     #[must_use]
-    fn advance_queue(&mut self) -> Option<BattleCallback> {
+    fn advance_queue(&mut self) -> Option<BattleCallback<(), FrameTime>> {
         self.active_time = 0;
         self.state_start_time = 0;
 
-        if let Some((callback, duration)) = self.animation_queue.pop_front() {
-            // process the next animation
-            self.state = TimeFreezeState::Animation(duration);
+        if let Some(callback) = self.animation_queue.pop_front() {
+            // process the next animation, state is set externally
             Some(callback)
         } else if !self.action_chain.is_empty() {
             // start processing actions
@@ -426,8 +426,10 @@ impl TimeFreezeTracker {
         if !simulation.time_freeze_tracker.time_is_frozen()
             && let Some(callback) = simulation.time_freeze_tracker.advance_queue()
         {
-            simulation.pending_callbacks.push(callback);
             simulation.call_pending_callbacks(game_io, resources);
+
+            let duration = callback.call(game_io, resources, simulation, ());
+            simulation.time_freeze_tracker.state = TimeFreezeState::Animation(duration);
         }
 
         if simulation.time_freeze_tracker.should_defrost {
