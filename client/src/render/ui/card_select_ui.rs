@@ -266,11 +266,13 @@ impl CardSelectUi {
         let mut y = 3.0;
 
         // draw names
-        for (_, (entity, character, name)) in simulation
+        let local_player_id: hecs::Entity = simulation.local_player_id.into();
+
+        for (id, (entity, character, name)) in simulation
             .entities
             .query_mut::<(&Entity, &Character, &EntityName)>()
         {
-            if entity.team.is_allied(simulation.local_team) {
+            if entity.team.is_allied(simulation.local_team) || id == local_player_id {
                 continue;
             }
 
