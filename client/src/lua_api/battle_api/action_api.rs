@@ -45,7 +45,7 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
             let namespace = vm.preferred_namespace();
 
             if !vm.permitted_dependencies.contains(&package_id) {
-                return Err(unmarked_dependency());
+                return Err(unmarked_dependency(&package_id));
             }
 
             let globals = Globals::from_resources(api_ctx.game_io);

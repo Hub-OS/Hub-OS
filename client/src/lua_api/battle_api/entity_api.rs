@@ -1185,7 +1185,7 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
         let vm = &vms[api_ctx.vm_index];
 
         if !vm.permitted_dependencies.contains(&package_id) {
-            return Err(unmarked_dependency());
+            return Err(unmarked_dependency(&package_id));
         }
 
         let namespace = vm.preferred_namespace();
@@ -2421,7 +2421,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             let vm = &vms[api_ctx.vm_index];
 
             if !vm.permitted_dependencies.contains(&card.package_id) {
-                return Err(unmarked_dependency());
+                return Err(unmarked_dependency(&card.package_id));
             }
 
             vm.preferred_namespace()
@@ -2478,7 +2478,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             let vm = &vms[api_ctx.vm_index];
 
             if !vm.permitted_dependencies.contains(&card.package_id) {
-                return Err(unmarked_dependency());
+                return Err(unmarked_dependency(&card.package_id));
             }
 
             vm.preferred_namespace()

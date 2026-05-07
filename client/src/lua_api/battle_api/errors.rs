@@ -99,8 +99,8 @@ pub fn invalid_memory_value() -> rollback_mlua::Error {
     rollback_mlua::Error::RuntimeError(String::from("entity can only remember numbers and strings"))
 }
 
-pub fn unmarked_dependency() -> rollback_mlua::Error {
-    rollback_mlua::Error::RuntimeError(String::from("package is not in dependency tree"))
+pub fn unmarked_dependency(package_id: &PackageId) -> rollback_mlua::Error {
+    rollback_mlua::Error::RuntimeError(format!("package {package_id:?} is not in dependency tree"))
 }
 
 pub fn warn_deprecated(lua: &rollback_mlua::Lua, name: &str) {
