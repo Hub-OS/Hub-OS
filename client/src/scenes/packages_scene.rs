@@ -240,6 +240,7 @@ impl PackagesScene {
         self.list.set_children([]);
         self.append_listings(game_io, &new_listings);
         self.full_list.extend(new_listings);
+        self.exhausted_list = true;
     }
 
     fn request_remote(&mut self, game_io: &GameIO, skip: usize) {
