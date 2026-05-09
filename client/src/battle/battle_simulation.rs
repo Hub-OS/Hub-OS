@@ -1109,24 +1109,13 @@ impl BattleSimulation {
             }
         }
 
-        // draw cards over npcs
-        for (_, (entity, character)) in
-            (self.entities).query_mut::<hecs::Without<(&Entity, &Character), &Player>>()
-        {
-            character.draw_cards_over_head(
-                game_io,
-                &mut sprite_queue,
-                &self.sprite_trees,
-                &self.field,
-                entity,
-                perspective_flipped,
-            );
-        }
+        // draw cards over characters
+        let local_player_id: hecs::Entity = self.local_player_id.into();
+        for (id, (entity, character)) in (self.entities).query_mut::<(&Entity, &Character)>() {
+            if !character.display_field_cards && id != local_player_id {
+                continue;
+            }
 
-        // draw card icons for the local player
-        if let Ok((entity, character)) =
-            (self.entities).query_one_mut::<(&Entity, &Character)>(self.local_player_id.into())
-        {
             character.draw_cards_over_head(
                 game_io,
                 &mut sprite_queue,

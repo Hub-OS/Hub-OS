@@ -1213,6 +1213,22 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
 
     getter::<&Character, _>(
         lua_api,
+        "field_cards_visible",
+        |character: &Character, lua, _: ()| lua.pack_multi(character.display_field_cards),
+    );
+
+    setter(
+        lua_api,
+        "set_field_cards_visible",
+        |character: &mut Character, _, visible: bool| {
+            character.display_field_cards = visible;
+
+            Ok(())
+        },
+    );
+
+    getter::<&Character, _>(
+        lua_api,
         "field_cards",
         |character: &Character, lua, _: ()| {
             let card_iter = character.cards.iter().rev();

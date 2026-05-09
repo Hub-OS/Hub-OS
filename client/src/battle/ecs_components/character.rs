@@ -17,6 +17,7 @@ use packets::structures::PackageId;
 pub struct Character {
     pub rank: CharacterRank,
     pub display_rank: bool,
+    pub display_field_cards: bool,
     pub cards: Vec<CardProperties>, // stores cards reversed
     pub card_use_requested: bool,
     pub next_card_mutation: Option<usize>, // stores card index, invert to get a usable index
@@ -28,6 +29,7 @@ impl Character {
             rank,
             cards: Vec::new(),
             display_rank: true,
+            display_field_cards: true,
             card_use_requested: false,
             next_card_mutation: None,
         }

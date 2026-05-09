@@ -119,6 +119,13 @@ impl Player {
         let namespace = setup.namespace();
         let id = Character::create(game_io, resources, simulation, CharacterRank::V1, namespace)?;
 
+        if let Ok(character) = simulation
+            .entities
+            .query_one_mut::<&mut Character>(id.into())
+        {
+            character.display_field_cards = false;
+        }
+
         let _ = simulation.entities.insert(
             id.into(),
             (
