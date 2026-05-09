@@ -476,11 +476,15 @@ impl BattleState {
         for (_, (entity, spell, update_callback, components)) in
             simulation.entities.query_mut::<Query>()
         {
+            if entity.time_frozen || !entity.spawned || entity.deleted {
+                continue;
+            }
+
             if let Some(tile) = simulation.field.tile_at_mut((entity.x, entity.y)) {
                 tile.set_highlight(spell.requested_highlight);
             }
 
-            if entity.time_frozen || entity.updated || !entity.spawned || entity.deleted {
+            if entity.updated {
                 continue;
             }
 
