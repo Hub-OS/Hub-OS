@@ -296,11 +296,7 @@ impl TimeFreezeTracker {
     pub fn active_action_index(&self) -> Option<GenerationalIndex> {
         if !matches!(
             self.state,
-            TimeFreezeState::Action(
-                ActionFreezeState::Action
-                    | ActionFreezeState::BeginAction
-                    | ActionFreezeState::ActionCleanup
-            )
+            TimeFreezeState::Action(ActionFreezeState::Action | ActionFreezeState::ActionCleanup)
         ) {
             return None;
         }
@@ -594,6 +590,10 @@ impl TimeFreezeTracker {
     }
 
     fn begin_action(simulation: &mut BattleSimulation) {
+        // end the BeginAction state so we can access active_action_index
+        // BeginAction can't access active_action_index to stop actions from executing before this state completes
+        simulation.time_freeze_tracker.increment_time();
+
         let Some(action_index) = simulation.time_freeze_tracker.active_action_index() else {
             // action deleted?
             simulation.time_freeze_tracker.end_action();
