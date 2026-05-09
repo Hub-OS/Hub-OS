@@ -493,20 +493,36 @@ impl Character {
 
         sprite_queue.set_color_mode(SpriteColorMode::Multiply);
 
-        let mut base_position = entity.screen_position(field, perspective_flipped);
-        base_position.y -= entity.height + 16.0 + entity.elevation;
-
+        // create a border
         let globals = Globals::from_resources(game_io);
         let mut border_sprite = globals.assets.new_sprite(game_io, ResourcePaths::PIXEL);
         border_sprite.set_color(Color::BLACK);
         border_sprite.set_size(Vec2::new(16.0, 16.0));
 
+        // resolve offset multiplier
+        let mut x_offset_multipler = 1.0;
+
+        if entity.facing == Direction::Left {
+            x_offset_multipler *= -1.0;
+        }
+
+        if perspective_flipped {
+            x_offset_multipler *= -1.0;
+        }
+
+        // resolve base position
+        let mut base_position = entity.screen_position(field, perspective_flipped);
+        base_position.y -= entity.height + 16.0 + entity.elevation;
+        // shift icons to lean forward
+        base_position.x += 7.0 * x_offset_multipler - 7.0;
+
+        // draw cards
         for i in 0..self.cards.len() {
             let card = &self.cards[i];
 
             let cards_before = self.cards.len() - i;
             let card_offset = 2.0 * cards_before as f32;
-            let position = base_position - card_offset;
+            let position = base_position - card_offset * Vec2::new(x_offset_multipler, 1.0);
 
             border_sprite.set_position(position - 1.0);
             sprite_queue.draw_sprite(&border_sprite);
