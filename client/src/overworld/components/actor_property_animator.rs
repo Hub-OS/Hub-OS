@@ -332,15 +332,22 @@ impl ActorPropertyAnimator {
                         }
                     }
                     ActorPropertyId::Direction => {
-                        if let ActorProperty::Direction(new_direction) = key_frame.property
-                            && (key_frame.ease == Ease::Ceil
-                                || property_animator.time >= key_frame.time_point)
+                        if key_frame.ease == Ease::Ceil
+                            || property_animator.time >= key_frame.time_point
                         {
-                            property_animator.actor_direction = new_direction;
-
-                            if !new_direction.is_none() {
-                                *direction = new_direction;
+                            // use latest direction
+                            if let ActorProperty::Direction(new_direction) = key_frame.property {
+                                property_animator.actor_direction = new_direction;
                             }
+                        } else if let ActorProperty::Direction(old_direction) =
+                            key_frame.previous_property
+                        {
+                            // use last key frame's direction
+                            property_animator.actor_direction = old_direction;
+                        }
+
+                        if !property_animator.actor_direction.is_none() {
+                            *direction = property_animator.actor_direction;
                         }
                     }
                     _ => {
