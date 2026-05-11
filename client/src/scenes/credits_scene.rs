@@ -29,7 +29,7 @@ const SECTIONS: &[(&str, &[&str])] = &[
     ("credits-sound-design", &["DJRezzed"]),
     ("credits-graphics", &["Konst", "Salad"]),
     ("credits-user-experience", &["Gray Nine", "KayThree"]),
-    ("credits-localization", &["Darkgaia", "Rockin"]),
+    ("credits-localization", &["Exelle", "Darkgaia", "Rockin"]),
     (
         "credits-testers",
         &[
@@ -531,7 +531,7 @@ impl CreditsFun {
                 property_steps: vec![
                     (ActorProperty::X(position.x), Ease::Linear),
                     (ActorProperty::Y(position.y), Ease::Linear),
-                    (ActorProperty::Direction(direction), Ease::Floor),
+                    (ActorProperty::Direction(direction), Ease::Ceil),
                 ],
                 duration: *duration,
             });

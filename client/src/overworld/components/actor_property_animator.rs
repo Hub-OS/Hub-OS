@@ -337,7 +337,10 @@ impl ActorPropertyAnimator {
                                 || property_animator.time >= key_frame.time_point)
                         {
                             property_animator.actor_direction = new_direction;
-                            *direction = new_direction;
+
+                            if !new_direction.is_none() {
+                                *direction = new_direction;
+                            }
                         }
                     }
                     _ => {
@@ -372,14 +375,15 @@ impl ActorPropertyAnimator {
 
             if property_animator.animating_position && !property_animator.animating_sprite {
                 // resolve direction and player animation
-                let new_direction = if property_animator.animating_direction {
-                    property_animator.actor_direction
-                } else {
-                    Direction::from_offset(position_difference.xy().into())
-                };
+                if !property_animator.animating_direction
+                    || property_animator.actor_direction.is_none()
+                {
+                    property_animator.actor_direction =
+                        Direction::from_offset(position_difference.xy().into());
+                }
 
-                if !new_direction.is_none() {
-                    *direction = new_direction;
+                if !property_animator.actor_direction.is_none() {
+                    *direction = property_animator.actor_direction;
                 }
 
                 let distance = position_difference.length();
