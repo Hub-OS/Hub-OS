@@ -1,18 +1,14 @@
-battle-select-scene-title = Battle Select
-battle-select-scene-title-selection = Battle Select: { $name }
-battle-run-question = Should we run?
-battle-run-disabled-message = This is no time to run!
-battle-run-success =
-    OK!
-    We got away!
-battle-run-failed =
-    It's no good!
-    We can't run away!
-battle-turn-start-banner = TURN START!
-battle-turn-number-start-banner = TURN { $number } START!
+battle-select-scene-title = Selección de Batalla
+battle-select-scene-title-selection = Selección de Batalla: { $name}
+battle-run-question = ¿Deberíamos correr?
+battle-run-disabled-message = ¡No es momento de correr!
+battle-run-success = ¡OK! ¡Escapamos!
+battle-run-failed = ¡Es inútil! ¡No podemos huir!
+battle-turn-start-banner = ¡INICIA EL TURNO!
+battle-turn-number-start-banner = ¡INICIA EL TURNO { $number }!
 battle-final-turn-banner = ¡TURNO FINAL!
-battle-success-banner = SUCCESS
-battle-failed-banner = FAILED
-battle-time-up-banner = TIME UP!
-battle-over-banner = BATTLE OVER
+battle-success-banner = ÉXITO
+battle-failed-banner = FALLIDO
+battle-time-up-banner = ¡SE ACABÓ EL TIEMPO!
+battle-over-banner = BATALLA ACABADA
 battle-waiting = Esperando...
