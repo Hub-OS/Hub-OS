@@ -1,18 +1,18 @@
-boot-loading-music = Loading Music
-boot-loading-sfx = Loading SFX
-boot-loading-player-mods = Loading Navis
-boot-loading-card-mods = Loading Chips
-boot-loading-encounter-mods = Loading Battles
-boot-loading-character-mods = Loading Enemies
-boot-loading-augment-mods = Loading Augments
-boot-loading-status-mods = Loading Statuses
-boot-loading-tile-state-mods = Loading Tile States
-boot-loading-library-mods = Loading Libraries
-boot-cleaning-cache = Cleaning Cache
-boot-checking-for-updates = Checking For Updates
-boot-press-any-button = Press Any Button
+boot-loading-music = Cargando música
+boot-loading-sfx = Cargando SFX
+boot-loading-player-mods = Cargando Navis
+boot-loading-card-mods = Cargando chips
+boot-loading-encounter-mods = Cargando Batallas
+boot-loading-character-mods = Cargando Enemigos
+boot-loading-augment-mods = Cargando Aumentos
+boot-loading-status-mods = Cargando Estados
+boot-loading-tile-state-mods = Cargando Estados de Panel
+boot-loading-library-mods = Cargando Librerías
+boot-cleaning-cache = Limpiando Caché
+boot-checking-for-updates = Buscando Actualizaciones
+boot-press-any-button = Presiona Cualquier Botón
 initial-setup-message =
-    Missing Navi mod.
+    Mod de Navi Faltante.
     
     
-    Install from Manage Mods in Config.
+    Instala desde Gestionar Mods en Config.
