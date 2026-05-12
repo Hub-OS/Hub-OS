@@ -1,5 +1,5 @@
-battle-select-scene-title = Selección de Batalla
-battle-select-scene-title-selection = Selección de Batalla: { $name}
+battle-select-scene-title = Elegir Batalla
+battle-select-scene-title-selection = Elegir Batalla: { $name}
 battle-run-question = ¿Deberíamos correr?
 battle-run-disabled-message = ¡No es momento de correr!
 battle-run-success = ¡OK! ¡Escapamos!
