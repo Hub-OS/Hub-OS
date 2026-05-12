@@ -378,6 +378,15 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(tile.original_direction())
     });
 
+    lua_api.add_dynamic_function(TILE_TABLE, "highlight", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
+
+        lua.pack_multi(tile.highlight())
+    });
+
     lua_api.add_dynamic_function(TILE_TABLE, "set_highlight", |api_ctx, lua, params| {
         let (table, highlight): (rollback_mlua::Table, TileHighlight) = lua.unpack_multi(params)?;
 

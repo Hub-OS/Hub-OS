@@ -156,6 +156,10 @@ impl Tile {
         }
     }
 
+    pub fn highlight(&self) -> TileHighlight {
+        self.highlight
+    }
+
     pub fn set_highlight(&mut self, highlight: TileHighlight) {
         self.highlight = self.highlight.max(highlight);
     }
