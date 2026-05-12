@@ -12,8 +12,8 @@ point label="LEGS" x="77" y="76"
 
 animation state="LEFT_SLOT"
 frame x="174" y="102" w="52" h="17" originx="50" originy="3"
-point label="NAME_START" x="2" y="5"
-point label="NAME_END" x="50" y="15"
+point label="NAME_START" x="2" y="6"
+point label="NAME_END" x="50" y="16"
 
 animation state="LEFT_SLOT_SELECTED"
 frame x="174" y="120" w="52" h="17" originx="50" originy="3"
@@ -23,8 +23,8 @@ frame x="174" y="138" w="52" h="17" originx="50" originy="3"
 
 animation state="RIGHT_SLOT"
 frame x="227" y="104" w="52" h="17" originy="12"
-point label="NAME_START" x="3" y="2"
-point label="NAME_END" x="50" y="12"
+point label="NAME_START" x="3" y="3"
+point label="NAME_END" x="50" y="13"
 
 animation state="RIGHT_SLOT_SELECTED"
 frame x="227" y="122" w="52" h="17" originy="12"
