@@ -29,7 +29,7 @@ const SECTIONS: &[(&str, &[&str])] = &[
     ("credits-sound-design", &["DJRezzed"]),
     ("credits-graphics", &["Konst", "Salad"]),
     ("credits-user-experience", &["Gray Nine", "KayThree"]),
-    ("credits-localization", &["Exelle", "Darkgaia", "Rockin"]),
+    ("credits-localization", &["Darkgaia", "Exelle", "Rockin"]),
     (
         "credits-testers",
         &[
