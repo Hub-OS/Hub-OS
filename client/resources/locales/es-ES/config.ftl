@@ -10,7 +10,7 @@ config-manage-mods-label = Gestionar Mods
 config-update-mods-label = Actualizar Mods
 config-resource-mods-label = Mods de Recurso
 config-open-mods-folder-label = Carpeta de Mods
-config-save-last-battle-label = Guardar Última Batalla
+config-save-last-battle-label = GuardaPeleaPrevia
 config-save-last-battle-question =
     Esto guardará tu última batalla como un mod.
     ¿Guardar la última batalla?
