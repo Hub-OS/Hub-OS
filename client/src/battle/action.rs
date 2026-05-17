@@ -436,12 +436,13 @@ impl Action {
         let time_freeze_tracker = &simulation.time_freeze_tracker;
         let mut time_just_froze = false;
         let mut any_can_counter_time_freeze = time_freeze_tracker.can_processing_action_counter();
-        let polled_freezer = time_freeze_tracker.polled_entity();
+        let star_freezer = time_freeze_tracker.star_entity();
+        let polling_freezer = time_freeze_tracker.polling_freezer();
 
         let ids: Vec<_> = entities
             .query_mut::<(&Entity, &ActionQueue)>()
             .into_iter()
-            .filter(|(id, (entity, action_queue))| {
+            .filter(|(_, (entity, action_queue))| {
                 let Some(action_index) = action_queue.pending.front() else {
                     // no actions queued
                     return false;
@@ -459,16 +460,16 @@ impl Action {
                 let time_freeze_counter =
                     any_can_counter_time_freeze && action_counters_time_freeze;
 
-                // continuing freeze from a previous action
-                let entity_id: EntityId = (*id).into();
-                let freeze_continuation = freezes_time && polled_freezer == Some(entity_id);
-
                 // we can't process an action if the entity is already in an action
                 // unless we have a time freeze exception
                 let already_has_action = action_queue.active.is_some();
-                let can_process = (!entity.time_frozen && !time_just_froze && !already_has_action)
-                    || time_freeze_counter
-                    || freeze_continuation;
+                let can_process = if star_freezer == Some(action.entity) {
+                    // if we're the star freezer, we can only process actions that continue time freeze
+                    polling_freezer && freezes_time
+                } else {
+                    (!entity.time_frozen && !time_just_froze && !already_has_action)
+                        || time_freeze_counter
+                };
 
                 if can_process && freezes_time {
                     // causes other actions to wait in queue until time freeze is over

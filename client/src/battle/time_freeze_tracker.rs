@@ -269,13 +269,14 @@ impl TimeFreezeTracker {
             && self.action_chain.last().is_some_and(|t| !t.prevent_counter)
     }
 
-    // the entity polled for back to back freezes
-    pub fn polled_entity(&self) -> Option<EntityId> {
-        if self.state != ActionFreezeState::PollEntityAction.into() {
-            return None;
-        }
-
+    // the entity freezing time
+    pub fn star_entity(&self) -> Option<EntityId> {
         self.action_chain.last().map(|t| t.entity)
+    }
+
+    // are we polling for back to back freezes?
+    pub fn polling_freezer(&self) -> bool {
+        self.state == ActionFreezeState::PollEntityAction.into()
     }
 
     fn should_freeze(&self) -> bool {
