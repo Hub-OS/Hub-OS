@@ -225,8 +225,11 @@ impl Scene for MainMenuScene {
         // music
         let globals = Globals::from_resources(game_io);
 
-        if !game_io.is_in_transition() && !globals.audio.is_music_playing() {
-            globals.audio.pick_music(&globals.music.main_menu, true);
+        if !game_io.is_in_transition()
+            && !globals.audio.is_music_playing()
+            && let Some(track) = globals.music.main_menu.pick_random()
+        {
+            globals.audio.play_music(track, true);
         }
 
         // update background

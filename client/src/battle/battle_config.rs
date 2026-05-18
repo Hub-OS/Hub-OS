@@ -1,7 +1,5 @@
-use rand::seq::IndexedRandom;
-
 use super::BattleInitMusic;
-use crate::resources::{Globals, FIELD_DEFAULT_WIDTH};
+use crate::resources::{FIELD_DEFAULT_WIDTH, Globals};
 use std::collections::HashSet;
 
 const DEFAULT_PLAYER_LAYOUTS: [(i32, i32); 9] = [
@@ -63,7 +61,7 @@ impl BattleConfig {
                 buffer: globals
                     .music
                     .battle
-                    .choose(&mut rand::rng())
+                    .pick_random()
                     .cloned()
                     .unwrap_or_default(),
                 loops: true,

@@ -1147,8 +1147,10 @@ impl Scene for BlocksScene {
 
             let globals = Globals::from_resources(game_io);
 
-            if !globals.audio.is_music_playing() {
-                globals.audio.pick_music(&globals.music.customize, true);
+            if !globals.audio.is_music_playing()
+                && let Some(track) = globals.music.customize.pick_random()
+            {
+                globals.audio.play_music(track, true);
             }
         }
 

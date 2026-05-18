@@ -1937,8 +1937,8 @@ impl OverworldOnlineScene {
             let playing_default_music =
                 current_music.is_some_and(|b| globals.music.overworld.contains(&b));
 
-            if !playing_default_music {
-                globals.audio.pick_music(&globals.music.overworld, true);
+            if !playing_default_music && let Some(track) = globals.music.overworld.pick_random() {
+                globals.audio.play_music(track, true);
             }
         } else {
             // try to play map music

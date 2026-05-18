@@ -365,7 +365,7 @@ impl BootStage2Thread {
         // load music
         let mut progress = 1;
 
-        let load = |path: &str| -> Result<Vec<SoundBuffer>, flume::SendError<Event>> {
+        let load = |path: &str| -> Result<Vec<(String, SoundBuffer)>, flume::SendError<Event>> {
             self.sender.send(Event::ProgressUpdate(ProgressUpdate {
                 label_translation_key: "boot-loading-music",
                 progress,
@@ -376,11 +376,16 @@ impl BootStage2Thread {
 
             let mut files = Vec::new();
 
+            let extract_name = |path: &str| path.to_string();
+
             // load file directly
             let direct_file_path = path.to_string() + ".ogg";
 
             if std::fs::exists(&direct_file_path).is_ok_and(|v| v) {
-                files.push(self.assets.non_midi_audio(&direct_file_path));
+                files.push((
+                    extract_name(&direct_file_path),
+                    self.assets.non_midi_audio(&direct_file_path),
+                ));
             }
 
             // load all audio in the matching directory without overwriting cached audio from resource packs
@@ -394,7 +399,7 @@ impl BootStage2Thread {
             // resolve from loaded audio matching the path
             self.assets.for_each_loaded_audio(|key, sound_buffer| {
                 if key.starts_with(&dir_path) {
-                    files.push(sound_buffer.clone());
+                    files.push((extract_name(key), sound_buffer.clone()));
                 }
             });
 

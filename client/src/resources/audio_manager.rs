@@ -1,11 +1,10 @@
 use super::SoundBuffer;
+pub use crate::bindable::AudioBehavior;
 use indexmap::IndexMap;
 use rodio::cpal::{Device, traits::HostTrait};
 use rodio::{DeviceTrait, OutputStream, OutputStreamBuilder, Source};
 use std::cell::RefCell;
 use std::time::{Duration, Instant};
-
-pub use crate::bindable::AudioBehavior;
 
 pub struct AudioManager {
     stream: Option<OutputStream>,
@@ -157,14 +156,6 @@ impl AudioManager {
         self.stop_music();
         let mut stack = self.music_stack.borrow_mut();
         stack.pop();
-    }
-
-    pub fn pick_music(&self, buffers: &[SoundBuffer], loops: bool) {
-        use rand::seq::IndexedRandom;
-
-        if let Some(buffer) = buffers.choose(&mut rand::rng()) {
-            self.play_music(buffer, loops);
-        }
     }
 
     pub fn play_music(&self, buffer: &SoundBuffer, loops: bool) {
