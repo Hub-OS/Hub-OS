@@ -974,6 +974,10 @@ impl BlocksScene {
     }
 
     fn update_block_preview(&mut self, game_io: &GameIO) {
+        if !matches!(self.state, State::ListSelection | State::VariantSelection) {
+            return;
+        }
+
         let index = self.list.scroll_tracker.selected_index();
 
         let Some(list_item) = self.list.get(index) else {
