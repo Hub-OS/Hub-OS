@@ -804,25 +804,37 @@ impl BlocksScene {
             }
             State::GridSelection { x: old_x, y: old_y } => {
                 let (old_x, old_y) = (*old_x, *old_y);
-                let cancel = self.input_tracker.pulsed(Input::Cancel) && !prev_held;
-                let returned_to_list = self.input_tracker.pulsed(Input::Right) && old_x == 6;
-                let pressed_end = self.input_tracker.pulsed(Input::End);
-                let has_block = self.grid.get_block((old_x, old_y)).is_some();
 
-                if (cancel || returned_to_list || pressed_end) && self.held_block.is_none() {
-                    self.state = State::ListSelection;
+                let mut performed_action = false;
 
-                    if pressed_end {
-                        let last_index = self.list.scroll_tracker.total_items() - 1;
-                        self.list.scroll_tracker.set_selected_index(last_index);
+                if self.held_block.is_none() {
+                    let cancel = self.input_tracker.pulsed(Input::Cancel) && !prev_held;
+                    let returned_to_list = self.input_tracker.pulsed(Input::Right) && old_x == 6;
+                    let pressed_end = self.input_tracker.pulsed(Input::End);
+
+                    performed_action = true;
+
+                    if cancel || returned_to_list || pressed_end {
+                        self.state = State::ListSelection;
+
+                        if pressed_end {
+                            let last_index = self.list.scroll_tracker.total_items() - 1;
+                            self.list.scroll_tracker.set_selected_index(last_index);
+                        }
+
+                        globals.audio.play_sound(&globals.sfx.cursor_cancel);
+                    } else if self.input_tracker.pulsed(Input::Confirm) {
+                        let has_block = self.grid.get_block((old_x, old_y)).is_some();
+                        self.open_grid_context_menu(game_io, old_x, old_y, has_block);
+                    } else if self.input_tracker.pulsed(Input::Option2) {
+                        self.open_grid_context_menu(game_io, 0, 0, false);
+                    } else {
+                        performed_action = false;
                     }
+                }
 
-                    globals.audio.play_sound(&globals.sfx.cursor_cancel);
-                } else if self.input_tracker.pulsed(Input::Confirm) && !prev_held {
-                    self.open_grid_context_menu(game_io, old_x, old_y, has_block);
-                } else if self.input_tracker.pulsed(Input::Option2) {
-                    self.open_grid_context_menu(game_io, 0, 0, false);
-                } else {
+                // only try moving the cursor if we haven't performed an action
+                if !performed_action {
                     let (mut x, mut y) = (old_x, old_y);
 
                     let input_x = self.input_tracker.input_as_axis(Input::Left, Input::Right);
@@ -847,6 +859,8 @@ impl BlocksScene {
                     self.state = State::GridSelection { x, y };
 
                     if self.state != prev_state {
+                        let globals = Globals::from_resources(game_io);
+
                         globals.audio.play_sound(&globals.sfx.cursor_move);
                     }
                 }
