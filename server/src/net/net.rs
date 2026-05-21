@@ -961,7 +961,7 @@ impl Net {
     pub fn open_board(
         &mut self,
         player_id: ActorId,
-        name: &str,
+        topic: &str,
         color: (u8, u8, u8),
         posts: Vec<BbsPost>,
         open_instantly: bool,
@@ -978,7 +978,7 @@ impl Net {
             client.socket_address,
             Reliability::ReliableOrdered,
             ServerPacket::OpenBoard {
-                topic: name.to_string(),
+                topic: topic.to_string(),
                 color,
                 posts,
                 open_instantly,
@@ -1034,6 +1034,24 @@ impl Net {
                 },
             );
         }
+    }
+
+    pub fn clear_board(&mut self, player_id: ActorId) {
+        self.packet_orchestrator.borrow_mut().send_by_id(
+            player_id,
+            Reliability::ReliableOrdered,
+            ServerPacket::ClearBoard,
+        );
+    }
+
+    pub fn update_board_topic(&mut self, player_id: ActorId, topic: &str) {
+        self.packet_orchestrator.borrow_mut().send_by_id(
+            player_id,
+            Reliability::ReliableOrdered,
+            ServerPacket::UpdateBoardTopic {
+                topic: topic.to_string(),
+            },
+        );
     }
 
     pub fn close_board(&mut self, player_id: ActorId) {

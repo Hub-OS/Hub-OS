@@ -207,6 +207,10 @@ pub enum ServerPacket {
         id: String,
     },
     SelectionAck,
+    ClearBoard,
+    UpdateBoardTopic {
+        topic: String,
+    },
     CloseBoard,
     OpenShop {
         textbox_options: TextboxOptions,

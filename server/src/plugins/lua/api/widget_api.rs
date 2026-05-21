@@ -160,7 +160,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     lua_api.add_dynamic_function("Net", "_open_board", |api_ctx, lua, params| {
         use crate::net::BbsPost;
 
-        let (player_id, name, color_table, post_tables, open_instantly): (
+        let (player_id, topic, color_table, post_tables, open_instantly): (
             ActorId,
             mlua::String,
             mlua::Table,
@@ -192,7 +192,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
             net.open_board(
                 player_id,
-                name.to_str()?,
+                topic.to_str()?,
                 color,
                 posts,
                 open_instantly.unwrap_or_default(),
@@ -273,6 +273,26 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         net.remove_post(player_id, post_id_str);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function("Net", "clear_board", |api_ctx, lua, params| {
+        let player_id: ActorId = lua.unpack_multi(params)?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+
+        net.clear_board(player_id);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function("Net", "update_board_topic", |api_ctx, lua, params| {
+        let (player_id, topic): (ActorId, mlua::String) = lua.unpack_multi(params)?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+
+        net.update_board_topic(player_id, topic.to_str()?);
 
         lua.pack_multi(())
     });

@@ -942,6 +942,16 @@ impl OverworldOnlineScene {
             ServerPacket::SelectionAck => {
                 self.menu_manager.acknowledge_selection();
             }
+            ServerPacket::ClearBoard => {
+                if let Some(bbs) = self.menu_manager.bbs_mut() {
+                    bbs.clear();
+                }
+            }
+            ServerPacket::UpdateBoardTopic { topic } => {
+                if let Some(bbs) = self.menu_manager.bbs_mut() {
+                    bbs.set_topic(topic);
+                }
+            }
             ServerPacket::CloseBoard => {
                 if let Some(bbs) = self.menu_manager.bbs_mut() {
                     bbs.close();

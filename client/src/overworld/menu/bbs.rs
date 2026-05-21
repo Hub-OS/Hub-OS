@@ -151,6 +151,16 @@ impl Bbs {
             self.scroll_tracker.handle_remove(index);
         }
     }
+
+    pub fn clear(&mut self) {
+        self.posts.clear();
+        self.scroll_tracker.set_total_items(0);
+        self.reached_end = true;
+    }
+
+    pub fn set_topic(&mut self, topic: String) {
+        self.topic = topic;
+    }
 }
 
 impl Menu for Bbs {
