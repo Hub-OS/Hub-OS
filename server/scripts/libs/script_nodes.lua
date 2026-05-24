@@ -1275,6 +1275,11 @@ function ScriptNodes:implement_object_api()
     end
 
     local object = Net.get_object_by_id(area_id, event.object_id)
+
+    if not object then
+      return
+    end
+
     local interact_id = object.custom_properties["On Interact"]
 
     if interact_id then
