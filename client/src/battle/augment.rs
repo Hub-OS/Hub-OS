@@ -63,7 +63,9 @@ impl Augment {
 
         if let Some((index, augment)) = existing_augment {
             // boost existing augment
-            let updated_level = (augment.level as i32 + level_boost).clamp(0, u16::MAX as _);
+            let updated_level = (augment.level as i32)
+                .saturating_add(level_boost)
+                .clamp(0, u16::MAX as _);
             augment.level = updated_level as u16;
             let prev_order = augment.boost_order;
             augment.boost_order = boost_order;

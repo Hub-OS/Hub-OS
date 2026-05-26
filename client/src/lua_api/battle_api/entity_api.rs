@@ -2687,7 +2687,6 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         let (table, augment_id, level_boost): (rollback_mlua::Table, rollback_mlua::String, i32) =
             lua.unpack_multi(params)?;
 
-        let level_boost = level_boost.clamp(-100, 100);
         let augment_id = augment_id.to_str()?;
 
         let id: EntityId = table.raw_get("#id")?;
