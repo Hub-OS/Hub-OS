@@ -365,7 +365,7 @@ impl BootStage2Thread {
         // load music
         let mut progress = 1;
 
-        let load = |path: &str| -> Result<Vec<(String, SoundBuffer)>, flume::SendError<Event>> {
+        let load = |path: &str| -> anyhow::Result<Vec<(String, SoundBuffer)>> {
             self.sender.send(Event::ProgressUpdate(ProgressUpdate {
                 label_translation_key: "boot-loading-music",
                 progress,
@@ -413,7 +413,7 @@ impl BootStage2Thread {
         let mut progress = 0;
         let total = GlobalSfx::total();
 
-        let load = |path: &str| -> Result<SoundBuffer, flume::SendError<Event>> {
+        let load = |path: &str| -> anyhow::Result<SoundBuffer> {
             self.sender.send(Event::ProgressUpdate(ProgressUpdate {
                 label_translation_key: "boot-loading-sfx",
                 progress,
@@ -522,7 +522,7 @@ impl BootStage2Thread {
             &self.assets,
             namespace,
             path,
-            |progress, total| {
+            |progress, total| -> anyhow::Result<()> {
                 let progress_update = ProgressUpdate {
                     label_translation_key,
                     progress,
@@ -530,7 +530,9 @@ impl BootStage2Thread {
                 };
 
                 let event = Event::ProgressUpdate(progress_update);
-                self.sender.send(event)
+                self.sender.send(event)?;
+
+                Ok(())
             },
         )?;
 

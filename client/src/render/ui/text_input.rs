@@ -410,8 +410,7 @@ impl TextInput {
         let (line_index, range) = line_ranges
             .iter()
             .enumerate()
-            .filter(|(_, range)| range.start <= caret_index)
-            .next_back()
+            .rfind(|(_, range)| range.start <= caret_index)
             .map(|(i, range)| (i, range.clone()))
             .unwrap_or_default();
 

@@ -219,10 +219,7 @@ impl CardRecipes {
             let id_result = recipe_map.get(card.package_id.as_str());
             let name_result = recipe_map.get(&*card.short_name);
 
-            let iter = id_result
-                .into_iter()
-                .chain(name_result.into_iter())
-                .flatten();
+            let iter = id_result.into_iter().chain(name_result).flatten();
 
             let mut recipe_output = None;
             let mut recipe_len = 0;

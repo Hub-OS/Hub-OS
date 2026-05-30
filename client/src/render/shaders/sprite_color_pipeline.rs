@@ -336,11 +336,8 @@ impl<'a> SpriteColorQueue<'a> {
         let updated_uniforms = requires_shader_change || self.updated_camera || updated_palette;
 
         if updated_uniforms {
-            let uniforms = if self.palette.is_some() {
-                vec![
-                    self.camera.as_binding(),
-                    self.palette.as_ref().unwrap().as_binding(),
-                ]
+            let uniforms = if let Some(palette) = &self.palette {
+                vec![self.camera.as_binding(), palette.as_binding()]
             } else {
                 vec![self.camera.as_binding()]
             };

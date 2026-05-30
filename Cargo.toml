@@ -17,6 +17,24 @@ debug = 1
 [profile.release]
 lto = true
 
+[workspace.lints.clippy]
+needless_collect = "allow"
+# i prefer using new, and don't always need default (especially when there's no downstream)
+new_without_default = "allow"
+# i find these harder to read
+comparison_chain = "allow"
+while_let_loop = "allow"
+explicit_counter_loop = "allow"
+collapsible_match = "allow"
+# this can be worse for documentation, requires moving type info to a different location
+type_complexity = "allow"
+# false reports https://github.com/rust-lang/rust-clippy/issues/8148
+unnecessary_to_owned = "allow"
+# it should be easy to read conditions, i don't want clever compression
+nonminimal_bool = "allow"
+# unit structs may eventually gain properties
+default_constructed_unit_structs = "allow"
+
 [workspace.dependencies]
 rollback_mlua = { git = "https://github.com/Hub-OS/rollback-mlua" }
 smol = "2"

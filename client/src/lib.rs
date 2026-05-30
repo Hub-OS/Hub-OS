@@ -1,18 +1,5 @@
 // the project is wip, this allow should be removed at some point
 #![allow(dead_code)]
-// i prefer using new, and don't always need default (especially when there's no downstream)
-#![allow(clippy::new_without_default)]
-// i find this harder to read
-#![allow(clippy::comparison_chain)]
-// this can be worse for documentation, requires moving type info to a different location
-#![allow(clippy::type_complexity)]
-// false reports https://github.com/rust-lang/rust-clippy/issues/8148
-#![allow(clippy::unnecessary_to_owned)]
-#![allow(clippy::needless_collect)]
-// it should be easy to read conditions, i don't want clever compression
-#![allow(clippy::nonminimal_bool)]
-// unit structs may eventually gain properties
-#![allow(clippy::default_constructed_unit_structs)]
 
 mod args;
 mod battle;
