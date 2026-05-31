@@ -288,10 +288,13 @@ impl BattleAnimator {
     pub fn copy_from(&mut self, other: &Self) -> Vec<BattleCallback> {
         self.animator.copy_from(&other.animator);
 
-        if let Some(state) = self.current_state() {
-            // activate interrupt callbacks and clear other listeners by resetting state
-            // resets progress as well
-            self.set_state(&state.to_string())
+        if self.current_state().is_some() {
+            // interrupt as the state and progress may have changed
+            let callbacks = self.interrupt();
+
+            self.time = other.time;
+
+            callbacks
         } else {
             Vec::new()
         }
@@ -301,10 +304,13 @@ impl BattleAnimator {
     pub fn copy_from_animator(&mut self, animator: &Animator) -> Vec<BattleCallback> {
         self.animator.copy_from(animator);
 
-        if let Some(state) = self.current_state() {
-            // activate interrupt callbacks and clear other listeners by resetting state
-            // resets progress as well
-            self.set_state(&state.to_string())
+        if self.current_state().is_some() {
+            // interrupt as the state and progress may have changed
+            let callbacks = self.interrupt();
+
+            self.time = animator.calculate_time();
+
+            callbacks
         } else {
             Vec::new()
         }

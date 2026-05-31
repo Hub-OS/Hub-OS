@@ -99,7 +99,7 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
                 .get(sprite_b_index)
                 .ok_or_else(sprite_not_found)?;
 
-            *sprite_a = sprite_b.clone();
+            sprite_a.clone_from(sprite_b);
         }
 
         lua.pack_multi(())

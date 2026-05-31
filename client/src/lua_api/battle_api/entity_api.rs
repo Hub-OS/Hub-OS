@@ -12,6 +12,7 @@ use super::tile_api::{create_tile_table, tile_mut_from_table};
 use super::*;
 use crate::battle::*;
 use crate::bindable::*;
+use crate::lua_api::battle_api::errors::animator_not_found;
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::packages::{PackageId, PackageNamespace};
 use crate::render::{FrameTime, SpriteNode};
@@ -21,6 +22,7 @@ use crate::structures::{SlotMap, TreeIndex};
 use framework::common::GameIO;
 use framework::prelude::Vec2;
 use packets::structures::MemoryCell;
+use std::collections::HashMap;
 use std::rc::Rc;
 
 pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
@@ -599,6 +601,163 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         }
 
         simulation.pending_callbacks.extend(callbacks);
+        simulation.call_pending_callbacks(api_ctx.game_io, api_ctx.resources);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "copy_sprite_tree", |api_ctx, lua, params| {
+        let (table, other_table): (rollback_mlua::Table, rollback_mlua::Table) =
+            lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+        let other_id: EntityId = other_table.raw_get("#id")?;
+
+        if id == other_id {
+            // hecs panics with duplicate ids
+            return lua.pack_multi(());
+        }
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let [entity, other_entity] =
+            entities.query_many_mut::<&mut Entity, _>([id.into(), other_id.into()]);
+
+        let entity = entity.map_err(|_| entity_not_found())?;
+        let other_entity = other_entity.map_err(|_| entity_not_found())?;
+
+        // clone sprite trees
+        let [sprite_tree, other_sprite_tree] = simulation
+            .sprite_trees
+            .get_disjoint_mut([entity.sprite_tree_index, other_entity.sprite_tree_index])
+            .ok_or_else(animator_not_found)?;
+
+        other_sprite_tree.inherit(
+            other_sprite_tree.root_index(),
+            None,
+            |sprite, dest_parent_index| {
+                if let Some(dest_parent_index) = dest_parent_index {
+                    sprite_tree.insert_child(*dest_parent_index, sprite.clone())
+                } else {
+                    sprite_tree.root_mut().clone_from(sprite);
+                    Some(sprite_tree.root_index())
+                }
+            },
+        );
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "copy_visual_tree", |api_ctx, lua, params| {
+        let (table, other_table): (rollback_mlua::Table, rollback_mlua::Table) =
+            lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+        let other_id: EntityId = other_table.raw_get("#id")?;
+
+        if id == other_id {
+            // hecs panics with duplicate ids
+            return lua.pack_multi(());
+        }
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let [entity, other_entity] =
+            entities.query_many_mut::<&mut Entity, _>([id.into(), other_id.into()]);
+
+        let entity = entity.map_err(|_| entity_not_found())?;
+        let other_entity = other_entity.map_err(|_| entity_not_found())?;
+
+        // clone sprite trees
+        let [sprite_tree, other_sprite_tree] = simulation
+            .sprite_trees
+            .get_disjoint_mut([entity.sprite_tree_index, other_entity.sprite_tree_index])
+            .ok_or_else(animator_not_found)?;
+
+        let mut sprite_map = HashMap::new();
+
+        other_sprite_tree.node_inherit(
+            other_sprite_tree.root_index(),
+            None,
+            |node, dest_parent_index| {
+                let sprite = node.value();
+
+                let dest_index = if let Some(dest_parent_index) = dest_parent_index {
+                    sprite_tree.insert_child(*dest_parent_index, sprite.clone())
+                } else {
+                    sprite_tree.root_mut().clone_from(sprite);
+                    Some(sprite_tree.root_index())
+                };
+
+                // map src -> dest index
+                if let Some(dest_index) = dest_index {
+                    sprite_map.insert(node.index(), dest_index);
+                }
+
+                dest_index
+            },
+        );
+
+        // clone animator trees
+        let [animator, other_animator] = simulation
+            .animators
+            .get_disjoint_mut([entity.animator_index, other_entity.animator_index])
+            .ok_or_else(animator_not_found)?;
+
+        simulation
+            .pending_callbacks
+            .extend(animator.copy_from(other_animator));
+
+        let mut pending_animators: Vec<_> = other_animator
+            .synced_animators()
+            .iter()
+            .map(|i| (entity.animator_index, *i))
+            .collect();
+
+        while let Some((parent_animator_i, src_animator_i)) = pending_animators.pop() {
+            let Some(src_animator) = simulation.animators.get(src_animator_i) else {
+                continue;
+            };
+
+            if src_animator.target_tree_index() != Some(other_entity.sprite_tree_index) {
+                // not part of the same visual tree
+                continue;
+            }
+
+            let Some(src_sprite_i) = src_animator.target_sprite_index() else {
+                continue;
+            };
+
+            let Some(dest_sprite_i) = sprite_map.get(&src_sprite_i) else {
+                continue;
+            };
+
+            // clone animation
+            let mut animator = BattleAnimator::new();
+            let _ = animator.copy_from(src_animator);
+
+            animator.set_target(entity.sprite_tree_index, *dest_sprite_i);
+
+            let animator_index = simulation.animators.insert(animator);
+
+            // sync
+            let parent_animator = &mut simulation.animators[parent_animator_i];
+            parent_animator.add_synced_animator(animator_index);
+
+            // extend traversal
+            let src_animator = &simulation.animators[src_animator_i];
+            pending_animators.extend(
+                src_animator
+                    .synced_animators()
+                    .iter()
+                    .map(|i| (animator_index, *i)),
+            )
+        }
+
         simulation.call_pending_callbacks(api_ctx.game_io, api_ctx.resources);
 
         lua.pack_multi(())
