@@ -40,6 +40,18 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     generate_constructor_fn(lua_api, OBSTACLE_TABLE, |api_ctx| {
         Ok(Obstacle::create(api_ctx.game_io, api_ctx.simulation))
     });
+    generate_constructor_fn(lua_api, CHARACTER_TABLE, |api_ctx| {
+        let vms = api_ctx.resources.vm_manager.vms();
+        let namespace = vms[api_ctx.vm_index].preferred_namespace();
+
+        Character::create(
+            api_ctx.game_io,
+            api_ctx.resources,
+            api_ctx.simulation,
+            CharacterRank::V1,
+            namespace,
+        )
+    });
     generate_constructor_fn(lua_api, EXPLOSION_TABLE, |api_ctx| {
         Ok(Artifact::create_explosion(
             api_ctx.game_io,
