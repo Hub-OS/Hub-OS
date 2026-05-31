@@ -120,9 +120,12 @@ function status_init(status)
   end
 
   -- aux props for weaknesses
+  local cleanup
+
   local aux_prop_callback = function()
     if status:remaining_time() > 0 then
       status:set_remaining_time(0)
+      cleanup()
       spawn_alert(entity)
     end
   end
@@ -145,6 +148,12 @@ function status_init(status)
 
   -- clean up
   status.on_delete_func = function()
+    cleanup()
+  end
+
+  cleanup = function()
+    cleanup = function() end
+
     entity_sprite:remove_node(freeze_sprite)
     component:eject()
     color_component:eject()
