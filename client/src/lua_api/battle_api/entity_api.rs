@@ -1977,6 +1977,18 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(living.status_director.is_immobile(status_registry))
     });
 
+    setter(
+        lua_api,
+        "drag",
+        |living: &mut Living, _, (direction, distance): (Direction, u32)| {
+            living.status_director.set_drag(Drag {
+                direction,
+                distance,
+            });
+            Ok(())
+        },
+    );
+
     lua_api.add_dynamic_function(ENTITY_TABLE, "add_aux_prop", |api_ctx, lua, params| {
         let (table, value): (rollback_mlua::Table, rollback_mlua::Value) =
             lua.unpack_multi(params)?;
