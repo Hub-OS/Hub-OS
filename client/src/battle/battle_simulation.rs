@@ -308,9 +308,6 @@ impl BattleSimulation {
         #[cfg(debug_assertions)]
         self.assertions();
 
-        // remove dead entities
-        self.cleanup_erased_entities(game_io, resources);
-
         // update background
         self.background.update();
 
@@ -353,6 +350,9 @@ impl BattleSimulation {
 
         // should this be called every time we invoke lua?
         self.call_pending_callbacks(game_io, resources);
+
+        // remove dead entities
+        self.cleanup_erased_entities(game_io, resources);
 
         self.update_ui();
 
