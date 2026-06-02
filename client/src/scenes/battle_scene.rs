@@ -30,6 +30,7 @@ pub enum BattleEvent {
 
 struct PlayerController {
     connected: bool,
+    input_connected: bool,
     ping_sent: Option<Instant>,
     rtt: f32,
     buffer: PlayerInputBuffer,
@@ -159,8 +160,10 @@ impl BattleScene {
         for setup in player_setups {
             simulation.inputs[setup.index].set_input_delay(setup.buffer.delay());
 
+            let connected = !is_playing_back_recording && setup.connected;
             player_controllers.push(PlayerController {
-                connected: !is_playing_back_recording && setup.connected,
+                connected,
+                input_connected: connected,
                 ping_sent: None,
                 rtt: 0.0,
                 buffer: setup.buffer.clone(),
@@ -271,10 +274,23 @@ impl BattleScene {
                         let globals = Globals::from_resources(game_io);
                         let text = globals.translate("battle-run-question");
 
+                        let input_connected = self
+                            .local_index
+                            .and_then(|i| self.player_controllers.get(i))
+                            .is_some_and(|c| c.input_connected);
+
                         let interface = TextboxQuestion::new(game_io, text, move |yes| {
-                            if yes {
-                                event_sender.send(BattleEvent::AttemptFlee).unwrap();
+                            if !yes {
+                                return;
                             }
+
+                            let event = if input_connected {
+                                BattleEvent::AttemptFlee
+                            } else {
+                                BattleEvent::FleeResult(true)
+                            };
+
+                            let _ = event_sender.send(event);
                         })
                         .with_initial_response(false);
 
@@ -307,9 +323,7 @@ impl BattleScene {
                         String::from("\x01...\x01") + globals.translate(message_key).as_str();
 
                     let interface = TextboxMessage::new(message).with_callback(move || {
-                        event_sender
-                            .send(BattleEvent::CompleteFlee(success))
-                            .unwrap();
+                        let _ = event_sender.send(BattleEvent::CompleteFlee(success));
                     });
 
                     self.textbox.use_navigation_avatar(game_io);
@@ -474,6 +488,7 @@ impl BattleScene {
                     // check disconnect
                     if data.signals.contains(&NetplaySignal::Disconnect) {
                         controller.connected = false;
+                        controller.input_connected = false;
                         self.resources.external_events.dropped_player(index);
                     }
 
@@ -560,7 +575,7 @@ impl BattleScene {
         let mut should_slow = false;
 
         for (i, controller) in self.player_controllers.iter().enumerate() {
-            if !controller.connected || self.local_index == Some(i) {
+            if !controller.input_connected || self.local_index == Some(i) {
                 continue;
             }
 
@@ -604,7 +619,7 @@ impl BattleScene {
         }
 
         let senders = &self.comms.senders;
-        let Some(send) = senders.get(to_index).or(senders.last()) else {
+        let Some((_, send)) = senders.get(to_index).or(senders.last()) else {
             return;
         };
 
@@ -613,34 +628,43 @@ impl BattleScene {
     }
 
     fn broadcast(&self, data: NetplayPacketData) {
-        if let Some(index) = self.local_index {
-            for send in &self.comms.senders {
-                let packet = NetplayPacket {
-                    index,
-                    data: data.clone(),
-                };
+        let Some(index) = self.local_index else {
+            return;
+        };
 
-                send(packet);
+        for (i, send) in &self.comms.senders {
+            if let Some(i) = i
+                && let Some(controller) = self.player_controllers.get(*i)
+                && !controller.connected
+            {
+                // avoid sending data to disconnected players
+                continue;
             }
+
+            let packet = NetplayPacket {
+                index,
+                data: data.clone(),
+            };
+
+            send(packet);
         }
     }
 
     fn input_synced(&self) -> bool {
-        #[allow(clippy::unused_enumerate_index)]
         self.player_controllers
             .iter()
             .enumerate()
-            .all(|(_i, controller)| {
+            .all(|(i, controller)| {
                 if let Some(playback_flow) = &self.playback_flow {
                     let player_count = self.player_controllers.len();
-                    let limit = playback_flow.get_buffer_limit(player_count, _i);
+                    let limit = playback_flow.get_buffer_limit(player_count, i);
 
                     if limit.is_some_and(|limit| limit == 0) {
                         return false;
                     }
                 }
 
-                !controller.connected || !controller.buffer.is_empty()
+                !controller.input_connected || !controller.buffer.is_empty()
             })
     }
 
@@ -649,16 +673,27 @@ impl BattleScene {
             return;
         };
 
-        let input_util = InputUtil::new(game_io);
-
         let Some(local_controller) = self.player_controllers.get_mut(local_index) else {
             return;
         };
 
+        let input_util = InputUtil::new(game_io);
+        let input_blocked = self.textbox_is_blocking_input || game_io.input().is_key_down(Key::F3);
+
+        if !local_controller.input_connected {
+            if !input_blocked && input_util.was_just_pressed(Input::Pause) {
+                let event = BattleEvent::RequestFlee;
+                let _ = self.resources.event_sender.send(event);
+            }
+
+            self.pending_signals.clear();
+            return;
+        }
+
         // gather input
         let mut pressed = Vec::new();
 
-        if !self.textbox_is_blocking_input && !game_io.input().is_key_down(Key::F3) {
+        if !input_blocked {
             for &input in Input::BATTLE {
                 if input_util.is_down(input) {
                     pressed.push(input);
@@ -694,7 +729,7 @@ impl BattleScene {
             .enumerate()
             .any(|(i, controller)| {
                 self.local_index != Some(i)
-                    && controller.connected
+                    && controller.input_connected
                     && controller.ping_sent.is_some()
             });
 
@@ -932,23 +967,29 @@ impl BattleScene {
         // drop synced / canonicalized backups, additionally send any associated external messages
         if self.backups.len() > INPUT_BUFFER_LIMIT {
             let backup = self.backups.pop_front();
-            let server_comms = self.comms.server.as_ref();
 
-            if let Some(backup) = &backup {
+            if let Some(backup) = backup {
+                for event in backup.simulation.external_outbox {
+                    match event {
+                        CanonicalizedEvent::BattleMessage(message) => {
+                            if let Some((send, _)) = &self.comms.server {
+                                send(
+                                    Reliability::ReliableOrdered,
+                                    ClientPacket::BattleMessage { message },
+                                )
+                            }
+                        }
+                        CanonicalizedEvent::InputDisconnected(i) => {
+                            if let Some(controller) = self.player_controllers.get_mut(i) {
+                                controller.input_connected = false;
+                            }
+                        }
+                    }
+                }
+
                 self.resources
                     .audio_tracking
                     .drop_frame(backup.simulation.time);
-            }
-
-            if let (Some(backup), Some((send, _))) = (backup, server_comms) {
-                let messages = backup.simulation.external_outbox;
-
-                for message in messages {
-                    send(
-                        Reliability::ReliableOrdered,
-                        ClientPacket::BattleMessage { message },
-                    );
-                }
             }
         }
 

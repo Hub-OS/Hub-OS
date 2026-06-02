@@ -886,7 +886,7 @@ impl NetplayInitScene {
                         props.meta.player_setups.push(setup);
 
                         if let Some(send) = connection.send.take() {
-                            props.comms.senders.push(send);
+                            props.comms.senders.push((Some(index), send));
                         }
 
                         if let Some(receiver) = connection.receiver.take() {
@@ -895,7 +895,7 @@ impl NetplayInitScene {
                     }
 
                     if let Some((send, receiver)) = self.fallback_sender_receiver.take() {
-                        props.comms.senders.push(send);
+                        props.comms.senders.push((None, send));
                         props.comms.receivers.push((None, receiver));
                     }
 

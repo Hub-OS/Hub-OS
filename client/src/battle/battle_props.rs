@@ -374,7 +374,7 @@ impl BattleMeta {
 
 #[derive(Default)]
 pub struct BattleComms {
-    pub senders: Vec<NetplayPacketSender>,
+    pub senders: Vec<(Option<usize>, NetplayPacketSender)>,
     pub receivers: Vec<(Option<usize>, NetplayPacketReceiver)>,
     pub remote_id: BattleId,
     pub server: Option<(ClientPacketSender, flume::Receiver<(BattleId, String)>)>,

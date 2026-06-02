@@ -29,6 +29,11 @@ crate::structures::sequential_enum! {
     }
 }
 
+pub enum CanonicalizedEvent {
+    BattleMessage(String),
+    InputDisconnected(usize),
+}
+
 pub struct BattleSimulation {
     pub statistics: BattleStatistics,
     pub rng: SimulationRng,
@@ -54,7 +59,7 @@ pub struct BattleSimulation {
     pub time_freeze_tracker: TimeFreezeTracker,
     pub components: DenseSlotMap<Component>,
     pub pending_callbacks: Vec<BattleCallback>,
-    pub external_outbox: Vec<String>,
+    pub external_outbox: Vec<CanonicalizedEvent>,
     pub local_player_index: usize,
     pub local_player_id: EntityId,
     pub local_health_ui: PlayerHealthUi,

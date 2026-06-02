@@ -2,8 +2,8 @@ use super::errors::{encounter_method_called_after_start, server_communication_cl
 use super::field_api::get_field_compat_table;
 use super::{BattleLuaApi, ENCOUNTER_TABLE, MUTATOR_TABLE, SPAWNER_TABLE, create_entity_table};
 use crate::battle::{
-    BattleInitMusic, BattleProgress, BattleScriptContext, BattleSimulation, Character, Entity,
-    SharedBattleResources, SpawnPriority, TileState, TileStateAnimationSupport,
+    BattleInitMusic, BattleProgress, BattleScriptContext, BattleSimulation, CanonicalizedEvent,
+    Character, Entity, SharedBattleResources, SpawnPriority, TileState, TileStateAnimationSupport,
 };
 use crate::bindable::{CharacterRank, EntityId, TimeFreezeChainLimit};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable, lua_value_to_string};
@@ -124,6 +124,23 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
 
             let config = &mut *api_ctx.resources.config.borrow_mut();
             config.spectate_on_delete = spectate.unwrap_or(true);
+
+            lua.pack_multi(())
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        ENCOUNTER_TABLE,
+        "disconnect_input",
+        |api_ctx, lua, params| {
+            let (_, index): (rollback_mlua::Table, usize) = lua.unpack_multi(params)?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+
+            simulation
+                .external_outbox
+                .push(CanonicalizedEvent::InputDisconnected(index));
 
             lua.pack_multi(())
         },
@@ -463,7 +480,9 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
         }
 
         let string = lua_value_to_string(data, "", 0);
-        simulation.external_outbox.push(string);
+        simulation
+            .external_outbox
+            .push(CanonicalizedEvent::BattleMessage(string));
 
         lua.pack_multi(())
     });
