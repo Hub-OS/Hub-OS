@@ -13,6 +13,7 @@ pub enum NetplaySignal {
     AttemptingFlee,
     CompletedFlee,
     Disconnect,
+    DisconnectInput,
     AcknowledgeServerMessage(usize),
 }
 

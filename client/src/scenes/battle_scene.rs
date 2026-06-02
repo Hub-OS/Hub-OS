@@ -490,6 +490,8 @@ impl BattleScene {
                         controller.connected = false;
                         controller.input_connected = false;
                         self.resources.external_events.dropped_player(index);
+                    } else if data.signals.contains(&NetplaySignal::DisconnectInput) {
+                        controller.input_connected = false;
                     }
 
                     if let Some(input) = self.simulation.inputs.get(index)
@@ -678,7 +680,8 @@ impl BattleScene {
         };
 
         let input_util = InputUtil::new(game_io);
-        let input_blocked = self.textbox_is_blocking_input || game_io.input().is_key_down(Key::F3);
+        let mut input_blocked =
+            self.textbox_is_blocking_input || game_io.input().is_key_down(Key::F3);
 
         if !local_controller.input_connected {
             if !input_blocked && input_util.was_just_pressed(Input::Pause) {
@@ -688,6 +691,16 @@ impl BattleScene {
 
             self.pending_signals.clear();
             return;
+        }
+
+        // make sure the disconnect input signal is sent before disconnecting inputs, if it exists
+        let disconnecting_input = self
+            .pending_signals
+            .contains(&NetplaySignal::DisconnectInput);
+        input_blocked |= disconnecting_input;
+
+        if disconnecting_input {
+            local_controller.input_connected = false;
         }
 
         // gather input
@@ -980,8 +993,10 @@ impl BattleScene {
                             }
                         }
                         CanonicalizedEvent::InputDisconnected(i) => {
-                            if let Some(controller) = self.player_controllers.get_mut(i) {
-                                controller.input_connected = false;
+                            if self.local_index == Some(i) {
+                                // we're going to pass this to other clients
+                                // to ensure it's not possible to desync and softlock
+                                self.pending_signals.push(NetplaySignal::DisconnectInput);
                             }
                         }
                     }
