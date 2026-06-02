@@ -621,9 +621,17 @@ impl BattleScene {
         }
 
         let senders = &self.comms.senders;
-        let Some((_, send)) = senders.get(to_index).or(senders.last()) else {
+        let Some((i, send)) = senders.get(to_index).or(senders.last()) else {
             return;
         };
+
+        if *i == Some(to_index)
+            && let Some(controller) = self.player_controllers.get(to_index)
+            && !controller.connected
+        {
+            // avoid sending data to disconnected players
+            return;
+        }
 
         let packet = NetplayPacket { index, data };
         send(packet);
