@@ -32,32 +32,24 @@ function Buster.new(user, charged, damage)
 
     -- spell
     local cooldown_table = {
-        { 5, 9, 13, 17, 21, 25 },
-        { 4, 8, 11, 15, 18, 21 },
-        { 4, 7, 10, 13, 16, 18 },
-        { 3, 5, 7,  9,  11, 13 },
-        { 3, 4, 5,  6,  7,  8 }
+        { 9, 13, 17, 21, 25, 29 },
+        { 8, 11, 15, 19, 22, 25 },
+        { 8, 11, 14, 17, 20, 22 },
+        { 7, 9,  11, 13, 15, 17 },
+        { 7, 8,  9,  10, 11, 12 }
     }
 
     rapid_level = math.max(math.min(rapid_level, #cooldown_table), 1)
 
     local cooldown = cooldown_table[rapid_level][6]
     local elapsed_frames = 0
-    local spell_erased_frame = 0
 
-    local spell = Spell.new(user:team())
     local can_move = false
 
-    spell:set_facing(user:facing())
-
     action.on_update_func = function()
-        if spell_erased_frame == 0 and spell:will_erase_eof() then
-            spell_erased_frame = elapsed_frames
-        end
-
         elapsed_frames = elapsed_frames + 1
 
-        if spell_erased_frame > 0 and elapsed_frames - spell_erased_frame >= cooldown then
+        if elapsed_frames > cooldown then
             action:end_action()
             return
         end
@@ -96,6 +88,15 @@ function Buster.new(user, charged, damage)
     action:on_anim_frame(2, function()
         Resources.play_audio(Resources.game_folder() .. "resources/sfx/pew.ogg")
 
+        local tile_ahead = user:get_tile(user:facing(), 1)
+
+        if not tile_ahead then
+            return
+        end
+
+        local spell = Spell.new(user:team())
+        spell:set_facing(user:facing())
+
         spell:set_hit_props(HitProps.new(
             damage,
             Hit.None,
@@ -105,7 +106,7 @@ function Buster.new(user, charged, damage)
         ))
 
         local tiles_travelled = 1
-        local move_timer = 0
+        local move_timer = 2
 
         spell.on_update_func = function()
             spell:attack_tile()
@@ -120,7 +121,7 @@ function Buster.new(user, charged, damage)
 
             if tile then
                 tiles_travelled = tiles_travelled + 1
-                spell:teleport(tile)
+                tile:add_entity(spell)
             else
                 spell:delete()
             end
@@ -129,6 +130,12 @@ function Buster.new(user, charged, damage)
         end
 
         spell.on_collision_func = function()
+            local calculated_cooldown = cooldown_table[rapid_level][tiles_travelled]
+
+            if calculated_cooldown ~= nil then
+                cooldown = calculated_cooldown
+            end
+
             spell:delete()
         end
 
@@ -164,17 +171,8 @@ function Buster.new(user, charged, damage)
             Field.spawn(hit_artifact, entity:current_tile())
         end
 
-        spell.on_delete_func = function()
-            local calculated_cooldown = cooldown_table[rapid_level][tiles_travelled]
-
-            if calculated_cooldown ~= nil then
-                cooldown = calculated_cooldown
-            end
-
-            spell:erase()
-        end
-
-        Field.spawn(spell, user:current_tile())
+        Field.spawn(spell, tile_ahead)
+        spell:attack_tile(tile_ahead)
     end)
 
     -- flare attachment
@@ -193,12 +191,6 @@ function Buster.new(user, charged, damage)
 
         animation:apply(flare_sprite)
     end)
-
-    action.on_action_end_func = function()
-        if not spell:deleted() and not spell:spawned() then
-            spell:delete()
-        end
-    end
 
     return action
 end
