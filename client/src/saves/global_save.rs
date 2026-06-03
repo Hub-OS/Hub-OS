@@ -51,7 +51,8 @@ impl GlobalSave {
     }
 
     pub fn load(assets: &impl AssetManager) -> Self {
-        let bytes = assets.binary_silent(&Self::path());
+        let path = Self::path();
+        let bytes = assets.binary_silent(&path);
 
         if bytes.is_empty() {
             // no save data
@@ -70,7 +71,26 @@ impl GlobalSave {
                 // we never want to accidentally reset a player's save, it should be recoverable
                 std::fs::write(corrupted_path, bytes).unwrap();
 
-                return Self::default();
+                // try to read an older save
+                let old_path = path.clone() + ".old";
+                let bytes = assets.binary_silent(&old_path);
+
+                if bytes.is_empty() {
+                    return Self::default();
+                }
+
+                log::info!("Attempting to read an older save");
+
+                let save = match rmp_serde::from_slice(&bytes) {
+                    Ok(save) => save,
+                    Err(e) => {
+                        log::error!("Failed to load {old_path:?}: {e}");
+                        return Self::default();
+                    }
+                };
+
+                log::info!("Old save restored");
+                save
             }
         };
 
@@ -118,10 +138,21 @@ impl GlobalSave {
         log::info!("Saving...");
 
         let path = Self::path();
+        let backup_path = path.clone() + ".old";
+
+        if let Err(e) = std::fs::rename(&path, &backup_path) {
+            log::error!("Failed to back up save data to {backup_path:?}: {e}");
+            // todo: should we fail here to avoid corrupting the main save when we haven't made a backup?
+        }
+
         let mut file = File::create(&path).unwrap();
 
         if let Err(e) = rmp_serde::encode::write_named(&mut file, self) {
             log::error!("Failed to save data to {path:?}: {e}");
+
+            if let Err(e) = std::fs::rename(&backup_path, path) {
+                log::error!("Failed to restore save data from {backup_path:?}: {e}");
+            }
         }
     }
 
