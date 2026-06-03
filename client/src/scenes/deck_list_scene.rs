@@ -286,15 +286,25 @@ impl Scene for DeckListScene {
         let deck_top_index = self.deck_scroll_tracker.top_index();
         self.deck_scroll_offset += (deck_top_index as f32 - self.deck_scroll_offset) * 0.2;
 
+        let selection_multiplier = self.deck_sprite.size().x + 1.0;
+        let deck_offset = -self.deck_scroll_offset * selection_multiplier;
+
+        let deck_start_i = (self.deck_scroll_offset.max(0.0) as usize).saturating_sub(1);
+        let deck_view_len = (RESOLUTION_F.x / selection_multiplier) as usize + 2;
+
         // draw decks
         let mut label =
             TextStyle::new(game_io, FontName::Thick).with_shadow_color(TEXT_DARK_SHADOW_COLOR);
 
-        let selection_multiplier = self.deck_sprite.size().x + 1.0;
+        for (mut i, deck) in global_save
+            .decks
+            .iter()
+            .skip(deck_start_i)
+            .take(deck_view_len)
+            .enumerate()
+        {
+            i += deck_start_i;
 
-        let deck_offset = -self.deck_scroll_offset * selection_multiplier;
-
-        for (i, deck) in global_save.decks.iter().enumerate() {
             let mut position = self.deck_start_position;
             position.x += i as f32 * selection_multiplier + deck_offset;
 
