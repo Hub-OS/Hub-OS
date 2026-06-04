@@ -231,8 +231,17 @@ impl DefenseRule {
                 let emotion = emotion_window.emotion();
 
                 if emotion_window.has_emotion(emotion) {
+                    let window_right = simulation
+                        .sprite_trees
+                        .get(emotion_window.sprite_tree_index())
+                        .map(|sprite_tree| {
+                            let window_sprite = sprite_tree.root();
+                            window_sprite.offset().x + window_sprite.size().x
+                        })
+                        .unwrap_or_default();
+
                     let gauge_bounds = simulation.turn_gauge.bounds();
-                    text_style.bounds.x = gauge_bounds.left();
+                    text_style.bounds.x = gauge_bounds.left().max(window_right + 2.0);
                 }
             }
 
