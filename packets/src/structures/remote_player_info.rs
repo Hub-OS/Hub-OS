@@ -9,4 +9,5 @@ pub struct RemotePlayerInfo {
     pub health: i32,
     pub base_health: i32,
     pub emotion: Emotion,
+    pub nickname: String,
 }

@@ -1269,6 +1269,11 @@ impl Net {
                     health: client.player_data.health,
                     base_health: client.player_data.base_health,
                     emotion: client.player_data.emotion.clone(),
+                    nickname: self
+                        .actors
+                        .get(*id)
+                        .map(|actor| actor.name.clone())
+                        .unwrap_or_default(),
                 })
             })
             .collect();

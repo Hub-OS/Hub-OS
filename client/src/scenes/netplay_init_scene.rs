@@ -195,12 +195,14 @@ impl NetplayInitScene {
                      health,
                      base_health,
                      emotion,
+                     nickname,
                  }| RemotePlayerConnection {
                     last_message: now,
                     player_setup: PlayerSetup {
                         health,
                         base_health,
                         emotion,
+                        nickname,
                         ..PlayerSetup::new_empty(index, false)
                     },
                     spectating: false,
@@ -336,13 +338,19 @@ impl NetplayInitScene {
                 }
 
                 if connection.spectating {
-                    log::debug!("Lost connection with spectator {index}");
+                    log::debug!(
+                        "Lost connection with spectator {index} ({})",
+                        connection.player_setup.nickname
+                    );
                     continue;
                 }
 
                 // fail entirely if this player is involved in the battle
                 self.stage = ConnectionStage::Failed;
-                log::error!("Lost connection with player {index}");
+                log::error!(
+                    "Lost connection with player {index} ({})",
+                    connection.player_setup.nickname
+                );
             }
         }
 
@@ -373,7 +381,10 @@ impl NetplayInitScene {
             NetplayPacketData::Buffer { .. } | NetplayPacketData::Heartbeat
         ) {
             let packet_name: &'static str = (&packet.data).into();
-            log::debug!("Received {packet_name} from {index}");
+            log::debug!(
+                "Received {packet_name} from {index} ({})",
+                connection.player_setup.nickname
+            );
         }
 
         match packet.data {
@@ -533,11 +544,16 @@ impl NetplayInitScene {
                 if data.signals.contains(&NetplaySignal::Disconnect) {
                     if connection.spectating {
                         log::debug!(
-                            "Spectator {index} disconnected, signals: {:?}",
+                            "Spectator {index} ({}) disconnected, signals: {:?}",
+                            connection.player_setup.nickname,
                             data.signals
                         );
                     } else {
-                        log::info!("Player {index} disconnected, signals: {:?}", data.signals);
+                        log::info!(
+                            "Player {index} ({}) disconnected, signals: {:?}",
+                            connection.player_setup.nickname,
+                            data.signals
+                        );
                         self.stage = ConnectionStage::Failed;
                     }
                 }
