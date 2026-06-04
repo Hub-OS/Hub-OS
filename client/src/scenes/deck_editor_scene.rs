@@ -952,7 +952,6 @@ fn handle_namespace_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO
     scene.namespace_menu.close();
 
     scene.ns_filter = i;
-    scene.name_filter = Default::default();
     apply_filters(scene, game_io);
     scene.pack_dock.update_preview(game_io);
 }
