@@ -252,18 +252,20 @@ fn build_deck_tag_options(game_io: &GameIO, deck_i: usize) -> Vec<(String, Optio
 
     let deck = &global_save.decks[deck_i];
 
-    let mut options: Vec<_> =
-        std::iter::once((globals.translate("deck-list-tags-option-new-tag"), None))
-            .chain(global_save.deck_tags.iter().map(|(tag_key, label)| {
-                let label = if deck.tags.contains(&tag_key) {
-                    format!("- {label}")
-                } else {
-                    format!("+ {label}")
-                };
+    let mut new_tag_label = globals.translate("deck-list-tags-option-new-tag");
+    new_tag_label.insert_str(0, "+ ");
 
-                (label.clone(), Some(tag_key))
-            }))
-            .collect();
+    let mut options: Vec<_> = std::iter::once((new_tag_label, None))
+        .chain(global_save.deck_tags.iter().map(|(tag_key, label)| {
+            let label = if deck.tags.contains(&tag_key) {
+                format!("- {label}")
+            } else {
+                format!("+ {label}")
+            };
+
+            (label.clone(), Some(tag_key))
+        }))
+        .collect();
 
     options[1..].sort_by(|(label_a, _), (label_b, _)| {
         (label_a.starts_with('+'), label_a).cmp(&(label_b.starts_with('+'), label_b))
@@ -276,15 +278,15 @@ fn build_tag_filter_options(game_io: &GameIO) -> Vec<(String, Option<DeckTagKey>
     let globals = Globals::from_resources(game_io);
     let global_save = &globals.global_save;
 
-    let mut options: Vec<_> =
-        std::iter::once((globals.translate("deck-list-tags-option-no-filter"), None))
-            .chain(
-                global_save
-                    .deck_tags
-                    .iter()
-                    .map(|(k, v)| (v.clone(), Some(k))),
-            )
-            .collect();
+    let no_filter_label = globals.translate("deck-list-tags-option-no-filter");
+    let mut options: Vec<_> = std::iter::once((no_filter_label, None))
+        .chain(
+            global_save
+                .deck_tags
+                .iter()
+                .map(|(k, v)| (v.clone(), Some(k))),
+        )
+        .collect();
 
     options[1..].sort_by(|(label_a, _), (label_b, _)| label_a.cmp(label_b));
 
@@ -295,13 +297,19 @@ fn build_tag_edit_options(game_io: &GameIO) -> Vec<(String, Option<DeckTagKey>)>
     let globals = Globals::from_resources(game_io);
     let global_save = &globals.global_save;
 
-    let mut options: Vec<_> = global_save
-        .deck_tags
-        .iter()
-        .map(|(k, v)| (v.clone(), Some(k)))
+    let mut new_tag_label = globals.translate("deck-list-tags-option-new-tag");
+    new_tag_label.insert_str(0, "+ ");
+
+    let mut options: Vec<_> = std::iter::once((new_tag_label, None))
+        .chain(
+            global_save
+                .deck_tags
+                .iter()
+                .map(|(k, v)| (v.clone(), Some(k))),
+        )
         .collect();
 
-    options.sort_by(|(label_a, _), (label_b, _)| label_a.cmp(label_b));
+    options[1..].sort_by(|(label_a, _), (label_b, _)| label_a.cmp(label_b));
 
     options
 }
@@ -534,11 +542,13 @@ fn handle_events(scene: &mut DeckListScene, game_io: &mut GameIO) {
                 global_save.save();
 
                 // update list
-                let options = if scene.tag_menu_mode == TagMenuMode::TaggingDeck {
-                    let deck_i = scene.deck_list.selected_deck_index().unwrap();
-                    build_deck_tag_options(game_io, deck_i)
-                } else {
-                    build_tag_filter_options(game_io)
+                let options = match scene.tag_menu_mode {
+                    TagMenuMode::TaggingDeck => {
+                        let deck_i = scene.deck_list.selected_deck_index().unwrap();
+                        build_deck_tag_options(game_io, deck_i)
+                    }
+                    TagMenuMode::EditingTags => build_tag_edit_options(game_io),
+                    TagMenuMode::Filtering => build_tag_filter_options(game_io),
                 };
 
                 scene.tags_menu.set_options(options);
