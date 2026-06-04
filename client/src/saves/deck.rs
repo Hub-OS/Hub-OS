@@ -2,7 +2,7 @@ use crate::Restrictions;
 use crate::bindable::CardClass;
 use crate::packages::PackageNamespace;
 use crate::resources::{DeckRestrictions, Globals};
-use crate::saves::Card;
+use crate::saves::{Card, DeckTagKey};
 use framework::prelude::GameIO;
 use packets::structures::{PackageCategory, PackageId, Uuid};
 use serde::{Deserialize, Serialize};
@@ -18,6 +18,8 @@ struct ImportHeader {
 pub struct Deck {
     pub name: String,
     pub cards: Vec<Card>,
+    #[serde(default)]
+    pub tags: Vec<DeckTagKey>,
     pub regular_index: Option<usize>,
     #[serde(default = "Uuid::new_v4")]
     pub uuid: Uuid,
@@ -32,6 +34,7 @@ impl Deck {
         Deck {
             name,
             cards: Vec::new(),
+            tags: Default::default(),
             regular_index: None,
             uuid: Uuid::new_v4(),
             update_time: 0,

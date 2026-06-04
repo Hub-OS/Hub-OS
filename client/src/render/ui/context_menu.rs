@@ -232,6 +232,11 @@ impl<T: Copy + 'static> ContextMenu<T> {
         self.ui_layout.set_position(position);
     }
 
+    pub fn set_center(&mut self, mut position: Vec2) {
+        position -= self.bounds().size() * 0.5;
+        self.ui_layout.set_position(position);
+    }
+
     pub fn set_selected_index(&mut self, index: usize) {
         let index = self.ui_layout.get_child_index(self.body_index, index);
 

@@ -16,7 +16,7 @@ anyhow = "1.0"
 bytemuck = "1.12"
 chrono = "0.4"
 flume = "0.11"
-slotmap = "1"
+slotmap = { version = "1", features = ["serde"] }
 hecs = "0.10"
 itertools = "0.14"
 log = "0.4"

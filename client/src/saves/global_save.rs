@@ -9,6 +9,10 @@ use std::collections::{HashMap, HashSet};
 const FIRST_SERVER_NAME: &str = "The Index";
 const FIRST_SERVER_ADDRESS: &str = "servers.hubos.dev";
 
+slotmap::new_key_type! {
+    pub struct DeckTagKey;
+}
+
 #[derive(Serialize, Deserialize)]
 #[serde(default)]
 pub struct GlobalSave {
@@ -17,6 +21,7 @@ pub struct GlobalSave {
     pub nickname_time: u64,
     pub server_list: Vec<ServerInfo>,
     pub decks: Vec<Deck>,
+    pub deck_tags: slotmap::SlotMap<DeckTagKey, String>,
     pub selected_deck: usize,
     #[serde(default = "GlobalSave::current_time")]
     pub selected_deck_time: u64,
@@ -473,6 +478,7 @@ impl Default for GlobalSave {
                 update_time: 0,
             }],
             decks: Vec::new(),
+            deck_tags: Default::default(),
             selected_deck: 0,
             selected_deck_time: 0,
             selected_character: PackageId::new_blank(),

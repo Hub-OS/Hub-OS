@@ -52,6 +52,14 @@ impl<T: Copy + 'static> CommandPalette<T> {
         self.open = false;
     }
 
+    pub fn selected_index(&self) -> usize {
+        self.scroll_tracker.selected_index()
+    }
+
+    pub fn set_selected_index(&mut self, index: usize) {
+        self.scroll_tracker.set_selected_index(index);
+    }
+
     pub fn update(&mut self, game_io: &mut GameIO, ui_input_tracker: &UiInputTracker) -> Option<T> {
         if !self.open {
             return None;

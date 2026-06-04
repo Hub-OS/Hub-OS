@@ -331,6 +331,7 @@ impl DeckEditorScene {
         Deck {
             name: old_deck.name.clone(),
             cards,
+            tags: Default::default(),
             regular_index: self.resolve_regular_index(),
             uuid: old_deck.uuid,
             update_time: old_deck.update_time,
