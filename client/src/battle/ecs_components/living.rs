@@ -114,10 +114,21 @@ impl Living {
         aux_props
     }
 
-    fn post_hit_aux_props(aux_props: &mut SlotMap<AuxProp>) -> Vec<&mut AuxProp> {
+    fn hit_sum_aux_props(aux_props: &mut SlotMap<AuxProp>) -> Vec<&mut AuxProp> {
         let mut aux_props: Vec<_> = aux_props
             .values_mut()
-            .filter(|aux_prop| aux_prop.effect().executes_after_hit())
+            .filter(|aux_prop| aux_prop.effect().executes_on_hit_sum())
+            .collect();
+
+        aux_props.sort_by_key(|aux_props| aux_props.priority());
+
+        aux_props
+    }
+
+    fn post_hit_sum_aux_props(aux_props: &mut SlotMap<AuxProp>) -> Vec<&mut AuxProp> {
+        let mut aux_props: Vec<_> = aux_props
+            .values_mut()
+            .filter(|aux_prop| aux_prop.effect().executes_after_hit_sum())
             .collect();
 
         aux_props.sort_by_key(|aux_props| aux_props.priority());
@@ -412,7 +423,7 @@ impl Living {
         let mut healed: i32 = 0;
         let mut modified_total_damage = total_damage;
 
-        for aux_prop in Living::post_hit_aux_props(&mut living.aux_props) {
+        for aux_prop in Living::hit_sum_aux_props(&mut living.aux_props) {
             aux_prop.process_health_calculations(living.health, living.max_health, total_damage);
             aux_prop.mark_tested();
 
@@ -432,9 +443,6 @@ impl Living {
 
                     modified_total_damage = (modified_total_damage - result.max(0)).max(0);
                 }
-                AuxEffect::DrainHP(drain) => drained += drain,
-                AuxEffect::RecoverHP(recover) => healed += recover,
-                AuxEffect::None => {}
                 _ => log::error!("Engine error: Unexpected AuxEffect!"),
             }
 
@@ -448,6 +456,28 @@ impl Living {
             total_damage = 1;
         } else {
             total_damage = modified_total_damage;
+        }
+
+        for aux_prop in Living::post_hit_sum_aux_props(&mut living.aux_props) {
+            aux_prop.process_health_calculations(living.health, living.max_health, total_damage);
+            aux_prop.mark_tested();
+
+            if !aux_prop.passed_all_tests() {
+                continue;
+            }
+
+            aux_prop.mark_activated();
+
+            match aux_prop.effect() {
+                AuxEffect::DrainHP(drain) => drained += drain,
+                AuxEffect::RecoverHP(recover) => healed += recover,
+                AuxEffect::None => {}
+                _ => log::error!("Engine error: Unexpected AuxEffect!"),
+            }
+
+            simulation
+                .pending_callbacks
+                .extend(aux_prop.callbacks().iter().cloned())
         }
 
         // apply damage and health modifier

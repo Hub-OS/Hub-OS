@@ -285,7 +285,8 @@ impl AuxEffect {
     const PRE_HIT_START: usize = 6; // IncreasePreHitDamage
     const HIT_PREP_START: usize = 7; // StatusImmunity
     const ON_HIT_START: usize = 11; // IncreaseHitDamage
-    const POST_HIT_START: usize = 13; // DecreaseDamageSum
+    const HIT_SUM_START: usize = 13; // DecreaseDamageSum
+    const POST_HIT_SUM: usize = 14; // DrainHP
     const POST_HIT_END: usize = 16; // None
 
     const fn priority(&self) -> usize {
@@ -346,14 +347,20 @@ impl AuxEffect {
     }
 
     pub fn executes_on_hit(&self) -> bool {
-        const ON_HIT_RANGE: Range<usize> = AuxEffect::ON_HIT_START..AuxEffect::POST_HIT_START;
+        const ON_HIT_RANGE: Range<usize> = AuxEffect::ON_HIT_START..AuxEffect::HIT_SUM_START;
 
         ON_HIT_RANGE.contains(&self.priority())
     }
 
-    pub fn executes_after_hit(&self) -> bool {
+    pub fn executes_on_hit_sum(&self) -> bool {
+        const POST_HIT_RANGE: Range<usize> = AuxEffect::HIT_SUM_START..AuxEffect::POST_HIT_SUM;
+
+        POST_HIT_RANGE.contains(&self.priority())
+    }
+
+    pub fn executes_after_hit_sum(&self) -> bool {
         const POST_HIT_RANGE: RangeInclusive<usize> =
-            AuxEffect::POST_HIT_START..=AuxEffect::POST_HIT_END;
+            AuxEffect::POST_HIT_SUM..=AuxEffect::POST_HIT_END;
 
         POST_HIT_RANGE.contains(&self.priority())
     }
