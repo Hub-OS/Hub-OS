@@ -145,7 +145,9 @@ impl GlobalSave {
         let path = Self::path();
         let backup_path = path.clone() + ".old";
 
-        if let Err(e) = std::fs::rename(&path, &backup_path) {
+        if let Err(e) = std::fs::rename(&path, &backup_path)
+            && !matches!(e.kind(), std::io::ErrorKind::NotFound)
+        {
             log::error!("Failed to back up save data to {backup_path:?}: {e}");
             // todo: should we fail here to avoid corrupting the main save when we haven't made a backup?
         }
