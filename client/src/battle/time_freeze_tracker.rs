@@ -557,22 +557,32 @@ impl TimeFreezeTracker {
         };
 
         let current_entity_id: hecs::Entity = current_entity_id.into();
-
-        type Query<'a> = (&'a Entity, &'a Player, &'a Character);
         let entities = &mut simulation.entities;
 
-        for (id, (entity, player, character)) in entities.query_mut::<Query>() {
+        // allow players to create card requests
+        type PlayerQuery<'a> = (&'a mut Character, &'a Player);
+
+        for (_, (character, player)) in entities.query_mut::<PlayerQuery>() {
+            if simulation.inputs[player.index].was_just_pressed(Input::UseCard) {
+                character.card_use_requested = true;
+            }
+        }
+
+        // consume card requests
+        type CharacterQuery<'a> = (&'a Entity, &'a mut Character);
+
+        for (id, (entity, character)) in entities.query_mut::<CharacterQuery>() {
+            if !character.card_use_requested {
+                // didn't try to counter
+                continue;
+            }
+
             if entity.deleted
                 || id == current_entity_id
                 || (entity.team == current_team && current_team != Team::Other)
             {
                 // can't counter
                 // can't counter a card from the same team
-                continue;
-            }
-
-            if !simulation.inputs[player.index].was_just_pressed(Input::UseCard) {
-                // didn't try to counter
                 continue;
             }
 
@@ -587,6 +597,11 @@ impl TimeFreezeTracker {
 
             Character::use_card(game_io, resources, simulation, id.into());
             break;
+        }
+
+        // consume all card requests, require a new request in case a TFC occurred
+        for (_, character) in simulation.entities.query_mut::<&mut Character>() {
+            character.card_use_requested = false;
         }
     }
 

@@ -1516,8 +1516,6 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
-        let game_io = api_ctx.game_io;
-        let resources = api_ctx.resources;
 
         let id: EntityId = table.raw_get("#id")?;
 
@@ -1527,15 +1525,6 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
             .map_err(|_| entity_not_found())?;
 
         if character.cards.is_empty() {
-            return lua.pack_multi(());
-        }
-
-        if simulation.time_freeze_tracker.time_is_frozen() {
-            if simulation.time_freeze_tracker.can_counter() {
-                // use immediately to TFC
-                Character::use_card(game_io, resources, simulation, id);
-            }
-
             return lua.pack_multi(());
         }
 

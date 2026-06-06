@@ -350,7 +350,7 @@ impl Character {
     ) {
         let time_frozen = simulation.time_freeze_tracker.time_is_frozen();
 
-        if time_frozen {
+        if time_frozen && !simulation.time_freeze_tracker.can_counter() {
             // TFCs are handled in the time freeze tracker
 
             // prevent awkward chip usage after time freeze by cancelling requests

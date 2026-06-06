@@ -538,13 +538,6 @@ impl Action {
 
         // clean up action related aux props
         Living::aux_prop_cleanup(simulation, |aux_prop| aux_prop.effect().resolves_action());
-
-        if simulation.time_freeze_tracker.time_is_frozen() {
-            // cancel card_use_requested to fix cards used
-            for (_, player) in simulation.entities.query_mut::<&mut Character>() {
-                player.card_use_requested = false;
-            }
-        }
     }
 
     pub fn process_actions(
