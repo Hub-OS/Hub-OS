@@ -585,88 +585,109 @@ impl BlocksScene {
     }
 
     fn handle_input(&mut self, game_io: &mut GameIO) {
-        let globals = Globals::from_resources(game_io);
-
         let prev_state = self.state.clone();
         let prev_held = self.held_block.is_some();
 
-        if let Some(block) = &mut self.held_block {
-            let prev_shape = block.variant;
-            let prev_rotation = block.rotation;
-
-            let input = InputUtil::new(game_io);
-            let holding_shoudler_l = input.is_down(Input::ShoulderL);
-            let holding_shoudler_r = input.is_down(Input::ShoulderR);
-
-            if (holding_shoudler_l && input.was_just_pressed(Input::ShoulderR))
-                || (holding_shoudler_r && input.was_just_pressed(Input::ShoulderL))
-            {
-                let total_shapes = globals
-                    .augment_packages
-                    .package(PackageNamespace::Local, &block.package_id)
-                    .map(|package| package.shapes.len())
-                    .unwrap_or(1);
-
-                if total_shapes > 1 {
-                    block.variant += 1;
-                    block.variant %= total_shapes;
-                } else {
-                    globals.audio.play_sound_with_behavior(
-                        &globals.sfx.cursor_error,
-                        AudioBehavior::NoOverlap,
-                    );
-                }
-
-                self.cycling_shape = true;
-            } else if self.cycling_shape {
-                if !holding_shoudler_l && !holding_shoudler_r {
-                    self.cycling_shape = false;
-                }
-            } else if input.was_released(Input::ShoulderL) && !holding_shoudler_r {
-                block.rotate_cc();
-            } else if input.was_released(Input::ShoulderR) && !holding_shoudler_l {
-                block.rotate_c();
-            }
-
-            if block.rotation != prev_rotation || block.variant != prev_shape {
-                globals.audio.play_sound(&globals.sfx.cursor_move);
-            }
-
-            if self.input_tracker.pulsed(Input::Confirm) {
-                let mut clone = block.clone();
-
-                if let State::GridSelection { x, y } = self.state {
-                    clone.position = (x, y);
-                }
-
-                let success = self.grid.install_block(game_io, clone).is_none();
-
-                if success {
-                    globals.audio.play_sound(&globals.sfx.cursor_select);
-                    self.held_block = None;
-                    self.update_colors();
-                } else {
-                    globals.audio.play_sound(&globals.sfx.cursor_error);
-                }
-            } else if self.input_tracker.pulsed(Input::Cancel) {
-                let mut block = self.held_block.take().unwrap();
-
-                if self.block_returns_to_grid {
-                    block.rotation = self.block_original_rotation;
-
-                    let (x, y) = block.position;
-                    self.state = State::GridSelection { x, y };
-
-                    self.grid.install_block(game_io, block);
-                } else {
-                    self.uninstall(game_io, block);
-
-                    self.state = State::ListSelection;
-                }
-
-                globals.audio.play_sound(&globals.sfx.cursor_cancel);
-            }
+        if prev_held {
+            self.handle_held_block_input(game_io);
+        } else {
+            self.handle_no_block_held_input(game_io);
         }
+
+        if self.state != prev_state || prev_held != self.held_block.is_some() {
+            self.update_cursor_sprite();
+            self.update_text(game_io);
+            self.special_hold_time = 0;
+        }
+    }
+
+    fn handle_held_block_input(&mut self, game_io: &mut GameIO) {
+        let Some(block) = &mut self.held_block else {
+            return;
+        };
+
+        let globals = Globals::from_resources(game_io);
+
+        let prev_shape = block.variant;
+        let prev_rotation = block.rotation;
+
+        let input = InputUtil::new(game_io);
+        let holding_shoudler_l = input.is_down(Input::ShoulderL);
+        let holding_shoudler_r = input.is_down(Input::ShoulderR);
+
+        if (holding_shoudler_l && input.was_just_pressed(Input::ShoulderR))
+            || (holding_shoudler_r && input.was_just_pressed(Input::ShoulderL))
+        {
+            let total_shapes = globals
+                .augment_packages
+                .package(PackageNamespace::Local, &block.package_id)
+                .map(|package| package.shapes.len())
+                .unwrap_or(1);
+
+            if total_shapes > 1 {
+                block.variant += 1;
+                block.variant %= total_shapes;
+            } else {
+                globals
+                    .audio
+                    .play_sound_with_behavior(&globals.sfx.cursor_error, AudioBehavior::NoOverlap);
+            }
+
+            self.cycling_shape = true;
+        } else if self.cycling_shape {
+            if !holding_shoudler_l && !holding_shoudler_r {
+                self.cycling_shape = false;
+            }
+        } else if input.was_released(Input::ShoulderL) && !holding_shoudler_r {
+            block.rotate_cc();
+        } else if input.was_released(Input::ShoulderR) && !holding_shoudler_l {
+            block.rotate_c();
+        }
+
+        if block.rotation != prev_rotation || block.variant != prev_shape {
+            globals.audio.play_sound(&globals.sfx.cursor_move);
+        }
+
+        if self.input_tracker.pulsed(Input::Confirm) {
+            let mut clone = block.clone();
+
+            if let State::GridSelection { x, y } = self.state {
+                clone.position = (x, y);
+            }
+
+            let success = self.grid.install_block(game_io, clone).is_none();
+
+            if success {
+                globals.audio.play_sound(&globals.sfx.cursor_select);
+                self.held_block = None;
+                self.update_colors();
+            } else {
+                globals.audio.play_sound(&globals.sfx.cursor_error);
+            }
+        } else if self.input_tracker.pulsed(Input::Cancel) {
+            let mut block = self.held_block.take().unwrap();
+
+            if self.block_returns_to_grid {
+                block.rotation = self.block_original_rotation;
+
+                let (x, y) = block.position;
+                self.state = State::GridSelection { x, y };
+
+                self.grid.install_block(game_io, block);
+            } else {
+                self.uninstall(game_io, block);
+
+                self.state = State::ListSelection;
+            }
+
+            globals.audio.play_sound(&globals.sfx.cursor_cancel);
+        } else {
+            self.handle_grid_movement_input(game_io);
+        }
+    }
+
+    fn handle_no_block_held_input(&mut self, game_io: &mut GameIO) {
+        let globals = Globals::from_resources(game_io);
 
         match &self.state {
             State::ListSelection => {
@@ -678,7 +699,7 @@ impl BlocksScene {
                     self.special_hold_time = 0;
                 }
 
-                if self.input_tracker.pulsed(Input::Cancel) && !prev_held {
+                if self.input_tracker.pulsed(Input::Cancel) {
                     let event_sender = self.event_sender.clone();
 
                     let question = TextboxQuestion::new(
@@ -805,64 +826,26 @@ impl BlocksScene {
             State::GridSelection { x: old_x, y: old_y } => {
                 let (old_x, old_y) = (*old_x, *old_y);
 
-                let mut performed_action = false;
+                let cancel = self.input_tracker.pulsed(Input::Cancel);
+                let returned_to_list = self.input_tracker.pulsed(Input::Right) && old_x == 6;
+                let pressed_end = self.input_tracker.pulsed(Input::End);
 
-                if self.held_block.is_none() {
-                    let cancel = self.input_tracker.pulsed(Input::Cancel) && !prev_held;
-                    let returned_to_list = self.input_tracker.pulsed(Input::Right) && old_x == 6;
-                    let pressed_end = self.input_tracker.pulsed(Input::End);
+                if cancel || returned_to_list || pressed_end {
+                    self.state = State::ListSelection;
 
-                    performed_action = true;
-
-                    if cancel || returned_to_list || pressed_end {
-                        self.state = State::ListSelection;
-
-                        if pressed_end {
-                            let last_index = self.list.scroll_tracker.total_items() - 1;
-                            self.list.scroll_tracker.set_selected_index(last_index);
-                        }
-
-                        globals.audio.play_sound(&globals.sfx.cursor_cancel);
-                    } else if self.input_tracker.pulsed(Input::Confirm) {
-                        let has_block = self.grid.get_block((old_x, old_y)).is_some();
-                        self.open_grid_context_menu(game_io, old_x, old_y, has_block);
-                    } else if self.input_tracker.pulsed(Input::Option2) {
-                        self.open_grid_context_menu(game_io, 0, 0, false);
-                    } else {
-                        performed_action = false;
-                    }
-                }
-
-                // only try moving the cursor if we haven't performed an action
-                if !performed_action {
-                    let (mut x, mut y) = (old_x, old_y);
-
-                    let input_x = self.input_tracker.input_as_axis(Input::Left, Input::Right);
-                    let input_y = self.input_tracker.input_as_axis(Input::Up, Input::Down);
-
-                    if input_x < 0.0 && x > 0 {
-                        x -= 1;
+                    if pressed_end {
+                        let last_index = self.list.scroll_tracker.total_items() - 1;
+                        self.list.scroll_tracker.set_selected_index(last_index);
                     }
 
-                    if input_x > 0.0 && x < 6 {
-                        x += 1;
-                    }
-
-                    if input_y < 0.0 && y > 0 {
-                        y -= 1;
-                    }
-
-                    if input_y > 0.0 && y < 6 {
-                        y += 1;
-                    }
-
-                    self.state = State::GridSelection { x, y };
-
-                    if self.state != prev_state {
-                        let globals = Globals::from_resources(game_io);
-
-                        globals.audio.play_sound(&globals.sfx.cursor_move);
-                    }
+                    globals.audio.play_sound(&globals.sfx.cursor_cancel);
+                } else if self.input_tracker.pulsed(Input::Confirm) {
+                    let has_block = self.grid.get_block((old_x, old_y)).is_some();
+                    self.open_grid_context_menu(game_io, old_x, old_y, has_block);
+                } else if self.input_tracker.pulsed(Input::Option2) {
+                    self.open_grid_context_menu(game_io, 0, 0, false);
+                } else {
+                    self.handle_grid_movement_input(game_io);
                 }
             }
             State::BlockContext { x, y, prev_state } => {
@@ -922,11 +905,42 @@ impl BlocksScene {
                 }
             }
         }
+    }
 
-        if self.state != prev_state || prev_held != self.held_block.is_some() {
-            self.update_cursor_sprite();
-            self.update_text(game_io);
-            self.special_hold_time = 0;
+    fn handle_grid_movement_input(&mut self, game_io: &GameIO) {
+        let State::GridSelection { x: old_x, y: old_y } = self.state else {
+            log::error!("handle_grid_movement_input() called without GridSelection State");
+            return;
+        };
+
+        let prev_state = self.state.clone();
+        let (mut x, mut y) = (old_x, old_y);
+
+        let input_x = self.input_tracker.input_as_axis(Input::Left, Input::Right);
+        let input_y = self.input_tracker.input_as_axis(Input::Up, Input::Down);
+
+        if input_x < 0.0 && x > 0 {
+            x -= 1;
+        }
+
+        if input_x > 0.0 && x < 6 {
+            x += 1;
+        }
+
+        if input_y < 0.0 && y > 0 {
+            y -= 1;
+        }
+
+        if input_y > 0.0 && y < 6 {
+            y += 1;
+        }
+
+        self.state = State::GridSelection { x, y };
+
+        if self.state != prev_state {
+            let globals = Globals::from_resources(game_io);
+
+            globals.audio.play_sound(&globals.sfx.cursor_move);
         }
     }
 
