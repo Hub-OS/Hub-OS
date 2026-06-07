@@ -5,7 +5,7 @@ use super::{
 };
 use crate::battle::IdleCallback;
 use crate::bindable::{
-    ActionLockout, CardProperties, EntityId, GenerationalIndex, HitFlag, SpriteColorMode,
+    ActionLockout, CardProperties, EntityId, GenerationalIndex, HitFlag, SpriteColorMode, Team,
 };
 use crate::lua_api::create_entity_table;
 use crate::packages::PackageNamespace;
@@ -439,6 +439,11 @@ impl Action {
         let star_freezer = time_freeze_tracker.star_entity();
         let polling_freezer = time_freeze_tracker.polling_freezer();
 
+        let freezer_team = star_freezer
+            .and_then(|id| entities.query_one_mut::<&Entity>(id.into()).ok())
+            .map(|entity| entity.team)
+            .unwrap_or(Team::Other);
+
         let ids: Vec<_> = entities
             .query_mut::<(&Entity, &ActionQueue)>()
             .into_iter()
@@ -457,8 +462,9 @@ impl Action {
                 // time freeze counter
                 let freezes_time = action.properties.time_freeze;
                 let action_counters_time_freeze = action.properties.can_time_freeze_counter();
-                let time_freeze_counter =
-                    any_can_counter_time_freeze && action_counters_time_freeze;
+                let time_freeze_counter = any_can_counter_time_freeze
+                    && action_counters_time_freeze
+                    && !entity.team.is_allied(freezer_team);
 
                 // we can't process an action if the entity is already in an action
                 // unless we have a time freeze exception
