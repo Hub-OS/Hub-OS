@@ -401,6 +401,10 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
+    getter(lua_api, "using_root_shader", |node, _, _: ()| {
+        Ok(node.using_root_shader())
+    });
+
     setter(
         lua_api,
         "use_root_shader",
@@ -409,6 +413,10 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
             Ok(())
         },
     );
+
+    getter(lua_api, "using_parent_shader", |node, _, _: ()| {
+        Ok(node.using_parent_shader())
+    });
 
     setter(
         lua_api,
