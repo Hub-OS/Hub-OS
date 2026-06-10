@@ -382,6 +382,34 @@ impl ResourcePaths {
         Self::data_folder().to_string() + &Self::clean(path_str)
     }
 
+    pub fn verify_path_case(path_str: &str) -> bool {
+        if cfg!(target_os = "windows") {
+            let Ok(canon_path) = std::fs::canonicalize(path_str) else {
+                return false;
+            };
+
+            let path = std::path::PathBuf::from(path_str);
+
+            for (input, canon) in path.iter().rev().zip(canon_path.iter().rev()) {
+                if input == canon {
+                    continue;
+                }
+
+                let lowercase_input = input.to_string_lossy().to_lowercase();
+                let lowercase_canon = canon.to_string_lossy().to_lowercase();
+
+                if lowercase_input != lowercase_canon {
+                    // assuming symlink / similar
+                    break;
+                }
+
+                return false;
+            }
+        }
+
+        true
+    }
+
     pub fn clean(path_str: &str) -> String {
         packets::zip::clean_path(path_str)
     }

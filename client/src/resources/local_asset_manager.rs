@@ -239,6 +239,10 @@ impl LocalAssetManager {
     }
 
     pub fn override_cache(&self, game_io: &GameIO, path: &str, file_path: &str) {
+        if !ResourcePaths::verify_path_case(path) {
+            return;
+        }
+
         let Ok(bytes) = std::fs::read(file_path) else {
             return;
         };
@@ -303,7 +307,7 @@ impl AssetManager for LocalAssetManager {
     }
 
     fn binary(&self, path: &str) -> Vec<u8> {
-        if path == ResourcePaths::BLANK {
+        if path == ResourcePaths::BLANK || !ResourcePaths::verify_path_case(path) {
             return Vec::new();
         }
 
@@ -317,7 +321,7 @@ impl AssetManager for LocalAssetManager {
     }
 
     fn binary_silent(&self, path: &str) -> Vec<u8> {
-        if path == ResourcePaths::BLANK {
+        if path == ResourcePaths::BLANK || !ResourcePaths::verify_path_case(path) {
             return Vec::new();
         }
 
@@ -329,6 +333,10 @@ impl AssetManager for LocalAssetManager {
         let mut text_cache = self.text_cache.borrow_mut();
 
         if let Some(text) = text_cache.get(path) {
+            text.to_string()
+        } else if !ResourcePaths::verify_path_case(path) {
+            let text = text_cache.get(ResourcePaths::BLANK).unwrap().clone();
+            text_cache.insert(path.into(), text.clone());
             text.to_string()
         } else {
             let res = fs::read_to_string(path);
@@ -349,6 +357,10 @@ impl AssetManager for LocalAssetManager {
 
         if let Some(text) = text_cache.get(path) {
             text.to_string()
+        } else if !ResourcePaths::verify_path_case(path) {
+            let text = text_cache.get(ResourcePaths::BLANK).unwrap().clone();
+            text_cache.insert(path.into(), text.clone());
+            text.to_string()
         } else {
             let res = fs::read_to_string(path);
 
@@ -364,6 +376,10 @@ impl AssetManager for LocalAssetManager {
 
         if let Some(texture) = texture_cache.get(path) {
             texture.clone()
+        } else if !ResourcePaths::verify_path_case(path) {
+            let texture = texture_cache.get(ResourcePaths::BLANK).unwrap().clone();
+            texture_cache.insert(path.into(), texture.clone());
+            texture
         } else {
             let bytes = fs::read(path).unwrap_or_default();
             let texture = match Texture::load_from_memory(game_io, &bytes) {
@@ -384,6 +400,10 @@ impl AssetManager for LocalAssetManager {
 
         if let Some(sound) = sound_cache.get(path) {
             sound.clone()
+        } else if !ResourcePaths::verify_path_case(path) {
+            let sound = sound_cache.get(ResourcePaths::BLANK).unwrap().clone();
+            sound_cache.insert(path.into(), sound.clone());
+            sound
         } else {
             let bytes = fs::read(path).unwrap_or_default();
             let sound = SoundBuffer::decode(game_io, bytes);
