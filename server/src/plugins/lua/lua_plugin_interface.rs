@@ -317,7 +317,7 @@ impl PluginInterface for LuaPluginInterface {
         use std::cell::Cell;
         use std::rc::Rc;
 
-        let prevent_default = Rc::new(Cell::new(false));
+        let acknowledged = Rc::new(Cell::new(true));
 
         handle_event(
             &mut self.scripts,
@@ -327,7 +327,7 @@ impl PluginInterface for LuaPluginInterface {
             &mut self.lua_api,
             net,
             |lua, callback| {
-                let prevent_default_reference = prevent_default.clone();
+                let acknowledged_reference = acknowledged.clone();
 
                 let event = lua.create_table()?;
                 event.set("player_id", player_id)?;
@@ -336,7 +336,7 @@ impl PluginInterface for LuaPluginInterface {
                 event.set(
                     "prevent_default",
                     lua.create_function(move |_, _: ()| {
-                        prevent_default_reference.set(true);
+                        acknowledged_reference.set(false);
                         Ok(())
                     })?,
                 )?;
@@ -345,14 +345,14 @@ impl PluginInterface for LuaPluginInterface {
             },
         );
 
-        prevent_default.get()
+        acknowledged.get()
     }
 
     fn handle_player_emote(&mut self, net: &mut Net, player_id: ActorId, emote_id: &str) -> bool {
         use std::cell::Cell;
         use std::rc::Rc;
 
-        let prevent_default = Rc::new(Cell::new(false));
+        let acknowledged = Rc::new(Cell::new(true));
 
         handle_event(
             &mut self.scripts,
@@ -362,7 +362,7 @@ impl PluginInterface for LuaPluginInterface {
             &mut self.lua_api,
             net,
             |lua, callback| {
-                let prevent_default_reference = prevent_default.clone();
+                let acknowledged_reference = acknowledged.clone();
 
                 let event = lua.create_table()?;
                 event.set("player_id", player_id)?;
@@ -370,7 +370,7 @@ impl PluginInterface for LuaPluginInterface {
                 event.set(
                     "prevent_default",
                     lua.create_function(move |_, _: ()| {
-                        prevent_default_reference.clone().set(true);
+                        acknowledged_reference.set(false);
                         Ok(())
                     })?,
                 )?;
@@ -379,7 +379,7 @@ impl PluginInterface for LuaPluginInterface {
             },
         );
 
-        prevent_default.get()
+        acknowledged.get()
     }
 
     fn handle_custom_warp(&mut self, net: &mut Net, player_id: ActorId, tile_object_id: u32) {

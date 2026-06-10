@@ -456,24 +456,24 @@ impl Server {
                             );
                         }
 
-                        let prevent_default = self.plugin_wrapper.handle_player_avatar_change(
+                        let acknowledged = self.plugin_wrapper.handle_player_avatar_change(
                             net,
                             player_id,
                             &texture_path,
                             &animation_path,
                         );
 
-                        if !prevent_default {
+                        if acknowledged {
                             net.set_actor_avatar(player_id, &texture_path, &animation_path);
                         }
                     }
                 }
                 ClientPacket::Emote { emote_id } => {
-                    let prevent_default = self
+                    let acknowledged = self
                         .plugin_wrapper
                         .handle_player_emote(net, player_id, &emote_id);
 
-                    if !prevent_default {
+                    if acknowledged {
                         net.set_actor_emote(player_id, emote_id);
                     }
                 }
