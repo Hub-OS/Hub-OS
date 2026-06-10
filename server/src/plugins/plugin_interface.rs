@@ -19,6 +19,7 @@ pub trait PluginInterface {
         texture_path: &str,
         animation_path: &str,
     ) -> bool;
+    fn handle_player_name_change(&mut self, net: &mut Net, player_id: ActorId, name: &str) -> bool;
     fn handle_player_emote(&mut self, net: &mut Net, player_id: ActorId, emote_id: &str) -> bool;
     fn handle_custom_warp(&mut self, net: &mut Net, player_id: ActorId, tile_object_id: u32);
     fn handle_object_interaction(

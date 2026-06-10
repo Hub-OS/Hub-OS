@@ -468,6 +468,15 @@ impl Server {
                         }
                     }
                 }
+                ClientPacket::NameChange { name } => {
+                    let acknowledged = self
+                        .plugin_wrapper
+                        .handle_player_name_change(net, player_id, &name);
+
+                    if acknowledged {
+                        net.set_actor_name(player_id, &name);
+                    }
+                }
                 ClientPacket::Emote { emote_id } => {
                     let acknowledged = self
                         .plugin_wrapper

@@ -56,6 +56,9 @@ pub enum ClientPacket {
         element: String,
         base_health: i32,
     },
+    NameChange {
+        name: String,
+    },
     Emote {
         emote_id: String,
     },

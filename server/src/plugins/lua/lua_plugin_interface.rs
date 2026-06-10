@@ -348,6 +348,40 @@ impl PluginInterface for LuaPluginInterface {
         acknowledged.get()
     }
 
+    fn handle_player_name_change(&mut self, net: &mut Net, player_id: ActorId, name: &str) -> bool {
+        use std::cell::Cell;
+        use std::rc::Rc;
+
+        let acknowledged = Rc::new(Cell::new(true));
+
+        handle_event(
+            &mut self.scripts,
+            &self.all_scripts,
+            &mut self.trackers,
+            &mut self.promise_manager,
+            &mut self.lua_api,
+            net,
+            |lua, callback| {
+                let acknowledged_reference = acknowledged.clone();
+
+                let event = lua.create_table()?;
+                event.set("player_id", player_id)?;
+                event.set("name", name)?;
+                event.set(
+                    "prevent_default",
+                    lua.create_function(move |_, _: ()| {
+                        acknowledged_reference.set(false);
+                        Ok(())
+                    })?,
+                )?;
+
+                callback.call(("player_name_change", event))
+            },
+        );
+
+        acknowledged.get()
+    }
+
     fn handle_player_emote(&mut self, net: &mut Net, player_id: ActorId, emote_id: &str) -> bool {
         use std::cell::Cell;
         use std::rc::Rc;

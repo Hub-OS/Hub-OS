@@ -45,6 +45,7 @@ pub struct OverworldOnlineScene {
     battle_receiver: flume::Receiver<(BattleId, String)>,
     synchronizing_packets: bool,
     stored_packets: Vec<ServerPacket>,
+    previous_name: String,
     previous_boost_packet: Option<ClientPacket>,
     last_position_send: Instant,
     assets: ServerAssetManager,
@@ -94,6 +95,10 @@ impl OverworldOnlineScene {
         // auto emotes
         let auto_emotes = AutoEmotes::new(&area.emote_animator);
 
+        // name
+        let globals = Globals::from_resources(game_io);
+        let previous_name = globals.global_save.nickname.clone();
+
         let (battle_sender, battle_receiver) = flume::unbounded();
 
         Self {
@@ -113,6 +118,7 @@ impl OverworldOnlineScene {
             battle_receiver,
             synchronizing_packets: false,
             stored_packets: Vec::new(),
+            previous_name,
             previous_boost_packet: None,
             last_position_send: game_io.frame_start_instant(),
             assets,
@@ -276,6 +282,24 @@ impl OverworldOnlineScene {
                 element: player_package.element.to_string(),
                 base_health: player_package.health,
             },
+        );
+    }
+
+    fn send_name_update(&mut self, game_io: &GameIO) {
+        let globals = Globals::from_resources(game_io);
+        let name = &globals.global_save.nickname;
+
+        if self.previous_name == *name {
+            return;
+        }
+
+        let name = name.clone();
+        self.previous_name = name.clone();
+
+        let send_packet = &self.send_packet;
+        send_packet(
+            Reliability::ReliableOrdered,
+            ClientPacket::NameChange { name },
         );
     }
 
@@ -1989,6 +2013,8 @@ impl Scene for OverworldOnlineScene {
             // send avatar data
             self.send_avatar_data(game_io);
         }
+
+        self.send_name_update(game_io);
 
         // enable audio on the player's ActorPropertyAnimator
         let entity = self.area.player_data.entity;
