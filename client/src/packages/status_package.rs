@@ -54,6 +54,7 @@ impl Package for StatusPackage {
         PackageListing {
             local: true,
             id: self.package_info.id.clone(),
+            past_ids: self.package_info.past_ids.clone(),
             name: self.name.clone(),
             long_name: self.long_name.clone(),
             description: self.description.clone(),

@@ -22,7 +22,7 @@ pub(super) use packet_orchestrator::*;
 
 pub use actor::Actor;
 pub use area::Area;
-pub use asset::{Asset, AssetId, PackageInfo};
+pub use asset::{Asset, AssetId};
 pub use net::Net;
 pub use packet_scope::*;
 pub use packets::structures::*;

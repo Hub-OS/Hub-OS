@@ -324,6 +324,7 @@ impl Restrictions {
 
         for (info, _) in deps.iter() {
             packages_hit.insert(&info.id);
+            packages_hit.extend(&info.past_ids);
             packages_expected.extend(info.requirements.iter().map(|(_, id)| id));
 
             if !self.is_package_allowed(info) {

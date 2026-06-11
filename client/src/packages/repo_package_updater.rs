@@ -6,6 +6,13 @@ use packets::address_parsing::uri_encode;
 use packets::structures::{PackageCategory, PackageId};
 use std::collections::{HashMap, HashSet};
 
+struct InstallMeta {
+    category: PackageCategory,
+    current_id: PackageId,
+    new_id: PackageId,
+    past_ids: Vec<PackageId>,
+}
+
 enum Event {
     ReceivedListing(Box<PackageListing>),
     FailedListing(PackageId),
@@ -27,7 +34,7 @@ pub struct RepoPackageUpdater {
     task: Option<AsyncTask<Event>>,
     queue: Vec<PackageId>,
     queue_position: usize,
-    install_required: Vec<(PackageCategory, PackageId, PackageId)>,
+    install_required: Vec<InstallMeta>,
     install_position: usize,
     ignoring_installed_dependencies: bool,
     dependent_map: HashMap<PackageId, Vec<PackageId>>,
@@ -114,9 +121,14 @@ impl RepoPackageUpdater {
                 }
 
                 // test for required install
-                if let Some(category) = listing.preview_data.category() {
+                let latest_id = listing.id;
+                let already_updating =
+                    (self.install_required.iter()).any(|meta| meta.new_id == latest_id);
+
+                if let Some(category) = listing.preview_data.category()
+                    && !already_updating
+                {
                     let queued_id = &self.queue[self.queue_position];
-                    let latest_id = listing.id;
 
                     for (_, id) in listing.dependencies {
                         let dependents = self.dependent_map.entry(id).or_default();
@@ -130,30 +142,28 @@ impl RepoPackageUpdater {
                         });
 
                     let existing_hash = existing_package.map(|package| package.hash);
-
                     let requires_update = existing_hash != Some(listing.hash);
-                    let already_updating =
-                        (self.install_required.iter()).any(|(_, _, id)| *id == latest_id);
 
-                    let newer_id_installed = *queued_id != latest_id
-                        && globals
+                    // queue an update update if necessary
+                    if requires_update {
+                        // prefer installed packages matching the latest id
+                        let newer_id_installed = globals
                             .package_info(category, PackageNamespace::Local, &latest_id)
-                            .is_some();
+                            .is_some_and(|p| p.id == latest_id);
 
-                    if newer_id_installed {
-                        // uninstall old package
-                        let base_path = globals.resolve_package_download_path(category, queued_id);
-                        let _ = std::fs::remove_dir_all(base_path);
-
-                        globals.unload_package(category, PackageNamespace::Local, queued_id);
-                    } else if requires_update && !already_updating {
                         // save package id for install pass
-                        let install_id = existing_package
-                            .map(|p| &p.id)
-                            .unwrap_or(&latest_id)
-                            .clone();
-                        self.install_required
-                            .push((category, install_id, latest_id));
+                        let current_id = if newer_id_installed {
+                            latest_id.clone()
+                        } else {
+                            queued_id.clone()
+                        };
+
+                        self.install_required.push(InstallMeta {
+                            category,
+                            current_id,
+                            new_id: latest_id,
+                            past_ids: listing.past_ids,
+                        });
                     }
                 }
 
@@ -229,25 +239,25 @@ impl RepoPackageUpdater {
         }
 
         self.install_required
-            .retain(|(_, _, id)| !self.cancelled_installs.contains(id));
+            .retain(|meta| !self.cancelled_installs.contains(&meta.new_id));
     }
 
     fn download_package(&mut self, game_io: &GameIO) {
-        let Some(&(category, ref install_id, ref id)) =
-            self.install_required.get(self.install_position)
-        else {
+        let Some(meta) = self.install_required.get(self.install_position) else {
             self.complete();
             return;
         };
 
+        let category = meta.category;
+
         let globals = Globals::from_resources(game_io);
         let repo = globals.config.package_repo.clone();
-        let encoded_id = uri_encode(id.as_str());
+        let encoded_id = uri_encode(meta.new_id.as_str());
 
         let uri = format!("{repo}/api/mods/{encoded_id}");
-        let base_path = globals.resolve_package_download_path(category, install_id);
+        let base_path = globals.resolve_package_download_path(category, &meta.current_id);
 
-        log::info!("Downloading {id}...");
+        log::info!("Downloading {}...", meta.new_id);
 
         let task = game_io.spawn_local_task(async move {
             let Some(zip_bytes) = crate::http::request(&uri).await else {
@@ -265,20 +275,41 @@ impl RepoPackageUpdater {
     }
 
     fn install_package(&mut self, game_io: &mut GameIO) {
-        let (category, install_id, new_id) = &self.install_required[self.install_position];
-        let category = *category;
+        const NS: PackageNamespace = PackageNamespace::Local;
+
+        let meta = &self.install_required[self.install_position];
+        let category = meta.category;
 
         // reload package
         let globals = Globals::from_resources_mut(game_io);
-        let path = globals.resolve_package_download_path(category, install_id);
+        let path = globals.resolve_package_download_path(category, &meta.current_id);
 
-        globals.unload_package(category, PackageNamespace::Local, install_id);
-        globals.load_package(category, PackageNamespace::Local, &path);
+        globals.unload_package(category, NS, &meta.current_id);
+
+        for id in &meta.past_ids {
+            let Some(old_package) = globals.package_info(category, NS, id) else {
+                continue;
+            };
+
+            log::info!(
+                "Removing {} as newer package {id} is installed",
+                old_package.id
+            );
+
+            // uninstall old package
+            let base_path = globals.resolve_package_download_path(category, &old_package.id);
+            let _ = std::fs::remove_dir_all(base_path);
+
+            globals.unload_package(category, NS, id);
+            globals.global_save.remove_package_id(id);
+        }
+
+        globals.load_package(category, NS, &path);
 
         // update save
-        if install_id != new_id {
+        if meta.current_id != meta.new_id {
             let global_save = &mut globals.global_save;
-            global_save.update_package_id(category, install_id, new_id);
+            global_save.update_package_id(category, &meta.current_id, &meta.new_id);
             global_save.save();
         }
 

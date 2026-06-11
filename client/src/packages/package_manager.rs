@@ -1,14 +1,16 @@
 use super::{ChildPackageInfo, Package, PackageId, PackageInfo, PackageNamespace};
+use crate::bindable::GenerationalIndex;
 use crate::resources::{LocalAssetManager, ResourcePaths};
+use crate::structures::SlotMap;
 use packets::structures::FileHash;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 pub use packets::structures::PackageCategory;
 
 pub struct PackageManager<T> {
     package_category: PackageCategory,
-    package_maps: HashMap<PackageNamespace, HashMap<PackageId, T>>,
-    package_ids: Vec<PackageId>,
+    package_maps: HashMap<PackageNamespace, HashMap<PackageId, GenerationalIndex>>,
+    packages: SlotMap<T>,
 }
 
 impl<T: Package> PackageManager<T> {
@@ -16,7 +18,7 @@ impl<T: Package> PackageManager<T> {
         Self {
             package_category,
             package_maps: HashMap::new(),
-            package_ids: Vec::new(),
+            packages: Default::default(),
         }
     }
 
@@ -29,21 +31,31 @@ impl<T: Package> PackageManager<T> {
     }
 
     pub fn package_ids(&self, ns: PackageNamespace) -> impl Iterator<Item = &PackageId> + '_ {
+        let mut visited = HashSet::new();
+
         self.package_maps
             .get(&ns)
             .into_iter()
-            .flat_map(|packages| packages.keys())
+            .flat_map(|packages| packages.values().copied())
+            .filter(move |&key| visited.insert(key))
+            .flat_map(|key| self.packages.get(key))
+            .map(|package| &package.package_info().id)
     }
 
     pub fn packages(&self, ns: PackageNamespace) -> impl Iterator<Item = &T> {
+        let mut visited = HashSet::new();
+
         self.package_maps
             .get(&ns)
             .into_iter()
-            .flat_map(|packages| packages.values())
+            .flat_map(|packages| packages.values().copied())
+            .filter(move |&key| visited.insert(key))
+            .flat_map(|key| self.packages.get(key))
     }
 
     pub fn package(&self, ns: PackageNamespace, id: &PackageId) -> Option<&T> {
-        self.package_maps.get(&ns)?.get(id)
+        let key = self.package_maps.get(&ns)?.get(id)?;
+        self.packages.get(*key)
     }
 
     pub fn package_or_fallback(&self, ns: PackageNamespace, id: &PackageId) -> Option<&T> {
@@ -51,9 +63,7 @@ impl<T: Package> PackageManager<T> {
     }
 
     pub fn child_packages(&self, ns: PackageNamespace) -> Vec<ChildPackageInfo> {
-        self.package_ids
-            .iter()
-            .flat_map(|id| self.package(ns, id))
+        self.packages(ns)
             .flat_map(|package| {
                 let package_info = package.package_info();
 
@@ -149,7 +159,8 @@ impl<T: Package> PackageManager<T> {
         let package_id = self.internal_load_package(package_info, package_table)?;
 
         let package_map = self.package_maps.get_mut(&namespace)?;
-        let package = package_map.get_mut(&package_id)?;
+        let key = package_map.get(&package_id)?;
+        let package = self.packages.get_mut(*key)?;
 
         let Some(hash) = Self::zip_and_hash(package.package_info()) else {
             // remove this packages since it may cause desyncs
@@ -203,6 +214,7 @@ impl<T: Package> PackageManager<T> {
 
         Some(PackageInfo {
             id: PackageId::new_blank(),
+            past_ids: Default::default(),
             hash: FileHash::ZERO,
             tags: Default::default(),
             shareable: true,
@@ -310,21 +322,25 @@ impl<T: Package> PackageManager<T> {
             return None;
         }
 
-        let packages = self
-            .package_maps
-            .entry(package_info.namespace)
-            .or_insert_with(|| HashMap::new());
+        let package_map = self.package_maps.entry(package_info.namespace).or_default();
 
-        if packages.contains_key(&package_id) {
-            log::error!("Duplicate package_id {package_id:?}");
-            return None;
+        for id in std::iter::once(&package_id).chain(&package_info.past_ids) {
+            if package_map.contains_key(id) {
+                log::error!("Duplicate package_id {id:?}");
+                return None;
+            }
         }
 
-        packages.insert(package_id.clone(), package);
+        let package_id_ref = &package_id;
+        self.packages.insert_with_key(move |key| {
+            let package_info = package.package_info();
 
-        if !self.package_ids.contains(&package_id) {
-            self.package_ids.push(package_id.clone());
-        }
+            for id in std::iter::once(package_id_ref).chain(&package_info.past_ids) {
+                package_map.insert(id.clone(), key);
+            }
+
+            package
+        });
 
         Some(package_id)
     }
@@ -339,9 +355,17 @@ impl<T: Package> PackageManager<T> {
             return;
         };
 
-        let Some(package) = package_map.remove(id) else {
+        let Some(key) = package_map.remove(id) else {
             return;
         };
+
+        let Some(package) = self.packages.remove(key) else {
+            return;
+        };
+
+        for id in &package.package_info().past_ids {
+            package_map.remove(id);
+        }
 
         let package_info = package.package_info();
 
@@ -355,7 +379,11 @@ impl<T: Package> PackageManager<T> {
             return;
         };
 
-        for (_, package) in packages {
+        for (_, key) in packages {
+            let Some(package) = self.packages.get(key) else {
+                continue;
+            };
+
             let package_info = package.package_info();
 
             if package_info.is_virtual() && package_info.hash != FileHash::ZERO {

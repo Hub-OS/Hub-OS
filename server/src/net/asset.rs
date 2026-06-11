@@ -5,11 +5,13 @@ pub struct PackageInfo {
     pub name: String,
     pub id: PackageId,
     pub category: PackageCategory,
+    pub past_ids: Vec<PackageId>,
 }
 
 #[derive(Clone, Debug)]
 pub struct Asset {
     pub data: AssetData,
+    pub package_info: Option<Box<PackageInfo>>,
     pub alternate_names: Vec<AssetId>,
     pub dependencies: Vec<AssetId>,
     pub hash: FileHash,
@@ -39,7 +41,10 @@ impl packets::structures::AssetTrait for Asset {
 #[derive(Clone, Debug)]
 pub enum AssetId {
     AssetPath(String),
-    Package(PackageInfo),
+    Package {
+        id: PackageId,
+        category: PackageCategory,
+    },
 }
 
 impl Asset {
@@ -54,6 +59,7 @@ impl Asset {
 
         let mut asset = Asset {
             data: asset_data,
+            package_info: None,
             alternate_names: Vec::new(),
             dependencies: Vec::new(),
             hash,
@@ -91,6 +97,7 @@ impl Asset {
 
         let mut asset = Asset {
             data: asset_data,
+            package_info: None,
             alternate_names: Vec::new(),
             dependencies: Vec::new(),
             hash,
@@ -210,7 +217,19 @@ impl Asset {
             return;
         };
 
-        self.alternate_names.push(AssetId::Package(package_info));
+        self.alternate_names.push(AssetId::Package {
+            id: package_info.id.clone(),
+            category: package_info.category,
+        });
+
+        for id in &package_info.past_ids {
+            self.alternate_names.push(AssetId::Package {
+                id: id.clone(),
+                category: package_info.category,
+            });
+        }
+
+        self.package_info = Some(package_info.into());
 
         if let Some(ids) = Self::resolve_package_defines(&meta_table) {
             self.alternate_names.extend(ids);
@@ -244,10 +263,23 @@ impl Asset {
         let name = get_str(package, "name");
         let category = get_str(package, "category");
 
+        let past_ids = package
+            .get("past_ids")
+            .and_then(|value| value.as_array())
+            .map(|array| {
+                array
+                    .iter()
+                    .flat_map(|a| a.as_str())
+                    .map(PackageId::from)
+                    .collect()
+            })
+            .unwrap_or_default();
+
         Some(PackageInfo {
             name: name.to_string(),
             id: id.into(),
             category: category.into(),
+            past_ids,
         })
     }
 
@@ -258,16 +290,10 @@ impl Asset {
 
         let characters = defines.get("characters")?.as_array()?;
 
-        Some(
-            characters
-                .iter()
-                .map(|define| PackageInfo {
-                    name: get_str(define, "name").to_string(),
-                    id: get_str(define, "id").into(),
-                    category: PackageCategory::Character,
-                })
-                .map(AssetId::Package),
-        )
+        Some(characters.iter().map(|define| AssetId::Package {
+            id: get_str(define, "id").into(),
+            category: PackageCategory::Character,
+        }))
     }
 
     fn resolve_package_dependencies(
@@ -328,21 +354,14 @@ impl Asset {
             .flatten()
             .flatten()
             .flat_map(|id| id.as_str())
-            .map(move |id| PackageInfo {
-                name: String::new(),
+            .map(move |id| AssetId::Package {
                 id: id.into(),
                 category,
             })
-            .map(AssetId::Package)
     }
 
     pub fn package_info(&self) -> Option<&PackageInfo> {
-        self.alternate_names
-            .iter()
-            .find_map(|asset_id| match asset_id {
-                AssetId::Package(info) => Some(info),
-                _ => None,
-            })
+        self.package_info.as_deref()
     }
 }
 

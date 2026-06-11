@@ -13,6 +13,7 @@ pub struct ChildPackageInfo {
 #[derive(Clone)]
 pub struct PackageInfo {
     pub id: PackageId,
+    pub past_ids: Vec<PackageId>,
     pub hash: FileHash,
     pub tags: Vec<Arc<str>>,
     pub shareable: bool,
@@ -30,6 +31,7 @@ impl Default for PackageInfo {
     fn default() -> Self {
         Self {
             id: Default::default(),
+            past_ids: Default::default(),
             hash: Default::default(),
             tags: Default::default(),
             shareable: true,
@@ -124,6 +126,17 @@ impl PackageInfo {
         };
 
         self.id = package_table.get("id")?.as_str()?.to_string().into();
+        self.past_ids = package_table
+            .get("past_ids")
+            .and_then(|value| value.as_array())
+            .map(|array| {
+                array
+                    .iter()
+                    .flat_map(|a| a.as_str())
+                    .map(PackageId::from)
+                    .collect()
+            })
+            .unwrap_or_default();
 
         Some(package_table)
     }

@@ -130,7 +130,7 @@ impl BattleVmManager {
                     package_info.id.clone(),
                 )])
                 .iter()
-                .map(|(info, _)| info.id.clone())
+                .flat_map(|(info, _)| std::iter::once(&info.id).chain(&info.past_ids).cloned())
                 .collect(),
         };
 

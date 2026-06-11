@@ -2055,6 +2055,7 @@ impl Net {
                 path,
                 Asset {
                     data,
+                    package_info: None,
                     alternate_names: Vec::new(),
                     dependencies: Vec::new(),
                     hash,

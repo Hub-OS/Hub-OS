@@ -1,4 +1,4 @@
-use super::{Asset, AssetId, PackageInfo};
+use super::{Asset, AssetId};
 use packets::structures::{FileHash, PackageCategory, PackageId};
 use std::collections::HashMap;
 
@@ -86,7 +86,7 @@ impl AssetManager {
             fn from(value: &'a AssetId) -> Self {
                 match value {
                     AssetId::AssetPath(path) => RequestedAsset::Path(path.as_str()),
-                    AssetId::Package(package_info) => RequestedAsset::Package(&package_info.id),
+                    AssetId::Package { id, .. } => RequestedAsset::Package(id),
                 }
             }
         }
@@ -131,11 +131,7 @@ impl AssetManager {
         for alternate_name in &asset.alternate_names {
             #[allow(clippy::single_match)]
             match alternate_name {
-                AssetId::Package(PackageInfo {
-                    name: _,
-                    id,
-                    category: _,
-                }) => {
+                AssetId::Package { id, .. } => {
                     self.package_paths.insert(id.clone(), path.clone());
                 }
                 _ => {}
@@ -162,11 +158,7 @@ impl AssetManager {
         for alternate_name in asset.alternate_names {
             #[allow(clippy::single_match)]
             match alternate_name {
-                AssetId::Package(PackageInfo {
-                    name: _,
-                    id,
-                    category: _,
-                }) => try_remove(&mut self.package_paths, id),
+                AssetId::Package { id, .. } => try_remove(&mut self.package_paths, id),
                 _ => {}
             }
         }
@@ -209,41 +201,42 @@ impl AssetManager {
 
         match dependency {
             AssetId::AssetPath(path) => Some(path),
-            AssetId::Package(PackageInfo {
-                name: _,
-                id,
-                category: _,
-            }) => get_as_option_str(&self.package_paths, id),
+            AssetId::Package { id, .. } => get_as_option_str(&self.package_paths, id),
         }
     }
 
     pub fn create_package_list(&self) -> Vec<(String, PackageCategory, PackageId, FileHash)> {
         self.package_paths
             .iter()
-            .flat_map(|(id, path)| {
+            .flat_map(|(package_id, path)| {
                 let asset = self.assets.get(path)?;
 
                 let package_category = asset
                     .alternate_names
                     .iter()
                     .flat_map(|name| {
-                        let AssetId::Package(package_info) = name else {
+                        let AssetId::Package { id, category } = name else {
                             return None;
                         };
 
-                        if package_info.category == PackageCategory::Character {
+                        if *category == PackageCategory::Character {
                             return None;
                         }
 
-                        if package_info.id != *id {
+                        if package_id != id {
                             return None;
                         }
 
-                        Some(package_info.category)
+                        Some(*category)
                     })
                     .next()?;
 
-                Some((path.clone(), package_category, id.clone(), asset.hash))
+                Some((
+                    path.clone(),
+                    package_category,
+                    package_id.clone(),
+                    asset.hash,
+                ))
             })
             .collect()
     }

@@ -13,6 +13,7 @@ use std::sync::Arc;
 pub struct PackageListing {
     pub local: bool,
     pub id: PackageId,
+    pub past_ids: Vec<PackageId>,
     pub name: Arc<str>,
     pub long_name: Arc<str>,
     pub description: Arc<str>,
@@ -29,6 +30,7 @@ impl From<&json::Value> for PackageListing {
             return Self {
                 local: false,
                 id: PackageId::new_blank(),
+                past_ids: Default::default(),
                 name: name.clone(),
                 long_name: name,
                 description: "???".into(),
@@ -127,6 +129,10 @@ impl From<&json::Value> for PackageListing {
         Self {
             local: false,
             id: get_str(package_table, "id").into(),
+            past_ids: map_array_values(package_table, "past_ids", |id| id.as_str())
+                .flatten()
+                .map(PackageId::from)
+                .collect(),
             name: name.into(),
             long_name: long_name.into(),
             description: description.into(),

@@ -30,6 +30,7 @@ impl ResourcePackage {
         PackageListing {
             local: true,
             id: PackageId::default(),
+            past_ids: Default::default(),
             name: name.clone(),
             long_name: name,
             description: "Default resources for the OS.".into(),
@@ -54,6 +55,7 @@ impl Package for ResourcePackage {
         PackageListing {
             local: true,
             id: self.package_info.id.clone(),
+            past_ids: self.package_info.past_ids.clone(),
             name: self.name.clone(),
             long_name: self.long_name.clone(),
             description: self.description.clone(),

@@ -462,6 +462,7 @@ impl GlobalSave {
 
     pub fn remove_package_id(&mut self, id: &PackageId) {
         self.character_update_times.remove(id);
+        self.memories.remove(id);
         self.installed_blocks.remove(id);
         self.installed_drive_parts.remove(id);
         self.favorited_packages.remove(id);

@@ -860,6 +860,7 @@ impl Map {
 
         Asset {
             data: AssetData::compress_text(text),
+            package_info: None,
             alternate_names: Vec::new(),
             dependencies,
             hash,

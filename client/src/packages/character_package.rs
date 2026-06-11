@@ -20,6 +20,7 @@ impl Package for CharacterPackage {
         PackageListing {
             local: true,
             id: self.package_info.id.clone(),
+            past_ids: self.package_info.past_ids.clone(),
             name: Default::default(),
             long_name: Default::default(),
             description: Default::default(),
