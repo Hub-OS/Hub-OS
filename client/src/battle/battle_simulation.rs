@@ -397,7 +397,7 @@ impl BattleSimulation {
                 continue;
             }
 
-            for attachment in &mut action.attachments {
+            for attachment in action.attachments.values() {
                 let animator = &mut self.animators[attachment.animator_index];
                 self.pending_callbacks.extend(animator.update());
             }
@@ -518,7 +518,7 @@ impl BattleSimulation {
                 continue;
             };
 
-            for attachment in &mut action.attachments {
+            for attachment in action.attachments.values_mut() {
                 attachment.apply_animation(sprite_tree, &mut self.animators);
             }
         }

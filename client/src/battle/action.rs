@@ -46,7 +46,7 @@ pub struct Action {
     pub derived_frames: Option<Vec<DerivedAnimationFrame>>,
     pub steps: Vec<ActionStep>,
     pub step_index: usize,
-    pub attachments: Vec<ActionAttachment>,
+    pub attachments: SlotMap<ActionAttachment>,
     pub lockout_type: ActionLockout,
     pub allows_auto_reserve: bool,
     pub old_position: Option<(i32, i32)>,
@@ -74,7 +74,7 @@ impl Action {
             derived_frames: None,
             steps: Vec::new(),
             step_index: 0,
-            attachments: Vec::new(),
+            attachments: Default::default(),
             lockout_type: ActionLockout::Animation,
             allows_auto_reserve: true,
             old_position: None,
@@ -293,7 +293,7 @@ impl Action {
                 sprite.set_visible(true);
             }
 
-            for attachment in &mut action.attachments {
+            for attachment in action.attachments.values_mut() {
                 attachment.apply_animation(sprite_tree, &mut simulation.animators);
             }
         }
@@ -775,7 +775,7 @@ impl Action {
                 sprite_tree.remove(action.sprite_index);
             }
 
-            for attachment in &action.attachments {
+            for attachment in action.attachments.values() {
                 simulation.animators.remove(attachment.animator_index);
             }
 
@@ -917,13 +917,59 @@ impl ActionAttachment {
         animator.apply(sprite_node);
 
         // attach to point
-        let parent_animator = &mut animators[self.parent_animator_index];
-
-        if let Some(point) = parent_animator.point(&self.point_name) {
+        if let Some(parent_animator) = animators.get_mut(self.parent_animator_index)
+            && let Some(point) = parent_animator.point(&self.point_name)
+        {
             sprite_node.set_offset(point - parent_animator.origin());
             sprite_node.set_visible(true);
         } else {
             sprite_node.set_visible(false);
+        }
+    }
+
+    pub fn delete(
+        simulation: &mut BattleSimulation,
+        action_index: GenerationalIndex,
+        attachment_index: GenerationalIndex,
+    ) {
+        let Some(action) = simulation.actions.get_mut(action_index) else {
+            return;
+        };
+
+        let Ok(entity) = simulation
+            .entities
+            .query_one_mut::<&Entity>(action.entity.into())
+        else {
+            return;
+        };
+
+        let mut sprite_tree = simulation.sprite_trees.get_mut(entity.sprite_tree_index);
+
+        let mut pending_removal = vec![attachment_index];
+
+        while let Some(next_index) = pending_removal.pop() {
+            let Some(removed) = action.attachments.remove(next_index) else {
+                continue;
+            };
+
+            // delete sprite
+            if let Some(ref mut sprite_tree) = sprite_tree {
+                sprite_tree.remove(removed.sprite_index);
+            }
+
+            // delete animator
+            simulation.animators.remove(removed.animator_index);
+
+            // queue children for removal
+            pending_removal.extend(
+                action
+                    .attachments
+                    .iter()
+                    .filter(|(_, existing)| {
+                        existing.parent_animator_index == removed.animator_index
+                    })
+                    .map(|(index, _)| index),
+            );
         }
     }
 }

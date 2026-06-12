@@ -469,6 +469,25 @@ pub fn inject_attachment_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(table)
     });
 
+    lua_api.add_dynamic_function(ACTION_TABLE, "remove_attachment", |api_ctx, lua, params| {
+        let (action_table, attachment_table): (rollback_mlua::Table, rollback_mlua::Table) =
+            lua.unpack_multi(params)?;
+
+        let action_id: GenerationalIndex = action_table.raw_get("#id")?;
+        let index: GenerationalIndex = attachment_table.raw_get("#index")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+
+        if !simulation.actions.contains_key(action_id) {
+            return Err(action_not_found());
+        }
+
+        ActionAttachment::delete(simulation, action_id, index);
+
+        lua.pack_multi(())
+    });
+
     lua_api.add_dynamic_function(
         ATTACHMENT_TABLE,
         "create_attachment",
@@ -477,7 +496,7 @@ pub fn inject_attachment_api(lua_api: &mut BattleLuaApi) {
                 lua.unpack_multi(params)?;
 
             let action_id: GenerationalIndex = parent_table.raw_get("#id")?;
-            let parent_index: usize = parent_table.raw_get("#index")?;
+            let parent_index: GenerationalIndex = parent_table.raw_get("#index")?;
 
             let api_ctx = &mut *api_ctx.borrow_mut();
             let table = shared_attachment_constructor(
@@ -503,7 +522,7 @@ pub fn inject_attachment_api(lua_api: &mut BattleLuaApi) {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
         let action_id: GenerationalIndex = table.raw_get("#id")?;
-        let attachment_index: usize = table.raw_get("#index")?;
+        let attachment_index: GenerationalIndex = table.raw_get("#index")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
 
@@ -524,7 +543,7 @@ fn shared_attachment_constructor<'lua>(
     lua: &'lua rollback_mlua::Lua,
     action_id: GenerationalIndex,
     point_name: String,
-    parent_index: Option<usize>,
+    parent_index: Option<GenerationalIndex>,
 ) -> rollback_mlua::Result<rollback_mlua::Table<'lua>> {
     let simulation = &mut api_ctx.simulation;
 
@@ -585,12 +604,12 @@ fn shared_attachment_constructor<'lua>(
         attachment.apply_animation(sprite_tree, &mut simulation.animators);
     }
 
-    action.attachments.push(attachment);
+    let index = action.attachments.insert(attachment);
 
     // create table
     let table = lua.create_table()?;
     table.raw_set("#id", action_id)?;
-    table.raw_set("#index", action.attachments.len() - 1)?;
+    table.raw_set("#index", index)?;
     table.raw_set(
         "#sprite",
         create_sprite_table(
