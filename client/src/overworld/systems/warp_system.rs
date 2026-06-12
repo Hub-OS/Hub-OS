@@ -36,7 +36,7 @@ pub fn system_warp(game_io: &mut GameIO, area: &mut OverworldArea) {
         ObjectType::CustomWarp | ObjectType::CustomServerWarp => {
             let callback = move |_: &mut GameIO, area: &mut OverworldArea| {
                 let event = OverworldEvent::PendingWarp { entity };
-                area.event_sender.send(event).unwrap();
+                let _ = area.event_sender.send(event);
             };
 
             WarpEffect::warp_out(game_io, area, player_data.entity, callback);
@@ -88,7 +88,7 @@ pub fn system_warp(game_io: &mut GameIO, area: &mut OverworldArea) {
                         };
 
                         for event in events {
-                            event_sender.send(event).unwrap();
+                            let _ = event_sender.send(event);
                         }
                     })
                     .detach();
