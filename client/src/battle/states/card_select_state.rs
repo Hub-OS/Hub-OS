@@ -307,13 +307,6 @@ impl State for CardSelectState {
 
         let selected_item = resolve_selected_item(player, hand, selection);
 
-        // update frame
-        if let SelectedItem::Card(i) = selected_item {
-            self.ui.update_card_frame(game_io, hand, i);
-        } else {
-            self.ui.reset_card_frame();
-        }
-
         // draw sprite tree
         self.ui.draw_tree(sprite_queue);
         self.ui
@@ -339,6 +332,10 @@ impl State for CardSelectState {
         {
             sprite_tree.draw(sprite_queue);
         }
+
+        // update frame
+        let card_class = resolve_card_class(game_io, hand, card_buttons, selected_item);
+        self.ui.update_card_frame(card_class);
 
         // drawing selection
         if let Some(time) = selection.form_open_time {
@@ -1260,21 +1257,11 @@ impl CardSelectState {
         };
 
         let selection = &mut self.player_selections[player.index];
-        let SelectedItem::Card(deck_index) = resolve_selected_item(player, hand, selection) else {
-            return;
-        };
+        let selected_item = resolve_selected_item(player, hand, selection);
+        let card_buttons = PlayerOverridables::card_button_slots_for(player);
+        let card_class = resolve_card_class(game_io, hand, card_buttons, selected_item);
 
-        let (card, namespace) = &hand.deck[deck_index];
-
-        let globals = Globals::from_resources(game_io);
-
-        let card_packages = &globals.card_packages;
-
-        let is_dark = card_packages
-            .package_or_fallback(*namespace, &card.package_id)
-            .is_some_and(|package| package.card_properties.card_class == CardClass::Dark);
-
-        if is_dark {
+        if card_class == CardClass::Dark {
             let globals = Globals::from_resources(game_io);
 
             resources.ui_fade_color.set(Color::new(0.0, 0.0, 0.0, 0.5));
@@ -1327,6 +1314,36 @@ fn resolve_selected_item(
     // todo: Card
 
     SelectedItem::None
+}
+
+fn resolve_card_class(
+    game_io: &GameIO,
+    hand: &PlayerHand,
+    card_buttons: Option<&[Option<CardSelectButton>]>,
+    selected_item: SelectedItem,
+) -> CardClass {
+    match selected_item {
+        SelectedItem::Card(i) => {
+            let globals = Globals::from_resources(game_io);
+            let (card, namespace) = &hand.deck[i];
+
+            let card_packages = &globals.card_packages;
+            let package = card_packages.package_or_fallback(*namespace, &card.package_id);
+
+            package
+                .map(|package| package.card_properties.card_class)
+                .unwrap_or_default()
+        }
+        SelectedItem::Button(i)
+            if let Some((_, _, _, button)) = card_buttons.and_then(|buttons| {
+                CardSelectButton::iter_card_button_slots(buttons)
+                    .find(|(_, _, index, _)| *index == i)
+            }) =>
+        {
+            button.preview_card_class
+        }
+        _ => CardClass::Standard,
+    }
 }
 
 fn can_player_select(hand: &PlayerHand, index: usize) -> bool {

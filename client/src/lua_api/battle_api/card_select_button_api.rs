@@ -106,6 +106,9 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
             let sprite_tree_index = button.preview_sprite_tree_index;
             let animator_index = button.preview_animator_index;
 
+            // update card class
+            button.preview_card_class = card_props.card_class;
+
             // update sprite tree
             let sprite_tree = simulation
                 .sprite_trees

@@ -212,17 +212,7 @@ impl CardSelectUi {
         simulation.local_health_ui.set_position(health_position);
     }
 
-    pub fn update_card_frame(&mut self, game_io: &GameIO, hand: &PlayerHand, card_index: usize) {
-        let globals = Globals::from_resources(game_io);
-        let (card, namespace) = &hand.deck[card_index];
-
-        let card_packages = &globals.card_packages;
-        let package = card_packages.package_or_fallback(*namespace, &card.package_id);
-
-        let card_class = package
-            .map(|package| package.card_properties.card_class)
-            .unwrap_or_default();
-
+    pub fn update_card_frame(&mut self, card_class: CardClass) {
         let state = match card_class {
             CardClass::Standard => "STANDARD_FRAME",
             CardClass::Mega => "MEGA_FRAME",
@@ -233,13 +223,6 @@ impl CardSelectUi {
 
         let card_frame_node = &mut self.sprites[self.card_frame_index];
         self.animator.set_state(state);
-        card_frame_node.apply_animation(&self.animator);
-    }
-
-    pub fn reset_card_frame(&mut self) {
-        let card_frame_node = &mut self.sprites[self.card_frame_index];
-
-        self.animator.set_state("STANDARD_FRAME");
         card_frame_node.apply_animation(&self.animator);
     }
 

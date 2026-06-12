@@ -3,7 +3,7 @@ use super::{
     SharedBattleResources,
 };
 use crate::battle::PlayerHand;
-use crate::bindable::{EntityId, SpriteColorMode};
+use crate::bindable::{CardClass, EntityId, SpriteColorMode};
 use crate::render::SpriteNode;
 use crate::structures::{GenerationalIndex, SlotMap, Tree, TreeIndex};
 use crate::{CARD_SELECT_CARD_COLS, CARD_SELECT_ROWS};
@@ -49,6 +49,7 @@ pub struct CardSelectButton {
     pub animator_index: GenerationalIndex,
     pub preview_sprite_tree_index: TreeIndex,
     pub preview_animator_index: GenerationalIndex,
+    pub preview_card_class: CardClass,
     pub description: Option<Arc<str>>,
     pub uses_default_audio: bool,
     pub uses_fixed_card_cursor: bool,
@@ -89,6 +90,7 @@ impl CardSelectButton {
             animator_index,
             preview_sprite_tree_index,
             preview_animator_index,
+            preview_card_class: CardClass::Standard,
             description: None,
             uses_default_audio: true,
             uses_fixed_card_cursor: false,
