@@ -380,7 +380,7 @@ impl<T: Package> PackageManager<T> {
         };
 
         for (_, key) in packages {
-            let Some(package) = self.packages.get(key) else {
+            let Some(package) = self.packages.remove(key) else {
                 continue;
             };
 
