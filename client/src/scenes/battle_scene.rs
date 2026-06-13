@@ -1243,7 +1243,9 @@ impl Scene for BattleScene {
         let globals = Globals::from_resources_mut(game_io);
 
         // save player memory, must occur before the recording eats setups
-        if let Some(setup) = self.meta.player_setups.iter().find(|s| s.local) {
+        if !self.is_playing_back_recording
+            && let Some(setup) = self.meta.player_setups.iter().find(|s| s.local)
+        {
             let memories = self
                 .simulation
                 .memories
