@@ -82,7 +82,6 @@ impl BattleScene {
         let mut is_playing_back_recording = false;
 
         let mut initial_external_events = Default::default();
-        #[allow(unused_mut)]
         let mut playback_flow = None;
 
         if let Some(mut recording) = props.meta.try_load_recording(game_io) {
