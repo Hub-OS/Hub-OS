@@ -2,7 +2,6 @@ use super::PackageNamespace;
 use crate::render::ui::PackageListing;
 use crate::resources::Globals;
 use framework::prelude::{AsyncTask, GameIO};
-use packets::address_parsing::uri_encode;
 use packets::structures::{PackageCategory, PackageId};
 use std::collections::{HashMap, HashSet};
 
@@ -196,21 +195,19 @@ impl RepoPackageUpdater {
 
         let globals = Globals::from_resources(game_io);
 
-        let repo = globals.config.package_repo.clone();
-        let encoded_id = uri_encode(id.as_str());
-
-        let uri = format!("{repo}/api/mods/{encoded_id}/meta");
+        let repo = &globals.config.package_repo;
+        let request = crate::requests::request_package_meta(repo, id);
 
         log::info!("Requesting metadata for {id}...");
 
         let id = id.clone();
         let task = game_io.spawn_local_task(async move {
-            let Some(value) = crate::http::request_json(&uri).await else {
+            let Some(meta) = request.await else {
                 log::error!("Failed to download meta file");
                 return Event::FailedListing(id);
             };
 
-            let listing = PackageListing::from(&value);
+            let listing = PackageListing::from(meta);
 
             Event::ReceivedListing(Box::new(listing))
         });
@@ -251,16 +248,15 @@ impl RepoPackageUpdater {
         let category = meta.category;
 
         let globals = Globals::from_resources(game_io);
-        let repo = globals.config.package_repo.clone();
-        let encoded_id = uri_encode(meta.new_id.as_str());
+        let repo = &globals.config.package_repo;
+        let request = crate::requests::request_package_zip(repo, &meta.new_id);
 
-        let uri = format!("{repo}/api/mods/{encoded_id}");
         let base_path = globals.resolve_package_download_path(category, &meta.current_id);
 
         log::info!("Downloading {}...", meta.new_id);
 
         let task = game_io.spawn_local_task(async move {
-            let Some(zip_bytes) = crate::http::request(&uri).await else {
+            let Some(zip_bytes) = request.await else {
                 log::error!("Failed to download zip");
                 return Event::FailedDownload;
             };

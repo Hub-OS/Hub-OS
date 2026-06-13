@@ -3,11 +3,11 @@ use crate::bindable::{CardClass, Element};
 use crate::packages::PackageNamespace;
 use crate::render::ui::PackageListing;
 use crate::render::{Animator, SpriteColorQueue};
+use crate::requests::request_package_preview;
 use crate::resources::{AssetManager, Globals, ResourcePaths};
 use crate::saves::BlockShape;
 use framework::async_task::AsyncTask;
 use framework::prelude::*;
-use packets::address_parsing::uri_encode;
 use packets::structures::{BlockColor, PackageCategory, SwitchDriveSlot};
 use std::rc::Rc;
 
@@ -163,12 +163,9 @@ impl PackagePreview {
 
         let globals = Globals::from_resources(game_io);
 
-        let repo = globals.config.package_repo.clone();
-        let encoded_id = uri_encode(self.listing.id.as_str());
-
-        let uri = format!("{repo}/api/mods/{encoded_id}/preview");
-
-        let task = game_io.spawn_local_task(async move { crate::http::request(&uri).await });
+        let repo = &globals.config.package_repo;
+        let request = request_package_preview(repo, &self.listing.id);
+        let task = game_io.spawn_local_task(request);
 
         self.image_task = Some(task);
     }

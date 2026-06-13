@@ -7,13 +7,13 @@ use crate::render::ui::{
     UiButton, UiInputTracker, UiLayout, UiNode, UiStyle, build_9patch,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
+use crate::requests::{PackageCategoryFilter, RequestPackageMetaOptions};
 use crate::resources::{AssetManager, Globals, Input, InputUtil, ResourcePaths};
 use framework::prelude::*;
 use nom::AsChar;
-use packets::address_parsing::uri_encode;
 use packets::structures::PackageCategory;
 use std::rc::Rc;
-use strum::{EnumIter, IntoEnumIterator};
+use strum::IntoEnumIterator;
 use taffy::style::{Dimension, FlexDirection};
 
 const PACKAGES_PER_REQUEST: usize = 21;
@@ -27,56 +27,6 @@ enum Event {
     OpenLocationMenu,
     FilterName(String),
     ViewPackage { listing: Rc<PackageListing> },
-}
-
-#[derive(Default, EnumIter, Clone, Copy, PartialEq, Eq)]
-pub enum CategoryFilter {
-    #[default]
-    All,
-    Cards,
-    Augments,
-    Encounters,
-    Players,
-    Resource,
-    Packs,
-}
-
-impl CategoryFilter {
-    fn translation_key(&self) -> &'static str {
-        match self {
-            CategoryFilter::All => "packages-category-filter-all",
-            CategoryFilter::Cards => "packages-category-filter-cards",
-            CategoryFilter::Augments => "packages-category-filter-augments",
-            CategoryFilter::Encounters => "packages-category-filter-encounters",
-            CategoryFilter::Players => "packages-category-filter-players",
-            CategoryFilter::Resource => "packages-category-filter-resource",
-            CategoryFilter::Packs => "packages-category-filter-packs",
-        }
-    }
-
-    fn value(&self) -> &'static str {
-        match self {
-            CategoryFilter::All => "",
-            CategoryFilter::Cards => "card",
-            CategoryFilter::Augments => "augment",
-            CategoryFilter::Encounters => "encounter",
-            CategoryFilter::Players => "player",
-            CategoryFilter::Resource => "resource",
-            CategoryFilter::Packs => "pack",
-        }
-    }
-
-    fn package_category(&self) -> Option<PackageCategory> {
-        match self {
-            CategoryFilter::All => None,
-            CategoryFilter::Cards => Some(PackageCategory::Card),
-            CategoryFilter::Augments => Some(PackageCategory::Augment),
-            CategoryFilter::Encounters => Some(PackageCategory::Encounter),
-            CategoryFilter::Players => Some(PackageCategory::Player),
-            CategoryFilter::Resource => Some(PackageCategory::Resource),
-            CategoryFilter::Packs => Some(PackageCategory::Library),
-        }
-    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -93,7 +43,7 @@ pub struct PackagesScene {
     frame: SubSceneFrame,
     ui_input_tracker: UiInputTracker,
     sidebar: UiLayout,
-    category_menu: ContextMenu<CategoryFilter>,
+    category_menu: ContextMenu<PackageCategoryFilter>,
     location_menu: ContextMenu<Location>,
     cursor_sprite: Sprite,
     cursor_animator: Animator,
@@ -102,7 +52,7 @@ pub struct PackagesScene {
     list_task: Option<RequestTask>,
     total_requests: usize,
     exhausted_list: bool,
-    category_filter: CategoryFilter,
+    category_filter: PackageCategoryFilter,
     name_filter: String,
     location_filter: Location,
     event_sender: flume::Sender<Event>,
@@ -112,7 +62,7 @@ pub struct PackagesScene {
 }
 
 impl PackagesScene {
-    pub fn new(game_io: &GameIO, initial_category: CategoryFilter) -> Self {
+    pub fn new(game_io: &GameIO, initial_category: PackageCategoryFilter) -> Self {
         let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
 
@@ -159,7 +109,7 @@ impl PackagesScene {
             )
             .with_translated_options(
                 game_io,
-                &CategoryFilter::iter()
+                &PackageCategoryFilter::iter()
                     .map(|filter| (filter.translation_key(), filter))
                     .collect::<Vec<_>>(),
             ),
@@ -224,7 +174,7 @@ impl PackagesScene {
             })
             .flat_map(|info| globals.create_package_listing(info.category, &info.id))
             .filter(|listing| {
-                self.category_filter != CategoryFilter::Packs
+                self.category_filter != PackageCategoryFilter::Packs
                     || matches!(listing.preview_data, PackagePreviewData::Pack)
             })
             .filter(|listing| {
@@ -247,26 +197,21 @@ impl PackagesScene {
         let globals = Globals::from_resources(game_io);
         let repo = globals.config.package_repo.clone();
 
-        let mut uri = format!("{repo}/api/mods?skip={skip}&limit={PACKAGES_PER_REQUEST}");
-
-        if self.category_filter != CategoryFilter::All {
-            uri += &format!("&category={}", self.category_filter.value());
-        }
-
-        if !self.name_filter.is_empty() {
-            uri += &format!("&name={}", uri_encode(&self.name_filter));
-        }
+        let request = crate::requests::request_package_metas(
+            &repo,
+            RequestPackageMetaOptions {
+                skip,
+                limit: PACKAGES_PER_REQUEST,
+                name_filter: &self.name_filter,
+                category_filter: self.category_filter,
+            },
+        );
 
         let task = game_io.spawn_local_task(async move {
-            let Some(value) = crate::http::request_json(&uri).await else {
-                return Vec::new();
-            };
-
-            let Some(list) = value.as_array() else {
-                return Vec::new();
-            };
-
-            list.iter()
+            request
+                .await
+                .unwrap_or_default()
+                .into_iter()
                 .map(|v| PackageListing::from(v).into())
                 .collect()
         });

@@ -1,14 +1,13 @@
-use super::{
-    CategoryFilter, PackageUpdatesScene, PackagesScene, ResourceOrderScene, SyncDataScene,
-};
+use super::{PackageUpdatesScene, PackagesScene, ResourceOrderScene, SyncDataScene};
 use crate::bindable::SpriteColorMode;
 use crate::packages::PackageNamespace;
 use crate::render::ui::*;
 use crate::render::*;
+use crate::requests::PackageCategoryFilter;
 use crate::resources::*;
-use crate::saves::BattleZoomConfig;
-use crate::saves::DisplayInput;
-use crate::saves::{Config, GlobalSave, InternalResolution, KeyStyle};
+use crate::saves::{
+    BattleZoomConfig, Config, DisplayInput, GlobalSave, InternalResolution, KeyStyle,
+};
 use crate::scenes::CreditsScene;
 use framework::prelude::*;
 use packets::structures::{FileHash, PackageCategory, PackageId};
@@ -1037,7 +1036,7 @@ impl ConfigScene {
                     self.textbox.open();
                 }
                 Event::ViewPackages => {
-                    let scene = PackagesScene::new(game_io, CategoryFilter::default());
+                    let scene = PackagesScene::new(game_io, PackageCategoryFilter::default());
                     let transition = crate::transitions::new_sub_scene(game_io);
                     self.next_scene = NextScene::new_push(scene).with_transition(transition);
                 }

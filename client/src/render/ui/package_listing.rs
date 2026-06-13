@@ -1,12 +1,10 @@
-use crate::bindable::CardClass;
 use crate::packages::PackageNamespace;
 use crate::render::ui::{ElementSprite, FontName, ImmutableUiNode, PackagePreviewData, TextStyle};
 use crate::render::{Animator, SpriteColorQueue};
+use crate::requests::PackageResponse;
 use crate::resources::{AssetManager, Globals, ResourcePaths, TEXT_DARK_SHADOW_COLOR};
-use crate::saves::BlockShape;
 use framework::prelude::*;
 use packets::structures::{FileHash, PackageCategory, PackageId, SwitchDriveSlot};
-use serde_json as json;
 use std::sync::Arc;
 
 #[derive(Clone)]
@@ -23,62 +21,30 @@ pub struct PackageListing {
     pub dependencies: Vec<(PackageCategory, PackageId)>,
 }
 
-impl From<&json::Value> for PackageListing {
-    fn from(value: &json::Value) -> Self {
-        let Some(package_table) = value.get("package") else {
-            let name: Arc<str> = "Broken package".into();
-            return Self {
-                local: false,
-                id: PackageId::new_blank(),
-                past_ids: Default::default(),
-                name: name.clone(),
-                long_name: name,
-                description: "???".into(),
-                creator: Default::default(),
-                hash: FileHash::ZERO,
-                preview_data: PackagePreviewData::Unknown,
-                dependencies: Vec::new(),
-            };
-        };
-
-        let category = get_str(package_table, "category");
-
-        let preview_data = match category {
+impl From<PackageResponse> for PackageListing {
+    fn from(meta: PackageResponse) -> Self {
+        let preview_data = match meta.package.category.as_str() {
             "player" => PackagePreviewData::Player {
-                element: get_str(package_table, "element").into(),
-                health: get_i32(package_table, "health"),
+                element: meta.package.element,
+                health: meta.package.health,
             },
             "card" => PackagePreviewData::Card {
-                class: CardClass::from(get_str(package_table, "card_class")),
-                codes: get_string_vec(package_table, "codes"),
-                element: get_str(package_table, "element").into(),
-                secondary_element: get_str(package_table, "secondary_element").into(),
-                damage: get_i32(package_table, "damage"),
-                can_boost: get_bool(package_table, "can_boost").unwrap_or(true),
+                class: meta.package.card_class,
+                codes: meta.package.codes,
+                element: meta.package.element,
+                secondary_element: meta.package.secondary_element,
+                damage: meta.package.damage,
+                can_boost: meta.package.can_boost,
             },
             "augment" => PackagePreviewData::Augment {
-                slot: package_table
-                    .get("slot")
-                    .and_then(|value| value.as_str())
-                    .map(SwitchDriveSlot::from),
-                flat: package_table
-                    .get("flat")
-                    .and_then(|value| value.as_bool())
-                    .unwrap_or_default(),
-                colors: {
-                    // convert list of strings into BlockColor
-                    map_array_values(package_table, "colors", |value| {
-                        value.as_str().unwrap_or_default().into()
-                    })
-                    .collect()
-                },
-                shape: package_table
-                    .get("shape")
-                    .or_else(|| package_table.get("shapes").and_then(|shapes| shapes.get(0)))
-                    .and_then(into_shape),
+                slot: (!meta.package.slot.is_empty())
+                    .then(|| SwitchDriveSlot::from(meta.package.slot)),
+                flat: meta.package.flat,
+                colors: meta.package.colors,
+                shape: meta.package.shape,
             },
             "encounter" => PackagePreviewData::Encounter {
-                recording: !get_str(package_table, "recording_path").is_empty(),
+                recording: !meta.package.recording_path.is_empty(),
             },
             "library" => PackagePreviewData::Library,
             "pack" => PackagePreviewData::Pack,
@@ -88,134 +54,45 @@ impl From<&json::Value> for PackageListing {
             _ => PackagePreviewData::Unknown,
         };
 
-        let mut description = get_str(package_table, "long_description");
-
-        if description.is_empty() {
-            description = get_str(package_table, "description");
-        }
-
         let mut dependencies = Vec::new();
 
-        if let Some(dependencies_table) = value.get("dependencies") {
-            let into_id = |id: &json::Value| id.as_str().unwrap_or_default().into();
+        let mut extend_dependencies = |category: PackageCategory, ids: Vec<PackageId>| {
+            dependencies.extend(ids.into_iter().map(|id| (category, id)))
+        };
 
-            dependencies.extend(map_array_values(dependencies_table, "augments", |id| {
-                (PackageCategory::Augment, into_id(id))
-            }));
-            dependencies.extend(map_array_values(dependencies_table, "encounters", |id| {
-                (PackageCategory::Encounter, into_id(id))
-            }));
-            dependencies.extend(map_array_values(dependencies_table, "cards", |id| {
-                (PackageCategory::Card, into_id(id))
-            }));
-            dependencies.extend(map_array_values(dependencies_table, "libraries", |id| {
-                (PackageCategory::Library, into_id(id))
-            }));
-            dependencies.extend(map_array_values(dependencies_table, "statuses", |id| {
-                (PackageCategory::Status, into_id(id))
-            }));
-            dependencies.extend(map_array_values(dependencies_table, "tile_states", |id| {
-                (PackageCategory::TileState, into_id(id))
-            }));
-        }
+        extend_dependencies(PackageCategory::Augment, meta.dependencies.augments);
+        extend_dependencies(PackageCategory::Encounter, meta.dependencies.encounters);
+        extend_dependencies(PackageCategory::Card, meta.dependencies.cards);
+        extend_dependencies(PackageCategory::Library, meta.dependencies.libraries);
+        extend_dependencies(PackageCategory::Status, meta.dependencies.statuses);
+        extend_dependencies(PackageCategory::TileState, meta.dependencies.tile_states);
 
-        let mut long_name = get_str(package_table, "long_name");
-        let name = get_str(package_table, "name");
+        let mut long_name = meta.package.long_name;
+        let name = meta.package.name;
 
         if long_name.is_empty() {
-            long_name = name;
+            long_name = name.clone();
+        }
+
+        let mut description = meta.package.long_description;
+
+        if description.is_empty() {
+            description = meta.package.description;
         }
 
         Self {
             local: false,
-            id: get_str(package_table, "id").into(),
-            past_ids: map_array_values(package_table, "past_ids", |id| id.as_str())
-                .flatten()
-                .map(PackageId::from)
-                .collect(),
+            id: meta.package.id,
+            past_ids: meta.package.past_ids,
             name: name.into(),
             long_name: long_name.into(),
             description: description.into(),
-            creator: get_unknown_as_string(value, "creator").into(),
-            hash: FileHash::from_hex(get_str(value, "hash")).unwrap_or_default(),
+            creator: meta.creator.into(),
+            hash: meta.hash,
             preview_data,
             dependencies,
         }
     }
-}
-
-fn get_unknown_as_string(table: &json::Value, key: &str) -> String {
-    let Some(value) = table.get(key) else {
-        return String::new();
-    };
-
-    (value.as_str().map(|s| s.to_string()))
-        .or_else(|| Some(format!("{}", value.as_i64()?)))
-        .unwrap_or_default()
-}
-
-fn get_str<'a>(table: &'a json::Value, key: &str) -> &'a str {
-    table
-        .get(key)
-        .and_then(|value| value.as_str())
-        .unwrap_or_default()
-}
-
-fn get_i32(table: &json::Value, key: &str) -> i32 {
-    table
-        .get(key)
-        .and_then(|value| value.as_i64())
-        .unwrap_or_default() as i32
-}
-
-fn get_bool(table: &json::Value, key: &str) -> Option<bool> {
-    table.get(key).and_then(|value| value.as_bool())
-}
-
-fn into_shape(value: &json::Value) -> Option<BlockShape> {
-    let shape: Vec<Vec<u8>> = value
-        .as_array()?
-        .iter()
-        .flat_map(|v| {
-            let line = v
-                .as_array()?
-                .iter()
-                .map(|v| {
-                    if v.as_i64().unwrap_or_default() != 0 {
-                        1u8
-                    } else {
-                        0u8
-                    }
-                })
-                .collect::<Vec<u8>>();
-
-            Some(line)
-        })
-        .collect::<Vec<Vec<u8>>>();
-
-    shape.try_into().ok()
-}
-
-fn map_array_values<'a, V, F>(
-    table: &'a json::Value,
-    key: &str,
-    callback: F,
-) -> impl Iterator<Item = V> + 'a
-where
-    F: Fn(&'a json::Value) -> V + 'a,
-{
-    table
-        .get(key)
-        .and_then(move |value| value.as_array().map(|v| v.iter().map(callback)))
-        .into_iter()
-        .flatten()
-}
-
-fn get_string_vec(table: &json::Value, key: &str) -> Vec<String> {
-    map_array_values(table, key, |value| {
-        value.as_str().unwrap_or_default().to_string()
-    })
-    .collect()
 }
 
 impl ImmutableUiNode for PackageListing {

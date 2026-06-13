@@ -6,7 +6,6 @@ use crate::resources::{
     AssetManager, Globals, Input, InputUtil, ResourcePaths, TEXT_DARK_SHADOW_COLOR,
 };
 use framework::prelude::*;
-use packets::address_parsing::uri_encode;
 use std::rc::Rc;
 use taffy::style::{AlignItems, Dimension, FlexDirection};
 
@@ -436,21 +435,15 @@ impl PackageScene {
         let globals = Globals::from_resources(game_io);
 
         let repo = &globals.config.package_repo;
-        let encoded_id = uri_encode(&listing.creator);
-        let uri = format!("{repo}/api/users/{encoded_id}");
+        let user_request = crate::requests::request_user(repo, &listing.creator);
 
         let task = game_io.spawn_local_task(async move {
-            let Some(value) = crate::http::request_json(&uri).await else {
+            let Some(user) = user_request.await else {
                 // provide default
                 return Event::ReceivedUploader(Default::default());
             };
 
-            let uploader = value
-                .get("username")
-                .and_then(|v| v.as_str())
-                .unwrap_or_default();
-
-            Event::ReceivedUploader(uploader.to_string())
+            Event::ReceivedUploader(user.name)
         });
 
         self.tasks.push(task);

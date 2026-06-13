@@ -17,7 +17,6 @@ use crate::saves::{BlockGrid, Card};
 use crate::scenes::BattleInitScene;
 use bimap::BiMap;
 use framework::prelude::*;
-use packets::address_parsing::uri_encode;
 use packets::structures::{
     ActorId, ActorProperty, BattleId, BattleStatistics, FileHash, PackageCategory,
     SpriteDefinition, SpriteId, TextboxOptions,
@@ -1120,18 +1119,16 @@ impl OverworldOnlineScene {
 
                 if !ignore {
                     let repo = &globals.config.package_repo;
-                    let encoded_id = uri_encode(package_id.as_str());
-                    let uri = format!("{repo}/api/mods/{encoded_id}/meta");
-
                     let event_sender = self.area.event_sender.clone();
+                    let request = crate::requests::request_package_meta(repo, &package_id);
 
                     game_io
                         .spawn_local_task(async move {
-                            let Some(value) = crate::http::request_json(&uri).await else {
+                            let Some(response) = request.await else {
                                 return;
                             };
 
-                            let listing = PackageListing::from(&value);
+                            let listing = PackageListing::from(response);
                             let _ = event_sender.send(OverworldEvent::PackageReferred(listing));
                         })
                         .detach()

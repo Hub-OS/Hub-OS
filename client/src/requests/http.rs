@@ -27,15 +27,18 @@ pub async fn request(uri: &str) -> Option<Vec<u8>> {
     response.await
 }
 
-pub async fn request_json(uri: &str) -> Option<serde_json::Value> {
+pub async fn request_json<T: serde::de::DeserializeOwned>(uri: &str) -> Option<T> {
     let response_vec = request(uri).await?;
-    let result = serde_json::from_slice::<serde_json::Value>(&response_vec);
+    let response_string = String::from_utf8_lossy(&response_vec);
+    // let cursor = std::io::Cursor::new(&response_string);
+    let mut deserializer = serde_json::Deserializer::from_str(&response_string);
 
-    match result {
+    match serde_path_to_error::deserialize(&mut deserializer) {
         Ok(value) => Some(value),
-        Err(_) => {
+        Err(err) => {
             log::error!(
-                "Received invalid JSON from {uri:?}:\n{:?}",
+                "Received invalid response from {uri:?}, {err}:\n{:?}",
+                // err.path(),
                 String::from_utf8_lossy(&response_vec)
             );
             None
