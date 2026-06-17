@@ -1,61 +1,39 @@
-use android::{jni, AndroidJVM};
 use hub_os::framework::logging::log;
-use hub_os::framework::winit_game_loop::android;
 use hub_os::framework::winit_game_loop::WinitPlatformApp;
+use hub_os::framework::winit_game_loop::android;
 
-pub struct AndroidWifiLock {
-    _lock_object: jni::objects::GlobalRef,
+use android::content::AndroidContext;
+use android::{AndroidJVM, jni};
+
+pub struct AndroidNetworkLock {
+    _lock_object: jni::objects::Global<jni::objects::JObject<'static>>,
 }
 
-// API 29
+// API level 29
 const WIFI_MODE_FULL_LOW_LATENCY: jni::sys::jint = 4;
 
-pub fn acquire_multicast_lock(app: &WinitPlatformApp) -> Option<AndroidWifiLock> {
+pub fn acquire_multicast_lock(app: &WinitPlatformApp) -> Option<AndroidNetworkLock> {
     let vm = AndroidJVM::from(app);
 
-    let mut multicast_lock = None;
+    let mut multicast_lock_result = None;
 
     vm.wrap(|jni_env| {
         log::trace!("Acquiring Android MulticastLock");
 
         use jni::objects::JObject;
 
-        let activity_object =
-            unsafe { JObject::from_raw(std::mem::transmute(app.activity_as_ptr())) };
+        let context = AndroidContext::from_app(jni_env, app);
+        let wifi_manager = context.wifi_service(jni_env)?;
 
-        // API 1
-        let wifi_service_name = jni_env.get_static_field(
-            "android/content/Context",
-            "WIFI_SERVICE",
-            "Ljava/lang/String;",
-        )?;
-
-        // API 1
-        let wifi_object: JObject = jni_env
-            .call_method(
-                &activity_object,
-                "getSystemService",
-                "(Ljava/lang/String;)Ljava/lang/Object;",
-                &[(&wifi_service_name).into()],
-            )?
-            .try_into()?;
-
-        // API 4
         let multicast_tag = jni_env.new_string("hub_os_multicast")?;
-        let multicast_lock_object: JObject = jni_env
-            .call_method(
-                &wifi_object,
-                "createMulticastLock",
-                "(Ljava/lang/String;)Landroid/net/wifi/WifiManager$MulticastLock;",
-                &[(&multicast_tag).into()],
-            )?
-            .try_into()?;
+        let multicast_lock = wifi_manager.create_multicast_lock(jni_env, &multicast_tag)?;
 
-        // API 4
-        jni_env.call_method(&multicast_lock_object, "acquire", "()V", &[])?;
+        multicast_lock.acquire(jni_env)?;
 
-        multicast_lock = Some(AndroidWifiLock {
-            _lock_object: jni_env.new_global_ref(&multicast_lock_object)?,
+        let multicast_lock_object: JObject = multicast_lock.into();
+
+        multicast_lock_result = Some(AndroidNetworkLock {
+            _lock_object: jni_env.new_global_ref(multicast_lock_object)?,
         });
 
         log::trace!("Acquired MulticastLock");
@@ -63,55 +41,32 @@ pub fn acquire_multicast_lock(app: &WinitPlatformApp) -> Option<AndroidWifiLock>
         Ok(())
     });
 
-    multicast_lock
+    multicast_lock_result
 }
 
-pub fn acquire_low_latency_lock(app: &WinitPlatformApp) -> Option<AndroidWifiLock> {
+pub fn acquire_low_latency_lock(app: &WinitPlatformApp) -> Option<AndroidNetworkLock> {
     let vm = AndroidJVM::from(app);
 
-    let mut wifi_lock = None;
+    let mut wifi_lock_result = None;
 
     vm.wrap(|jni_env| {
         use jni::objects::JObject;
 
         log::trace!("Acquiring Low Latency WifiLock");
 
-        let activity_object =
-            unsafe { JObject::from_raw(std::mem::transmute(app.activity_as_ptr())) };
+        let context = AndroidContext::from_app(jni_env, app);
+        let wifi_manager = context.wifi_service(jni_env)?;
 
-        // API 1
-        let wifi_service_name = jni_env.get_static_field(
-            "android/content/Context",
-            "WIFI_SERVICE",
-            "Ljava/lang/String;",
-        )?;
-
-        // API 1
-        let wifi_object: JObject = jni_env
-            .call_method(
-                &activity_object,
-                "getSystemService",
-                "(Ljava/lang/String;)Ljava/lang/Object;",
-                &[(&wifi_service_name).into()],
-            )?
-            .try_into()?;
-
-        // API 3
         let lock_tag = jni_env.new_string("hub_os_low_latency")?;
-        let multicast_lock_object: JObject = jni_env
-            .call_method(
-                &wifi_object,
-                "createWifiLock",
-                "(ILjava/lang/String;)Landroid/net/wifi/WifiManager$WifiLock;",
-                &[WIFI_MODE_FULL_LOW_LATENCY.into(), (&lock_tag).into()],
-            )?
-            .try_into()?;
+        let wifi_lock =
+            wifi_manager.create_wifi_lock(jni_env, WIFI_MODE_FULL_LOW_LATENCY, &lock_tag)?;
 
-        // API 1
-        jni_env.call_method(&multicast_lock_object, "acquire", "()V", &[])?;
+        wifi_lock.acquire(jni_env)?;
 
-        wifi_lock = Some(AndroidWifiLock {
-            _lock_object: jni_env.new_global_ref(&multicast_lock_object)?,
+        let wifi_lock_object: JObject = wifi_lock.into();
+
+        wifi_lock_result = Some(AndroidNetworkLock {
+            _lock_object: jni_env.new_global_ref(&wifi_lock_object)?,
         });
 
         log::trace!("Acquired Low Latency WifiLock");
@@ -119,5 +74,5 @@ pub fn acquire_low_latency_lock(app: &WinitPlatformApp) -> Option<AndroidWifiLoc
         Ok(())
     });
 
-    wifi_lock
+    wifi_lock_result
 }
