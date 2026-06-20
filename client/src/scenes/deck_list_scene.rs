@@ -409,7 +409,7 @@ impl Scene for DeckListScene {
             self.deck_sprite.set_position(position);
             sprite_queue.draw_sprite(&self.deck_sprite);
 
-            if i == global_save.selected_deck {
+            if render_i == global_save.selected_deck {
                 self.equipped_animator.update();
                 self.equipped_animator.apply(&mut self.equipped_sprite);
 
