@@ -239,7 +239,7 @@ impl LocalAssetManager {
     }
 
     pub fn override_cache(&self, game_io: &GameIO, path: &str, file_path: &str) {
-        if !ResourcePaths::verify_path_case(path) {
+        if !ResourcePaths::verify_path_case(file_path) {
             return;
         }
 

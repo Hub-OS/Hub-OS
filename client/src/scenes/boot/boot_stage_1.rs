@@ -192,7 +192,7 @@ impl BootStage1Thread {
             }
 
             let file_path = &entry.path().to_string_lossy()[..];
-            let file_path = file_path.replace(std::path::MAIN_SEPARATOR, ResourcePaths::SEPARATOR);
+            let file_path = ResourcePaths::clean(file_path);
             let resource_path = file_path[path_skip..].to_string();
 
             self.event_sender.send(Event::Override {
