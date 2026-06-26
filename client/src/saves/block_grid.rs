@@ -364,15 +364,22 @@ impl BlockGrid {
         let mut text = String::new();
 
         // sort blocks by position for a consistent export
-        let mut blocks: Vec<_> = self.installed_blocks().collect();
-        blocks.sort_by_key(|block| (block.position.1, block.position.0));
+        let mut blocks: Vec<_> = self
+            .installed_blocks()
+            .flat_map(|block| {
+                Some((
+                    block,
+                    packages.package(PackageNamespace::Local, &block.package_id)?,
+                ))
+            })
+            .collect();
 
-        for block in blocks {
-            let id = &block.package_id;
-            let Some(package) = packages.package(PackageNamespace::Local, id) else {
-                continue;
-            };
+        blocks.sort_by(|(_, package_a), (_, package_b)| {
+            (!package_a.is_flat, &package_a.name).cmp(&(!package_b.is_flat, &package_b.name))
+        });
 
+        for (block, package) in blocks {
+            let id = &package.package_info.id;
             let name = &*package.name;
             let color = format!("{:?}", block.color); // rendering ahead of time for formatting
             let (x, y) = block.position;
