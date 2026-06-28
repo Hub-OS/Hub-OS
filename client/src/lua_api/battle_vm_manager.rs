@@ -238,7 +238,11 @@ impl BattleVmManager {
         const MEMORY_WIDTH: usize = 11;
 
         let mut vms_sorted: Vec<_> = self.vms.iter().collect();
-        vms_sorted.sort_by_key(|vm| vm.lua.unused_memory());
+        vms_sorted.sort_by_cached_key(|vm| {
+            let used_memory = vm.lua.used_memory();
+            let unused_memory = vm.lua.unused_memory().unwrap_or_default();
+            (used_memory + unused_memory, used_memory)
+        });
 
         let package_id_width = vms_sorted
             .iter()
