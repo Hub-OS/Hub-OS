@@ -375,7 +375,8 @@ impl BlockGrid {
             .collect();
 
         blocks.sort_by(|(_, package_a), (_, package_b)| {
-            (!package_a.is_flat, &package_a.name).cmp(&(!package_b.is_flat, &package_b.name))
+            (!package_a.is_flat, &package_a.package_info.id)
+                .cmp(&(!package_b.is_flat, &package_b.package_info.id))
         });
 
         for (block, package) in blocks {
