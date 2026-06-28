@@ -5,7 +5,6 @@ pub const CRASH_REPORT_ENDPOINT: &str = "https://hubos.dev/api/crash-reports";
 pub const DEFAULT_PACKAGE_REPO: &str = "https://hubos.dev";
 
 // 1 MiB
-pub const BATTLE_VM_MEMORY: usize = 1024 * 1024;
 pub const INPUT_BUFFER_LIMIT: usize = 20;
 pub const IDENTITY_LEN: usize = 32;
 

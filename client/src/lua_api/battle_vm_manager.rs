@@ -7,9 +7,7 @@ use crate::battle::{
 };
 use crate::bindable::EntityId;
 use crate::packages::{PackageInfo, PackageNamespace};
-use crate::resources::{
-    AssetManager, BATTLE_VM_MEMORY, Globals, INPUT_BUFFER_LIMIT, ResourcePaths,
-};
+use crate::resources::{AssetManager, Globals, INPUT_BUFFER_LIMIT, ResourcePaths};
 use framework::prelude::GameIO;
 use packets::structures::PackageId;
 use std::cell::RefCell;
@@ -109,7 +107,7 @@ impl BattleVmManager {
     ) {
         let globals = Globals::from_resources(game_io);
 
-        let lua = rollback_mlua::Lua::new_rollback(BATTLE_VM_MEMORY, INPUT_BUFFER_LIMIT);
+        let lua = rollback_mlua::Lua::new_rollback(INPUT_BUFFER_LIMIT);
         lua.load_from_std_lib(
             rollback_mlua::StdLib::MATH
                 | rollback_mlua::StdLib::TABLE

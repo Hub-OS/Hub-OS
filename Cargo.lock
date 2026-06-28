@@ -3613,7 +3613,7 @@ dependencies = [
 [[package]]
 name = "rollback_mlua"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/rollback-mlua#b54288334d2c51cfd600c2cea17da878db542f5d"
+source = "git+https://github.com/Hub-OS/rollback-mlua#857b85bb93f595570be9bb502cdea5c3825f0866"
 dependencies = [
  "bstr",
  "erased-serde",
