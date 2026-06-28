@@ -326,7 +326,16 @@ impl PackageScene {
             Event::Delete => {
                 let globals = Globals::from_resources(game_io);
 
-                if globals.connected_to_server {
+                let listing = self.preview.listing();
+                let category = listing.preview_data.category();
+                let local_only = category
+                    .and_then(|category| {
+                        globals.package_info(category, PackageNamespace::Local, &listing.id)
+                    })
+                    .map(|info| info.local_only())
+                    .unwrap_or_default();
+
+                if globals.connected_to_server && !local_only {
                     let interface = TextboxMessage::new(
                         globals.translate("package-info-delete-while-connected-error"),
                     );
