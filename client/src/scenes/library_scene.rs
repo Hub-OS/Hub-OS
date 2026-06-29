@@ -249,6 +249,8 @@ struct Dock {
     dock_sprite: Sprite,
     dock_animator: Animator,
     label: Text,
+    count_position: Option<Vec2>,
+    count_string: String,
     list_position: Vec2,
     context_menu_position: Vec2,
 }
@@ -328,6 +330,10 @@ impl Dock {
             dock_animator.point_or_zero("LABEL") - dock_sprite.origin() + dock_offset;
         label.style.bounds.set_position(label_position);
 
+        let count_position = dock_animator
+            .point("COUNT")
+            .map(|point| point - dock_sprite.origin() + dock_offset);
+
         // scroll tracker
         let mut scroll_tracker = ScrollTracker::new(game_io, 7);
         scroll_tracker.set_total_items(cards.len());
@@ -350,6 +356,8 @@ impl Dock {
             dock_sprite,
             dock_animator,
             label,
+            count_position,
+            count_string: Default::default(),
             list_position,
             context_menu_position,
         }
@@ -386,6 +394,27 @@ impl Dock {
 
         self.label.draw(game_io, sprite_queue);
 
+        // rendering the count if the point is available{
+        if let Some(count_position) = self.count_position {
+            // update count_string
+            use std::fmt::Write;
+
+            let total_chips = self.scroll_tracker.total_items();
+
+            self.count_string.clear();
+            let _ = write!(&mut self.count_string, "{}", total_chips);
+
+            // render the count
+            let label_text_style = &mut self.label.style;
+            let count_width = label_text_style.measure(&self.count_string).size.x;
+
+            label_text_style.bounds.set_position(count_position);
+            label_text_style.bounds += offset;
+            label_text_style.bounds.x -= count_width;
+            label_text_style.draw(game_io, sprite_queue, &self.count_string);
+        }
+
+        // restore original position
         self.label.style.bounds = label_bounds;
 
         // draw cards
