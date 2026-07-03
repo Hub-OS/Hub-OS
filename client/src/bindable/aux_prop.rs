@@ -124,7 +124,7 @@ impl AuxRequirement {
     // properties of self
     const BODY_PRIORITY: usize = 3;
     // activates when current HP matches a specified formula that is allowed to be more open ended. Could allow for cases such as "HP is above 50% of max", "HP has a 4 in it", "HP is under 20% of max", "HP is less than 10". Cannot check the amount of incoming damage.
-    const HP_EXPR_PRIOIRTY: usize = 4;
+    const HP_EXPR_PRIORTY: usize = 4;
     // just like HP EXPR but do not activate if the specified threshold is reached
     const HP_GE_PRIORITY: usize = 5;
     // activates if HP would dip below a specified percentage threshold if the currently evaluated damage were to be applied. 0% HP is a valid threshold here, meaning HP would reach zero this turn. These checks will still be run even if no damage is being applied this frame. Can also compare with arbitrarily provided numbers, ie "would my HP reach 0% if I reduced it by 1"
@@ -169,7 +169,7 @@ impl AuxRequirement {
             | AuxRequirement::Statuses(_)
             | AuxRequirement::StatusesAbsent(_) => Self::BODY_PRIORITY, // BODY
             AuxRequirement::ProjectedHPThreshold(_, _, _)
-            | AuxRequirement::ProjectedHP(_, _, _) => Self::HP_EXPR_PRIOIRTY, // HP EXPR
+            | AuxRequirement::ProjectedHP(_, _, _) => Self::HP_EXPR_PRIORTY, // HP EXPR
             AuxRequirement::HPThreshold(cmp, _) | AuxRequirement::HP(cmp, _) => match cmp {
                 Comparison::GT | Comparison::GE => Self::HP_GE_PRIORITY, // HP GE
                 _ => Self::HP_LE_PRIORITY,                               // HP LE
