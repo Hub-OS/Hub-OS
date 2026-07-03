@@ -136,6 +136,17 @@ impl Living {
         aux_props
     }
 
+    fn non_hit_aux_props(aux_props: &mut SlotMap<AuxProp>) -> Vec<&mut AuxProp> {
+        let mut aux_props: Vec<_> = aux_props
+            .values_mut()
+            .filter(|aux_prop| !aux_prop.effect().hit_related())
+            .collect();
+
+        aux_props.sort_by_key(|aux_props| aux_props.priority());
+
+        aux_props
+    }
+
     pub fn aux_prop_cleanup(simulation: &mut BattleSimulation, filter: impl Fn(&AuxProp) -> bool) {
         let entities = &mut simulation.entities;
 
@@ -483,6 +494,11 @@ impl Living {
         // apply damage and health modifier
         let prev_health = living.health;
         living.set_health(living.health - total_damage - drained + healed);
+
+        // process health
+        for aux_prop in Living::non_hit_aux_props(&mut living.aux_props) {
+            aux_prop.process_health_calculations(living.health, living.max_health, 0);
+        }
 
         // handle intangibility
         if living.intangibility.is_retangible() {
