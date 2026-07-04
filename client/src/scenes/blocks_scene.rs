@@ -151,7 +151,21 @@ impl BlocksScene {
         let assets = &globals.assets;
 
         let global_save = &globals.global_save;
-        let blocks = global_save.active_blocks().to_vec();
+        let mut blocks = global_save.active_blocks().to_vec();
+
+        // keep block ids up to date
+        blocks.retain_mut(|block| {
+            let Some(package) = globals
+                .augment_packages
+                .package(PackageNamespace::Local, &block.package_id)
+            else {
+                return false;
+            };
+
+            block.package_id = package.package_info.id.clone();
+
+            true
+        });
 
         // load ui sprites
         let mut animator = Animator::load_new(assets, ResourcePaths::BLOCKS_UI_ANIMATION);
