@@ -7,7 +7,7 @@ mod plugins;
 mod threads;
 
 use clap::Parser;
-use plugins::LuaPluginInterface;
+use plugins::{LuaPluginInterface, ReadLinePlugin};
 
 fn main() {
     std::panic::set_hook(Box::new(|p| {
@@ -31,7 +31,8 @@ fn main() {
     };
 
     let future = net::ServerBuilder::new(config)
-        .with_plugin_interface(Box::new(LuaPluginInterface::new()))
+        .with_plugin(Box::new(LuaPluginInterface::new()))
+        .with_plugin(Box::new(ReadLinePlugin::new()))
         .start();
 
     smol::block_on(async move {

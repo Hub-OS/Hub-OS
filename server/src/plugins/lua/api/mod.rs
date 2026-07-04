@@ -1,5 +1,6 @@
 mod actor_api;
 mod actor_property_animation;
+mod administration_api;
 mod area_api;
 mod asset_api;
 mod async_api;
@@ -61,6 +62,7 @@ impl LuaApi {
 
         logging_api::inject_static(&mut lua_api);
 
+        administration_api::inject_dynamic(&mut lua_api);
         area_api::inject_dynamic(&mut lua_api);
         asset_api::inject_dynamic(&mut lua_api);
         object_api::inject_dynamic(&mut lua_api);

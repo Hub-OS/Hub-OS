@@ -28,8 +28,11 @@ pub struct Net {
     asset_manager: AssetManager,
     active_plugin: usize,
     kick_list: Vec<Boot>,
+    pending_commands: Vec<(Option<ActorId>, String)>,
     item_registry: HashMap<String, ItemDefinition>,
     active_battles: SlotMap<BattleId, IndexSet<ActorId>>,
+    command_registry: CommandRegistry,
+    shutting_down: bool,
 }
 
 impl Net {
@@ -92,8 +95,11 @@ impl Net {
             asset_manager,
             active_plugin: 0,
             kick_list: Vec::new(),
+            pending_commands: Vec::new(),
             item_registry: HashMap::new(),
             active_battles: Default::default(),
+            command_registry: Default::default(),
+            shutting_down: false,
         }
     }
 
@@ -174,6 +180,10 @@ impl Net {
                 self.kick_player(*player_id, "Area destroyed", true);
             }
         }
+    }
+
+    pub fn command_registry_mut(&mut self) -> &mut CommandRegistry {
+        &mut self.command_registry
     }
 
     pub fn remove_asset(&mut self, path: &str) {
@@ -1952,11 +1962,7 @@ impl Net {
     }
 
     pub(super) fn take_kick_list(&mut self) -> Vec<Boot> {
-        let mut out = Vec::new();
-
-        std::mem::swap(&mut self.kick_list, &mut out);
-
-        out
+        std::mem::take(&mut self.kick_list)
     }
 
     pub(super) fn add_client(
@@ -2763,6 +2769,52 @@ impl Net {
             }
         })
         .detach();
+    }
+
+    pub fn print_to(&mut self, player_id: Option<ActorId>, message: &str) {
+        if player_id.is_none() {
+            log::info!("{message}");
+        }
+    }
+
+    pub fn warn_to(&mut self, player_id: Option<ActorId>, message: &str) {
+        if player_id.is_none() {
+            log::warn!("{message}");
+        }
+    }
+
+    pub fn error_to(&mut self, player_id: Option<ActorId>, message: &str) {
+        if player_id.is_none() {
+            log::error!("{message}");
+        }
+    }
+
+    pub fn queue_command(&mut self, player_id: Option<ActorId>, command: String) {
+        let end = command
+            .find(|c: char| c.is_whitespace())
+            .unwrap_or(command.len());
+
+        if !self
+            .command_registry
+            .contains_command(command[..end].trim_start())
+        {
+            self.warn_to(player_id, "Unknown command");
+            return;
+        }
+
+        self.pending_commands.push((player_id, command));
+    }
+
+    pub(super) fn take_commands(&mut self) -> Vec<(Option<ActorId>, String)> {
+        std::mem::take(&mut self.pending_commands)
+    }
+
+    pub fn shutdown(&mut self) {
+        self.shutting_down = true;
+    }
+
+    pub fn shutting_down(&self) -> bool {
+        self.shutting_down
     }
 
     // ugly opengl like context storing

@@ -883,6 +883,24 @@ impl PluginInterface for LuaPluginInterface {
             },
         );
     }
+
+    fn handle_command(&mut self, net: &mut Net, player_id: Option<ActorId>, command: &str) {
+        handle_event(
+            &mut self.scripts,
+            &self.all_scripts,
+            &mut self.trackers,
+            &mut self.promise_manager,
+            &mut self.lua_api,
+            net,
+            |lua, callback| {
+                let event = lua.create_table()?;
+                event.set("player_id", player_id)?;
+                event.set("command", command)?;
+
+                callback.call(("command", event))
+            },
+        );
+    }
 }
 
 #[allow(clippy::too_many_arguments)]

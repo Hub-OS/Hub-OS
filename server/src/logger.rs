@@ -1,8 +1,16 @@
+use std::sync::Mutex;
+
 static LOGGER: Logger = Logger;
+static PRINTER: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
 
 pub fn init() {
     log::set_logger(&LOGGER).unwrap();
     log::set_max_level(log::LevelFilter::Trace);
+}
+
+pub fn set_printer(callback: impl Fn(String) + Send + Sync + 'static) {
+    let mut cell = PRINTER.lock().unwrap();
+    *cell = Some(Box::new(callback));
 }
 
 struct Logger;
@@ -14,9 +22,9 @@ impl log::Log for Logger {
 
     fn log(&self, record: &log::Record) {
         use std::io::Write;
-        use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
+        use termcolor::{Color, ColorChoice, ColorSpec, WriteColor};
 
-        let mut stdout = StandardStream::stdout(ColorChoice::Always);
+        let mut buffer = termcolor::BufferWriter::stdout(ColorChoice::Always).buffer();
 
         if self.enabled(record.metadata()) {
             let msg = format!("{}", record.args());
@@ -38,9 +46,19 @@ impl log::Log for Logger {
                 }
             };
 
-            stdout.set_color(&color_spec).unwrap();
-            writeln!(&mut stdout, "{msg}").unwrap();
-            stdout.reset().unwrap();
+            buffer.set_color(&color_spec).unwrap();
+            buffer.write_all(msg.as_bytes()).unwrap();
+            buffer.reset().unwrap();
+
+            let output = String::from_utf8_lossy(buffer.as_slice());
+
+            let guard = PRINTER.lock().unwrap();
+
+            if let Some(print) = &*guard {
+                print(output.to_string());
+            } else {
+                println!("{output}");
+            }
         }
     }
 

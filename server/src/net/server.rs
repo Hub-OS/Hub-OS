@@ -84,7 +84,7 @@ impl Server {
         let mut sleep_stream = smol::Timer::interval(SERVER_TICK_RATE).fuse();
         let mut message_stream = message_receiver.stream();
 
-        loop {
+        while !self.net.shutting_down() {
             futures::select_biased! {
                 _ = sleep_stream.select_next_some() => {
                     self.tick(&listener_sender).await;
@@ -94,6 +94,8 @@ impl Server {
                 }
             };
         }
+
+        Ok(())
     }
 
     fn handle_thread_message(
@@ -236,6 +238,20 @@ impl Server {
         listener_sender
             .send(ListenerMessage::NewConnections { receivers })
             .unwrap();
+
+        // handle commands
+        loop {
+            let commands = self.net.take_commands();
+
+            if commands.is_empty() {
+                break;
+            }
+
+            for (player_id, command) in commands {
+                self.plugin_wrapper
+                    .handle_command(&mut self.net, player_id, &command);
+            }
+        }
     }
 
     fn handle_server_comm_packet(&mut self, socket_address: SocketAddr, packet: ServerCommPacket) {

@@ -1,6 +1,6 @@
+use super::ServerConfig;
 use super::plugin_wrapper::PluginWrapper;
 use super::server::Server;
-use super::ServerConfig;
 use crate::plugins::PluginInterface;
 use std::net::UdpSocket;
 
@@ -17,7 +17,7 @@ impl ServerBuilder {
         }
     }
 
-    pub fn with_plugin_interface(mut self, plugin_interface: Box<dyn PluginInterface>) -> Self {
+    pub fn with_plugin(mut self, plugin_interface: Box<dyn PluginInterface>) -> Self {
         self.plugin_wrapper.add_plugin_interface(plugin_interface);
         self
     }
