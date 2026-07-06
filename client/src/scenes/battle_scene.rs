@@ -43,6 +43,12 @@ struct Backup {
     state: Box<dyn State>,
 }
 
+/// Playback state for viewing replays
+struct Playback {
+    multiplier: u8,
+    flow: Option<RecordedSimulationFlow>,
+}
+
 pub struct BattleScene {
     original_package_pair: Option<(PackageNamespace, PackageId)>,
     meta: BattleMeta,
@@ -69,9 +75,7 @@ pub struct BattleScene {
     resimulating: bool,
     draw_player_indices: bool,
     already_snapped: bool,
-    is_playing_back_recording: bool,
-    playback_multiplier: u8,
-    playback_flow: Option<RecordedSimulationFlow>,
+    playback: Option<Playback>,
     exiting: bool,
     next_scene: NextScene,
 }
@@ -79,15 +83,15 @@ pub struct BattleScene {
 impl BattleScene {
     pub fn new(game_io: &mut GameIO, mut props: BattleProps) -> Self {
         let original_package_pair = props.meta.encounter_package_pair.clone();
-        let mut is_playing_back_recording = false;
+        let mut playback = None;
 
         let mut initial_external_events = Default::default();
-        let mut playback_flow = None;
 
         if let Some(mut recording) = props.meta.try_load_recording(game_io) {
             initial_external_events = std::mem::take(&mut recording.external_events);
 
             let globals = Globals::from_resources(game_io);
+            let mut playback_flow = None;
 
             if globals.replay_rollbacks {
                 if let Some(mut recorded_flow) = recording.simulation_flow.take() {
@@ -101,7 +105,10 @@ impl BattleScene {
             }
 
             props.meta = BattleMeta::from_recording(game_io, recording);
-            is_playing_back_recording = true;
+            playback = Some(Playback {
+                multiplier: 1,
+                flow: playback_flow,
+            });
         } else {
             // remove recording namespaces to prevent interference with other namespaces
             // recording namespaces have precedence over other namespaces
@@ -144,7 +151,7 @@ impl BattleScene {
         // load the players in the correct order
         let player_setups = &meta.player_setups;
         let mut player_controllers = Vec::with_capacity(player_setups.len());
-        let local_index = if is_playing_back_recording {
+        let local_index = if playback.is_some() {
             None
         } else {
             player_setups
@@ -159,7 +166,7 @@ impl BattleScene {
         for setup in player_setups {
             simulation.inputs[setup.index].set_input_delay(setup.buffer.delay());
 
-            let connected = !is_playing_back_recording && setup.connected;
+            let connected = playback.is_none() && setup.connected;
             player_controllers.push(PlayerController {
                 connected,
                 input_connected: connected,
@@ -205,7 +212,7 @@ impl BattleScene {
             ui_camera: Camera::new_ui(game_io),
             input_display: InputDisplay::new(game_io),
             textbox: Textbox::new_overworld(game_io)
-                .with_transition_animation_enabled(!is_playing_back_recording),
+                .with_transition_animation_enabled(playback.is_none()),
             textbox_is_blocking_input: false,
             pending_signals: Vec::new(),
             synced_time: 0,
@@ -221,9 +228,7 @@ impl BattleScene {
             resimulating: false,
             draw_player_indices: false,
             already_snapped: false,
-            is_playing_back_recording,
-            playback_multiplier: 1,
-            playback_flow,
+            playback,
             exiting: false,
             next_scene: NextScene::None,
         }
@@ -664,7 +669,9 @@ impl BattleScene {
             .iter()
             .enumerate()
             .all(|(i, controller)| {
-                if let Some(playback_flow) = &self.playback_flow {
+                if let Some(playback) = &self.playback
+                    && let Some(playback_flow) = &playback.flow
+                {
                     let player_count = self.player_controllers.len();
                     let limit = playback_flow.get_buffer_limit(player_count, i);
 
@@ -793,7 +800,9 @@ impl BattleScene {
         for (index, player_input) in self.simulation.inputs.iter_mut().enumerate() {
             player_input.flush();
 
-            if let Some(playback_flow) = &self.playback_flow {
+            if let Some(playback) = &self.playback
+                && let Some(playback_flow) = &playback.flow
+            {
                 let player_count = self.player_controllers.len();
                 let limit = playback_flow.get_buffer_limit(player_count, index);
 
@@ -1081,7 +1090,7 @@ impl BattleScene {
     fn exit(&mut self, game_io: &GameIO, fleeing: bool) {
         self.exiting = true;
 
-        if !self.is_playing_back_recording {
+        if self.playback.is_none() {
             self.pending_signals.push(NetplaySignal::Disconnect);
         }
 
@@ -1108,7 +1117,11 @@ impl BattleScene {
     fn core_update(&mut self, game_io: &mut GameIO) {
         // replay rollbacks
         loop {
-            let Some(playback_flow) = &mut self.playback_flow else {
+            let Some(playback) = &self.playback else {
+                break;
+            };
+
+            let Some(playback_flow) = &playback.flow else {
                 break;
             };
 
@@ -1122,7 +1135,11 @@ impl BattleScene {
 
             self.resimulate(game_io, recorded_rollback.resimulate_time - 1);
 
-            let Some(playback_flow) = &mut self.playback_flow else {
+            let Some(playback) = &mut self.playback else {
+                break;
+            };
+
+            let Some(playback_flow) = &mut playback.flow else {
                 break;
             };
 
@@ -1132,7 +1149,7 @@ impl BattleScene {
 
         let mut input_util = InputUtil::new(game_io);
 
-        let mut can_simulate = if self.is_playing_back_recording {
+        let mut can_simulate = if self.playback.is_some() {
             // simulate as long as we have input
             self.remaining_replay_buffer() > 0
         } else {
@@ -1142,7 +1159,7 @@ impl BattleScene {
         };
 
         if self.frame_by_frame_debug {
-            if input_util.was_just_pressed(Input::RewindFrame) && !self.is_playing_back_recording {
+            if input_util.was_just_pressed(Input::RewindFrame) && self.playback.is_none() {
                 self.rewind(game_io, 1);
                 input_util = InputUtil::new(game_io)
             }
@@ -1158,7 +1175,7 @@ impl BattleScene {
 
             can_simulate &= !should_slow_down;
 
-            self.frame_by_frame_debug = (self.is_playing_back_recording || self.is_offline())
+            self.frame_by_frame_debug = (self.playback.is_some() || self.is_offline())
                 && (input_util.was_just_pressed(Input::RewindFrame)
                     || input_util.was_just_pressed(Input::AdvanceFrame));
         }
@@ -1169,7 +1186,9 @@ impl BattleScene {
 
             self.simulate(game_io);
 
-            if let Some(playback_flow) = &mut self.playback_flow {
+            if let Some(playback) = &mut self.playback
+                && let Some(playback_flow) = &mut playback.flow
+            {
                 playback_flow.current_step += 1;
             }
         }
@@ -1183,7 +1202,7 @@ impl BattleScene {
         // check for reload requests
         let input = game_io.input();
 
-        if (self.is_playing_back_recording || self.is_offline())
+        if (self.playback.is_some() || self.is_offline())
             && input.is_key_down(Key::F3)
             && input.was_key_just_pressed(Key::R)
         {
@@ -1203,7 +1222,7 @@ impl BattleScene {
         }
 
         // see if a synced exit request occured
-        let requested_exit = if self.is_playing_back_recording {
+        let requested_exit = if self.playback.is_some() {
             let input_util = InputUtil::new(game_io);
             input_util.was_just_pressed(Input::Cancel)
         } else {
@@ -1243,7 +1262,7 @@ impl Scene for BattleScene {
         let globals = Globals::from_resources_mut(game_io);
 
         // save player memory, must occur before the recording eats setups
-        if !self.is_playing_back_recording
+        if self.playback.is_none()
             && let Some(setup) = self.meta.player_setups.iter().find(|s| s.local)
         {
             let memories = self
@@ -1277,7 +1296,7 @@ impl Scene for BattleScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
-        if !self.is_playing_back_recording {
+        if self.playback.is_none() {
             self.update_textbox(game_io);
             self.handle_packets(game_io);
             self.handle_server_messages();
@@ -1287,21 +1306,24 @@ impl Scene for BattleScene {
 
         // multiply speed while holding confirm in a replay
         let input_util = InputUtil::new(game_io);
-        if self.is_playing_back_recording && input_util.is_down(Input::Confirm) {
+        let mut simulation_multiplier = 1;
+
+        if let Some(playback) = &mut self.playback
+            && input_util.is_down(Input::Confirm)
+        {
             if input_util.was_just_pressed(Input::Left) {
-                self.playback_multiplier -= 1;
+                playback.multiplier -= 1;
             }
 
             if input_util.was_just_pressed(Input::Right) {
-                self.playback_multiplier += 1;
+                playback.multiplier += 1;
             }
 
-            self.playback_multiplier = self.playback_multiplier.clamp(2, 10);
-        } else {
-            self.playback_multiplier = 1;
+            playback.multiplier = playback.multiplier.clamp(2, 10);
+            simulation_multiplier = playback.multiplier;
         }
 
-        for _ in 1..self.playback_multiplier {
+        for _ in 1..simulation_multiplier {
             self.core_update(game_io);
         }
 
@@ -1337,20 +1359,20 @@ impl Scene for BattleScene {
         self.resources
             .draw_fade_sprite(&mut sprite_queue, fade_color);
 
-        #[cfg(not(feature = "record_every_frame"))]
-        if self.playback_multiplier > 1 {
-            use crate::render::ui::{FontName, TextStyle};
+        if let Some(playback) = &self.playback {
+            #[cfg(not(feature = "record_every_frame"))]
+            if playback.multiplier > 1 {
+                use crate::render::ui::{FontName, TextStyle};
 
-            let text = format!("{}X", self.playback_multiplier);
-            let mut text_style = TextStyle::new_monospace(game_io, FontName::Code);
-            text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
+                let text = format!("{}X", playback.multiplier);
+                let mut text_style = TextStyle::new_monospace(game_io, FontName::Code);
+                text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
 
-            let metrics = text_style.measure(&text);
-            text_style.bounds += RESOLUTION_F - metrics.size - 1.0;
-            text_style.draw(game_io, &mut sprite_queue, &text);
-        }
+                let metrics = text_style.measure(&text);
+                text_style.bounds += RESOLUTION_F - metrics.size - 1.0;
+                text_style.draw(game_io, &mut sprite_queue, &text);
+            }
 
-        if self.is_playing_back_recording {
             let globals = Globals::from_resources(game_io);
             let assets = &globals.assets;
 
