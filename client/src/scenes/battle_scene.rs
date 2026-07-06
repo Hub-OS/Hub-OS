@@ -49,6 +49,12 @@ struct Playback {
     flow: Option<RecordedSimulationFlow>,
 }
 
+#[derive(Default)]
+struct BattleDebug {
+    frame_by_frame: bool,
+    draw_player_indices: bool,
+}
+
 pub struct BattleScene {
     original_package_pair: Option<(PackageNamespace, PackageId)>,
     meta: BattleMeta,
@@ -71,11 +77,10 @@ pub struct BattleScene {
     connected_count: usize,
     local_index: Option<usize>,
     slow_cooldown: FrameTime,
-    frame_by_frame_debug: bool,
     resimulating: bool,
-    draw_player_indices: bool,
     already_snapped: bool,
     playback: Option<Playback>,
+    debug: BattleDebug,
     exiting: bool,
     next_scene: NextScene,
 }
@@ -224,11 +229,10 @@ impl BattleScene {
             connected_count,
             local_index,
             slow_cooldown: 0,
-            frame_by_frame_debug: false,
             resimulating: false,
-            draw_player_indices: false,
             already_snapped: false,
             playback,
+            debug: Default::default(),
             exiting: false,
             next_scene: NextScene::None,
         }
@@ -1083,7 +1087,7 @@ impl BattleScene {
         }
 
         if game_io.input().was_key_just_pressed(Key::I) {
-            self.draw_player_indices = !self.draw_player_indices;
+            self.debug.draw_player_indices = !self.debug.draw_player_indices;
         }
     }
 
@@ -1158,7 +1162,7 @@ impl BattleScene {
                 || self.input_synced()
         };
 
-        if self.frame_by_frame_debug {
+        if self.debug.frame_by_frame {
             if input_util.was_just_pressed(Input::RewindFrame) && self.playback.is_none() {
                 self.rewind(game_io, 1);
                 input_util = InputUtil::new(game_io)
@@ -1169,13 +1173,13 @@ impl BattleScene {
             // exit from frame_by_frame_debug with pause or confirm
             let resume = input_util.was_just_pressed(Input::Pause)
                 || input_util.was_just_pressed(Input::Confirm);
-            self.frame_by_frame_debug = !resume;
+            self.debug.frame_by_frame = !resume;
         } else {
             let should_slow_down = self.slow_cooldown == SLOW_COOLDOWN;
 
             can_simulate &= !should_slow_down;
 
-            self.frame_by_frame_debug = (self.playback.is_some() || self.is_offline())
+            self.debug.frame_by_frame = (self.playback.is_some() || self.is_offline())
                 && (input_util.was_just_pressed(Input::RewindFrame)
                     || input_util.was_just_pressed(Input::AdvanceFrame));
         }
@@ -1337,7 +1341,7 @@ impl Scene for BattleScene {
             game_io,
             &self.resources,
             render_pass,
-            self.draw_player_indices,
+            self.debug.draw_player_indices,
         );
 
         // draw ui
