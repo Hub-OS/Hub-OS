@@ -1,4 +1,12 @@
 local CommandProcessing = require("scripts/libs/command_processing")
+local json = require("scripts/libs/json")
+
+---@type table<string, { nickname: string, end_time?: number, reason?: string }>
+local banned_players = {}
+---@type table<string, { nickname?: string, reason?: string }>
+local banned_ips = {}
+local save_ban_list
+local BAN_FILE_NAME = "banned-players.json"
 
 CommandProcessing.register_commands({
   help = {
@@ -226,12 +234,278 @@ CommandProcessing.register_commands({
           Net.kick_player(player_id, reason, true)
           Net.print_to(event.player_id, "Kicked " .. name)
 
+          if event.player_id then
+            print("Kicked " .. name)
+          end
+
           total_kicked = total_kicked + 1
         end
       end
 
       if total_kicked ~= 1 then
         Net.print_to(event.player_id, "Kicked " .. total_kicked .. " players")
+      end
+    end
+  },
+  ["perma-ban"] = {
+    usage = { "<player> [<reason>]" },
+    description = "Bans players from the server",
+    callback = function(event)
+      local _, _, command_end_index = CommandProcessing.read_word(event.command)
+
+      local player_list, _, sel_end = CommandProcessing.process_selector(event.command, command_end_index + 1)
+
+      if not player_list then
+        Net.warn_to(event.player_id, "Missing player selector")
+        return
+      end
+
+      local reason = CommandProcessing.trim(event.command:sub(sel_end + 1))
+      local display_reason
+
+      if #reason > 0 then
+        display_reason = "Banned: " .. reason
+      else
+        display_reason = "Banned"
+        reason = nil
+      end
+
+      local total_bans = 0
+
+      for i = 1, #player_list do
+        local player_id = player_list[i]
+
+        if Net.is_player(player_id) then
+          local name = Net.get_actor_name(player_id)
+
+          banned_players[Net.get_player_secret(player_id)] = {
+            nickname = Net.get_actor_name(player_id),
+            reason = reason
+          }
+
+          Net.kick_player(player_id, display_reason, true)
+          Net.print_to(event.player_id, "Banned " .. name)
+
+          if event.player_id then
+            print("Banned " .. name)
+          end
+
+          total_bans = total_bans + 1
+        end
+      end
+
+      if total_bans ~= 1 then
+        Net.print_to(event.player_id, "Banned " .. total_bans .. " players")
+      end
+
+      if total_bans > 0 then
+        save_ban_list()
+      end
+    end
+  },
+  ["temp-ban"] = {
+    usage = { "<player> <duration> [<reason>]" },
+    description = "Bans players from the server for a specific time period. Accepts a number and unit (y/d/h/m/s)",
+    callback = function(event)
+      local _, _, command_end_index = CommandProcessing.read_word(event.command)
+
+      local player_list, _, sel_end = CommandProcessing.process_selector(event.command, command_end_index + 1)
+
+      if not player_list then
+        Net.warn_to(event.player_id, "Missing player selector")
+        return
+      end
+
+      local duration_str, _, duration_end_index = CommandProcessing.read_word(event.command, sel_end + 1)
+
+      if not duration_str then
+        Net.warn_to(event.player_id, "Missing duration")
+        return
+      end
+
+      local duration = CommandProcessing.process_duration(duration_str)
+
+      if not duration then
+        Net.warn_to(event.player_id, "Invalid duration")
+        return
+      end
+
+      local reason = CommandProcessing.trim(event.command:sub(duration_end_index + 1))
+      local display_reason
+      local end_time = os.time() + duration
+
+      if #reason > 0 then
+        display_reason = "Banned for " .. duration_str .. ": " .. reason
+      else
+        display_reason = "Banned for " .. duration_str
+        reason = nil
+      end
+
+      local total_bans = 0
+
+      for i = 1, #player_list do
+        local player_id = player_list[i]
+
+        if Net.is_player(player_id) then
+          local name = Net.get_actor_name(player_id)
+
+          banned_players[Net.get_player_secret(player_id)] = {
+            nickname = Net.get_actor_name(player_id),
+            reason = reason,
+            end_time = end_time
+          }
+
+          Net.kick_player(player_id, display_reason, true)
+          Net.print_to(event.player_id, "Banned " .. name)
+
+          if event.player_id then
+            print("Banned " .. name)
+          end
+
+          total_bans = total_bans + 1
+        end
+      end
+
+      if total_bans ~= 1 then
+        Net.print_to(event.player_id, "Banned " .. total_bans .. " players")
+      end
+
+      if total_bans > 0 then
+        save_ban_list()
+      end
+    end
+  },
+  ["ban-ip"] = {
+    usage = { "<player> [<reason>]" },
+    description = "Bans players by IP from the server",
+    callback = function(event)
+      local _, _, command_end_index = CommandProcessing.read_word(event.command)
+
+      local player_list, _, sel_end = CommandProcessing.process_selector(event.command, command_end_index + 1)
+
+      if not player_list then
+        Net.warn_to(event.player_id, "Missing player selector")
+        return
+      end
+
+      local reason = CommandProcessing.trim(event.command:sub(sel_end + 1))
+      local display_reason
+
+      if #reason > 0 then
+        display_reason = "Banned: " .. reason
+      else
+        display_reason = "Banned"
+        reason = nil
+      end
+
+      local total_banned = 0
+
+      for i = 1, #player_list do
+        local player_id = player_list[i]
+
+        if Net.is_player(player_id) then
+          local name = Net.get_actor_name(player_id)
+
+
+          banned_ips[Net.get_player_ip(player_id)] = {
+            nickname = Net.get_actor_name(player_id),
+            reason = reason
+          }
+
+          Net.kick_player(player_id, display_reason, true)
+          Net.print_to(event.player_id, "Banned " .. name)
+
+          if event.player_id then
+            print("Banned " .. name)
+          end
+
+          total_banned = total_banned + 1
+        end
+      end
+
+      if total_banned ~= 1 then
+        Net.print_to(event.player_id, "Banned " .. total_banned .. " players")
+      end
+
+      if total_banned > 0 then
+        save_ban_list()
+      end
+    end
+  },
+  ["unban"] = {
+    usage = { "<name>" },
+    description = "Unbans a player by nickname from the server, may unban multiple players",
+    callback = function(event)
+      local _, _, command_end_index = CommandProcessing.read_word(event.command)
+      local name = CommandProcessing.read_optionally_quoted(event.command, command_end_index + 1)
+
+      if not name then
+        Net.warn_to(event.player_id, "Missing name")
+        return
+      end
+
+      local unbans = 0
+
+      for key, details in pairs(banned_players) do
+        if details.nickname == name then
+          banned_players[key] = nil
+          unbans = unbans + 1
+        end
+      end
+
+      for key, details in pairs(banned_ips) do
+        if details.nickname == name then
+          banned_ips[key] = nil
+          unbans = unbans + 1
+        end
+      end
+
+      if unbans == 0 then
+        Net.warn_to(event.player_id, name .. " was already not banned")
+        return
+      end
+
+      local message = "Unbanned " .. unbans .. " players named " .. name
+      Net.print_to(event.player_id, message)
+
+      if event.player_id then
+        print(message)
+      end
+
+      save_ban_list()
+    end
+  },
+  ["unban-ip"] = {
+    usage = { "<ip address>" },
+    description = "Unbans a player's IP address from the server",
+    callback = function(event)
+      local _, _, command_end_index = CommandProcessing.read_word(event.command)
+      local ip = CommandProcessing.read_word(event.command, command_end_index + 1)
+
+      if not ip then
+        Net.warn_to(event.player_id, "Missing IP address")
+        return
+      end
+
+      local details = banned_ips[ip]
+
+      if not details then
+        Net.warn_to(event.player_id, ip .. " was already not banned")
+        return
+      end
+
+      banned_ips[ip] = nil
+
+      local message = "Unbanned " .. ip
+
+      if details.nickname then
+        message = message .. " (" .. details.nickname .. ")"
+      end
+
+      Net.print_to(event.player_id, message)
+
+      if event.player_id then
+        print(message)
       end
     end
   },
@@ -266,7 +540,7 @@ CommandProcessing.register_commands({
         end
       end
 
-      Net.print_to(event.player_id, "Messaged \"" .. total_messaged .. '" players')
+      Net.print_to(event.player_id, "Messaged " .. total_messaged .. " players")
     end
   },
   stop = {
@@ -276,3 +550,71 @@ CommandProcessing.register_commands({
     end
   }
 })
+
+function save_ban_list()
+  Async.write_file(BAN_FILE_NAME, json.encode({
+    banned_players = banned_players,
+    banned_ips = banned_ips
+  }))
+end
+
+Async.read_file(BAN_FILE_NAME).and_then(function(contents)
+  if #contents == 0 then
+    return
+  end
+
+  local data = json.decode(contents)
+
+  -- copy new data into old file
+  local total_writes = 0
+  for key, value in pairs(banned_players) do
+    data.banned_players[key] = value
+    total_writes = total_writes + 1
+  end
+
+  for key, value in pairs(banned_ips) do
+    data.banned_ips[key] = value
+    total_writes = total_writes + 1
+  end
+
+  banned_players = data.banned_players
+  banned_ips = data.banned_ips
+
+  if total_writes > 0 then
+    save_ban_list()
+  end
+end)
+
+local function kick_banned_player(player_id, details)
+  local reason = "Banned"
+
+  if details.reason then
+    reason = "Banned: " .. details.reason
+  end
+
+  Net.kick_player(player_id, reason, false)
+end
+
+Net:on("player_request", function(event)
+  local ip_ban_details = banned_ips[Net.get_player_ip(event.player_id)]
+
+  if ip_ban_details then
+    kick_banned_player(event.player_id, ip_ban_details)
+    return
+  end
+
+  local secret = Net.get_player_secret(event.player_id)
+  local direct_ban_details = banned_players[secret]
+
+  if direct_ban_details and direct_ban_details.end_time and direct_ban_details.end_time < os.time() then
+    -- ban ended!!
+    banned_players[secret] = nil
+    save_ban_list()
+    return
+  end
+
+  if direct_ban_details then
+    kick_banned_player(event.player_id, direct_ban_details)
+    return
+  end
+end)

@@ -146,6 +146,45 @@ function CommandProcessing.read_quoted(string, init_index)
   return replaced_string, start_index, end_index
 end
 
+---@param string string a number with a unit (y/d/h/m/s)
+---@return number? duration in seconds
+function CommandProcessing.process_duration(string)
+  local number_str, unit_str = string:match("^(%d+)([ydhms])$")
+
+  if not number_str or not unit_str then
+    return
+  end
+
+  local number = tonumber(number_str) --[[@as number]]
+
+  if unit_str == "s" then
+    return number
+  end
+
+  number = number * 60
+
+  if unit_str == "m" then
+    return number
+  end
+
+  number = number * 60
+
+  if unit_str == "h" then
+    return number
+  end
+
+  number = number * 24
+
+  if unit_str == "d" then
+    return number
+  end
+
+  number = number * 365
+
+  -- "y"
+  return number
+end
+
 local function process_player_name(name)
   for _, area_id in ipairs(Net.list_areas()) do
     for _, player_id in ipairs(Net.list_players(area_id)) do
