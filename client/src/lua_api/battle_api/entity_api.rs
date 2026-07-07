@@ -1921,6 +1921,12 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
 
     getter::<&Living, _>(
         lua_api,
+        "applied_statuses",
+        |living: &Living, lua, _: ()| lua.pack_multi(living.status_director.applied_status_flags()),
+    );
+
+    getter::<&Living, _>(
+        lua_api,
         "status_immunities",
         |living: &Living, lua, _: ()| lua.pack_multi(living.status_director.immunities()),
     );
