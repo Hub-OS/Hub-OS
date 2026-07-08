@@ -8,6 +8,54 @@ local banned_ips = {}
 local save_ban_list
 local BAN_FILE_NAME = "banned-players.json"
 
+local property_resolvers = {
+  id = function(actor_id)
+    return actor_id
+  end,
+  name = function(actor_id)
+    return json.encode(Net.get_actor_name(actor_id))
+  end,
+  type = function(actor_id)
+    if Net.is_player(actor_id) then
+      return "player"
+    else
+      return "bot"
+    end
+  end,
+  area = function(actor_id)
+    return json.encode(Net.get_actor_area(actor_id))
+  end,
+  avatar = function(actor_id)
+    if Net.is_player(actor_id) then
+      return json.encode(Net.get_player_avatar_name(actor_id))
+    end
+  end,
+  x = function(actor_id)
+    local x = Net.get_actor_position_multi(actor_id)
+    return math.floor(x)
+  end,
+  y = function(actor_id)
+    local _, y = Net.get_actor_position_multi(actor_id)
+    return math.floor(y)
+  end,
+  z = function(actor_id)
+    local _, _, z = Net.get_actor_position_multi(actor_id)
+    return math.floor(z)
+  end,
+  ["x."] = function(actor_id)
+    local x = Net.get_actor_position_multi(actor_id)
+    return x
+  end,
+  ["y."] = function(actor_id)
+    local _, y = Net.get_actor_position_multi(actor_id)
+    return y
+  end,
+  ["z."] = function(actor_id)
+    local _, _, z = Net.get_actor_position_multi(actor_id)
+    return z
+  end,
+}
+
 CommandProcessing.register_commands({
   help = {
     usage = { "[<command>]" },
@@ -71,7 +119,7 @@ CommandProcessing.register_commands({
 
       for _, area_id in ipairs(area_ids) do
         for _, player_id in ipairs(Net.list_players(area_id)) do
-          Net.print_to(event.player_id, player_id .. " " .. Net.get_actor_name(player_id))
+          Net.print_to(event.player_id, Net.get_actor_name(player_id))
 
           player_count = player_count + 1
         end
@@ -81,60 +129,50 @@ CommandProcessing.register_commands({
     end
   },
   ["list-actors"] = {
-    usage = { "<actor>" },
+    usage = { "<actor> <id|name|type|area|avatar|x|y|z|x.|y.|z.>*" },
     description = "Lists all matching actors",
     callback = function(event)
       local _, _, command_end_index = CommandProcessing.read_word(event.command)
 
-      local actor_list = CommandProcessing.process_selector(event.command, command_end_index + 1)
+      local actor_list, _, last_end_index = CommandProcessing.process_selector(event.command, command_end_index + 1)
 
       if not actor_list then
         Net.warn_to(event.player_id, "Missing or invalid selector")
         return
       end
 
-      for _, actor_id in ipairs(actor_list) do
-        local message = actor_id
+      local resolver_list = {}
 
-        if Net.is_player(actor_id) then
-          message = message .. " (player) "
-        else
-          message = message .. " (bot) "
+      while true do
+        local prop, _, prop_end_index = CommandProcessing.read_word(event.command, last_end_index + 1)
+
+        if not prop then
+          break
         end
-        message = message .. Net.get_actor_name(actor_id) .. " "
 
-        Net.print_to(event.player_id, message)
+        last_end_index = prop_end_index
+
+        local resolver = property_resolvers[prop]
+
+        if not resolver then
+          Net.warn_to(event.player_id, "Invalid property: " .. prop)
+          return
+        end
+
+        resolver_list[#resolver_list + 1] = resolver
       end
 
-      Net.print_to(event.player_id, "Found " .. #actor_list .. " actors")
-    end
-  },
-  ["locate"] = {
-    usage = { "<actor>" },
-    description = "Lists all matching actors with location data",
-    callback = function(event)
-      local _, _, command_end_index = CommandProcessing.read_word(event.command)
-
-      local actor_list = CommandProcessing.process_selector(event.command, command_end_index + 1)
-
-      if not actor_list then
-        Net.warn_to(event.player_id, "Missing or invalid selector")
+      if #resolver_list == 0 then
+        Net.warn_to(event.player_id, "Missing properties")
         return
       end
 
       for _, actor_id in ipairs(actor_list) do
-        local message = actor_id
+        local message = ""
 
-        if Net.is_player(actor_id) then
-          message = message .. " (player) "
-        else
-          message = message .. " (bot) "
+        for j = 1, #resolver_list do
+          message = message .. tostring(resolver_list[j](actor_id)) .. " "
         end
-
-        local name = Net.get_actor_name(actor_id)
-        local area_id = Net.get_actor_area(actor_id)
-        local x, y, z = Net.get_actor_position_multi(actor_id)
-        message = message .. name .. " " .. area_id .. " (" .. x .. ", " .. y .. ", " .. z .. ")"
 
         Net.print_to(event.player_id, message)
       end
