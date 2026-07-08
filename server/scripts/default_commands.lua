@@ -547,6 +547,47 @@ CommandProcessing.register_commands({
       end
     end
   },
+  ["ban-list"] = {
+    description = "Lists banned IPs and players",
+    callback = function(event)
+      local total_banned = 0
+
+      for key, details in pairs(banned_ips) do
+        local message = tostring(key)
+
+        if details.nickname then
+          message = message .. " " .. json.encode(details.nickname)
+        end
+
+        if details.reason then
+          message = message .. " " .. json.encode(details.reason)
+        end
+
+        Net.print_to(event.player_id, message)
+        total_banned = total_banned + 1
+      end
+
+      local time = os.time()
+
+      for _, details in pairs(banned_players) do
+        local message = json.encode(details.nickname)
+
+        if details.end_time then
+          local duration = details.end_time - time
+          message = message .. " " .. CommandProcessing.format_duration(duration)
+        end
+
+        if details.reason then
+          message = message .. " " .. json.encode(details.reason)
+        end
+
+        Net.print_to(event.player_id, message)
+        total_banned = total_banned + 1
+      end
+
+      Net.print_to(event.player_id, total_banned .. " bans total")
+    end
+  },
   message = {
     usage = { "<player> <message>" },
     description = "Message players through a textbox",

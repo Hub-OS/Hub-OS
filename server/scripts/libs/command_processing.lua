@@ -185,6 +185,45 @@ function CommandProcessing.process_duration(string)
   return number
 end
 
+---Summarizes a duration to its largest unit.
+---
+---`65` becomes 1m, and not 1m5s
+---@param seconds number
+function CommandProcessing.format_duration(seconds)
+  if seconds < 60 then
+    if seconds < 0 then
+      return "0s"
+    end
+
+    return seconds .. "s"
+  end
+
+  -- minutes
+  local duration = seconds // 60
+
+  if duration < 60 then
+    return duration .. "m"
+  end
+
+  -- hours
+  duration = duration // 60
+
+  if duration < 24 then
+    return duration .. "h"
+  end
+
+  -- days
+  duration = duration // 24
+
+  if duration < 360 then
+    return duration .. "d"
+  end
+
+  duration = duration // 365
+
+  return duration .. "y"
+end
+
 local function process_player_name(name)
   for _, area_id in ipairs(Net.list_areas()) do
     for _, player_id in ipairs(Net.list_players(area_id)) do
