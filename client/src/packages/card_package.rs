@@ -191,6 +191,8 @@ impl Package for CardPackage {
 
         if let Some(can_boost) = meta.can_boost {
             package.card_properties.can_boost = can_boost;
+        } else if meta.damage <= 0 {
+            package.card_properties.can_boost = false;
         }
 
         if let Some(can_charge) = meta.can_charge {
