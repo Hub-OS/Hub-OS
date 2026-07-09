@@ -1365,16 +1365,20 @@ impl Scene for BattleScene {
 
         if let Some(playback) = &self.playback {
             #[cfg(not(feature = "record_every_frame"))]
-            if playback.multiplier > 1 {
-                use crate::render::ui::{FontName, TextStyle};
+            {
+                let input_util = InputUtil::new(game_io);
 
-                let text = format!("{}X", playback.multiplier);
-                let mut text_style = TextStyle::new_monospace(game_io, FontName::Code);
-                text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
+                if playback.multiplier > 1 && input_util.is_down(Input::Confirm) {
+                    use crate::render::ui::{FontName, TextStyle};
 
-                let metrics = text_style.measure(&text);
-                text_style.bounds += RESOLUTION_F - metrics.size - 1.0;
-                text_style.draw(game_io, &mut sprite_queue, &text);
+                    let text = format!("{}X", playback.multiplier);
+                    let mut text_style = TextStyle::new_monospace(game_io, FontName::Code);
+                    text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
+
+                    let metrics = text_style.measure(&text);
+                    text_style.bounds += RESOLUTION_F - metrics.size - 1.0;
+                    text_style.draw(game_io, &mut sprite_queue, &text);
+                }
             }
 
             let globals = Globals::from_resources(game_io);
