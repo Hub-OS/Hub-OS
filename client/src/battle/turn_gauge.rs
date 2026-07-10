@@ -7,6 +7,8 @@ pub struct TurnGauge {
     enabled: bool,
     time: FrameTime,
     max_time: FrameTime,
+    temp_max_time: FrameTime,
+    temp_max_time_remaining: FrameTime,
     animator: Animator,
     container_sprite: Sprite,
     bar_sprite: Sprite,
@@ -31,6 +33,8 @@ impl TurnGauge {
             enabled: true,
             time: 0,
             max_time: Self::DEFAULT_MAX_TIME,
+            temp_max_time: 0,
+            temp_max_time_remaining: 0,
             animator,
             bar_sprite: sprite,
             container_sprite,
@@ -47,11 +51,22 @@ impl TurnGauge {
     }
 
     pub fn increment_time(&mut self) {
-        if self.enabled {
-            self.time = self.max_time.min(self.time + 1);
+        self.animator.update();
+
+        if !self.enabled {
+            return;
         }
 
-        self.animator.update();
+        if self.temp_max_time_remaining > 0 {
+            self.temp_max_time_remaining -= 1;
+
+            if self.temp_max_time_remaining == 0 {
+                // reinterpret the time
+                self.time = self.time * self.max_time / self.temp_max_time;
+            }
+        }
+
+        self.time = self.max_time().min(self.time + 1);
     }
 
     pub fn set_completed_turn(&mut self, value: bool) {
@@ -63,14 +78,16 @@ impl TurnGauge {
     }
 
     pub fn is_complete(&self) -> bool {
-        self.enabled && (self.time >= self.max_time || self.completed_turn)
+        self.enabled && (self.time >= self.max_time() || self.completed_turn)
     }
 
     pub fn progress(&self) -> f32 {
-        if self.max_time == 0 {
+        let max_time = self.max_time();
+
+        if max_time == 0 {
             1.0
         } else {
-            self.time as f32 / self.max_time as f32
+            self.time as f32 / max_time as f32
         }
     }
 
@@ -79,15 +96,25 @@ impl TurnGauge {
     }
 
     pub fn set_time(&mut self, time: FrameTime) {
-        self.time = time.min(self.max_time)
+        self.time = time.min(self.max_time())
     }
 
     pub fn max_time(&self) -> FrameTime {
-        self.max_time
+        if self.temp_max_time_remaining > 0 {
+            self.temp_max_time
+        } else {
+            self.max_time
+        }
     }
 
     pub fn set_max_time(&mut self, time: FrameTime) {
-        self.max_time = time
+        self.max_time = time;
+        self.temp_max_time_remaining = 0;
+    }
+
+    pub fn set_temp_max_time(&mut self, time: FrameTime, limit: FrameTime) {
+        self.temp_max_time = time;
+        self.temp_max_time_remaining = limit;
     }
 
     pub fn bounds(&self) -> Rect {

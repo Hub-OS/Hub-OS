@@ -51,11 +51,16 @@ pub fn inject_turn_gauge_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(TURN_GAUGE_TABLE, "set_max_time", |api_ctx, lua, params| {
-        let time: FrameTime = lua.unpack_multi(params)?;
+        let (time, limit): (FrameTime, Option<FrameTime>) = lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();
         let turn_gauge = &mut api_ctx.simulation.turn_gauge;
-        turn_gauge.set_max_time(time);
+
+        if let Some(limit) = limit {
+            turn_gauge.set_temp_max_time(time, limit);
+        } else {
+            turn_gauge.set_max_time(time);
+        }
 
         lua.pack_multi(())
     });
