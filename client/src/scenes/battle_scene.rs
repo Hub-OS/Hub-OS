@@ -500,6 +500,7 @@ impl BattleScene {
                         self.resources.external_events.dropped_player(index);
                     } else if data.signals.contains(&NetplaySignal::DisconnectInput) {
                         controller.input_connected = false;
+                        self.resources.external_events.dropped_player(index);
                     }
 
                     if let Some(input) = self.simulation.inputs.get(index)
@@ -855,7 +856,13 @@ impl BattleScene {
             }
 
             // progress external events, and time
-            external_events.tick(self.synced_time, self.connected_count + 1);
+            let connected_inputs = self
+                .player_controllers
+                .iter()
+                .filter(|c| c.connected)
+                .count();
+
+            external_events.tick(self.synced_time, connected_inputs);
             self.synced_time += 1;
         }
     }
