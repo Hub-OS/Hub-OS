@@ -307,6 +307,13 @@ impl State for CardSelectState {
 
         let selected_item = resolve_selected_item(player, hand, selection);
 
+        // collect buttons
+        let card_buttons = PlayerOverridables::card_button_slots_for(player);
+
+        // update frame
+        let card_class = resolve_card_class(game_io, hand, card_buttons, selected_item);
+        self.ui.update_card_frame(card_class);
+
         // draw sprite tree
         self.ui.draw_tree(sprite_queue);
         self.ui
@@ -314,8 +321,6 @@ impl State for CardSelectState {
         self.ui.draw_staged_icons(game_io, sprite_queue, hand);
 
         // draw buttons
-        let card_buttons = PlayerOverridables::card_button_slots_for(player);
-
         if let Some(buttons) = card_buttons {
             for button in buttons.iter().flatten() {
                 if let Some(sprite_tree) = simulation.sprite_trees.get_mut(button.sprite_tree_index)
@@ -332,10 +337,6 @@ impl State for CardSelectState {
         {
             sprite_tree.draw(sprite_queue);
         }
-
-        // update frame
-        let card_class = resolve_card_class(game_io, hand, card_buttons, selected_item);
-        self.ui.update_card_frame(card_class);
 
         // drawing selection
         if let Some(time) = selection.form_open_time {
