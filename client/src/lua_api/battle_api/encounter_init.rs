@@ -15,6 +15,7 @@ use framework::prelude::Vec2;
 use std::cell::RefCell;
 
 const BATTLE_END_LISTENERS: &str = "#battle_end_listeners";
+const RECOMMEND_DISCONNECT_LISTENERS: &str = "#recommend_dc_listeners";
 const EXTERNAL_LISTENERS: &str = "#external_listeners";
 
 pub fn encounter_init(api_ctx: BattleScriptContext, data: Option<&str>) {
@@ -469,6 +470,31 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
+    lua_api.add_dynamic_function(
+        ENCOUNTER_TABLE,
+        "on_disconnect_recommendation",
+        |_, lua, params| {
+            let (_, callback): (rollback_mlua::Table, rollback_mlua::Function) =
+                lua.unpack_multi(params)?;
+
+            let table: rollback_mlua::Table = lua.globals().get(ENCOUNTER_TABLE)?;
+
+            let external_listeners = if let Ok(external_listeners) =
+                table.get::<_, rollback_mlua::Table>(RECOMMEND_DISCONNECT_LISTENERS)
+            {
+                external_listeners
+            } else {
+                let external_listeners = lua.create_table()?;
+                table.set(RECOMMEND_DISCONNECT_LISTENERS, external_listeners.clone())?;
+                external_listeners
+            };
+
+            external_listeners.push(callback)?;
+
+            lua.pack_multi(())
+        },
+    );
+
     lua_api.add_dynamic_function(ENCOUNTER_TABLE, "send_to_server", |api_ctx, lua, params| {
         let (_, data): (rollback_mlua::Table, rollback_mlua::Value) = lua.unpack_multi(params)?;
 
@@ -581,6 +607,21 @@ pub fn call_encounter_end_listeners(
         simulation,
         BATTLE_END_LISTENERS,
         |lua| lua.pack(won),
+    )
+}
+
+pub fn call_disconnect_recommendation_listeners(
+    game_io: &GameIO,
+    resources: &SharedBattleResources,
+    simulation: &mut BattleSimulation,
+    index: usize,
+) {
+    call_callbacks(
+        game_io,
+        resources,
+        simulation,
+        RECOMMEND_DISCONNECT_LISTENERS,
+        |lua| lua.pack(index),
     )
 }
 

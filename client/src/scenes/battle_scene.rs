@@ -12,7 +12,7 @@ use packets::structures::PackageId;
 use packets::{
     ClientPacket, NetplayBufferItem, NetplayPacket, NetplayPacketData, NetplaySignal, Reliability,
 };
-use std::collections::VecDeque;
+use std::collections::{HashSet, VecDeque};
 use std::sync::Arc;
 
 const SLOW_COOLDOWN: FrameTime = INPUT_BUFFER_LIMIT as FrameTime;
@@ -29,6 +29,7 @@ pub enum BattleEvent {
 }
 
 struct PlayerController {
+    nickname: String,
     connected: bool,
     input_connected: bool,
     ping_sent: Option<Instant>,
@@ -36,6 +37,7 @@ struct PlayerController {
     buffer: PlayerInputBuffer,
     lead_tolerance: usize,
     average_frame_time: f32,
+    recommended_disconnect: HashSet<usize>,
 }
 
 struct Backup {
@@ -173,6 +175,7 @@ impl BattleScene {
 
             let connected = playback.is_none() && setup.connected;
             player_controllers.push(PlayerController {
+                nickname: setup.nickname.clone(),
                 connected,
                 input_connected: connected,
                 ping_sent: None,
@@ -180,6 +183,7 @@ impl BattleScene {
                 buffer: setup.buffer.clone(),
                 lead_tolerance: DEFAULT_LEAD_TOLERANCE,
                 average_frame_time: target_frame_time,
+                recommended_disconnect: Default::default(),
             });
 
             if !setup.memories.is_empty() {
@@ -503,6 +507,34 @@ impl BattleScene {
                         self.resources.external_events.dropped_player(index);
                     }
 
+                    // see if this player recommends disconnecting anyone
+                    if controller.input_connected
+                        && let Some(local_index) = self.local_index
+                    {
+                        for signal in &data.signals {
+                            let &NetplaySignal::RecommendDisconnect(recommended) = signal else {
+                                continue;
+                            };
+
+                            let Some(controller) = self.player_controllers.get_mut(recommended)
+                            else {
+                                continue;
+                            };
+
+                            controller.recommended_disconnect.insert(index);
+
+                            // agree to recommend disconnect if it affects 2+ players
+                            if controller.recommended_disconnect.len() >= 2
+                                && controller.recommended_disconnect.insert(local_index)
+                            {
+                                self.pending_signals
+                                    .push(NetplaySignal::RecommendDisconnect(recommended));
+                            }
+                        }
+                    }
+                }
+
+                if let Some(controller) = self.player_controllers.get_mut(index) {
                     if let Some(input) = self.simulation.inputs.get(index)
                         && !input.matches(&data)
                     {
@@ -612,6 +644,39 @@ impl BattleScene {
             #[cfg(debug_assertions)]
             println!("- slowing down");
             self.slow_cooldown = SLOW_COOLDOWN;
+        }
+    }
+
+    fn resolve_stallers(&mut self) {
+        let Some(local_index) = self.local_index else {
+            return;
+        };
+
+        let Some(local_controller) = self.player_controllers.get(local_index) else {
+            return;
+        };
+
+        if !local_controller.input_connected {
+            return;
+        }
+
+        for (i, controller) in self.player_controllers.iter_mut().enumerate() {
+            if !controller.buffer.is_empty() {
+                // not stalling us
+                continue;
+            }
+
+            if !controller.recommended_disconnect.insert(local_index) {
+                // already recommended
+                continue;
+            }
+
+            log::debug!(
+                "Stalled by ({i}) {}, internally recommending disconnecting this player to other clients",
+                controller.nickname
+            );
+            self.pending_signals
+                .push(NetplaySignal::RecommendDisconnect(i));
         }
     }
 
@@ -832,9 +897,18 @@ impl BattleScene {
                 };
 
                 for signal in &buffer_item.signals {
-                    if let NetplaySignal::AcknowledgeServerMessage(id) = signal {
-                        let server_events = &mut self.resources.external_events.server;
-                        server_events.acknowledge_event(*id, i);
+                    match *signal {
+                        NetplaySignal::RecommendDisconnect(index) => {
+                            let recommendations =
+                                &mut self.resources.external_events.disconnect_recommendations;
+                            recommendations.update_event(index, index);
+                            recommendations.acknowledge_event(index, i);
+                        }
+                        NetplaySignal::AcknowledgeServerMessage(id) => {
+                            let server_events = &mut self.resources.external_events.server;
+                            server_events.acknowledge_event(id, i);
+                        }
+                        _ => {}
                     }
                 }
 
@@ -1165,8 +1239,15 @@ impl BattleScene {
             self.remaining_replay_buffer() > 0
         } else {
             // simulate as long as we can roll back to the synced time
-            self.simulation.time < self.synced_time + INPUT_BUFFER_LIMIT as FrameTime
-                || self.input_synced()
+            let can_simulate = self.simulation.time
+                < self.synced_time + INPUT_BUFFER_LIMIT as FrameTime
+                || self.input_synced();
+
+            if !can_simulate {
+                self.resolve_stallers();
+            }
+
+            can_simulate
         };
 
         if self.debug.frame_by_frame {

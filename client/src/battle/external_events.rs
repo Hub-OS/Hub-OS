@@ -5,10 +5,12 @@ use std::collections::{HashMap, HashSet};
 #[derive(Serialize, Deserialize, Clone)]
 pub enum ExternalEvent {
     ServerMessage(String),
+    DisconnectRecommendation(usize),
 }
 
 pub struct ExternalEvents {
     pub server: EventSyncer<String>,
+    pub disconnect_recommendations: EventSyncer<usize>,
     events: Vec<(FrameTime, ExternalEvent)>,
 }
 
@@ -16,6 +18,7 @@ impl ExternalEvents {
     pub fn new() -> Self {
         Self {
             server: EventSyncer::new(),
+            disconnect_recommendations: EventSyncer::new(),
             events: Default::default(),
         }
     }
@@ -33,6 +36,11 @@ impl ExternalEvents {
             self.events
                 .push((next_time, ExternalEvent::ServerMessage(message)));
         }
+
+        for index in self.disconnect_recommendations.tick(total_players) {
+            self.events
+                .push((next_time, ExternalEvent::DisconnectRecommendation(index)));
+        }
     }
 
     pub fn events_for_time(&self, time: FrameTime) -> impl Iterator<Item = &ExternalEvent> {
@@ -45,6 +53,7 @@ impl ExternalEvents {
 
     pub fn dropped_player(&mut self, player_index: usize) {
         self.server.drop_player(player_index);
+        self.disconnect_recommendations.drop_player(player_index);
     }
 }
 
@@ -72,7 +81,6 @@ impl<T> Default for PendingEvent<T> {
 pub struct EventSyncer<T> {
     event_limbo: HashMap<usize, PendingEvent<T>>,
     pending_sync: Vec<usize>,
-    pending_release: Vec<(FrameTime, T)>,
     event_recycler: Vec<PendingEvent<T>>,
     total_players: usize,
 }
@@ -82,7 +90,6 @@ impl<T> EventSyncer<T> {
         Self {
             event_limbo: Default::default(),
             pending_sync: Default::default(),
-            pending_release: Default::default(),
             event_recycler: Default::default(),
             total_players: usize::MAX,
         }

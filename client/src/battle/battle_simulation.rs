@@ -1,7 +1,9 @@
 use super::external_events::ExternalEvent;
 use super::*;
 use crate::bindable::*;
-use crate::lua_api::{call_encounter_end_listeners, pass_server_message};
+use crate::lua_api::{
+    call_disconnect_recommendation_listeners, call_encounter_end_listeners, pass_server_message,
+};
 use crate::packages::PackageNamespace;
 use crate::render::ui::{BattleBannerPopup, FontName, PlayerHealthUi, Text};
 use crate::render::*;
@@ -299,6 +301,9 @@ impl BattleSimulation {
             match event {
                 ExternalEvent::ServerMessage(message) => {
                     pass_server_message(game_io, resources, self, message);
+                }
+                ExternalEvent::DisconnectRecommendation(index) => {
+                    call_disconnect_recommendation_listeners(game_io, resources, self, *index)
                 }
             }
         }

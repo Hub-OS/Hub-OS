@@ -14,6 +14,7 @@ pub enum NetplaySignal {
     CompletedFlee,
     Disconnect,
     DisconnectInput,
+    RecommendDisconnect(usize),
     AcknowledgeServerMessage(usize),
 }
 
