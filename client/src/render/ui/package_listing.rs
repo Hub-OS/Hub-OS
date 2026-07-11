@@ -22,7 +22,7 @@ pub struct PackageListing {
 }
 
 impl From<PackageResponse> for PackageListing {
-    fn from(meta: PackageResponse) -> Self {
+    fn from(mut meta: PackageResponse) -> Self {
         let preview_data = match meta.package.category.as_str() {
             "player" => PackagePreviewData::Player {
                 element: meta.package.element,
@@ -41,7 +41,9 @@ impl From<PackageResponse> for PackageListing {
                     .then(|| SwitchDriveSlot::from(meta.package.slot)),
                 flat: meta.package.flat,
                 colors: meta.package.colors,
-                shape: meta.package.shape,
+                shape: (meta.package.shape)
+                    .or((!meta.package.shapes.is_empty())
+                        .then(|| meta.package.shapes.swap_remove(0))),
             },
             "encounter" => PackagePreviewData::Encounter {
                 recording: !meta.package.recording_path.is_empty(),

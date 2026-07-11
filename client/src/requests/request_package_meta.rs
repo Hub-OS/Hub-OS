@@ -58,6 +58,8 @@ pub struct PackageResponseMeta {
     pub colors: Vec<BlockColor>,
     #[serde(deserialize_with = "deserialize_block_shape")]
     pub shape: Option<BlockShape>,
+    #[serde(deserialize_with = "deserialize_block_shapes")]
+    pub shapes: Vec<BlockShape>,
 
     // recordings
     #[serde_as(deserialize_as = "DefaultOnError")]
@@ -132,6 +134,19 @@ where
     };
 
     Ok(BlockShape::try_from(shape).ok())
+}
+
+pub fn deserialize_block_shapes<'de, D>(deserializer: D) -> Result<Vec<BlockShape>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let Ok(shapes) = <Vec<Vec<Vec<u8>>>>::deserialize(deserializer) else {
+        return Ok(Default::default());
+    };
+
+    let shapes = shapes.into_iter().flat_map(BlockShape::try_from).collect();
+
+    Ok(shapes)
 }
 
 pub fn deserialize_hash<'de, D>(deserializer: D) -> Result<FileHash, D::Error>
