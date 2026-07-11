@@ -501,10 +501,8 @@ impl BattleScene {
                     if data.signals.contains(&NetplaySignal::Disconnect) {
                         controller.connected = false;
                         controller.input_connected = false;
-                        self.resources.external_events.dropped_player(index);
                     } else if data.signals.contains(&NetplaySignal::DisconnectInput) {
                         controller.input_connected = false;
-                        self.resources.external_events.dropped_player(index);
                     }
 
                     // see if this player recommends disconnecting anyone
@@ -1100,6 +1098,24 @@ impl BattleScene {
                                 self.pending_signals.push(NetplaySignal::DisconnectInput);
                             }
                         }
+                    }
+                }
+
+                // handle event cleanup for disconnected players on the same frame for every client
+                for (index, input) in backup.simulation.inputs.iter().enumerate() {
+                    if input.has_signal(NetplaySignal::DisconnectInput)
+                        || input.has_signal(NetplaySignal::Disconnect)
+                    {
+                        self.resources.external_events.dropped_player(index);
+
+                        for controller in &mut self.player_controllers {
+                            controller.recommended_disconnect.remove(&index);
+                        }
+
+                        log::debug!(
+                            "Dropping events for disconnected player {index} on frame {}",
+                            backup.simulation.time
+                        )
                     }
                 }
 
