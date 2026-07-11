@@ -128,6 +128,7 @@ switch-drives-filter-slot-question = Filter for {$slot} drives?
 switch-drives-leave-question = Quit customizing and return to menu?
 
 augments-option-search = SEARCH
+augments-option-info = INFO
 augments-option-export = EXPORT
 augments-option-import = IMPORT
 augments-option-clear = CLEAR

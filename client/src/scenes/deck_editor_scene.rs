@@ -6,6 +6,7 @@ use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
 use crate::saves::{Card, Deck, GlobalSave};
+use crate::scenes::PackageScene;
 use framework::prelude::*;
 use std::collections::HashMap;
 
@@ -383,6 +384,78 @@ impl Scene for DeckEditorScene {
         &mut self.next_scene
     }
 
+    fn enter(&mut self, game_io: &mut GameIO) {
+        // recover from packages scene
+
+        if self.scene_time == 0 {
+            return;
+        }
+
+        let previous_pack_selection = (self.pack_dock.card_slots)
+            .get(self.pack_dock.scroll_tracker.selected_index())
+            .and_then(|slot| slot.as_ref())
+            .map(|item| item.card.clone());
+
+        let pack_top_relative_index = self.pack_dock.scroll_tracker.selected_index()
+            - self.pack_dock.scroll_tracker.top_index();
+
+        // mark as filtered to reset the pack
+        self.filtered = true;
+        apply_filters(self, game_io);
+
+        // try to restore selection
+        let new_pack_index = previous_pack_selection.and_then(|card| {
+            (self.pack_dock.card_slots.iter())
+                .position(|slot| slot.as_ref().is_some_and(|item| item.card == card))
+        });
+
+        if let Some(i) = new_pack_index {
+            let top_index = i.saturating_sub(pack_top_relative_index);
+            self.pack_dock.scroll_tracker.set_top_index(top_index);
+            self.pack_dock.scroll_tracker.set_selected_index(i);
+        }
+
+        // forget remembered index in case it was shifted or deleted
+        self.pack_dock.scroll_tracker.forget_index();
+
+        // reapply sort
+        let globals = Globals::from_resources(game_io);
+
+        if let Some(sort) = self.last_sort {
+            sort.sort_items(globals, &mut self.pack_dock.card_slots);
+        }
+
+        // update package ids
+        let packages = &globals.card_packages;
+        for slot in &mut self.deck_dock.card_slots {
+            let Some(item) = slot else {
+                continue;
+            };
+
+            let Some(package) = packages.package(NAMESPACE, &item.card.package_id) else {
+                continue;
+            };
+
+            item.card.package_id = package.package_info.id.clone();
+        }
+
+        // revalidate deck
+        let global_save = &globals.global_save;
+        let restrictions = &globals.restrictions;
+        let mut deck_restrictions = restrictions.base_deck_restrictions();
+
+        if let Some(player_package) = global_save.player_package(game_io) {
+            let script_enabled = restrictions.validate_player(game_io, player_package);
+
+            deck_restrictions.apply_augments(
+                script_enabled.then_some(player_package),
+                global_save.valid_augments(game_io),
+            );
+        }
+
+        self.deck_dock.validate(game_io, &deck_restrictions);
+    }
+
     fn update(&mut self, game_io: &mut GameIO) {
         self.background.update();
         self.scene_time += 1;
@@ -564,6 +637,7 @@ fn apply_filters(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
         // no filters
         dock.scroll_tracker.set_selected_index(0);
         dock.scroll_tracker.set_total_items(dock.card_slots.len());
+        scene.filtered = false;
         return;
     }
 
@@ -784,22 +858,46 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
         scene.pack_dock.card_preview.toggle_flipped();
     }
 
-    // handle selecting regular card
-    if scene.page_tracker.active_page() == 0 && input_util.was_released(Input::Option2) {
-        let event_sender = scene.event_sender.clone();
+    if input_util.was_released(Input::Option2) {
+        if scene.page_tracker.active_page() == 0 {
+            // handle selecting regular card
+            let event_sender = scene.event_sender.clone();
 
-        let globals = Globals::from_resources(game_io);
-        let message = globals.translate("deck-editor-regular-card-mode-question");
-        let interface = TextboxQuestion::new(game_io, message, move |yes| {
-            if yes {
-                event_sender
-                    .send(Event::SwitchMode(EditorMode::SelectRegular))
-                    .unwrap();
+            let globals = Globals::from_resources(game_io);
+            let message = globals.translate("deck-editor-regular-card-mode-question");
+            let interface = TextboxQuestion::new(game_io, message, move |yes| {
+                if yes {
+                    event_sender
+                        .send(Event::SwitchMode(EditorMode::SelectRegular))
+                        .unwrap();
+                }
+            });
+
+            scene.textbox.push_interface(interface);
+            scene.textbox.open();
+        } else {
+            let index = scene.pack_dock.scroll_tracker.selected_index();
+            let globals = Globals::from_resources(game_io);
+            let card_packages = &globals.card_packages;
+
+            if let Some(slot) = scene.pack_dock.card_slots.get(index)
+                && let Some(item) = slot
+                && let Some(package) = card_packages.package(NAMESPACE, &item.card.package_id)
+            {
+                // forget remembered index before leaving so players can notice during the transition
+                // we forget again in Scene::enter just in case something happens in between
+                scene.pack_dock.scroll_tracker.forget_index();
+
+                let next_scene =
+                    PackageScene::new(game_io, package.create_package_listing().into());
+                let transition = crate::transitions::new_sub_scene(game_io);
+                scene.next_scene = NextScene::new_push(next_scene).with_transition(transition);
+
+                globals.audio.play_sound(&globals.sfx.cursor_select);
+            } else {
+                globals.audio.play_sound(&globals.sfx.cursor_error);
             }
-        });
-
-        scene.textbox.push_interface(interface);
-        scene.textbox.open();
+        }
     }
 }
 

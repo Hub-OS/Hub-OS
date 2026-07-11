@@ -1,5 +1,5 @@
 use crate::bindable::SpriteColorMode;
-use crate::packages::{AugmentPackage, PackageId, PackageNamespace};
+use crate::packages::{AugmentPackage, Package, PackageId, PackageNamespace};
 use crate::render::ui::{
     ContextMenu, FontName, SceneTitle, ScrollTracker, SubSceneFrame, Text, TextStyle, Textbox,
     TextboxMessage, TextboxPrompt, TextboxQuestion, UiInputTracker,
@@ -7,6 +7,7 @@ use crate::render::ui::{
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, FrameTime, SpriteColorQueue};
 use crate::resources::*;
 use crate::saves::{GlobalSave, InstalledSwitchDrive};
+use crate::scenes::PackageScene;
 use enum_map::{Enum, EnumMap, enum_map};
 use framework::prelude::*;
 use itertools::Itertools;
@@ -16,6 +17,7 @@ use unicode_segmentation::UnicodeSegmentation;
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum ContextOption {
     Search,
+    Info,
     Export,
     Import,
     Clear,
@@ -311,16 +313,7 @@ impl SwitchDrivesScene {
             );
 
         let mut context_menu =
-            ContextMenu::new_translated(game_io, "switch-drives-scene-title", Vec2::ZERO)
-                .with_translated_options(
-                    game_io,
-                    &[
-                        ("augments-option-search", ContextOption::Search),
-                        ("augments-option-export", ContextOption::Export),
-                        ("augments-option-import", ContextOption::Import),
-                        ("augments-option-clear", ContextOption::Clear),
-                    ],
-                );
+            ContextMenu::new_translated(game_io, "switch-drives-scene-title", Vec2::ZERO);
         context_menu.recalculate_layout(game_io);
         context_menu.set_top_center(RESOLUTION_F * Vec2::new(0.5, 0.25));
 
@@ -443,6 +436,37 @@ impl SwitchDrivesScene {
         let globals = Globals::from_resources(game_io);
 
         if self.input_tracker.pulsed(Input::Option2) {
+            let drive_hovered = match self.state {
+                State::ListSelection => self.list_scroll_tracker.total_items() > 0,
+                State::EquipmentSelection => {
+                    let index = self.equipment_scroll_tracker.selected_index();
+
+                    let slot = SwitchDriveSlot::from_usize(index);
+                    let slot_ui = &self.equipment_map[slot];
+                    slot_ui.package_id.is_some()
+                }
+            };
+
+            let options: &[(&str, ContextOption)] = if drive_hovered {
+                &[
+                    ("augments-option-search", ContextOption::Search),
+                    ("augments-option-info", ContextOption::Info),
+                    ("augments-option-export", ContextOption::Export),
+                    ("augments-option-import", ContextOption::Import),
+                    ("augments-option-clear", ContextOption::Clear),
+                ]
+            } else {
+                &[
+                    ("augments-option-search", ContextOption::Search),
+                    ("augments-option-export", ContextOption::Export),
+                    ("augments-option-import", ContextOption::Import),
+                    ("augments-option-clear", ContextOption::Clear),
+                ]
+            };
+
+            self.context_menu
+                .set_and_translate_options(game_io, options);
+
             self.context_menu.open();
             globals.audio.play_sound(&globals.sfx.cursor_select);
             return;
@@ -646,6 +670,33 @@ impl SwitchDrivesScene {
                 });
                 self.textbox.push_interface(interface);
                 self.textbox.open();
+            }
+            ContextOption::Info => {
+                let package_id = match self.state {
+                    State::ListSelection => {
+                        let index = self.list_scroll_tracker.selected_index();
+                        self.package_ids.get(index)
+                    }
+                    State::EquipmentSelection => {
+                        let index = self.equipment_scroll_tracker.selected_index();
+
+                        let slot = SwitchDriveSlot::from_usize(index);
+                        let slot_ui = &self.equipment_map[slot];
+                        slot_ui.package_id.as_ref()
+                    }
+                };
+
+                let globals = Globals::from_resources(game_io);
+                let packages = &globals.augment_packages;
+
+                if let Some(package_id) = package_id
+                    && let Some(package) = packages.package(PackageNamespace::Local, package_id)
+                {
+                    let next_scene =
+                        PackageScene::new(game_io, package.create_package_listing().into());
+                    let transition = crate::transitions::new_sub_scene(game_io);
+                    self.next_scene = NextScene::new_push(next_scene).with_transition(transition);
+                }
             }
             ContextOption::Export => {
                 let globals = Globals::from_resources(game_io);
@@ -882,18 +933,43 @@ impl Scene for SwitchDrivesScene {
                 continue;
             }
 
+            // update package id in case it changed while updating packages
+            ui.set_package(Some(package));
+
+            // reverify validity
             if !globals.restrictions.validate_package_tree(
                 game_io,
                 (
                     PackageCategory::Augment,
                     PackageNamespace::Local,
-                    id.clone(),
+                    package.package_info.id.clone(),
                 ),
             ) {
                 ui.set_validity(DriveValidity::Invalid);
             } else if package.slot != Some(slot) {
                 ui.set_validity(DriveValidity::InvalidSlot);
             }
+        }
+
+        if self.time == 0 {
+            return;
+        }
+
+        // back up old position in list
+        let prev_selected_index = self.list_scroll_tracker.selected_index();
+        let relative_top_index = prev_selected_index - self.list_scroll_tracker.top_index();
+
+        let prev_package_id = self.package_ids.get(prev_selected_index).cloned();
+
+        // rebuild list
+        self.apply_filters(game_io);
+
+        if let Some(prev_id) = prev_package_id
+            && let Some(i) = self.package_ids.iter().position(|id| prev_id == *id)
+        {
+            let top_index = i.saturating_sub(relative_top_index);
+            self.list_scroll_tracker.set_top_index(top_index);
+            self.list_scroll_tracker.set_selected_index(i);
         }
     }
 

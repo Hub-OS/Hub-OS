@@ -1,6 +1,6 @@
 use crate::bindable::{BlockColor, SpriteColorMode};
 use crate::ease::inverse_lerp;
-use crate::packages::{AugmentPackage, PackageId, PackageNamespace};
+use crate::packages::{AugmentPackage, Package, PackageId, PackageNamespace};
 use crate::render::ui::{
     BlockPreview, ContextMenu, FontName, GridArrow, GridArrowStatus, GridCursor, GridScrollTracker,
     SceneTitle, ScrollTracker, SubSceneFrame, Text, TextStyle, Textbox, TextboxMessage,
@@ -9,6 +9,7 @@ use crate::render::ui::{
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, FrameTime, SpriteColorQueue};
 use crate::resources::*;
 use crate::saves::{BlockGrid, BlockShape, GlobalSave, InstalledBlock};
+use crate::scenes::PackageScene;
 use framework::prelude::*;
 use itertools::Itertools;
 use packets::structures::PackageCategory;
@@ -34,6 +35,7 @@ enum GridOption {
     Remove,
     More,
     Search,
+    Info,
     Export,
     Import,
     Clear,
@@ -92,7 +94,7 @@ impl ListItem {
     }
 }
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 enum State {
     ListSelection,
     VariantSelection,
@@ -207,8 +209,9 @@ impl BlocksScene {
             .with_bounds(information_bounds)
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR);
 
-        // block list
-        let list = BlockList::new(game_io, &mut animator, &blocks);
+        // block grid + list
+        let grid = BlockGrid::new(PackageNamespace::Local).with_blocks(game_io, blocks);
+        let list = BlockList::new(game_io, &mut animator, grid.installed_blocks());
 
         // cursor
         let cursor_position = list.scroll_tracker.selected_cursor_position();
@@ -232,7 +235,7 @@ impl BlocksScene {
             information_text,
             input_tracker: UiInputTracker::new(),
             colors: Vec::new(),
-            grid: BlockGrid::new(PackageNamespace::Local).with_blocks(game_io, blocks),
+            grid,
             tracked_invalid: HashSet::new(),
             arrow: GridArrow::new(game_io),
             block_preview: None,
@@ -425,6 +428,8 @@ impl BlocksScene {
             grid_y = 1;
         }
 
+        let mut options_offset_y = 0.0;
+
         let options: &[(&str, GridOption)] = if has_block {
             &[
                 ("blocks-option-move", GridOption::Move),
@@ -432,12 +437,33 @@ impl BlocksScene {
                 ("blocks-option-more", GridOption::More),
             ]
         } else {
-            &[
-                ("augments-option-search", GridOption::Search),
-                ("augments-option-export", GridOption::Export),
-                ("augments-option-import", GridOption::Import),
-                ("augments-option-clear", GridOption::Clear),
-            ]
+            let hovers_block = match self.state {
+                State::ListSelection => {
+                    let index = self.list.scroll_tracker.selected_index();
+                    self.list.get(index).is_some()
+                }
+                State::GridSelection { x, y } => self.grid.get_block((x, y)).is_some(),
+                _ => false,
+            };
+
+            if hovers_block {
+                options_offset_y -= 0.5;
+
+                &[
+                    ("augments-option-search", GridOption::Search),
+                    ("augments-option-info", GridOption::Info),
+                    ("augments-option-export", GridOption::Export),
+                    ("augments-option-import", GridOption::Import),
+                    ("augments-option-clear", GridOption::Clear),
+                ]
+            } else {
+                &[
+                    ("augments-option-search", GridOption::Search),
+                    ("augments-option-export", GridOption::Export),
+                    ("augments-option-import", GridOption::Import),
+                    ("augments-option-clear", GridOption::Clear),
+                ]
+            }
         };
 
         let mut state = State::Applying;
@@ -460,9 +486,11 @@ impl BlocksScene {
 
         self.grid_context_menu.update(game_io, &self.input_tracker);
 
+        // resolve position
         let menu_size = self.grid_context_menu.bounds().size();
         let mut position = Vec2::new(grid_x as _, grid_y as _) * self.grid_increment;
         position.x += (self.grid_increment.x - menu_size.x) * 0.5;
+        position.y += options_offset_y * self.grid_increment.y;
 
         let min_x = self.grid_increment.x * 0.5;
         let max_x = self.grid_increment.x * (BlockGrid::SIDE_LEN as f32 - 0.5) - menu_size.x;
@@ -511,6 +539,34 @@ impl BlocksScene {
                 });
                 self.textbox.push_interface(interface);
                 self.textbox.open();
+            }
+            GridOption::Info => {
+                let package_id = if let State::BlockContext { prev_state, .. } = &self.state {
+                    match **prev_state {
+                        State::ListSelection => self
+                            .list
+                            .get(self.list.scroll_tracker.selected_index())
+                            .map(|item| &item.id),
+                        State::GridSelection { x, y } => {
+                            self.grid.get_block((x, y)).map(|block| &block.package_id)
+                        }
+                        _ => None,
+                    }
+                } else {
+                    None
+                };
+
+                let globals = Globals::from_resources(game_io);
+                let packages = &globals.augment_packages;
+
+                if let Some(package_id) = package_id
+                    && let Some(package) = packages.package(PackageNamespace::Local, package_id)
+                {
+                    let next_scene =
+                        PackageScene::new(game_io, package.create_package_listing().into());
+                    let transition = crate::transitions::new_sub_scene(game_io);
+                    self.next_scene = NextScene::new_push(next_scene).with_transition(transition);
+                }
             }
             GridOption::Export => {
                 let text = self.grid.export_string(game_io);
@@ -789,7 +845,7 @@ impl BlocksScene {
                             global_save.save();
                         }
                     } else if input_util.was_just_pressed(Input::Option2) {
-                        self.open_grid_context_menu(game_io, 3, 1, false);
+                        self.open_grid_context_menu(game_io, 0, 0, false);
                     } else if input_util.was_released(Input::Special) {
                         // cycle color
                         if let Some(list_item) = self.list.get_mut(selected_index) {
@@ -1168,13 +1224,71 @@ impl Scene for BlocksScene {
     }
 
     fn enter(&mut self, game_io: &mut GameIO) {
+        let globals = Globals::from_resources(game_io);
+
+        if self.time == 0 {
+            globals.audio.push_music_stack();
+        } else {
+            // reload grid
+            let mut new_grid = BlockGrid::new(PackageNamespace::Local);
+            let packages = &globals.augment_packages;
+
+            for block in self.grid.installed_blocks() {
+                let Some(package) = packages.package(PackageNamespace::Local, &block.package_id)
+                else {
+                    continue;
+                };
+
+                let block = InstalledBlock {
+                    package_id: package.package_info.id.clone(),
+                    ..block.clone()
+                };
+
+                new_grid.install_block(game_io, block);
+            }
+
+            self.grid = new_grid;
+
+            // back up old position in list
+            let prev_selected_index = self.list.scroll_tracker.selected_index();
+            let relative_top_index = prev_selected_index - self.list.scroll_tracker.top_index();
+
+            let prev_selected_id = self
+                .list
+                .get(prev_selected_index)
+                .map(|item| item.id.clone());
+
+            // reload list
+            let mut new_list =
+                BlockList::new(game_io, &mut self.animator, self.grid.installed_blocks());
+
+            std::mem::swap(&mut new_list.name_filter, &mut self.list.name_filter);
+            new_list.apply_filters(game_io);
+
+            // restore list selection
+            if let Some(prev_id) = prev_selected_id {
+                let new_index = new_list
+                    .visible_packages
+                    .iter()
+                    .position(|id| *id == prev_id);
+
+                if let Some(index) = new_index {
+                    let top_index = index.saturating_sub(relative_top_index);
+                    new_list.scroll_tracker.set_top_index(top_index);
+                    new_list.scroll_tracker.set_selected_index(index);
+                }
+            } else if prev_selected_id.is_none() {
+                let index = new_list.scroll_tracker.total_items() - 1;
+                new_list.scroll_tracker.set_selected_index(index);
+            }
+
+            self.list = new_list;
+        }
+
         self.update_text(game_io);
         self.update_grid_sprite();
         self.update_colors();
         self.update_invalid(game_io);
-
-        let globals = Globals::from_resources(game_io);
-        globals.audio.push_music_stack();
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
@@ -1634,7 +1748,11 @@ struct BlockList {
 }
 
 impl BlockList {
-    fn new(game_io: &GameIO, animator: &mut Animator, blocks: &[InstalledBlock]) -> Self {
+    fn new<'a>(
+        game_io: &GameIO,
+        animator: &mut Animator,
+        blocks: impl Iterator<Item = &'a InstalledBlock>,
+    ) -> Self {
         let globals = Globals::from_resources(game_io);
         let restrictions = &globals.restrictions;
 
