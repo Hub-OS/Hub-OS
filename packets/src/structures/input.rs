@@ -95,7 +95,7 @@ impl Input {
         Input::Pause,
     ];
 
-    pub const REPEATABLE: [Input; 6] = [
+    pub const REPEATABLE: &[Input] = &[
         Input::Up,
         Input::Down,
         Input::Left,
@@ -103,6 +103,8 @@ impl Input {
         Input::ShoulderL,
         Input::ShoulderR,
     ];
+
+    pub const DIRECTIONAL: &[Input] = &[Input::Up, Input::Down, Input::Left, Input::Right];
 
     pub fn translation_key(self) -> &'static str {
         match self {

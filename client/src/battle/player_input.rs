@@ -111,6 +111,12 @@ impl PlayerInput {
         self.previous_input.clone_from(&self.pressed_input);
         self.signals.clear();
 
+        // clear directional input if it was held for 3f
+        if self.navigation_held_duration > 3 {
+            self.pressed_input
+                .retain(|input| !Input::DIRECTIONAL.contains(input));
+        }
+
         let navigation_held = self
             .previous_input
             .iter()
