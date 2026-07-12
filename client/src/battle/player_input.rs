@@ -11,6 +11,7 @@ pub struct PlayerInput {
     navigation_held_duration: FrameTime,
     signals: Vec<NetplaySignal>,
     input_delay: u8,
+    input_disconnected: bool,
     disconnected: bool,
     fleeing: bool,
 }
@@ -61,6 +62,10 @@ impl PlayerInput {
         self.previous_input.contains(&input) && !self.pressed_input.contains(&input)
     }
 
+    pub fn input_disconnected(&self) -> bool {
+        self.input_disconnected
+    }
+
     pub fn disconnected(&self) -> bool {
         self.disconnected
     }
@@ -87,6 +92,11 @@ impl PlayerInput {
 
         if self.has_signal(NetplaySignal::Disconnect) {
             self.disconnected = true;
+            self.input_disconnected = true;
+        }
+
+        if self.has_signal(NetplaySignal::DisconnectInput) {
+            self.input_disconnected = true;
         }
 
         if self.has_signal(NetplaySignal::CompletedFlee) || self.disconnected {

@@ -126,6 +126,36 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(api_ctx.simulation.local_player_index)
     });
 
+    lua_api.add_dynamic_function(RESOURCES_TABLE, "is_connected", |api_ctx, lua, params| {
+        let index: usize = lua.unpack_multi(params)?;
+
+        let api_ctx = api_ctx.borrow();
+        let inputs = &api_ctx.simulation.inputs;
+        let connected = inputs
+            .get(index)
+            .map(|input| !input.disconnected())
+            .unwrap_or_default();
+
+        lua.pack_multi(connected)
+    });
+
+    lua_api.add_dynamic_function(
+        RESOURCES_TABLE,
+        "is_input_connected",
+        |api_ctx, lua, params| {
+            let index: usize = lua.unpack_multi(params)?;
+
+            let api_ctx = api_ctx.borrow();
+            let inputs = &api_ctx.simulation.inputs;
+            let input_connected = inputs
+                .get(index)
+                .map(|input| !input.input_disconnected())
+                .unwrap_or_default();
+
+            lua.pack_multi(input_connected)
+        },
+    );
+
     lua_api.add_dynamic_function(RESOURCES_TABLE, "input_has", |api_ctx, lua, params| {
         let (index, input_query): (usize, InputQuery) = lua.unpack_multi(params)?;
 
