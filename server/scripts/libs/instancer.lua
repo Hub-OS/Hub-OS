@@ -68,7 +68,7 @@ function Instancer:new()
         for i, player_id in ipairs(instance.player_list) do
           if player_id == event.player_id then
             -- swap remove
-            instance.player_list[i] = instance[#instance.player_list]
+            instance.player_list[i] = instance.player_list[#instance.player_list]
             instance.player_list[#instance.player_list] = nil
             break
           end
