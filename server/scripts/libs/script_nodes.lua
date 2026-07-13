@@ -1953,7 +1953,7 @@ function ScriptNodes:implement_camera_api()
       Net.track_with_player_camera(player_id, properties.actor_id)
     elseif properties.Motion == "Slide" then
       Net.slide_player_camera(player_id, properties.x, properties.y, properties.z, duration)
-    else
+    elseif properties.Motion == "Snap" then
       Net.move_player_camera(player_id, properties.x, properties.y, properties.z, duration)
     end
   end
