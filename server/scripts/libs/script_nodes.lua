@@ -3863,7 +3863,10 @@ function ScriptNodes:implement_variable_api()
 
     local original_context = context
 
-    context = { variable_scopes = original_context.variable_scopes }
+    context = {
+      area_id = original_context.area_id,
+      variable_scopes = original_context.variable_scopes,
+    }
 
     if target == "Player" then
       context.player_ids = original_context.player_ids
@@ -3889,7 +3892,8 @@ function ScriptNodes:implement_variable_api()
       callback(self_context)
     else
       local self_context = {
-        variable_scopes = context.variable_scopes
+        area_id = context.area_id,
+        variable_scopes = context.variable_scopes,
       }
 
       for _, player_id in ipairs(context.player_ids) do
@@ -3940,6 +3944,7 @@ function ScriptNodes:implement_variable_api()
   self:implement_node("require variable value", function(context, object)
     local variable = object.custom_properties.Variable
     local required_value = object.custom_properties.Value
+    local required_value_as_number = tonumber(object.custom_properties.Value)
     local min = tonumber(object.custom_properties.Minimum or object.custom_properties.Min)
     local max = tonumber(object.custom_properties.Maximum or object.custom_properties.Max)
 
@@ -3951,7 +3956,7 @@ function ScriptNodes:implement_variable_api()
       at_least_one = true
 
       if required_value then
-        pass = pass and (required_value == value or tonumber(required_value) == value)
+        pass = pass and (required_value == value or required_value_as_number == value)
       else
         local pass_min = not min or value >= min
         local pass_max = not max or value <= max
