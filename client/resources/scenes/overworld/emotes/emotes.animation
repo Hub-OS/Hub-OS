@@ -45,25 +45,25 @@ animation state="CORN COB POG"
 frame x="38" y="19" w="11" h="11" originx="6" originy="12"
 
 animation state="POPCORN AND SODA"
-frame x="153" y="69" w="12" h="11" originx="6" originy="12"
+frame x="13" y="84" w="12" h="11" originx="6" originy="12"
 
 animation state="EYES"
-frame x="141" y="71" w="11" h="8" originx="6" originy="10"
+frame x="1" y="86" w="11" h="8" originx="6" originy="10"
 
 animation state="MARS TECH SCIENCE"
 frame x="51" y="18" w="11" h="11" originx="6" originy="12"
 
-animation state="CLOWN"
-frame x="63" y="17" w="15" h="12" originx="8" originy="13"
+animation state="TROPHY"
+frame x="53" y="82" w="13" h="13" originx="7" originy="14"
 
-animation state="RAINBOW CLOWN"
-frame x="79" y="14" w="15" h="15" originx="8" originy="16"
+animation state="ROYAL CROWN"
+frame x="67" y="81" w="17" h="14" originx="9" originy="15"
 
-animation state="GOBLIN ANGRY RAGE"
-frame x="95" y="17" w="12" h="12" originx="6" originy="13"
+animation state="100"
+frame x="38" y="83" w="14" h="12" originx="7" originy="13"
 
-animation state="EVIL GRIN SMILING IMP"
-frame x="108" y="18" w="11" h="11" originx="6" originy="12"
+animation state="CLAP"
+frame x="85" y="81" w="17" h="16" originx="9" originy="16"
 
 animation state="THUMBS UP"
 frame x="135" y="16" w="9" h="12" originx="5" originy="14"
@@ -110,11 +110,23 @@ frame x="122" y="47" w="11" h="12" originx="6" originy="12"
 animation state="PUKING VOMITING"
 frame x="134" y="47" w="11" h="12" originx="6" originy="12"
 
-animation state="BUSY..."
-frame x="127" y="15" w="7" h="3" originx="4" originy="5"
+animation state="FEAR"
+frame x="146" y="47" w="11" h="11" originx="6" originy="12"
 
-animation state="CHIP"
-frame x="155" y="16" w="10" h="13" originx="6" originy="14"
+animation state="NINJA"
+frame x="25" y="85" w="12" h="10" originx="7" originy="11"
+
+animation state="CLOWN"
+frame x="63" y="17" w="15" h="12" originx="8" originy="13"
+
+animation state="RAINBOW CLOWN"
+frame x="79" y="14" w="15" h="15" originx="8" originy="16"
+
+animation state="GOBLIN ANGRY RAGE"
+frame x="95" y="17" w="12" h="12" originx="6" originy="13"
+
+animation state="EVIL GRIN SMILING IMP"
+frame x="108" y="18" w="11" h="11" originx="6" originy="12"
 
 animation state="HORSE"
 frame x="1" y="32" w="14" h="11" originx="7" originy="12"
@@ -148,6 +160,9 @@ frame x="132" y="33" w="13" h="11" originx="7" originy="12"
 
 animation state="THE GOAT"
 frame x="146" y="32" w="14" h="12" originx="7" originy="13"
+
+animation state="CHIP"
+frame x="155" y="16" w="10" h="13" originx="6" originy="14"
 
 animation state="LOVE HEART"
 frame x="1" y="59" w="11" h="10" originx="6" originy="11"
@@ -202,3 +217,6 @@ frame x="106" y="70" w="14" h="10" originx="7" originy="13"
 
 animation state="PRIDE PROGRESS FLAG"
 frame x="121" y="70" w="14" h="10" originx="7" originy="13"
+
+animation state="BUSY..."
+frame x="127" y="15" w="7" h="3" originx="4" originy="5"
