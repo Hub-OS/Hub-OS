@@ -32,8 +32,7 @@ pub struct OverworldOnlineScene {
     menu_manager: OverworldMenuManager,
     hud: OverworldHud,
     auto_emotes: AutoEmotes,
-    next_scene: NextScene,
-    next_scene_queue: VecDeque<(AutoEmote, NextScene)>,
+    scene_queue: SceneQueue,
     connected: bool,
     transferring: bool,
     identity: Identity,
@@ -105,8 +104,7 @@ impl OverworldOnlineScene {
             menu_manager,
             hud,
             auto_emotes,
-            next_scene: NextScene::None,
-            next_scene_queue: VecDeque::new(),
+            scene_queue: Default::default(),
             connected: true,
             transferring: false,
             identity: Identity::for_address(&address),
@@ -313,9 +311,12 @@ impl OverworldOnlineScene {
             .menu_manager
             .update(game_io, &self.assets, &mut self.area);
 
-        if self.next_scene.is_none() && next_scene.is_some() {
-            self.auto_emotes.set_auto_emote(AutoEmote::Menu);
-            self.next_scene = next_scene;
+        if next_scene.is_some() && self.scene_queue.is_empty() {
+            self.scene_queue.push(
+                &self.area.event_sender,
+                NextOverworldSceneCategory::Menu,
+                next_scene,
+            );
         }
     }
 
@@ -1101,8 +1102,11 @@ impl OverworldOnlineScene {
 
                 let transition = crate::transitions::new_sub_scene(game_io);
                 let next_scene = NextScene::new_push(scene).with_transition(transition);
-                self.next_scene_queue
-                    .push_back((AutoEmote::Menu, next_scene));
+                self.scene_queue.push(
+                    &self.area.event_sender,
+                    NextOverworldSceneCategory::Menu,
+                    next_scene,
+                );
             }
             ServerPacket::ReferPackage {
                 package_id,
@@ -1212,8 +1216,11 @@ impl OverworldOnlineScene {
 
                     let transition = crate::transitions::new_battle_init(game_io);
                     let next_scene = NextScene::new_push(scene).with_transition(transition);
-                    self.next_scene_queue
-                        .push_back((AutoEmote::Battle, next_scene));
+                    self.scene_queue.push(
+                        &self.area.event_sender,
+                        NextOverworldSceneCategory::Battle,
+                        next_scene,
+                    );
                 } else {
                     log::error!("Failed to initiate encounter: no package for {package_path:?}")
                 }
@@ -1239,6 +1246,13 @@ impl OverworldOnlineScene {
                 let encounter_package = package_path
                     .and_then(|path| self.encounter_packages.get(&path))
                     .map(|id| (PackageNamespace::Server, id.clone()));
+
+                // resolve next scene category
+                let next_scene_category = if remote_players.is_empty() {
+                    NextOverworldSceneCategory::Battle
+                } else {
+                    NextOverworldSceneCategory::Netplay
+                };
 
                 // create scene
                 let mut battle_props = BattleProps::new_with_defaults(game_io, encounter_package);
@@ -1266,8 +1280,8 @@ impl OverworldOnlineScene {
 
                 let transition = crate::transitions::new_battle_init(game_io);
                 let next_scene = NextScene::new_push(scene).with_transition(transition);
-                self.next_scene_queue
-                    .push_back((AutoEmote::Battle, next_scene));
+                self.scene_queue
+                    .push(&self.area.event_sender, next_scene_category, next_scene);
             }
 
             ServerPacket::BattleMessage { battle_id, data } => {
@@ -1786,8 +1800,11 @@ impl OverworldOnlineScene {
                     let scene = InitialConnectScene::new(game_io, address, data, false);
                     let next_scene = NextScene::new_swap(scene).with_transition(transition);
 
-                    self.next_scene_queue
-                        .push_back((AutoEmote::None, next_scene));
+                    self.scene_queue.push(
+                        &self.area.event_sender,
+                        NextOverworldSceneCategory::Transfer,
+                        next_scene,
+                    );
                 }
                 OverworldEvent::Disconnected { message } => {
                     let event_sender = self.area.event_sender.clone();
@@ -1807,18 +1824,23 @@ impl OverworldOnlineScene {
                     let transition = crate::transitions::new_sub_scene(game_io);
                     let next_scene = NextScene::new_push(scene).with_transition(transition);
 
-                    self.next_scene_queue
-                        .push_back((AutoEmote::Menu, next_scene));
+                    self.scene_queue.push(
+                        &self.area.event_sender,
+                        NextOverworldSceneCategory::Menu,
+                        next_scene,
+                    );
                 }
-                OverworldEvent::NextScene(next) => {
-                    self.next_scene_queue.push_back(next);
+                OverworldEvent::NextScene(category, next_scene) => {
+                    self.scene_queue
+                        .push(&self.area.event_sender, category, next_scene);
                 }
                 OverworldEvent::Leave => {
                     let transition = crate::transitions::new_connect(game_io);
-                    self.next_scene_queue.push_back((
-                        AutoEmote::None,
+                    self.scene_queue.push(
+                        &self.area.event_sender,
+                        NextOverworldSceneCategory::Transfer,
                         NextScene::new_pop().with_transition(transition),
-                    ));
+                    );
                 }
             }
         }
@@ -1929,24 +1951,26 @@ impl OverworldOnlineScene {
     }
 
     fn handle_next_scene(&mut self, game_io: &GameIO) {
-        if game_io.is_in_transition() || !self.next_scene.is_none() {
+        if game_io.is_in_transition() || !self.scene_queue.next_scene.is_none() {
             return;
         }
 
-        let Some((auto_emote, next_scene)) = self.next_scene_queue.pop_front() else {
-            return;
-        };
+        self.scene_queue.resolve_next_scene(&self.area.event_sender);
 
-        self.auto_emotes.set_auto_emote(auto_emote);
+        if let Some(category) = self.scene_queue.top_scene_category {
+            let auto_emote = category.auto_emote();
+            self.auto_emotes.set_auto_emote(auto_emote);
+        }
 
-        if !matches!(&next_scene, NextScene::Push { .. }) && self.connected {
+        let next_scene = &self.scene_queue.next_scene;
+
+        if next_scene.is_some() && !matches!(&next_scene, NextScene::Push { .. }) && self.connected
+        {
             // leaving as anything that isn't NextScene::Push will end up dropping this scene
             // notify the server
             (self.send_packet)(Reliability::ReliableOrdered, ClientPacket::Logout);
             self.connected = false;
         }
-
-        self.next_scene = next_scene;
     }
 
     fn update_music(&mut self, game_io: &GameIO) {
@@ -1984,11 +2008,12 @@ impl OverworldOnlineScene {
 
 impl Scene for OverworldOnlineScene {
     fn next_scene(&mut self) -> &mut NextScene {
-        &mut self.next_scene
+        &mut self.scene_queue.next_scene
     }
 
     fn enter(&mut self, game_io: &mut GameIO) {
         self.area.visible = true;
+        self.scene_queue.handle_enter();
 
         self.auto_emotes.set_auto_emote(AutoEmote::None);
 
@@ -2128,4 +2153,68 @@ fn ms_time(game_io: &GameIO) -> u64 {
     let duration = game_io.frame_start_instant() - game_io.game_start_instant();
 
     duration.as_millis() as u64
+}
+
+#[derive(Default)]
+pub struct SceneQueue {
+    top_scene_category: Option<NextOverworldSceneCategory>,
+    next_scene: NextScene,
+    next_scene_queue: VecDeque<(NextOverworldSceneCategory, NextScene)>,
+    next_scene_drop_queue: usize,
+}
+
+impl SceneQueue {
+    fn push(
+        &mut self,
+        event_sender: &flume::Sender<OverworldEvent>,
+        category: NextOverworldSceneCategory,
+        next_scene: NextScene,
+    ) {
+        if self.top_scene_category.is_some() && self.next_scene_queue.is_empty() {
+            // immediately reject netplay if we're in another menu and nothing else is queued
+            // we only delay rejection to preserve order
+            if category == NextOverworldSceneCategory::Netplay {
+                let _ = event_sender.send(OverworldEvent::BattleStatistics(None));
+                return;
+            }
+        }
+
+        self.next_scene_queue.push_back((category, next_scene));
+    }
+
+    fn is_empty(&self) -> bool {
+        self.top_scene_category.is_none()
+            && self.next_scene.is_none()
+            && self.next_scene_queue.is_empty()
+    }
+
+    fn handle_enter(&mut self) {
+        self.next_scene_drop_queue = self.next_scene_queue.len();
+        self.top_scene_category = None;
+    }
+
+    fn resolve_next_scene(&mut self, event_sender: &flume::Sender<OverworldEvent>) {
+        let (next_scene_category, next_scene) = loop {
+            let Some((next_scene_category, next_scene)) = self.next_scene_queue.pop_front() else {
+                return;
+            };
+
+            // see if we need to drop the next scene due to timing issues from being in another scene
+            if self.next_scene_drop_queue > 0 {
+                self.next_scene_drop_queue -= 1;
+
+                // we're going to assume the ship has sailed for netplay
+                if next_scene_category == NextOverworldSceneCategory::Netplay {
+                    // send a packet so the server knows we skipped the battle
+                    let _ = event_sender.send(OverworldEvent::BattleStatistics(None));
+                    continue;
+                }
+            }
+
+            break (next_scene_category, next_scene);
+        };
+
+        self.top_scene_category = Some(next_scene_category);
+        self.next_scene = next_scene;
+    }
 }

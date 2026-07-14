@@ -1,5 +1,6 @@
+use crate::overworld::NextOverworldSceneCategory;
 use crate::overworld::components::{WarpController, WarpEffect};
-use crate::overworld::{AutoEmote, ObjectData, ObjectType, OverworldArea, OverworldEvent};
+use crate::overworld::{ObjectData, ObjectType, OverworldArea, OverworldEvent};
 use crate::resources::{Globals, Network, ServerStatus};
 use framework::prelude::*;
 use packets::structures::Direction;
@@ -117,10 +118,10 @@ pub fn system_warp(game_io: &mut GameIO, area: &mut OverworldArea) {
                 let transition = crate::transitions::new_connect(game_io);
 
                 area.event_sender
-                    .send(OverworldEvent::NextScene((
-                        AutoEmote::None,
+                    .send(OverworldEvent::NextScene(
+                        NextOverworldSceneCategory::Transfer,
                         NextScene::new_pop().with_transition(transition),
-                    )))
+                    ))
                     .unwrap();
             };
 
