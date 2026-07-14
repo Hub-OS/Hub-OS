@@ -1,7 +1,8 @@
 // Increment VERSION_ITERATION lib.rs if packets are added or modified
 
 use crate::structures::{
-    FileHash, Input, InstalledBlock, InstalledSwitchDrive, MemoryCell, PackageCategory, PackageId,
+    BattleId, FileHash, Input, InstalledBlock, InstalledSwitchDrive, MemoryCell, PackageCategory,
+    PackageId,
 };
 use network_channels::Reliability;
 use serde::{Deserialize, Serialize};
@@ -33,7 +34,9 @@ pub struct NetplayPacket {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, IntoStaticStr)]
 pub enum NetplayPacketData {
     Heartbeat,
-    Hello,
+    Hello {
+        battle_id: BattleId,
+    },
     HelloAck,
     HolesPunched,
     Ping,

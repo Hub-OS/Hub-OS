@@ -132,10 +132,11 @@ impl Server {
                 let net = &mut self.net;
                 let mut packet_orchestrator = self.packet_orchestrator.borrow_mut();
 
-                if packet.data == NetplayPacketData::Hello
+                if let NetplayPacketData::Hello { battle_id } = packet.data
                     && let Some(&player_id) = self.player_id_map.get(&socket_address)
                     && let Some(client) = net.get_client(player_id)
                     && let Some(info) = client.battle_tracker.front()
+                    && info.battle_id == battle_id
                 {
                     packet_orchestrator.configure_netplay_destinations(
                         socket_address,

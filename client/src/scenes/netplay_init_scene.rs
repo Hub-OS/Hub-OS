@@ -8,7 +8,7 @@ use crate::saves::Card;
 use crate::transitions::{HoldColorScene, flash_color};
 use framework::prelude::*;
 use futures::Future;
-use packets::structures::{FileHash, PackageCategory, PackageId, RemotePlayerInfo};
+use packets::structures::{BattleId, FileHash, PackageCategory, PackageId, RemotePlayerInfo};
 use packets::{NetplayBufferItem, NetplayPacket, NetplayPacketData, NetplaySignal};
 use std::collections::{HashMap, HashSet};
 use std::pin::Pin;
@@ -84,6 +84,7 @@ pub struct NetplayInitScene {
     stage: ConnectionStage,
     local_index: usize,
     battle_props: Option<BattleProps>,
+    battle_id: BattleId,
     last_heartbeat: Instant,
     spectating: bool,
     missing_packages: HashSet<FileHash>,
@@ -105,6 +106,8 @@ impl NetplayInitScene {
             remote_players,
             fallback_address,
         } = props;
+
+        let battle_id = battle_props.comms.remote_id;
 
         let local_index = Self::resolve_local_index(&remote_players);
         let player_setup = &mut battle_props.meta.player_setups[0];
@@ -163,6 +166,7 @@ impl NetplayInitScene {
                 &remote_index_map,
                 &senders_and_receivers,
                 &fallback_sender_receiver,
+                battle_id,
             )
             .await;
 
@@ -224,6 +228,7 @@ impl NetplayInitScene {
             stage: Default::default(),
             local_index,
             battle_props: Some(battle_props),
+            battle_id,
             last_heartbeat: game_io.frame_start_instant(),
             spectating: false,
             missing_packages: HashSet::new(),
@@ -280,7 +285,11 @@ impl NetplayInitScene {
             if matches!(self.stage, ConnectionStage::FlushingFallback) {
                 // ignore packets until we get a hello to flush old data
                 while let Ok(packet) = receiver.try_recv() {
-                    if packet.data == NetplayPacketData::Hello {
+                    if packet.data
+                        == (NetplayPacketData::Hello {
+                            battle_id: self.battle_id,
+                        })
+                    {
                         self.stage.advance();
                         break;
                     }
@@ -388,7 +397,7 @@ impl NetplayInitScene {
         }
 
         match packet.data {
-            NetplayPacketData::Hello => {
+            NetplayPacketData::Hello { .. } => {
                 // handled earlier
             }
             NetplayPacketData::HelloAck
@@ -1018,7 +1027,9 @@ impl Scene for NetplayInitScene {
                     // also allows the server to know we'd also like to use it as a relay
                     fallback.0(NetplayPacket {
                         index: self.local_index,
-                        data: NetplayPacketData::Hello,
+                        data: NetplayPacketData::Hello {
+                            battle_id: self.battle_id,
+                        },
                     });
 
                     self.refresh_connections(game_io);
@@ -1069,29 +1080,28 @@ async fn punch_holes(
     remote_index_map: &[usize],
     senders_and_receivers: &[(NetplayPacketSender, NetplayPacketReceiver)],
     fallback_sender_receiver: &(NetplayPacketSender, NetplayPacketReceiver),
+    battle_id: BattleId,
 ) -> HolePunchStatus {
     use futures::StreamExt;
 
     for (send, _) in senders_and_receivers {
         send(NetplayPacket {
             index: local_index,
-            data: NetplayPacketData::Hello,
+            data: NetplayPacketData::Hello { battle_id },
         });
     }
 
+    let skip_filter = |packet: &NetplayPacket| {
+        // skip non hello packets as those are leftovers from a previous match
+        let out =
+            !matches!(packet.data, NetplayPacketData::Hello { battle_id: id } if id == battle_id);
+        async move { out }
+    };
+
     // expecting the first message from everyone to be Hello and the second is a HelloAck
-    let hello_streams = senders_and_receivers.iter().map(|(_, receiver)| {
-        Box::pin(
-            receiver
-                .stream()
-                .skip_while(|packet| {
-                    // skip non hello packets as those are leftovers from a previous match
-                    let out = !matches!(packet.data, NetplayPacketData::Hello);
-                    async move { out }
-                })
-                .take(3),
-        )
-    });
+    let hello_streams = senders_and_receivers
+        .iter()
+        .map(|(_, receiver)| Box::pin(receiver.stream().skip_while(skip_filter).take(3)));
 
     let mut hello_stream = futures::stream::select_all(hello_streams);
     let mut total_responses = 0;
@@ -1099,11 +1109,7 @@ async fn punch_holes(
     let total_expected = senders_and_receivers.len();
 
     // if we receive anything from the fallback future we'll switch to it
-    let fallback_stream = fallback_sender_receiver.1.stream().skip_while(|packet| {
-        // skip non hello packets as those are leftovers from a previous match
-        let out = !matches!(packet.data, NetplayPacketData::Hello);
-        async move { out }
-    });
+    let fallback_stream = fallback_sender_receiver.1.stream().skip_while(skip_filter);
 
     // a short amount of time for responses
     let timer = smol::Timer::interval(Duration::from_secs(2)).fuse();
@@ -1117,8 +1123,8 @@ async fn punch_holes(
                 log::debug!("Received {packet_name} from {}", packet.index);
 
                 match packet.data {
-                    NetplayPacketData::Hello => {
-                        if let Some(slice_index) = remote_index_map.iter().position(|i| *i == packet.index) {
+                    NetplayPacketData::Hello { battle_id: id } => {
+                        if id == battle_id && let Some(slice_index) = remote_index_map.iter().position(|i| *i == packet.index) {
                             log::debug!("Sending HelloAck");
 
                             let send = &senders_and_receivers[slice_index].0;
@@ -1161,7 +1167,7 @@ async fn punch_holes(
                 }
             }
             packet = fallback_stream.select_next_some() => {
-                if let NetplayPacketData::Hello = packet.data {
+                if let NetplayPacketData::Hello { battle_id: id } = packet.data && id == battle_id {
                     log::debug!("Received Hello through fallback channel");
                     return HolePunchStatus::Failed { received_hello: true };
                 }
