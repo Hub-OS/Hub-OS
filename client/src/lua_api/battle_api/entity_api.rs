@@ -1,8 +1,8 @@
 use super::animation_api::create_animation_table;
 use super::errors::{
     action_aready_processed, action_entity_mismatch, action_not_found, aux_prop_already_bound,
-    entity_not_found, invalid_memory_value, invalid_sync_node, mismatched_entity,
-    package_not_loaded, sprite_not_found, too_many_forms, unmarked_dependency,
+    entity_not_found, invalid_memory_value, invalid_sync_node, mismatched_entity, sprite_not_found,
+    too_many_forms, unmarked_dependency,
 };
 use super::field_api::get_field_compat_table;
 use super::player_form_api::create_player_form_table;
@@ -12,7 +12,7 @@ use super::tile_api::{create_tile_table, tile_mut_from_table};
 use super::*;
 use crate::battle::*;
 use crate::bindable::*;
-use crate::lua_api::battle_api::errors::animator_not_found;
+use crate::lua_api::battle_api::errors::{animator_not_found, get_source_package_id};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::packages::{PackageId, PackageNamespace};
 use crate::render::{FrameTime, SpriteNode};
@@ -2881,23 +2881,46 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         }
 
         let globals = Globals::from_resources(game_io);
+        let augment_packages = &globals.augment_packages;
         let package_id = PackageId::from(augment_id);
-        let vms = api_ctx.resources.vm_manager.vms();
-        let namespace = vms[api_ctx.vm_index].preferred_namespace();
-        let package = globals
-            .augment_packages
-            .package_or_fallback(namespace, &package_id)
-            .ok_or_else(|| package_not_loaded(&package_id))?;
 
-        Augment::boost(
-            game_io,
-            resources,
-            simulation,
-            id,
-            package,
-            namespace,
-            level_boost,
-        );
+        if level_boost > 0 {
+            let vms = api_ctx.resources.vm_manager.vms();
+            let mut namespace = vms[api_ctx.vm_index].preferred_namespace();
+            let package = augment_packages
+                .package_or_fallback(namespace, &package_id)
+                .or_else(|| {
+                    namespace = *entities
+                        .query_one_mut::<&PackageNamespace>(id.into())
+                        .ok()?;
+
+                    augment_packages.package_or_fallback(namespace, &package_id)
+                });
+
+            if let Some(package) = package {
+                Augment::boost(
+                    game_io,
+                    resources,
+                    simulation,
+                    id,
+                    package,
+                    namespace,
+                    level_boost,
+                );
+            } else {
+                let source_package_id = get_source_package_id(lua);
+                log::error!("package: {source_package_id}\n{package_id:?} is not loaded");
+            }
+        } else {
+            Augment::unboost(
+                game_io,
+                resources,
+                simulation,
+                id,
+                &package_id,
+                -level_boost,
+            );
+        }
 
         lua.pack_multi(())
     });

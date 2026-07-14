@@ -128,6 +128,57 @@ impl Augment {
         }
     }
 
+    pub fn unboost(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        id: EntityId,
+        package_id: &PackageId,
+        level_unboost: i32,
+    ) {
+        if level_unboost < 0 {
+            log::error!("Augment::unboost() called with a negative unboost value?");
+            return;
+        };
+
+        let entities = &mut simulation.entities;
+
+        let Ok(player) = entities.query_one_mut::<&mut Player>(id.into()) else {
+            log::error!("Augment::boost() called with invalid entity?");
+            return;
+        };
+
+        let boost_order = player.augments.len();
+        let mut augment_iter = player.augments.iter_mut();
+        let existing_augment = augment_iter.find(|(_, augment)| augment.package_id == *package_id);
+
+        if let Some((index, augment)) = existing_augment {
+            // boost existing augment
+            let updated_level = (augment.level as i32)
+                .saturating_sub(level_unboost)
+                .clamp(0, u16::MAX as _);
+            augment.level = updated_level as u16;
+            let prev_order = augment.boost_order;
+            augment.boost_order = boost_order;
+
+            // adjust boost order for other augments
+            for augment in player.augments.values_mut() {
+                if augment.boost_order > prev_order {
+                    augment.boost_order -= 1;
+                }
+            }
+
+            if player.form_boost_order > prev_order {
+                player.form_boost_order -= 1;
+            }
+
+            if updated_level == 0 {
+                // delete
+                Augment::delete(game_io, resources, simulation, id, index);
+            }
+        }
+    }
+
     pub fn delete(
         game_io: &GameIO,
         resources: &SharedBattleResources,
