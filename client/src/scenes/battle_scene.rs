@@ -1173,6 +1173,39 @@ impl BattleScene {
             .detach();
     }
 
+    fn cycle_perspective(&mut self, direction: i8) {
+        // sort players
+        let entities = &mut self.simulation.entities;
+        let mut players: Vec<_> = entities
+            .query_mut::<&Player>()
+            .into_iter()
+            .map(|(id, player)| (id, player.index))
+            .collect();
+
+        players.sort_by_key(|(_, index)| *index);
+
+        // resolve the next player
+        let current_index = self.simulation.local_player_index;
+
+        let next_player = if direction > 0 {
+            players
+                .iter()
+                .find(|(_, index)| *index > current_index)
+                .or_else(|| players.first())
+        } else {
+            players
+                .iter()
+                .take_while(|(_, index)| *index < current_index)
+                .last()
+                .or_else(|| players.last())
+        };
+
+        if let Some((id, index)) = next_player {
+            self.simulation.local_player_id = (*id).into();
+            self.simulation.local_player_index = *index;
+        }
+    }
+
     fn detect_debug_hotkeys(&mut self, game_io: &mut GameIO) {
         if !game_io.input().is_key_down(Key::F3) {
             return;
@@ -1412,23 +1445,32 @@ impl Scene for BattleScene {
 
         self.core_update(game_io);
 
-        // multiply speed while holding confirm in a replay
-        let input_util = InputUtil::new(game_io);
         let mut simulation_multiplier = 1;
 
-        if let Some(playback) = &mut self.playback
-            && input_util.is_down(Input::Confirm)
-        {
-            if input_util.was_just_pressed(Input::Left) {
-                playback.multiplier -= 1;
+        if let Some(playback) = &mut self.playback {
+            let input_util = InputUtil::new(game_io);
+
+            // multiply speed while holding confirm in a replay
+            if input_util.is_down(Input::Confirm) {
+                if input_util.was_just_pressed(Input::Left) {
+                    playback.multiplier -= 1;
+                }
+
+                if input_util.was_just_pressed(Input::Right) {
+                    playback.multiplier += 1;
+                }
+
+                playback.multiplier = playback.multiplier.clamp(2, 10);
+                simulation_multiplier = playback.multiplier;
             }
 
-            if input_util.was_just_pressed(Input::Right) {
-                playback.multiplier += 1;
+            if input_util.was_just_pressed(Input::ShoulderL) {
+                self.cycle_perspective(-1);
             }
 
-            playback.multiplier = playback.multiplier.clamp(2, 10);
-            simulation_multiplier = playback.multiplier;
+            if input_util.was_just_pressed(Input::ShoulderR) {
+                self.cycle_perspective(1);
+            }
         }
 
         for _ in 1..simulation_multiplier {

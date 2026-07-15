@@ -29,7 +29,6 @@ pub struct CardSelectSelection {
     pub recipe_animation: Option<CardRecipeAnimation>,
     pub visible: bool,
     pub erased: bool,
-    pub local: bool,
     pub resolved_card_damage: i32,
 }
 
@@ -48,7 +47,6 @@ impl CardSelectSelection {
             recipe_animation: None,
             visible: true,
             erased: false,
-            local: false,
             resolved_card_damage: Default::default(),
         }
     }
@@ -122,7 +120,6 @@ impl State for CardSelectState {
 
                 // initialize selection
                 let selection = &mut self.player_selections[player.index];
-                selection.local = player.index == simulation.local_player_index;
                 selection.animating_slide = true;
             }
 
@@ -195,7 +192,8 @@ impl State for CardSelectState {
 
             // update recipe animation if it's visible
             if let Some(animation) = &mut selection.recipe_animation {
-                animation.update(game_io, simulation, resources, selection.local);
+                let local = player_index == simulation.local_player_index;
+                animation.update(game_io, simulation, resources, local);
 
                 if animation.completed() {
                     animation.apply(game_io, simulation, resources, entity_id);
@@ -213,7 +211,7 @@ impl State for CardSelectState {
 
         // animate ui
 
-        for selection in &mut self.player_selections {
+        for (index, selection) in self.player_selections.iter_mut().enumerate() {
             // resolve the slide animation state of all players to stay in sync
             let slide_progress = self.ui.slide_progress(selection.confirm_time);
 
@@ -224,7 +222,9 @@ impl State for CardSelectState {
                 slide_progress > 0.0
             };
 
-            if !selection.local {
+            let local = index == simulation.local_player_index;
+
+            if !local {
                 continue;
             }
 
@@ -502,6 +502,7 @@ impl CardSelectState {
         player_index: usize,
     ) {
         let selection = &mut self.player_selections[player_index];
+        let is_local = player_index == simulation.local_player_index;
 
         if let Some(time) = selection.form_select_time {
             let elapsed = self.time - time;
@@ -532,7 +533,7 @@ impl CardSelectState {
                     }
 
                     // sfx
-                    if selection.local {
+                    if is_local {
                         let globals = Globals::from_resources(game_io);
                         simulation.play_sound(game_io, resources, &globals.sfx.form_select);
                     }
@@ -612,7 +613,7 @@ impl CardSelectState {
         if input.was_just_pressed(Input::Option2) {
             selection.visible = !selection.visible;
 
-            if selection.local {
+            if is_local {
                 let globals = Globals::from_resources(game_io);
                 simulation.play_sound(game_io, resources, &globals.sfx.card_select_toggle);
             }
@@ -647,6 +648,7 @@ impl CardSelectState {
         let mut pending_sfx = Vec::new();
 
         let selection = &mut self.player_selections[player.index];
+        let is_local = player.index == simulation.local_player_index;
 
         // try to stick to the previous selection if the form list changed
         if let Some(hovered_index) = selection.hovered_form {
@@ -685,7 +687,7 @@ impl CardSelectState {
             }
         }
 
-        if prev_row != selection.form_row && selection.local {
+        if prev_row != selection.form_row && is_local {
             // cursor move sfx
             pending_sfx.push(&globals.sfx.cursor_move);
         }
@@ -734,7 +736,7 @@ impl CardSelectState {
             }
 
             // sfx
-            if selection.local {
+            if is_local {
                 pending_sfx.push(&globals.sfx.cursor_select);
             }
         }
@@ -744,12 +746,12 @@ impl CardSelectState {
             selection.form_open_time = None;
 
             // sfx
-            if selection.local {
+            if is_local {
                 pending_sfx.push(&globals.sfx.form_select_close);
             }
         }
 
-        if selection.local && !simulation.is_resimulation {
+        if is_local && !simulation.is_resimulation {
             // dealing with signals
             if input.was_just_pressed(Input::Info) {
                 let description = player
@@ -786,6 +788,7 @@ impl CardSelectState {
         };
 
         let player_index = player.index;
+        let is_local = player_index == simulation.local_player_index;
         let input = &simulation.inputs[player_index];
         let selection = &mut self.player_selections[player_index];
 
@@ -802,7 +805,7 @@ impl CardSelectState {
             // open form select
             selection.form_open_time = Some(self.time);
 
-            if selection.local {
+            if is_local {
                 // not using pending_sfx since we're returning right after anyway
                 simulation.play_sound(game_io, resources, &globals.sfx.form_select_open);
             }
@@ -832,7 +835,7 @@ impl CardSelectState {
         let selected_item = resolve_selected_item(player, hand, selection);
 
         // sfx
-        if previous_item != selected_item && selection.local {
+        if previous_item != selected_item && is_local {
             pending_sfx.push((&globals.sfx.cursor_move, AudioBehavior::Default));
         }
 
@@ -845,7 +848,7 @@ impl CardSelectState {
                     hand.staged_items.set_confirmed(true);
 
                     // sfx
-                    if selection.local {
+                    if is_local {
                         pending_sfx
                             .push((&globals.sfx.card_select_confirm, AudioBehavior::Default));
                     }
@@ -872,10 +875,10 @@ impl CardSelectState {
                         hand.staged_items.stage_item(item);
 
                         // sfx
-                        if selection.local {
+                        if is_local {
                             pending_sfx.push((&globals.sfx.cursor_select, AudioBehavior::Default));
                         }
-                    } else if selection.local {
+                    } else if is_local {
                         // error sfx
                         pending_sfx.push((&globals.sfx.cursor_error, AudioBehavior::NoOverlap));
                     }
@@ -906,7 +909,7 @@ impl CardSelectState {
         let input = &simulation.inputs[player_index];
         let selection = &mut self.player_selections[player_index];
 
-        if selection.local && !simulation.is_resimulation && selection.confirm_time == 0 {
+        if is_local && !simulation.is_resimulation && selection.confirm_time == 0 {
             if input.was_just_pressed(Input::Flee) {
                 let event = BattleEvent::RequestFlee;
                 resources.event_sender.send(event).unwrap();
@@ -947,7 +950,7 @@ impl CardSelectState {
             simulation.play_sound_with_behavior(game_io, resources, sfx, behavior);
         }
 
-        if selection.local {
+        if is_local {
             self.dark_card_effects(game_io, resources, simulation);
         }
     }
@@ -988,16 +991,16 @@ impl CardSelectState {
         };
 
         let globals = Globals::from_resources(game_io);
-        let selection = &mut self.player_selections[player.index];
+        let is_local = player.index == simulation.local_player_index;
         let uses_default_audio = button.uses_default_audio;
 
         let success = callback.call(game_io, resources, simulation, ());
 
         if success {
-            if uses_default_audio && selection.local {
+            if uses_default_audio && is_local {
                 simulation.play_sound(game_io, resources, &globals.sfx.cursor_select);
             }
-        } else if selection.local {
+        } else if is_local {
             simulation.play_sound_with_behavior(
                 game_io,
                 resources,
