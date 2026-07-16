@@ -106,6 +106,7 @@ switch-drives-unequip-question = ¿Desequipar { $name }?
 switch-drives-filter-slot-question = ¿Filtrar unidades de { $slot }?
 switch-drives-leave-question = ¿Dejar de personalizar y volver al menú?
 augments-option-search = BUSCAR
+augments-option-info = INFO
 augments-option-export = EXPORTAR
 augments-option-import = IMPORTAR
 augments-option-clear = DESPEJAR
