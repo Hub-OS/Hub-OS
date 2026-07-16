@@ -250,6 +250,7 @@ impl CardSelectUi {
 
         // draw names
         let local_player_id: hecs::Entity = simulation.local_player_id.into();
+        const CHARACTER_LIMIT: usize = 9;
 
         for (id, (entity, character, name)) in simulation
             .entities
@@ -259,12 +260,22 @@ impl CardSelectUi {
                 continue;
             }
 
-            let name = &name.0;
-            let suffix = if character.display_rank {
+            let mut name = &*name.0;
+            let mut suffix = if character.display_rank {
                 character.rank.suffix()
             } else {
                 ""
             };
+
+            if name.chars().count() + suffix.chars().count() > CHARACTER_LIMIT {
+                let len = name
+                    .char_indices()
+                    .nth(CHARACTER_LIMIT - 1)
+                    .map(|(i, _)| i)
+                    .unwrap_or_default();
+                name = &name[..len];
+                suffix = "...";
+            }
 
             // calculate size + position for text
             let name_width = style.measure(name).size.x + 1.0;
