@@ -59,19 +59,48 @@ impl State for FormActivateState {
 
         // logic
         if self.target_complete_time.is_none() {
-            match self.time {
-                // flash white and activate forms
-                15 => {
-                    set_relevant_color(simulation, Color::WHITE);
-                    self.activate_forms(game_io, resources, simulation);
+            enum FormAnimation {
+                DoNothing,
+                StartIntros,
+                Activate,
+                FlashWhite,
+                FlashBlack,
+            }
+
+            let steps = &[
+                (FADE_TIME, FormAnimation::DoNothing),
+                (1, FormAnimation::StartIntros),
+                (19, FormAnimation::DoNothing),
+                (1, FormAnimation::Activate),
+                (9, FormAnimation::FlashWhite),
+                (1, FormAnimation::FlashBlack),
+            ];
+
+            let mut step_time = self.time;
+            let step = steps
+                .iter()
+                .skip_while(|(duration, _)| {
+                    step_time -= duration;
+                    step_time >= 0
+                })
+                .map(|(_, step)| step)
+                .next();
+
+            if let Some(step) = step {
+                match step {
+                    FormAnimation::DoNothing => {}
+                    FormAnimation::StartIntros => {
+                        self.play_intros(game_io, resources, simulation);
+                    }
+                    FormAnimation::Activate => {
+                        set_relevant_color(simulation, Color::WHITE);
+                        self.activate_forms(game_io, resources, simulation);
+                    }
+                    FormAnimation::FlashWhite => set_relevant_color(simulation, Color::WHITE),
+                    FormAnimation::FlashBlack => set_relevant_color(simulation, Color::BLACK),
                 }
-                // flash white for 9 more frames
-                16..=25 => set_relevant_color(simulation, Color::WHITE),
-                // reset color
-                26 => set_relevant_color(simulation, Color::BLACK),
-                // wait for the shine artifacts to complete animation
-                27.. => self.detect_animation_end(game_io, resources, simulation),
-                _ => {}
+            } else {
+                self.detect_animation_end(game_io, resources, simulation);
             }
         }
 
@@ -87,6 +116,31 @@ impl FormActivateState {
             artifact_entities: Vec::new(),
             completed: false,
         }
+    }
+
+    fn play_intros(
+        &mut self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
+        for (_, player) in simulation.entities.query_mut::<&mut Player>() {
+            let Some(index) = player.active_form else {
+                continue;
+            };
+
+            let form = &player.forms[index];
+
+            if form.activated {
+                continue;
+            }
+
+            if let Some(callback) = form.intro_callback.clone() {
+                simulation.pending_callbacks.push(callback);
+            }
+        }
+
+        simulation.call_pending_callbacks(game_io, resources);
     }
 
     fn activate_forms(

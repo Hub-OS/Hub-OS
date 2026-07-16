@@ -9,7 +9,7 @@ use crate::battle::{
     PlayerOverridableFlags,
 };
 use crate::bindable::EntityId;
-use crate::lua_api::battle_api::MOVEMENT_INPUT_FN;
+use crate::lua_api::battle_api::{MOVEMENT_INPUT_FN, ON_INTRO_FN};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::resources::{AssetManager, Globals};
 use framework::common::GameIO;
@@ -206,6 +206,13 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
 
             lua.pack_multi(())
         },
+    );
+
+    callback_setter(
+        lua_api,
+        ON_INTRO_FN,
+        |form| &mut form.intro_callback,
+        |lua, form_table, _| lua.pack_multi(form_table),
     );
 
     callback_setter(

@@ -132,6 +132,7 @@ const CARD_CHARGE_TIMING_FN: &str = "calculate_card_charge_time_func";
 const BUILD_SPECIAL_CARD_FN: &str = "build_special_card_func";
 
 // player forms
+const ON_INTRO_FN: &str = "on_intro_func";
 const ACTIVATE_FN: &str = "on_activate_func";
 const DEACTIVATE_FN: &str = "on_deactivate_func";
 const SELECT_FN: &str = "on_select_func";
