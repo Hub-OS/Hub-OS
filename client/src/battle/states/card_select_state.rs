@@ -81,6 +81,7 @@ pub struct CardSelectState {
     ui: CardSelectUi,
     player_selections: Vec<CardSelectSelection>,
     time: FrameTime,
+    local_opened: bool,
     completed: bool,
 }
 
@@ -121,6 +122,10 @@ impl State for CardSelectState {
                 // initialize selection
                 let selection = &mut self.player_selections[player.index];
                 selection.animating_slide = true;
+
+                if player.index == simulation.local_player_index {
+                    self.local_opened = true;
+                }
             }
 
             simulation.update_components(game_io, resources, ComponentLifetime::CardSelectOpen);
@@ -224,7 +229,7 @@ impl State for CardSelectState {
 
             let local = index == simulation.local_player_index;
 
-            if !local {
+            if !local || !self.local_opened {
                 continue;
             }
 
@@ -490,6 +495,7 @@ impl CardSelectState {
             player_selections: Vec::new(),
             time: 0,
             completed: false,
+            local_opened: false,
         }
     }
 
