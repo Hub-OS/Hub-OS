@@ -107,6 +107,7 @@ switch-drives-unequip-question = Desequipar { $name }?
 switch-drives-filter-slot-question = Filtrar para Reforços de { $slot }?
 switch-drives-leave-question = Sair dos Reforços e retornar ao menu?
 augments-option-search = BUSCAR
+augments-option-info = INFO
 augments-option-export = EXPORTAR
 augments-option-import = IMPORTAR
 augments-option-clear = LIMPAR
