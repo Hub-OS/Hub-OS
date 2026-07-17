@@ -614,7 +614,7 @@ impl BattleSimulation {
             let current_zoom = self.camera.scale().x;
             let position = shift_for_zoom(current_position, current_zoom);
             self.camera.snap(position);
-        };
+        }
 
         // resolve the smallest box that can fit every character
         let mut min_x = f32::INFINITY;
@@ -644,9 +644,8 @@ impl BattleSimulation {
         }
 
         if count == 0 {
-            let scale = self.field.best_fitting_scale();
-            self.camera.slide(scale, BATTLE_PAN_MOTION);
-            self.camera.zoom(BATTLE_CAMERA_OFFSET, BATTLE_ZOOM_MOTION);
+            self.camera.slide(BATTLE_CAMERA_OFFSET, BATTLE_PAN_MOTION);
+            self.camera.zoom(scale, BATTLE_ZOOM_MOTION);
             return;
         }
 
