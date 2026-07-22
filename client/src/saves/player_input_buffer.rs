@@ -97,6 +97,12 @@ impl PlayerInputBuffer {
             .map(|(item, _)| item)
     }
 
+    pub fn iter(&self) -> impl Iterator<Item = &NetplayBufferItem> {
+        self.buffer
+            .iter()
+            .flat_map(move |(item, count)| std::iter::repeat_n(item, *count))
+    }
+
     pub fn clear(&mut self) {
         self.buffer.clear();
         self.len = 0;

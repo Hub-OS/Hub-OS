@@ -210,7 +210,7 @@ impl BattleScene {
 
         Player::initialize_uninitialized(&resources, &mut simulation);
 
-        Self {
+        let mut scene = Self {
             original_package_pair,
             meta,
             comms,
@@ -239,7 +239,18 @@ impl BattleScene {
             debug: Default::default(),
             exiting: false,
             next_scene: NextScene::None,
+        };
+
+        // make sure we don't lose signals captured in netplay init
+        for i in 0..scene.player_controllers.len() {
+            let buffer = scene.player_controllers[i].buffer.clone();
+
+            for data in buffer.iter() {
+                scene.process_buffer_signals(i, data);
+            }
         }
+
+        scene
     }
 
     fn is_offline(&self) -> bool {
@@ -485,6 +496,45 @@ impl BattleScene {
         self.resolve_slowdown(game_io);
     }
 
+    fn process_buffer_signals(&mut self, player_index: usize, data: &NetplayBufferItem) {
+        let Some(controller) = self.player_controllers.get_mut(player_index) else {
+            return;
+        };
+
+        // check disconnect
+        if data.signals.contains(&NetplaySignal::Disconnect) {
+            controller.connected = false;
+            controller.input_connected = false;
+        } else if data.signals.contains(&NetplaySignal::DisconnectInput) {
+            controller.input_connected = false;
+        }
+
+        // see if this player recommends disconnecting anyone
+        if controller.input_connected
+            && let Some(local_index) = self.local_index
+        {
+            for signal in &data.signals {
+                let &NetplaySignal::RecommendDisconnect(recommended) = signal else {
+                    continue;
+                };
+
+                let Some(controller) = self.player_controllers.get_mut(recommended) else {
+                    continue;
+                };
+
+                controller.recommended_disconnect.insert(player_index);
+
+                // agree to recommend disconnect if it affects 2+ players
+                if controller.recommended_disconnect.len() >= 2
+                    && controller.recommended_disconnect.insert(local_index)
+                {
+                    self.pending_signals
+                        .push(NetplaySignal::RecommendDisconnect(recommended));
+                }
+            }
+        }
+    }
+
     fn handle_packet(
         &mut self,
         frame_start_instant: Instant,
@@ -496,41 +546,7 @@ impl BattleScene {
 
         match packet.data {
             NetplayPacketData::Buffer { data, frame_time } => {
-                if let Some(controller) = self.player_controllers.get_mut(index) {
-                    // check disconnect
-                    if data.signals.contains(&NetplaySignal::Disconnect) {
-                        controller.connected = false;
-                        controller.input_connected = false;
-                    } else if data.signals.contains(&NetplaySignal::DisconnectInput) {
-                        controller.input_connected = false;
-                    }
-
-                    // see if this player recommends disconnecting anyone
-                    if controller.input_connected
-                        && let Some(local_index) = self.local_index
-                    {
-                        for signal in &data.signals {
-                            let &NetplaySignal::RecommendDisconnect(recommended) = signal else {
-                                continue;
-                            };
-
-                            let Some(controller) = self.player_controllers.get_mut(recommended)
-                            else {
-                                continue;
-                            };
-
-                            controller.recommended_disconnect.insert(index);
-
-                            // agree to recommend disconnect if it affects 2+ players
-                            if controller.recommended_disconnect.len() >= 2
-                                && controller.recommended_disconnect.insert(local_index)
-                            {
-                                self.pending_signals
-                                    .push(NetplaySignal::RecommendDisconnect(recommended));
-                            }
-                        }
-                    }
-                }
+                self.process_buffer_signals(index, &data);
 
                 if let Some(controller) = self.player_controllers.get_mut(index) {
                     if let Some(input) = self.simulation.inputs.get(index)
