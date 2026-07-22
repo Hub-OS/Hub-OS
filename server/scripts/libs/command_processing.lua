@@ -199,27 +199,27 @@ function CommandProcessing.format_duration(seconds)
   end
 
   -- minutes
-  local duration = seconds // 60
+  local duration = math.ceil(seconds / 60)
 
   if duration < 60 then
     return duration .. "m"
   end
 
   -- hours
-  duration = duration // 60
+  duration = math.ceil(duration / 60)
 
   if duration < 24 then
     return duration .. "h"
   end
 
   -- days
-  duration = duration // 24
+  duration = math.ceil(duration / 24)
 
   if duration < 360 then
     return duration .. "d"
   end
 
-  duration = duration // 365
+  duration = math.ceil(duration / 365)
 
   return duration .. "y"
 end
