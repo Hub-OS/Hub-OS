@@ -341,7 +341,7 @@ CommandProcessing.register_commands({
       end
     end
   },
-  ["temp-ban"] = {
+  ["ban"] = {
     usage = { "<player> <duration> [<reason>]" },
     description = "Bans players from the server for a specific time period. Accepts a number and unit (y/d/h/m/s)",
     callback = function(event)
