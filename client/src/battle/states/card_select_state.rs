@@ -108,11 +108,11 @@ impl State for CardSelectState {
             simulation.statistics.turns += 1;
             simulation.turn_gauge.set_time(0);
 
-            type Query<'a> = (&'a Entity, &'a Player, &'a mut PlayerHand);
-
             // reset staged items confirmation and initialize selection data
-            for (_, (_, player, hand)) in simulation.entities.query_mut::<Query>() {
+            type ResetQuery<'a> = (&'a Entity, &'a Player, &'a mut PlayerHand, &'a mut Emblem);
+            for (_, (_, player, hand, emblem)) in simulation.entities.query_mut::<ResetQuery>() {
                 hand.staged_items.set_confirmed(false);
+                emblem.cancel_spin();
 
                 if player.index >= self.player_selections.len() {
                     self.player_selections
@@ -131,8 +131,10 @@ impl State for CardSelectState {
             simulation.update_components(game_io, resources, ComponentLifetime::CardSelectOpen);
 
             // handle frame 0 scripted confirmation
+            type ConfirmQuery<'a> = (&'a Entity, &'a Player, &'a mut PlayerHand);
             let mut pre_confirmed = false;
-            for (id, (entity, player, hand)) in simulation.entities.query_mut::<Query>() {
+
+            for (id, (entity, player, hand)) in simulation.entities.query_mut::<ConfirmQuery>() {
                 if !entity.deleted && !hand.staged_items.confirmed() {
                     continue;
                 }
@@ -265,6 +267,11 @@ impl State for CardSelectState {
         }
 
         self.update_buttons(simulation);
+
+        // animate emblems
+        for (_, emblem) in simulation.entities.query_mut::<&mut Emblem>() {
+            emblem.update();
+        }
 
         // completion detection
 
@@ -472,6 +479,8 @@ impl State for CardSelectState {
         if simulation.progress < BattleProgress::BattleStarted && selection.confirm_time == 0 {
             self.ui.draw_names(game_io, simulation, sprite_queue);
         }
+
+        self.ui.draw_emblem(game_io, simulation, sprite_queue);
 
         // update the fade sprite color
         if let Some(time) = selection.form_select_time {
@@ -787,8 +796,8 @@ impl CardSelectState {
         entity_id: EntityId,
     ) {
         let entities = &mut simulation.entities;
-        let Ok((player, hand)) =
-            entities.query_one_mut::<(&Player, &mut PlayerHand)>(entity_id.into())
+        let Ok((player, hand, emblem)) =
+            entities.query_one_mut::<(&Player, &mut PlayerHand, &mut Emblem)>(entity_id.into())
         else {
             return;
         };
@@ -879,6 +888,7 @@ impl CardSelectState {
                         };
 
                         hand.staged_items.stage_item(item);
+                        emblem.spin();
 
                         // sfx
                         if is_local {

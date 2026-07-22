@@ -1,7 +1,7 @@
 use super::{FontName, TextStyle};
 use crate::battle::{
-    BattleSimulation, CardSelectRestriction, CardSelectSelection, Character, Entity, EntityName,
-    Player, PlayerHand,
+    BattleSimulation, CardSelectRestriction, CardSelectSelection, Character, Emblem, Entity,
+    EntityName, Player, PlayerHand,
 };
 use crate::bindable::{CardClass, SpriteColorMode};
 use crate::packages::{CardPackage, PackageNamespace};
@@ -26,6 +26,7 @@ enum UiPoint {
     Preview,
     FormListStart,
     StagedCardStart,
+    Emblem,
 }
 
 #[derive(Clone)]
@@ -94,6 +95,7 @@ impl CardSelectUi {
                 UiPoint::FormListStart => ("FORM_LIST_FRAME", "START"),
                 UiPoint::Preview => ("STANDARD_FRAME", "PREVIEW"),
                 UiPoint::StagedCardStart => ("SELECTION_FRAME", "START"),
+                UiPoint::Emblem => ("SELECTION_FRAME", "EMBLEM"),
             },
             |_| None,
         );
@@ -565,5 +567,22 @@ impl CardSelectUi {
 
         self.recycled_sprite.set_position(position);
         sprite_queue.draw_sprite(&self.recycled_sprite);
+    }
+
+    pub fn draw_emblem(
+        &self,
+        game_io: &GameIO,
+        simulation: &mut BattleSimulation,
+        sprite_queue: &mut SpriteColorQueue,
+    ) {
+        let entities = &mut simulation.entities;
+        let entity_id = simulation.local_player_id;
+
+        let Ok(emblem) = entities.query_one_mut::<&Emblem>(entity_id.into()) else {
+            return;
+        };
+
+        let position = self.points[UiPoint::Emblem] + self.root_offset();
+        emblem.draw(game_io, sprite_queue, position);
     }
 }

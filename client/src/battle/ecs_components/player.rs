@@ -220,6 +220,7 @@ impl Player {
                 attack_charge_sprite_index,
             ),
             PlayerHand::new(namespace, deck),
+            Emblem::new(&player_package.emblem_texture_path),
         );
 
         let _ = simulation.entities.insert(id.into(), components);

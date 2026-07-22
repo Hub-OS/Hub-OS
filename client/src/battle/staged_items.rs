@@ -18,6 +18,12 @@ pub enum StagedItemData {
     Icon((Arc<Texture>, Box<str>)),
 }
 
+impl StagedItemData {
+    pub fn visible(&self) -> bool {
+        !matches!(self, Self::Discard(_) | Self::Form((_, None, _)))
+    }
+}
+
 #[derive(Clone)]
 pub struct StagedItem {
     pub data: StagedItemData,

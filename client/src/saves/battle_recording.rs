@@ -267,6 +267,7 @@ impl BattleRecording {
 
             if !ignored_package_ids.contains(&package_info.id) {
                 // not ignored, we can keep this package
+                log::info!("Loaded {hash} as {:?} in {namespace:?}", package_info.id);
                 continue;
             }
 

@@ -42,6 +42,7 @@ frame duration="50f" x="235" y="114" w="72" h="16"
 animation state="SELECTION_FRAME"
 frame x="324" y="0" w="32" h="111" originx="-88"
 point label="START" x="9" y="25"
+point label="EMBLEM" x="16" y="11.5"
 
 animation state="SELECTED_FRAME"
 frame x="329" y="112" w="22" h="16" originx="4" originy="1"

@@ -26,6 +26,7 @@ struct PlayerMeta {
     mugshot_animation_path: String,
     emotions_texture_path: String,
     emotions_animation_path: String,
+    emblem_texture_path: String,
     tags: Vec<String>,
 }
 
@@ -47,6 +48,7 @@ pub struct PlayerPackage {
     pub overworld_paths: TextureAnimPathPair<'static>,
     pub mugshot_paths: TextureAnimPathPair<'static>,
     pub emotions_paths: Option<TextureAnimPathPair<'static>>,
+    pub emblem_texture_path: String,
 }
 
 impl Package for PlayerPackage {
@@ -131,6 +133,10 @@ impl Package for PlayerPackage {
                 texture: (base_path.clone() + &meta.emotions_texture_path).into(),
                 animation: (base_path.clone() + &meta.emotions_animation_path).into(),
             });
+        }
+
+        if !meta.emblem_texture_path.is_empty() {
+            package.emblem_texture_path = base_path.clone() + &meta.emblem_texture_path;
         }
 
         package

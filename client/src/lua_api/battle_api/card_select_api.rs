@@ -1,7 +1,7 @@
 use super::errors::{entity_not_found, form_not_found};
 use super::{BattleLuaApi, ENTITY_TABLE};
 use crate::battle::{
-    BattleCallback, CardSelectRestriction, Player, PlayerHand, StagedItem, StagedItemData,
+    BattleCallback, CardSelectRestriction, Emblem, Player, PlayerHand, StagedItem, StagedItemData,
 };
 use crate::bindable::{CardProperties, EntityId};
 use crate::lua_api::battle_api::entity_api::add_entity_query_fn;
@@ -233,8 +233,8 @@ fn generate_stage_item_fn(
         let simulation = &mut *api_ctx.simulation;
         let entities = &mut simulation.entities;
 
-        let (player, hand) = entities
-            .query_one_mut::<(&mut Player, &mut PlayerHand)>(id.into())
+        let (player, hand, emblem) = entities
+            .query_one_mut::<(&mut Player, &mut PlayerHand, &mut Emblem)>(id.into())
             .map_err(|_| entity_not_found())?;
 
         let data = callback(player, lua, game_io, params)?;
@@ -261,6 +261,10 @@ fn generate_stage_item_fn(
             if let Some(callback) = &player.forms[index].select_callback {
                 simulation.pending_callbacks.push(callback.clone());
             }
+        }
+
+        if item.data.visible() {
+            emblem.spin();
         }
 
         hand.staged_items.stage_item(item);
