@@ -26,11 +26,11 @@ pub enum CharacterRank {
 impl CharacterRank {
     pub fn suffix(self) -> &'static str {
         match self {
-            Self::V2 => "2", // alternate: "\u{e008}"
-            Self::V3 => "3", // alternate: "\u{e009}"
-            Self::V4 => "4", // alternate: "\u{e00a}"
-            Self::V5 => "5", // alternate: "\u{e00b}"
-            Self::V6 => "6",
+            Self::V2 => "2", // alternate: "\u{e012}"
+            Self::V3 => "3", // alternate: "\u{e013}"
+            Self::V4 => "4", // alternate: "\u{e014}"
+            Self::V5 => "5", // alternate: "\u{e015}"
+            Self::V6 => "6", // alternate: "\u{e016}"
             Self::Alpha => "α",
             Self::Beta => "β",
             Self::Omega => "Ω",
