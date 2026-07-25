@@ -549,9 +549,16 @@ impl BattleScene {
                 self.process_buffer_signals(index, &data);
 
                 if let Some(controller) = self.player_controllers.get_mut(index) {
-                    if let Some(input) = self.simulation.inputs.get(index)
-                        && !input.matches(&data)
-                    {
+                    // we check the frame after our input is relevant to verify whether our predictions are correct,
+                    // since the backup for the frame of our input is taken before inputs are loaded
+                    let relevant_backup = self.backups.get(controller.buffer.len() + 1);
+
+                    // if there's no relevant backup, we can't verify whether our inputs are correct
+                    // so we'll fallback to rolling back by using is_none_or
+                    if relevant_backup.is_none_or(|backup| {
+                        let inputs = &backup.simulation.inputs;
+                        inputs.get(index).is_none_or(|input| !input.matches(&data))
+                    }) {
                         // resolve the time of the input if it differs from our simulation
                         resimulation_time =
                             Some(self.synced_time + controller.buffer.len() as FrameTime);
