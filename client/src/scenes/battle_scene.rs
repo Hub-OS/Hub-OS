@@ -873,7 +873,7 @@ impl BattleScene {
         };
 
         for controller in &self.player_controllers {
-            let len = if controller.connected {
+            let len = if controller.input_connected {
                 controller.buffer.len()
             } else {
                 INPUT_BUFFER_LIMIT
@@ -1290,7 +1290,7 @@ impl BattleScene {
                 break;
             }
 
-            self.resimulate(game_io, recorded_rollback.resimulate_time - 1);
+            self.resimulate(game_io, recorded_rollback.resimulate_time);
 
             let Some(playback) = &mut self.playback else {
                 break;
