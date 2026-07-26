@@ -770,6 +770,9 @@ impl BattleSimulation {
             banner.update();
             banner.remaining_time() != Some(0)
         });
+
+        // update turn gauge
+        self.turn_gauge.update_animation();
     }
 
     pub fn is_entity_actionable(

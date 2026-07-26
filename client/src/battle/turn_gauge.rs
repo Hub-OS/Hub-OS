@@ -96,7 +96,7 @@ impl TurnGauge {
     }
 
     pub fn set_time(&mut self, time: FrameTime) {
-        self.time = time.min(self.max_time())
+        self.time = time.min(self.max_time());
     }
 
     pub fn max_time(&self) -> FrameTime {
@@ -129,14 +129,7 @@ impl TurnGauge {
         }
     }
 
-    pub fn draw(&mut self, sprite_queue: &mut SpriteColorQueue) {
-        if !self.enabled {
-            return;
-        }
-
-        sprite_queue.draw_sprite(&self.container_sprite);
-
-        // update animation
+    pub fn update_animation(&mut self) {
         let state = self.resolve_state();
 
         if self.animator.current_state() != Some(state) {
@@ -145,6 +138,14 @@ impl TurnGauge {
         }
 
         self.animator.apply(&mut self.bar_sprite);
+    }
+
+    pub fn draw(&mut self, sprite_queue: &mut SpriteColorQueue) {
+        if !self.enabled {
+            return;
+        }
+
+        sprite_queue.draw_sprite(&self.container_sprite);
 
         // multiple calculations below uses this
         let mut frame = self.bar_sprite.frame();
