@@ -501,6 +501,10 @@ impl BattleScene {
             return;
         };
 
+        if !data.signals.is_empty() {
+            log::debug!("Received {:?} from {player_index}", data.signals);
+        }
+
         // check disconnect
         if data.signals.contains(&NetplaySignal::Disconnect) {
             controller.connected = false;
@@ -562,10 +566,6 @@ impl BattleScene {
                         // resolve the time of the input if it differs from our simulation
                         resimulation_time =
                             Some(self.synced_time + controller.buffer.len() as FrameTime);
-                    }
-
-                    if !data.signals.is_empty() {
-                        log::debug!("Received {:?} from {index}", data.signals);
                     }
 
                     controller.buffer.push_last(data);
