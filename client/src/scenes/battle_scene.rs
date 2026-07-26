@@ -4,9 +4,7 @@ use crate::packages::PackageNamespace;
 use crate::render::ui::{Textbox, TextboxMessage, TextboxQuestion};
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::{
-    BattleRecording, PlayerInputBuffer, RecordedPreview, RecordedRollback, RecordedSimulationFlow,
-};
+use crate::saves::{BattleRecording, PlayerInputBuffer, RecordedPreview, RecordedSimulationFlow};
 use framework::prelude::*;
 use packets::structures::PackageId;
 use packets::{
@@ -38,6 +36,7 @@ struct PlayerController {
     lead_tolerance: usize,
     average_frame_time: f32,
     recommended_disconnect: HashSet<usize>,
+    latest_accounted_time: FrameTime,
 }
 
 struct Backup {
@@ -184,6 +183,7 @@ impl BattleScene {
                 lead_tolerance: DEFAULT_LEAD_TOLERANCE,
                 average_frame_time: target_frame_time,
                 recommended_disconnect: Default::default(),
+                latest_accounted_time: -1,
             });
 
             if !setup.memories.is_empty() {
@@ -479,17 +479,9 @@ impl BattleScene {
 
         let frame_start_instant = game_io.frame_start_instant();
         let target_frame_time = game_io.target_duration().as_secs_f32();
-        let mut resimulation_time = self.simulation.time;
-
         for packet in packets {
-            if let Some(resim_time) =
-                self.handle_packet(frame_start_instant, target_frame_time, packet)
-            {
-                resimulation_time = resimulation_time.min(resim_time);
-            }
+            self.handle_packet(frame_start_instant, target_frame_time, packet)
         }
-
-        self.resimulate(game_io, resimulation_time);
 
         // after resolving packets we should see if we're too far ahead of other players
         // and decide whether we should slow down
@@ -544,30 +536,14 @@ impl BattleScene {
         frame_start_instant: Instant,
         target_frame_time: f32,
         packet: NetplayPacket,
-    ) -> Option<FrameTime> {
+    ) {
         let index = packet.index;
-        let mut resimulation_time = None;
 
         match packet.data {
             NetplayPacketData::Buffer { data, frame_time } => {
                 self.process_buffer_signals(index, &data);
 
                 if let Some(controller) = self.player_controllers.get_mut(index) {
-                    // we check the frame after our input is relevant to verify whether our predictions are correct,
-                    // since the backup for the frame of our input is taken before inputs are loaded
-                    let relevant_backup = self.backups.get(controller.buffer.len() + 1);
-
-                    // if there's no relevant backup, we can't verify whether our inputs are correct
-                    // so we'll fallback to rolling back by using is_none_or
-                    if relevant_backup.is_none_or(|backup| {
-                        let inputs = &backup.simulation.inputs;
-                        inputs.get(index).is_none_or(|input| !input.matches(&data))
-                    }) {
-                        // resolve the time of the input if it differs from our simulation
-                        resimulation_time =
-                            Some(self.synced_time + controller.buffer.len() as FrameTime);
-                    }
-
                     controller.buffer.push_last(data);
 
                     // mimicking packet_sender.rs
@@ -619,8 +595,6 @@ impl BattleScene {
                 );
             }
         }
-
-        resimulation_time
     }
 
     fn resolve_slowdown(&mut self, game_io: &GameIO) {
@@ -970,17 +944,6 @@ impl BattleScene {
             return;
         }
 
-        if let Some(recording) = &mut self.recording
-            && let Some(recorded_flow) = &mut recording.simulation_flow
-        {
-            recorded_flow.rollbacks.push_back(RecordedRollback {
-                flow_step: recorded_flow.current_step,
-                resimulate_time: start_time,
-            });
-
-            self.record_buffer_limits();
-        }
-
         self.resources
             .audio_tracking
             .prep_resimulation(start_time, self.simulation.time);
@@ -996,7 +959,6 @@ impl BattleScene {
 
         // resimulate until we're caught up to our previous time
         while self.simulation.time < local_time {
-            // avoiding snapshots for the first frame as it's still retained
             self.simulate(game_io);
         }
 
@@ -1271,39 +1233,56 @@ impl BattleScene {
             .unwrap_or_default()
     }
 
-    fn core_update(&mut self, game_io: &mut GameIO) {
-        // replay rollbacks
-        loop {
-            let Some(playback) = &self.playback else {
-                break;
-            };
+    fn handle_rollback(&mut self, game_io: &mut GameIO) {
+        let mut resimulation_time = self.simulation.time;
 
-            let Some(playback_flow) = &playback.flow else {
-                break;
-            };
+        let player_count = self.player_controllers.len();
+        let synced_time_backup =
+            self.backups.len() - (self.simulation.time - self.synced_time).max(0) as usize;
 
-            let Some(recorded_rollback) = playback_flow.rollbacks.front().cloned() else {
-                break;
-            };
-
-            if playback_flow.current_step != recorded_rollback.flow_step {
-                break;
+        for (i, controller) in self.player_controllers.iter_mut().enumerate() {
+            if i == self.simulation.local_player_index {
+                continue;
             }
 
-            self.resimulate(game_io, recorded_rollback.resimulate_time);
+            let buffer_len = (self.playback.as_ref())
+                .and_then(|playback| playback.flow.as_ref())
+                .and_then(|playback_flow| playback_flow.get_buffer_limit(player_count, i))
+                .unwrap_or(controller.buffer.len());
 
-            let Some(playback) = &mut self.playback else {
-                break;
-            };
+            let first_unaccounted_input_index =
+                (controller.latest_accounted_time - self.synced_time).max(0) as usize;
 
-            let Some(playback_flow) = &mut playback.flow else {
-                break;
-            };
+            for input_index in first_unaccounted_input_index..buffer_len {
+                let Some(data) = controller.buffer.get(input_index) else {
+                    break;
+                };
 
-            playback_flow.rollbacks.pop_front();
-            playback_flow.current_step += 1;
+                let time = self.synced_time + input_index as FrameTime;
+
+                // check the backup made after the input applied
+                let backup_index = synced_time_backup + input_index + 1;
+                let relevant_backup = self.backups.get(backup_index);
+
+                if relevant_backup.is_none_or(|backup| {
+                    debug_assert_eq!(backup.simulation.time, time + 1);
+
+                    let inputs = &backup.simulation.inputs;
+                    inputs.get(i).is_none_or(|input| !input.matches(data))
+                }) {
+                    let time = self.synced_time + input_index as FrameTime;
+                    resimulation_time = resimulation_time.min(time);
+                    break;
+                }
+            }
+
+            controller.latest_accounted_time = self.synced_time + buffer_len as FrameTime - 1;
         }
 
+        self.resimulate(game_io, resimulation_time);
+    }
+
+    fn core_update(&mut self, game_io: &mut GameIO) {
         let mut input_util = InputUtil::new(game_io);
 
         let mut can_simulate = if self.playback.is_some() {
@@ -1347,6 +1326,7 @@ impl BattleScene {
         if can_simulate {
             self.handle_local_input(game_io);
             self.record_buffer_limits();
+            self.handle_rollback(game_io);
 
             self.simulate(game_io);
 

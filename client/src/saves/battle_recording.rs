@@ -7,7 +7,7 @@ use framework::prelude::*;
 use packets::address_parsing::uri_encode;
 use packets::structures::{FileHash, PackageCategory, PackageId};
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, VecDeque};
+use std::collections::HashMap;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub type RecordedPreview = AsyncTask<Option<image::ImageBuffer<image::Rgba<u8>, Vec<u8>>>>;
@@ -22,8 +22,6 @@ pub struct RecordedRollback {
 pub struct RecordedSimulationFlow {
     /// Increments when buffer limits are recorded. (When there's a rewind, or local input is gathered)
     pub current_step: usize,
-    /// The step to rewind at, and the frame time to rewind to
-    pub rollbacks: VecDeque<RecordedRollback>,
     /// the length of the buffer for each player, repeating for each step
     pub buffer_limits: Vec<u8>,
 }
