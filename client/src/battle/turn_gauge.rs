@@ -136,8 +136,6 @@ impl TurnGauge {
             self.animator.set_state(state);
             self.animator.set_loop_mode(AnimatorLoopMode::Loop);
         }
-
-        self.animator.apply(&mut self.bar_sprite);
     }
 
     pub fn draw(&mut self, sprite_queue: &mut SpriteColorQueue) {
@@ -146,6 +144,8 @@ impl TurnGauge {
         }
 
         sprite_queue.draw_sprite(&self.container_sprite);
+
+        self.animator.apply(&mut self.bar_sprite);
 
         // multiple calculations below uses this
         let mut frame = self.bar_sprite.frame();
