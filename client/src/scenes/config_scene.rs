@@ -6,7 +6,8 @@ use crate::render::*;
 use crate::requests::PackageCategoryFilter;
 use crate::resources::*;
 use crate::saves::{
-    BattleZoomConfig, Config, DisplayInput, GlobalSave, InternalResolution, KeyStyle,
+    BattleZoomConfig, Config, DateFormat, DisplayInput, GlobalSave, InternalResolution, KeyStyle,
+    TimeFormat,
 };
 use crate::scenes::CreditsScene;
 use framework::prelude::*;
@@ -609,6 +610,33 @@ impl ConfigScene {
                 },
                 |_, mut config, value| {
                     config.language = value.clone();
+                },
+            )),
+            Box::new(UiConfigCycle::new(
+                game_io,
+                "config-date-format-label",
+                config.borrow().date_format,
+                config.clone(),
+                &[
+                    ("config-date-auto", DateFormat::Auto),
+                    ("config-date-dd-mm-yy", DateFormat::Dmy),
+                    ("config-date-mm-dd-yy", DateFormat::Mdy),
+                ],
+                |_, mut config, value, _| {
+                    config.date_format = value;
+                },
+            )),
+            Box::new(UiConfigCycle::new(
+                game_io,
+                "config-time-format-label",
+                config.borrow().time_format,
+                config.clone(),
+                &[
+                    ("config-time-12-hour", TimeFormat::Twelve),
+                    ("config-time-24-hour", TimeFormat::TwentyFour),
+                ],
+                |_, mut config, value, _| {
+                    config.time_format = value;
                 },
             )),
         ]

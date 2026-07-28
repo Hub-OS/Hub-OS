@@ -40,10 +40,27 @@ pub enum DisplayInput {
     Full,
 }
 
+#[derive(Default, Clone, Copy, PartialEq, Eq)]
+pub enum TimeFormat {
+    #[default]
+    Twelve,
+    TwentyFour,
+}
+
+#[derive(Default, Clone, Copy, PartialEq, Eq)]
+pub enum DateFormat {
+    #[default]
+    Auto,
+    Dmy,
+    Mdy,
+}
+
 #[derive(Clone, PartialEq)]
 pub struct Config {
     // video
     pub language: Option<String>,
+    pub date_format: DateFormat,
+    pub time_format: TimeFormat,
     pub fullscreen: bool,
     pub vsync: bool,
     pub internal_resolution: InternalResolution,
@@ -82,6 +99,53 @@ pub struct Config {
 }
 
 impl Config {
+    pub fn new_empty() -> Self {
+        Config {
+            // video
+            language: None,
+            date_format: Default::default(),
+            time_format: Default::default(),
+            fullscreen: {
+                cfg_android! { true }
+                cfg_desktop_and_web! { false }
+            },
+            vsync: true,
+            internal_resolution: Default::default(),
+            lock_aspect_ratio: true,
+            integer_scaling: false,
+            snap_resize: false,
+            screen_shake: true,
+            battle_zooming: Default::default(),
+            flash_brightness: 100,
+            brightness: 100,
+            saturation: 100,
+            ghosting: 0,
+            hit_numbers: false,
+            heal_numbers: false,
+            drain_numbers: false,
+            display_input: Default::default(),
+            color_blindness: PostProcessColorBlindness::TOTAL_OPTIONS,
+            // audio
+            music: MAX_VOLUME / 2,
+            sfx: MAX_VOLUME / 2,
+            mute_music: false,
+            mute_sfx: false,
+            audio_device: String::new(),
+            // input
+            key_style: Default::default(),
+            key_bindings: HashMap::new(),
+            controller_bindings: HashMap::new(),
+            controller_index: 0,
+            virtual_input_positions: Self::default_virtual_input_positions(),
+            virtual_controller_scale: 1.0,
+            input_delay: DEFAULT_INPUT_DELAY,
+            // online
+            force_relay: false,
+            package_repo: String::from(DEFAULT_PACKAGE_REPO),
+            package_update_check_on_launch: true,
+        }
+    }
+
     pub fn validate(&self) -> bool {
         self.validate_keys() && self.validate_controller()
     }
@@ -325,46 +389,9 @@ impl Config {
 impl Default for Config {
     fn default() -> Config {
         Config {
-            // video
-            language: None,
-            fullscreen: {
-                cfg_android! {true}
-                cfg_desktop_and_web! {false}
-            },
-            vsync: true,
-            internal_resolution: Default::default(),
-            lock_aspect_ratio: true,
-            integer_scaling: false,
-            snap_resize: false,
-            screen_shake: true,
-            battle_zooming: Default::default(),
-            flash_brightness: 100,
-            brightness: 100,
-            saturation: 100,
-            ghosting: 0,
-            hit_numbers: false,
-            heal_numbers: false,
-            drain_numbers: false,
-            display_input: Default::default(),
-            color_blindness: PostProcessColorBlindness::TOTAL_OPTIONS,
-            // audio
-            music: MAX_VOLUME / 2,
-            sfx: MAX_VOLUME / 2,
-            mute_music: false,
-            mute_sfx: false,
-            audio_device: String::new(),
-            // input
-            key_style: Default::default(),
             key_bindings: Self::default_key_bindings(Default::default()),
             controller_bindings: Self::default_controller_bindings(),
-            controller_index: 0,
-            virtual_input_positions: Self::default_virtual_input_positions(),
-            virtual_controller_scale: 1.0,
-            input_delay: DEFAULT_INPUT_DELAY,
-            // online
-            force_relay: false,
-            package_repo: String::from(DEFAULT_PACKAGE_REPO),
-            package_update_check_on_launch: true,
+            ..Config::new_empty()
         }
     }
 }
@@ -375,45 +402,7 @@ impl From<&str> for Config {
         use structures::parse_util::*;
         use strum::IntoEnumIterator;
 
-        let mut config = Config {
-            // video
-            language: None,
-            fullscreen: false,
-            vsync: true,
-            internal_resolution: Default::default(),
-            lock_aspect_ratio: true,
-            integer_scaling: false,
-            snap_resize: false,
-            screen_shake: true,
-            battle_zooming: Default::default(),
-            flash_brightness: 100,
-            brightness: 100,
-            saturation: 100,
-            ghosting: 0,
-            hit_numbers: false,
-            heal_numbers: false,
-            drain_numbers: false,
-            display_input: Default::default(),
-            color_blindness: PostProcessColorBlindness::TOTAL_OPTIONS,
-            // audio
-            music: MAX_VOLUME,
-            sfx: MAX_VOLUME,
-            mute_music: false,
-            mute_sfx: false,
-            audio_device: String::new(),
-            // input
-            key_style: Default::default(),
-            key_bindings: HashMap::new(),
-            controller_bindings: HashMap::new(),
-            controller_index: 0,
-            virtual_input_positions: Self::default_virtual_input_positions(),
-            virtual_controller_scale: 1.0,
-            input_delay: DEFAULT_INPUT_DELAY,
-            // online
-            force_relay: false,
-            package_repo: String::from(DEFAULT_PACKAGE_REPO),
-            package_update_check_on_launch: true,
-        };
+        let mut config = Self::new_empty();
 
         use ini::Ini;
 
@@ -427,6 +416,21 @@ impl From<&str> for Config {
 
         if let Some(properties) = ini.section(Some("Video")) {
             config.language = properties.get("Language").map(String::from);
+            config.date_format = match properties
+                .get("DateFormat")
+                .unwrap_or_default()
+                .to_lowercase()
+                .as_str()
+            {
+                "dmy" => DateFormat::Dmy,
+                "mdy" => DateFormat::Mdy,
+                _ => DateFormat::Auto,
+            };
+            config.time_format = match properties.get("DateFormat").unwrap_or_default() {
+                "24" => TimeFormat::TwentyFour,
+                _ => TimeFormat::Twelve,
+            };
+
             config.fullscreen = parse_or_default(properties.get("Fullscreen"));
             config.vsync = parse_or(properties.get("VSync"), true);
             config.internal_resolution = match properties
@@ -581,6 +585,19 @@ impl std::fmt::Display for Config {
 
         if let Some(language) = &self.language {
             writeln!(f, "Language = {language}")?;
+
+            let date_format = match self.date_format {
+                DateFormat::Auto => "auto",
+                DateFormat::Dmy => "dmy",
+                DateFormat::Mdy => "mdy",
+            };
+            writeln!(f, "DateFormat = {date_format}")?;
+
+            let time_format = match self.time_format {
+                TimeFormat::Twelve => "12",
+                TimeFormat::TwentyFour => "24",
+            };
+            writeln!(f, "TimeFormat = {time_format}")?;
         }
 
         writeln!(f, "Fullscreen = {}", self.fullscreen)?;

@@ -38,6 +38,13 @@ config-relay-always = Always
 
 config-language-label = Language
 config-language-auto = Auto
+config-date-format-label = Date
+config-date-auto = Auto
+config-date-dd-mm-yy = DD/MM/YY
+config-date-mm-dd-yy = MM/DD/YY
+config-time-format-label = Time
+config-time-12-hour = 12 Hour
+config-time-24-hour = 24 Hour
 
 config-vsync-label = VSync
 config-fullscreen-label = Fullscreen

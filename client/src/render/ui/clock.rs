@@ -1,8 +1,11 @@
 use super::{FontName, TextStyle};
 use crate::render::*;
 use crate::resources::*;
+use crate::saves::DateFormat;
+use crate::saves::TimeFormat;
 use chrono::Timelike;
 use framework::prelude::*;
+use std::fmt::Write;
 
 const FONT: FontName = FontName::Thick;
 const TEXT_SHADOW_COLOR: Color = Color::new(0.41, 0.41, 0.41, 1.0);
@@ -12,22 +15,44 @@ const MARGIN: f32 = 2.0;
 pub fn draw_clock(game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
     const MARGIN: f32 = 2.0;
 
+    let globals = Globals::from_resources(game_io);
+    let config = &globals.config;
+
     // generate initial text
     let time = chrono::Local::now();
-    let is_afternoon = time.hour() >= 12;
-    let show_colon = time.timestamp_subsec_millis() > 500;
+    let mut full_text = String::new();
 
-    let mut time_style = TextStyle::new_monospace(game_io, FONT);
-    let format = match show_colon {
-        false => "%I %M %p",
-        true => "%I:%M %p",
+    // hour
+    let formatted_hour = match config.time_format {
+        TimeFormat::Twelve => time.hour12().1,
+        TimeFormat::TwentyFour => time.hour() + 1,
     };
+    let _ = write!(&mut full_text, "{formatted_hour:0>2}");
+
+    // colon
+    full_text.push(if time.timestamp_subsec_millis() > 500 {
+        ':'
+    } else {
+        ' '
+    });
+
+    // minute
+    let _ = write!(&mut full_text, "{:0>2}", time.minute());
+
+    // AM/PM
+    let is_afternoon = time.hour() >= 12;
+
+    if is_afternoon {
+        full_text.push_str(" PM");
+    } else {
+        full_text.push_str(" AM");
+    }
 
     // calculate the position
-    let full_text = time.format(format).to_string();
     let white_str = &full_text[..5];
     let am_pm_str = &full_text[5..];
 
+    let mut time_style = TextStyle::new_monospace(game_io, FONT);
     let text_size = time_style.measure(&full_text).size;
 
     time_style.bounds.set_position(Vec2::new(
@@ -59,11 +84,26 @@ pub fn draw_clock(game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
 }
 
 pub fn draw_date(game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
+    let globals = Globals::from_resources(game_io);
+    let config = &globals.config;
+
+    let text = match config.date_format {
+        DateFormat::Auto => {
+            let time = libc_strftime::epoch();
+            libc_strftime::strftime_local("%x", time)
+        }
+        DateFormat::Dmy => {
+            let time = chrono::Local::now();
+            time.format("%d/%m/%y").to_string()
+        }
+        DateFormat::Mdy => {
+            let time = chrono::Local::now();
+            time.format("%m/%d/%y").to_string()
+        }
+    };
+
     let mut time_style = TextStyle::new_monospace(game_io, FONT);
     time_style.shadow_color = TEXT_SHADOW_COLOR;
     time_style.bounds.set_position(Vec2::new(MARGIN, MARGIN));
-
-    let time = libc_strftime::epoch();
-    let text = libc_strftime::strftime_local("%x", time);
     time_style.draw(game_io, sprite_queue, &text);
 }
