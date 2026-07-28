@@ -63,7 +63,7 @@ pub fn draw_date(game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
     time_style.shadow_color = TEXT_SHADOW_COLOR;
     time_style.bounds.set_position(Vec2::new(MARGIN, MARGIN));
 
-    let time = chrono::Local::now();
-    let text = time.format("%x").to_string();
+    let time = libc_strftime::epoch();
+    let text = libc_strftime::strftime_local("%x", time);
     time_style.draw(game_io, sprite_queue, &text);
 }
