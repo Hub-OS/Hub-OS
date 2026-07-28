@@ -71,6 +71,7 @@ impl BattleAudioTracking {
 
                 // no longer need to track this loop
                 inner.open_loops.remove(id);
+                primary_frame.loops_started.remove(id);
             }
 
             for id in &frame.single_playback {
