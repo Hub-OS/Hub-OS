@@ -256,11 +256,15 @@ impl StagedItems {
         self.updated = true;
         self.items.retain_mut(|item| match &mut item.data {
             StagedItemData::Deck(i) | StagedItemData::Discard(i) => {
+                if *i == index {
+                    return false;
+                }
+
                 if *i > index {
                     *i -= 1;
                 }
 
-                *i != index
+                true
             }
             StagedItemData::Card(_) | StagedItemData::Form(_) | StagedItemData::Icon(_) => true,
         })
