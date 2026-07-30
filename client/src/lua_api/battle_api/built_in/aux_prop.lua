@@ -42,10 +42,12 @@ local req_list = {
   "require_card_hit_flags_absent",
   "require_card_code",
   "require_card_class",
-  "require_card_not_class",
+  "require_card_class_absent",
+  "require_card_not_class", -- deprecated
   "require_card_time_freeze",
   "require_card_tag",
-  "require_card_not_tag",
+  "require_card_tag_absent",
+  "require_card_not_tag", -- deprecated
   "require_statuses",
   "require_statuses_absent",
   "require_projected_health_threshold",

@@ -102,10 +102,10 @@ pub enum AuxRequirement {
     CardHitFlagsAbsent(HitFlags),
     CardCode(String),
     CardClass(CardClass),
-    CardNotClass(CardClass),
+    CardClassAbsent(CardClass),
     CardTimeFreeze(bool),
     CardTag(String),
-    CardNotTag(String),
+    CardTagAbsent(String),
     Statuses(HitFlags),
     StatusesAbsent(HitFlags),
     ProjectedHPThreshold(MathExpr<f32, AuxVariable>, Comparison, f32),
@@ -162,10 +162,10 @@ impl AuxRequirement {
             | AuxRequirement::CardHitFlagsAbsent(_)
             | AuxRequirement::CardCode(_)
             | AuxRequirement::CardClass(_)
-            | AuxRequirement::CardNotClass(_)
+            | AuxRequirement::CardClassAbsent(_)
             | AuxRequirement::CardTimeFreeze(_)
             | AuxRequirement::CardTag(_)
-            | AuxRequirement::CardNotTag(_)
+            | AuxRequirement::CardTagAbsent(_)
             | AuxRequirement::Statuses(_)
             | AuxRequirement::StatusesAbsent(_) => Self::BODY_PRIORITY, // BODY
             AuxRequirement::ProjectedHPThreshold(_, _, _)
@@ -230,10 +230,22 @@ impl AuxRequirement {
             "require_card_hit_flags_absent" => AuxRequirement::CardHitFlagsAbsent(table.get(2)?),
             "require_card_code" => AuxRequirement::CardCode(table.get(2)?),
             "require_card_class" => AuxRequirement::CardClass(table.get(2)?),
-            "require_card_not_class" => AuxRequirement::CardNotClass(table.get(2)?),
+            "require_card_class_absent" => AuxRequirement::CardClassAbsent(table.get(2)?),
+            "require_card_not_class" => {
+                log::warn!(
+                    "aux_prop:require_card_not_class() is deprecated, use :require_card_class_absent() instead"
+                );
+                AuxRequirement::CardClassAbsent(table.get(2)?)
+            }
             "require_card_time_freeze" => AuxRequirement::CardTimeFreeze(table.get(2)?),
             "require_card_tag" => AuxRequirement::CardTag(table.get(2)?),
-            "require_card_not_tag" => AuxRequirement::CardNotTag(table.get(2)?),
+            "require_card_not_tag" => {
+                log::warn!(
+                    "aux_prop:require_card_not_tag() is deprecated, use :require_card_tag_absent() instead"
+                );
+                AuxRequirement::CardTagAbsent(table.get(2)?)
+            }
+            "require_card_tag_absent" => AuxRequirement::CardTagAbsent(table.get(2)?),
             "require_statuses" => AuxRequirement::Statuses(table.get(2)?),
             "require_statuses_absent" => AuxRequirement::StatusesAbsent(table.get(2)?),
             "require_projected_health_threshold" => {
@@ -725,7 +737,7 @@ impl AuxProp {
                 AuxRequirement::CardClass(class) => {
                     card.is_some_and(|card| card.card_class == *class)
                 }
-                AuxRequirement::CardNotClass(class) => {
+                AuxRequirement::CardClassAbsent(class) => {
                     card.is_some_and(|card| card.card_class != *class)
                 }
                 AuxRequirement::CardTimeFreeze(time_freeze) => {
@@ -734,7 +746,7 @@ impl AuxProp {
                 AuxRequirement::CardTag(tag) => {
                     card.is_some_and(|card| card.tags.iter().any(|s| **s == *tag))
                 }
-                AuxRequirement::CardNotTag(tag) => {
+                AuxRequirement::CardTagAbsent(tag) => {
                     card.is_some_and(|card| !card.tags.iter().any(|s| **s == *tag))
                 }
                 AuxRequirement::Statuses(flags) => {
@@ -780,7 +792,7 @@ impl AuxProp {
                 AuxRequirement::CardClass(class) => {
                     card.is_some_and(|card| card.card_class == *class)
                 }
-                AuxRequirement::CardNotClass(class) => {
+                AuxRequirement::CardClassAbsent(class) => {
                     card.is_some_and(|card| card.card_class != *class)
                 }
                 AuxRequirement::CardTimeFreeze(time_freeze) => {
@@ -789,7 +801,7 @@ impl AuxProp {
                 AuxRequirement::CardTag(tag) => {
                     card.is_some_and(|card| card.tags.iter().any(|s| **s == *tag))
                 }
-                AuxRequirement::CardNotTag(tag) => {
+                AuxRequirement::CardTagAbsent(tag) => {
                     card.is_some_and(|card| !card.tags.iter().any(|s| **s == *tag))
                 }
                 _ => continue,
