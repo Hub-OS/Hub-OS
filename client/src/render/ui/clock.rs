@@ -25,7 +25,7 @@ pub fn draw_clock(game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
     // hour
     let formatted_hour = match config.time_format {
         TimeFormat::Twelve => time.hour12().1,
-        TimeFormat::TwentyFour => time.hour() + 1,
+        TimeFormat::TwentyFour => time.hour(),
     };
     let _ = write!(&mut full_text, "{formatted_hour:0>2}");
 
