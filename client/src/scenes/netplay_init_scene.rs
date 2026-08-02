@@ -43,7 +43,6 @@ enum ConnectionStage {
     WaitingToSharePackages,
     SharingPackages,
     Ready,
-    HeadingToBattle,
     Failed,
     Complete,
 }
@@ -57,8 +56,7 @@ impl ConnectionStage {
             ConnectionStage::SharingPackageList => ConnectionStage::WaitingToSharePackages,
             ConnectionStage::WaitingToSharePackages => ConnectionStage::SharingPackages,
             ConnectionStage::SharingPackages => ConnectionStage::Ready,
-            ConnectionStage::Ready => ConnectionStage::HeadingToBattle,
-            ConnectionStage::HeadingToBattle => ConnectionStage::Complete,
+            ConnectionStage::Ready => ConnectionStage::Complete,
             ConnectionStage::Failed => ConnectionStage::Complete,
             ConnectionStage::Complete => ConnectionStage::Complete,
         };
@@ -863,18 +861,13 @@ impl NetplayInitScene {
                 }
             }
             ConnectionStage::SharingPackages => {
-                if self.missing_packages.is_empty() {
+                if self.missing_packages.is_empty() && !game_io.is_in_transition() {
                     self.stage.advance();
                     self.broadcast(NetplayPacketData::Ready);
                 }
             }
             ConnectionStage::Ready => {
                 if self.check_peers(|c| c.ready) {
-                    self.stage.advance();
-                }
-            }
-            ConnectionStage::HeadingToBattle => {
-                if !game_io.is_in_transition() {
                     self.finalize_peer_dependency_trees(game_io);
 
                     let globals = Globals::from_resources(game_io);
