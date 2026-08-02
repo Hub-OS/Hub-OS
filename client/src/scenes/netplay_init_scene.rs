@@ -265,8 +265,6 @@ impl NetplayInitScene {
     }
 
     fn handle_packets(&mut self, game_io: &mut GameIO) {
-        let mut packets = Vec::new();
-
         let mut players_disconnected = HashSet::new();
 
         if let Some((_, receiver)) = &self.fallback_sender_receiver {
@@ -282,19 +280,29 @@ impl NetplayInitScene {
 
             if matches!(self.stage, ConnectionStage::FlushingFallback) {
                 // ignore packets until we get a hello to flush old data
+                let hello = NetplayPacketData::Hello {
+                    battle_id: self.battle_id,
+                };
+
                 while let Ok(packet) = receiver.try_recv() {
-                    if packet.data
-                        == (NetplayPacketData::Hello {
-                            battle_id: self.battle_id,
-                        })
-                    {
+                    if packet.data == hello {
                         self.stage.advance();
                         break;
                     }
                 }
             } else {
+                let receiver = receiver.clone();
+
                 while let Ok(packet) = receiver.try_recv() {
-                    packets.push(packet);
+                    self.handle_packet(game_io, packet);
+
+                    // avoid reading packets meant for the battle scene
+                    if matches!(
+                        self.stage,
+                        ConnectionStage::Failed | ConnectionStage::Complete
+                    ) {
+                        break;
+                    }
                 }
             }
 
@@ -302,6 +310,7 @@ impl NetplayInitScene {
                 // remote must've disconnected in some edge case, such as leaving before connection even starts
                 log::error!("Relayed connection silent");
                 self.stage = ConnectionStage::Failed;
+                return;
             }
 
             // detect connection loss with other clients
@@ -316,57 +325,67 @@ impl NetplayInitScene {
                 }
             }
         } else {
-            for connection in &mut self.player_connections {
+            for i in 0..self.player_connections.len() {
+                let Some(connection) = self.player_connections.get_mut(i) else {
+                    break;
+                };
+
                 let Some(receiver) = &connection.receiver else {
                     continue;
                 };
 
-                while let Ok(packet) = receiver.try_recv() {
-                    packets.push(packet);
-                }
-
                 if connection.player_setup.connected && receiver.is_disconnected() {
                     connection.player_setup.connected = false;
                     players_disconnected.insert(connection.player_setup.index);
+                    continue;
+                }
+
+                let receiver = receiver.clone();
+
+                while let Ok(packet) = receiver.try_recv() {
+                    self.handle_packet(game_io, packet);
+
+                    // avoid reading packets meant for the battle scene
+                    if matches!(
+                        self.stage,
+                        ConnectionStage::Failed | ConnectionStage::Complete
+                    ) {
+                        break;
+                    }
                 }
             }
         }
 
-        if !players_disconnected.is_empty() {
-            // identify spectators early if we need to
-            self.identify_spectators(game_io);
-
-            // fail if the player that disconnected isn't spectating
-            for connection in &self.player_connections {
-                let index = connection.player_setup.index;
-
-                if !players_disconnected.contains(&index) {
-                    continue;
-                }
-
-                if connection.spectating {
-                    log::debug!(
-                        "Lost connection with spectator {index} ({})",
-                        connection.player_setup.nickname
-                    );
-                    continue;
-                }
-
-                // fail entirely if this player is involved in the battle
-                self.stage = ConnectionStage::Failed;
-                log::error!(
-                    "Lost connection with player {index} ({})",
-                    connection.player_setup.nickname
-                );
-            }
-        }
-
-        if matches!(self.stage, ConnectionStage::Failed) {
+        if players_disconnected.is_empty() {
             return;
         }
 
-        for packet in packets {
-            self.handle_packet(game_io, packet);
+        // identify spectators early if we need to
+        self.identify_spectators(game_io);
+
+        // fail if the player that disconnected isn't spectating
+        for connection in &self.player_connections {
+            let index = connection.player_setup.index;
+
+            if !players_disconnected.contains(&index) {
+                continue;
+            }
+
+            if connection.spectating {
+                log::debug!(
+                    "Lost connection with spectator {index} ({})",
+                    connection.player_setup.nickname
+                );
+                continue;
+            }
+
+            // fail entirely if this player is involved in the battle
+            self.stage = ConnectionStage::Failed;
+            log::error!(
+                "Lost connection with player {index} ({})",
+                connection.player_setup.nickname
+            );
+            break;
         }
     }
 
