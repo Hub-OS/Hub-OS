@@ -65,15 +65,20 @@ impl ConnectionStage {
     }
 }
 
-struct RemotePlayerConnection {
-    last_message: Instant,
-    player_setup: PlayerSetup,
-    spectating: bool,
-    load_map: HashMap<FileHash, PackageCategory>,
-    requested_packages: Option<Vec<FileHash>>,
+#[derive(Default)]
+struct ConnectionCheckPoints {
     ready_for_packages: bool,
     received_package_list: bool,
     ready: bool,
+}
+
+struct RemotePlayerConnection {
+    player_setup: PlayerSetup,
+    spectating: bool,
+    checkpoints: ConnectionCheckPoints,
+    last_message: Instant,
+    package_load_map: HashMap<FileHash, PackageCategory>,
+    requested_packages: Option<Vec<FileHash>>,
     send: Option<NetplayPacketSender>,
     receiver: Option<NetplayPacketReceiver>,
 }
@@ -199,7 +204,6 @@ impl NetplayInitScene {
                      emotion,
                      nickname,
                  }| RemotePlayerConnection {
-                    last_message: now,
                     player_setup: PlayerSetup {
                         health,
                         base_health,
@@ -208,11 +212,10 @@ impl NetplayInitScene {
                         ..PlayerSetup::new_empty(index, false)
                     },
                     spectating: false,
-                    load_map: HashMap::new(),
+                    checkpoints: Default::default(),
+                    last_message: now,
+                    package_load_map: HashMap::new(),
                     requested_packages: None,
-                    ready_for_packages: false,
-                    received_package_list: false,
-                    ready: false,
                     send: None,
                     receiver: None,
                 },
@@ -292,18 +295,7 @@ impl NetplayInitScene {
                 }
             } else {
                 let receiver = receiver.clone();
-
-                while let Ok(packet) = receiver.try_recv() {
-                    self.handle_packet(game_io, packet);
-
-                    // avoid reading packets meant for the battle scene
-                    if matches!(
-                        self.stage,
-                        ConnectionStage::Failed | ConnectionStage::Complete
-                    ) {
-                        break;
-                    }
-                }
+                self.process_connection_packets(game_io, receiver);
             }
 
             if game_io.frame_start_instant() - self.last_fallback_instant > MAX_SILENCE {
@@ -315,7 +307,7 @@ impl NetplayInitScene {
 
             // detect connection loss with other clients
             for connection in &mut self.player_connections {
-                if connection.ready || !connection.player_setup.connected {
+                if connection.checkpoints.ready || !connection.player_setup.connected {
                     continue;
                 }
 
@@ -327,6 +319,8 @@ impl NetplayInitScene {
         } else {
             for i in 0..self.player_connections.len() {
                 let Some(connection) = self.player_connections.get_mut(i) else {
+                    // occurs when a previous iteration advances to ConnectionStage::Ready
+                    // and consumes self.player_connections
                     break;
                 };
 
@@ -341,18 +335,7 @@ impl NetplayInitScene {
                 }
 
                 let receiver = receiver.clone();
-
-                while let Ok(packet) = receiver.try_recv() {
-                    self.handle_packet(game_io, packet);
-
-                    // avoid reading packets meant for the battle scene
-                    if matches!(
-                        self.stage,
-                        ConnectionStage::Failed | ConnectionStage::Complete
-                    ) {
-                        break;
-                    }
-                }
+                self.process_connection_packets(game_io, receiver);
             }
         }
 
@@ -386,6 +369,24 @@ impl NetplayInitScene {
                 connection.player_setup.nickname
             );
             break;
+        }
+    }
+
+    fn process_connection_packets(
+        &mut self,
+        game_io: &mut GameIO,
+        receiver: NetplayPacketReceiver,
+    ) {
+        while let Ok(packet) = receiver.try_recv() {
+            self.handle_packet(game_io, packet);
+
+            if matches!(
+                self.stage,
+                ConnectionStage::Failed | ConnectionStage::Complete
+            ) {
+                // avoid reading packets meant for the battle scene
+                break;
+            }
         }
     }
 
@@ -466,7 +467,7 @@ impl NetplayInitScene {
             }
             NetplayPacketData::PackageList { packages } => {
                 if !connection.spectating {
-                    connection.received_package_list = true;
+                    connection.checkpoints.received_package_list = true;
 
                     let globals = Globals::from_resources(game_io);
 
@@ -483,7 +484,7 @@ impl NetplayInitScene {
                         .collect();
 
                     for (category, _, hash) in &load_list {
-                        connection.load_map.insert(*hash, *category);
+                        connection.package_load_map.insert(*hash, *category);
                     }
 
                     // track files we need to download
@@ -513,7 +514,7 @@ impl NetplayInitScene {
                 }
             }
             NetplayPacketData::ReadyForPackages => {
-                connection.ready_for_packages = true;
+                connection.checkpoints.ready_for_packages = true;
             }
             NetplayPacketData::PackageZip { data } => {
                 let hash = FileHash::hash(&data);
@@ -528,7 +529,7 @@ impl NetplayInitScene {
                     let globals = Globals::from_resources_mut(game_io);
 
                     for connection in &mut self.player_connections {
-                        if let Some(category) = connection.load_map.remove(&hash) {
+                        if let Some(category) = connection.package_load_map.remove(&hash) {
                             let namespace =
                                 PackageNamespace::Netplay(connection.player_setup.index as u8);
                             let optional_package =
@@ -553,8 +554,8 @@ impl NetplayInitScene {
                 }
             }
             NetplayPacketData::Ready => {
-                connection.ready = true;
-                connection.ready_for_packages = true;
+                connection.checkpoints.ready = true;
+                connection.checkpoints.ready_for_packages = true;
             }
             NetplayPacketData::Buffer { data, .. } => {
                 self.identify_spectators(game_io);
@@ -653,7 +654,7 @@ impl NetplayInitScene {
         for connection in &mut self.player_connections {
             if config.spectators.contains(&connection.player_setup.index) {
                 connection.spectating = true;
-                connection.received_package_list = true;
+                connection.checkpoints.received_package_list = true;
             }
         }
 
@@ -867,14 +868,15 @@ impl NetplayInitScene {
                 let spectating = self.spectating;
 
                 if self.check_peers(|c| {
-                    (spectating || c.requested_packages.is_some()) && c.received_package_list
+                    (spectating || c.requested_packages.is_some())
+                        && c.checkpoints.received_package_list
                 }) {
                     self.stage.advance();
                     self.broadcast(NetplayPacketData::ReadyForPackages);
                 }
             }
             ConnectionStage::WaitingToSharePackages => {
-                if self.check_peers(|c| c.ready_for_packages) {
+                if self.check_peers(|c| c.checkpoints.ready_for_packages) {
                     self.stage.advance();
                     self.share_packages(game_io);
                 }
@@ -886,7 +888,7 @@ impl NetplayInitScene {
                 }
             }
             ConnectionStage::Ready => {
-                if self.check_peers(|c| c.ready) {
+                if self.check_peers(|c| c.checkpoints.ready) {
                     self.finalize_peer_dependency_trees(game_io);
 
                     let globals = Globals::from_resources(game_io);
