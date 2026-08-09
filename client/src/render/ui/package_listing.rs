@@ -68,6 +68,7 @@ impl From<PackageResponse> for PackageListing {
         extend_dependencies(PackageCategory::Library, meta.dependencies.libraries);
         extend_dependencies(PackageCategory::Status, meta.dependencies.statuses);
         extend_dependencies(PackageCategory::TileState, meta.dependencies.tile_states);
+        extend_dependencies(PackageCategory::Player, meta.dependencies.players);
 
         let mut long_name = meta.package.long_name;
         let name = meta.package.name;

@@ -78,6 +78,7 @@ pub struct PackageResponseDependencies {
     pub statuses: Vec<PackageId>,
     pub cards: Vec<PackageId>,
     pub tile_states: Vec<PackageId>,
+    pub players: Vec<PackageId>,
 }
 
 #[serde_as]
