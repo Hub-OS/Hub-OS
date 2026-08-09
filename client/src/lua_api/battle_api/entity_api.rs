@@ -1738,6 +1738,18 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
     getter::<&Living, _>(lua_api, "max_health", |living: &Living, lua, _: ()| {
         lua.pack_multi(living.max_health)
     });
+
+    setter(
+        lua_api,
+        "boost_max_health",
+        |living: &mut Living, _, health: i32| {
+            living.max_health += health;
+            living.max_health = living.max_health.max(1);
+            living.health = living.health.min(living.max_health);
+            Ok(())
+        },
+    );
+
     getter::<&Living, _>(lua_api, "health", |living: &Living, lua, _: ()| {
         lua.pack_multi(living.health)
     });
@@ -2924,17 +2936,6 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
 
         lua.pack_multi(())
     });
-
-    setter(
-        lua_api,
-        "boost_max_health",
-        |living: &mut Living, _, health: i32| {
-            living.max_health += health;
-            living.max_health = living.max_health.max(1);
-            living.health = living.health.min(living.max_health);
-            Ok(())
-        },
-    );
 
     getter::<&Player, _>(lua_api, "hand_size", |player: &Player, lua, _: ()| {
         lua.pack_multi(player.hand_size())
