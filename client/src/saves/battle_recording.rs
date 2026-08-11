@@ -140,8 +140,11 @@ impl BattleRecording {
         let preview_image = preview.join().flatten();
 
         log::info!("Starting background thread to save recording");
+        service_comm.send(SupportingServiceEvent::Saving);
 
-        std::thread::spawn(move || {
+        let success_comm = service_comm.clone();
+
+        let save = move || {
             use std::fs::File;
 
             // resolve package path
@@ -212,11 +215,16 @@ impl BattleRecording {
 
             log::info!("Saved recording to {dat_path}");
 
-            service_comm.send(SupportingServiceEvent::LoadPackage {
+            success_comm.send(SupportingServiceEvent::LoadPackage {
                 category: PackageCategory::Encounter,
                 namespace: PackageNamespace::Local,
                 path: folder_path,
-            })
+            });
+        };
+
+        std::thread::spawn(move || {
+            save();
+            service_comm.send(SupportingServiceEvent::SavingEnd);
         });
     }
 

@@ -77,6 +77,11 @@ serde_with = { version = "3.21.0", default-features = false, features = [
 [target.'cfg(not(target_os = "android"))'.dependencies]
 minreq = { version = "2", features = ["https-native"] }
 opener = "0.8.2"
+native-dialog = { version = "0.9.7", features = [
+  "async",
+  "windows_dpi_awareness",
+  "windows_visual_styles"
+] }
 
 [target.'cfg(target_os = "android")'.dependencies]
 framework = { git = "https://github.com/Hub-OS/framework", features = [

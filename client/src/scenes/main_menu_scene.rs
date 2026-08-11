@@ -220,6 +220,7 @@ impl Scene for MainMenuScene {
 
         if !self.textbox.is_open() && self.quitting {
             game_io.quit();
+            self.quitting = false;
         }
 
         // music
