@@ -1,8 +1,8 @@
-use crate::bindable::SpriteColorMode;
+use crate::bindable::{Element, SpriteColorMode};
 use crate::packages::{Package, PackageId, PackageNamespace, PlayerPackage};
 use crate::render::ui::{
-    ElementSprite, FontName, PlayerHealthUi, SceneTitle, ScrollTracker, SubSceneFrame, TextStyle,
-    Textbox, TextboxMessage, UiInputTracker,
+    ContextMenu, ElementSprite, FontName, PlayerHealthUi, SceneTitle, ScrollTracker, SubSceneFrame,
+    TextStyle, Textbox, TextboxMessage, TextboxPrompt, UiInputTracker,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
 use crate::resources::*;
@@ -11,6 +11,16 @@ use crate::scenes::PackageScene;
 use framework::prelude::*;
 use itertools::Itertools;
 use std::sync::Arc;
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum ContextOption {
+    Search,
+    Info,
+}
+
+enum Event {
+    ApplyNameFilter(String),
+}
 
 #[derive(Clone, Copy)]
 enum CharacterError {
@@ -54,6 +64,10 @@ pub struct CharacterSelectScene {
     v_scroll_tracker: ScrollTracker,
     h_scroll_tracker: ScrollTracker,
     ui_input_tracker: UiInputTracker,
+    context_menu: ContextMenu<ContextOption>,
+    name_filter: String,
+    event_sender: flume::Sender<Event>,
+    event_receiver: flume::Receiver<Event>,
     textbox: Textbox,
     just_pushed: bool,
     next_scene: NextScene,
@@ -133,6 +147,21 @@ impl CharacterSelectScene {
         ui_animator.set_state("LOCKED_BADGE");
         ui_animator.apply(&mut locked_sprite);
 
+        // context menu
+        let mut context_menu =
+            ContextMenu::new_translated(game_io, "character-select-scene-title", Vec2::ZERO);
+        context_menu.set_and_translate_options(
+            game_io,
+            &[
+                ("augments-option-search", ContextOption::Search),
+                ("augments-option-info", ContextOption::Info),
+            ],
+        );
+        context_menu.recalculate_layout(game_io);
+        context_menu.set_top_center(RESOLUTION_F * Vec2::new(0.5, 0.25));
+
+        let (event_sender, event_receiver) = flume::unbounded();
+
         Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_character_scene(game_io),
@@ -158,6 +187,10 @@ impl CharacterSelectScene {
                 .with_wrap(true)
                 .with_selected_index(h_index),
             ui_input_tracker: UiInputTracker::new(),
+            context_menu,
+            name_filter: Default::default(),
+            event_sender,
+            event_receiver,
             textbox: Textbox::new_navigation(game_io),
             just_pushed: true,
             next_scene: NextScene::None,
@@ -213,34 +246,43 @@ impl CharacterSelectScene {
         sprite
     }
 
-    fn selected_package_id(&self) -> &PackageId {
+    fn selected_package_id(&self) -> Option<&PackageId> {
         let v_index = self.v_scroll_tracker.selected_index();
         let h_index = self.h_scroll_tracker.selected_index();
 
-        self.icon_rows[v_index].get_package_id(h_index)
+        self.icon_rows.get(v_index)?.get_package_id(h_index)
     }
 
     fn selected_package_error(&self) -> Option<CharacterError> {
         let v_index = self.v_scroll_tracker.selected_index();
         let h_index = self.h_scroll_tracker.selected_index();
 
-        self.icon_rows[v_index].compact_package_data[h_index].error
+        self.icon_rows.get(v_index)?.compact_package_data[h_index].error
     }
 
-    fn selected_character_name(&self) -> &str {
+    fn selected_character_name(&self) -> Option<&str> {
         let v_index = self.v_scroll_tracker.selected_index();
         let h_index = self.h_scroll_tracker.selected_index();
 
-        self.icon_rows[v_index].get_character_name(h_index)
+        self.icon_rows.get(v_index)?.get_character_name(h_index)
     }
 
     fn update_selected_character(&mut self, game_io: &GameIO) {
-        let package_id = self.selected_package_id();
+        let old_element_position = self.element_sprite.position();
+        let Some(package_id) = self.selected_package_id() else {
+            self.preview_sprite.set_frame(Rect::ZERO);
+            self.health_ui.set_health(0);
+
+            self.element_sprite = ElementSprite::new(game_io, Element::None);
+            self.element_sprite.set_position(old_element_position);
+            return;
+        };
+
         let player_package = Self::get_player_package(game_io, package_id);
+
         self.preview_sprite = Self::load_character_sprite(game_io, player_package);
         self.health_ui.set_health(player_package.health);
 
-        let old_element_position = self.element_sprite.position();
         self.element_sprite = ElementSprite::new(game_io, player_package.element);
         self.element_sprite.set_position(old_element_position);
     }
@@ -250,6 +292,33 @@ impl CharacterSelectScene {
     }
 
     fn handle_input(&mut self, game_io: &mut GameIO) {
+        if self.context_menu.is_open() {
+            self.handle_context_menu(game_io);
+            return;
+        }
+
+        let input_util = InputUtil::new(game_io);
+
+        if input_util.was_just_pressed(Input::Option2) {
+            let options: &[(&str, ContextOption)] = if self.selected_package_id().is_some() {
+                &[
+                    ("augments-option-search", ContextOption::Search),
+                    ("augments-option-info", ContextOption::Info),
+                ]
+            } else {
+                &[("augments-option-search", ContextOption::Search)]
+            };
+
+            self.context_menu
+                .set_and_translate_options(game_io, options);
+
+            self.context_menu.open();
+
+            let globals = Globals::from_resources(game_io);
+            globals.audio.play_sound(&globals.sfx.cursor_select);
+            return;
+        }
+
         // update selection
         let input_tracker = &self.ui_input_tracker;
         let prev_v_index = self.v_scroll_tracker.selected_index();
@@ -285,10 +354,11 @@ impl CharacterSelectScene {
         // test description
         let input_util = InputUtil::new(game_io);
 
-        if input_util.was_just_pressed(Input::Option) {
+        if input_util.was_just_pressed(Input::Option)
+            && let Some(package_id) = self.selected_package_id()
+        {
             let globals = Globals::from_resources(game_io);
 
-            let package_id = self.selected_package_id();
             let player_packages = &globals.player_packages;
             let package = player_packages
                 .package(PackageNamespace::Local, package_id)
@@ -305,49 +375,33 @@ impl CharacterSelectScene {
             return;
         }
 
-        if input_util.was_just_pressed(Input::Option2) {
-            let globals = Globals::from_resources(game_io);
-            globals.audio.play_sound(&globals.sfx.cursor_select);
-
-            let package_id = self.selected_package_id();
-            let player_packages = &globals.player_packages;
-            let package = player_packages
-                .package(PackageNamespace::Local, package_id)
-                .unwrap();
-
-            let scene = PackageScene::new(game_io, package.create_package_listing().into());
-            let transition = crate::transitions::new_sub_scene(game_io);
-            self.next_scene = NextScene::new_push(scene).with_transition(transition);
-
-            return;
-        }
-
         // test select
         if input_util.was_just_pressed(Input::Confirm) {
             let globals = Globals::from_resources_mut(game_io);
-            globals.audio.play_sound(&globals.sfx.cursor_select);
 
-            self.v_scroll_tracker.remember_index();
-            self.h_scroll_tracker.remember_index();
+            if let Some(package_id) = self.selected_package_id() {
+                globals.audio.play_sound(&globals.sfx.cursor_select);
 
-            let package_id = self.selected_package_id();
-            globals.global_save.selected_character = package_id.clone();
-            globals.global_save.selected_character_time = GlobalSave::current_time();
-            globals.global_save.save();
+                globals.global_save.selected_character = package_id.clone();
+                globals.global_save.selected_character_time = GlobalSave::current_time();
+                globals.global_save.save();
 
-            if let Some(error) = self.selected_package_error() {
-                let messages = [
-                    globals.translate(error.translation_key()),
-                    globals.translate("character-select-fallback-details"),
-                ];
+                if let Some(error) = self.selected_package_error() {
+                    let messages = [
+                        globals.translate(error.translation_key()),
+                        globals.translate("character-select-fallback-details"),
+                    ];
 
-                self.textbox.use_navigation_avatar(game_io);
+                    self.textbox.use_navigation_avatar(game_io);
 
-                for message in messages {
-                    self.textbox.push_interface(TextboxMessage::new(message));
+                    for message in messages {
+                        self.textbox.push_interface(TextboxMessage::new(message));
+                    }
+
+                    self.textbox.open();
                 }
-
-                self.textbox.open();
+            } else {
+                globals.audio.play_sound(&globals.sfx.cursor_error);
             }
         }
 
@@ -361,6 +415,90 @@ impl CharacterSelectScene {
             let transition = crate::transitions::new_sub_scene_pop(game_io);
             self.next_scene = NextScene::new_pop().with_transition(transition);
         }
+    }
+
+    fn handle_context_menu(&mut self, game_io: &mut GameIO) {
+        let Some(selection) = self.context_menu.update(game_io, &self.ui_input_tracker) else {
+            return;
+        };
+
+        self.context_menu.close();
+
+        match selection {
+            ContextOption::Search => {
+                let sender = self.event_sender.clone();
+                let interface = TextboxPrompt::new(move |filter| {
+                    let _ = sender.send(Event::ApplyNameFilter(filter));
+                });
+
+                self.textbox.push_interface(interface);
+                self.textbox.open();
+            }
+            ContextOption::Info => {
+                let globals = Globals::from_resources(game_io);
+
+                if let Some(package_id) = self.selected_package_id() {
+                    let player_packages = &globals.player_packages;
+                    let package = player_packages
+                        .package(PackageNamespace::Local, package_id)
+                        .unwrap();
+
+                    let scene = PackageScene::new(game_io, package.create_package_listing().into());
+                    let transition = crate::transitions::new_sub_scene(game_io);
+                    self.next_scene = NextScene::new_push(scene).with_transition(transition);
+                }
+            }
+        }
+    }
+
+    fn handle_events(&mut self, game_io: &mut GameIO) {
+        while let Ok(event) = self.event_receiver.try_recv() {
+            let Event::ApplyNameFilter(filter) = event;
+            self.name_filter = filter.to_lowercase();
+            self.rebuild_icon_rows(game_io);
+            self.update_selected_character(game_io);
+        }
+    }
+
+    fn rebuild_icon_rows(&mut self, game_io: &mut GameIO) {
+        let prev_package_id = self.selected_package_id().cloned();
+        let mut package_ids = Self::collect_package_ids(game_io);
+
+        if !self.name_filter.is_empty() {
+            let globals = Globals::from_resources(game_io);
+
+            package_ids.retain(|id| {
+                let Some(package) = globals
+                    .player_packages
+                    .package_or_fallback(PackageNamespace::Local, id)
+                else {
+                    return false;
+                };
+
+                package.search_name.contains(&self.name_filter)
+            });
+        }
+
+        let selected_index = prev_package_id
+            .and_then(|id| package_ids.iter().position(|v| **v == id))
+            .unwrap_or_default();
+
+        let icon_rows = Self::build_icon_rows(game_io, self.icons_per_row, package_ids);
+        self.icon_rows = icon_rows;
+
+        let v_index = selected_index / self.icons_per_row;
+        let h_index = selected_index % self.icons_per_row;
+
+        self.v_scroll_tracker.set_total_items(self.icon_rows.len());
+        self.h_scroll_tracker.set_total_items(
+            self.icon_rows
+                .get(v_index)
+                .map(|row| row.package_count())
+                .unwrap_or_default(),
+        );
+
+        self.v_scroll_tracker.set_selected_index(v_index);
+        self.h_scroll_tracker.set_selected_index(h_index);
     }
 }
 
@@ -394,26 +532,8 @@ impl Scene for CharacterSelectScene {
             }
         }
 
-        let package_ids = Self::collect_package_ids(game_io);
-
-        if package_ids.is_empty() {
-            let transition = crate::transitions::new_scene_pop(game_io);
-            self.next_scene = NextScene::new_pop().with_transition(transition);
-            return;
-        }
-
         // recreate icon rows in case navis changed
-        self.icon_rows = Self::build_icon_rows(game_io, self.icons_per_row, package_ids);
-        self.v_scroll_tracker.set_total_items(self.icon_rows.len());
-
-        let row_index = self.v_scroll_tracker.selected_index();
-        let current_row_cols = self
-            .icon_rows
-            .get(row_index)
-            .map(|row| row.package_count())
-            .unwrap_or_default();
-        self.h_scroll_tracker.set_total_items(current_row_cols);
-
+        self.rebuild_icon_rows(game_io);
         self.update_selected_character(game_io);
     }
 
@@ -436,6 +556,8 @@ impl Scene for CharacterSelectScene {
         if !game_io.is_in_transition() && !self.textbox.is_open() {
             self.handle_input(game_io);
         }
+
+        self.handle_events(game_io);
 
         // update scroll
         let target_y = Self::calculate_target_scroll(self.v_scroll_tracker.top_index());
@@ -493,15 +615,17 @@ impl Scene for CharacterSelectScene {
 
         self.cursor_sprite.set_position(offset);
 
-        sprite_queue.draw_sprite(&self.cursor_sprite);
+        if let Some(name) = self.selected_character_name() {
+            // only draw the cursor if there's a character selected
+            sprite_queue.draw_sprite(&self.cursor_sprite);
 
-        // draw name
-        let mut text_style = TextStyle::new(game_io, FontName::Thick);
-        text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
-        text_style.bounds.set_position(self.name_position);
+            // draw name
+            let mut text_style = TextStyle::new(game_io, FontName::Thick);
+            text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
+            text_style.bounds.set_position(self.name_position);
 
-        let name = self.selected_character_name();
-        text_style.draw(game_io, &mut sprite_queue, name);
+            text_style.draw(game_io, &mut sprite_queue, name);
+        }
 
         // draw overlays
         self.health_ui.draw(game_io, &mut sprite_queue);
@@ -511,6 +635,9 @@ impl Scene for CharacterSelectScene {
 
         // draw title
         self.scene_title.draw(game_io, &mut sprite_queue);
+
+        // draw context menu
+        self.context_menu.draw(game_io, &mut sprite_queue);
 
         // draw textbox
         self.textbox.draw(game_io, &mut sprite_queue);
@@ -568,12 +695,12 @@ impl IconRow {
         }
     }
 
-    fn get_package_id(&self, index: usize) -> &PackageId {
-        &self.compact_package_data[index].package_id
+    fn get_package_id(&self, index: usize) -> Option<&PackageId> {
+        Some(&self.compact_package_data.get(index)?.package_id)
     }
 
-    fn get_character_name(&self, index: usize) -> &str {
-        &self.compact_package_data[index].name
+    fn get_character_name(&self, index: usize) -> Option<&str> {
+        Some(&self.compact_package_data.get(index)?.name)
     }
 
     fn package_count(&self) -> usize {

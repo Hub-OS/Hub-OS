@@ -35,6 +35,7 @@ pub struct PlayerPackage {
     pub package_info: PackageInfo,
     pub long_name: Arc<str>,
     pub name: Arc<str>,
+    pub search_name: String,
     pub element: Element,
     pub health: i32,
     pub mega_boost: i8,
@@ -113,6 +114,8 @@ impl Package for PlayerPackage {
         } else {
             meta.long_name.into()
         };
+        package.search_name =
+            package.name.to_lowercase() + "\0" + &package.long_name.to_lowercase();
         package.element = Element::from(meta.element);
         package.health = meta.health;
         package.mega_boost = meta.mega_boost;
