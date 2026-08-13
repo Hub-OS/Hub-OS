@@ -120,10 +120,9 @@ impl PlayerFallbackResources {
         type ShadowQuery<'a> = hecs::Without<&'a EntityShadow, &'a EntityShadowHidden>;
         let entities = &mut simulation.entities;
 
-        let shadow_sprite_tree_index = entities
-            .query_one_mut::<ShadowQuery>(entity_id.into())
-            .ok()
-            .map(|shadow| shadow.sprite_tree_index);
+        let shadow = entities.query_one_mut::<ShadowQuery>(entity_id.into()).ok();
+        let has_animated_shadow = shadow.is_some_and(|shadow| shadow.animator_index.is_some());
+        let shadow_sprite_tree_index = shadow.map(|shadow| shadow.sprite_tree_index);
 
         // grab the entitiy
         let (entity, player) = simulation
@@ -135,7 +134,7 @@ impl PlayerFallbackResources {
         let battle_animator = simulation.animators.remove(entity.animator_index).unwrap();
 
         // retain direct synced sprites and the synced shadow sprite
-        let synced = battle_animator
+        let mut synced: Vec<PlayerFallbackResource> = battle_animator
             .synced_animators()
             .iter()
             .flat_map(|animator_index| {
@@ -184,6 +183,22 @@ impl PlayerFallbackResources {
                 })
             })
             .collect();
+
+        // make sure we didn't miss the shadow sprite
+        if !has_animated_shadow
+            && let Some(sprite_tree_index) = shadow_sprite_tree_index
+            && let Some(sprite_tree) = simulation.sprite_trees.get(sprite_tree_index)
+        {
+            let shadow_sprite_node = sprite_tree.root();
+            synced.push(PlayerFallbackResource {
+                texture_path: shadow_sprite_node.texture_path().to_string(),
+                animator: Default::default(),
+                palette_path: None,
+                layer: i32::MAX,
+                offset: -shadow_sprite_node.origin(),
+                use_parent_shader: false,
+            });
+        }
 
         let Some(sprite_tree) = simulation.sprite_trees.get(entity.sprite_tree_index) else {
             return Default::default();
