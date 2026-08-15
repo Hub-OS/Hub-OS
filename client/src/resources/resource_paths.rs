@@ -327,6 +327,8 @@ impl ResourcePaths {
                 };
 
                 if let Some(path) = shared_path {
+                    // canonicalize to capture the existing capitalization
+                    let path = std::fs::canonicalize(&path).unwrap_or(path);
                     let path = path.join("Hub OS");
                     data_path = ResourcePaths::clean_folder(&path.to_string_lossy());
                     let _ = std::fs::create_dir_all(&data_path);
