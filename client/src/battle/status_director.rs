@@ -263,14 +263,17 @@ impl StatusDirector {
     }
 
     pub fn remove_statuses(&mut self, status_flags: HitFlags) {
-        for status in self.statuses.iter_mut() {
+        self.statuses.retain_mut(|status| {
             if status.status_flag & status_flags == 0 {
-                continue;
+                return true;
             }
 
-            status.remaining_time = 0;
-            status.lifetime = 0;
-        }
+            if let Some(callback) = status.destructor.take() {
+                self.ready_destructors.push(callback);
+            }
+
+            false
+        });
 
         self.new_statuses
             .retain(|status| status.status_flag & status_flags == 0);
