@@ -1,4 +1,4 @@
-use crate::battle::{BattleSimulation, Entity, Field, Living};
+use crate::battle::{BattleSimulation, Entity, Field, Living, SimulationRng};
 use crate::bindable::{EntityId, HitFlag};
 use crate::render::ui::{FontName, TextStyle};
 use crate::render::{FrameTime, SpriteColorQueue};
@@ -99,16 +99,13 @@ pub struct HpParticle {
 
 impl HpParticle {
     pub fn new(
+        rng: &mut SimulationRng,
         field: &Field,
         entity: &Entity,
         time: FrameTime,
         source: HpChangeSource,
         abs_change: i32,
     ) -> Self {
-        // use external rng since mods shouldn't be able to read this value
-        // and we want to avoid calling the simulation's rng differently for each player
-        let mut rng = rand::rng();
-
         let mut position = field.calc_tile_center((entity.x, entity.y), false);
         position += entity.movement_offset;
 
@@ -182,7 +179,14 @@ impl HpParticle {
 
             let field = &simulation.field;
 
-            let particle = HpParticle::new(field, entity, time, source, value);
+            let particle = HpParticle::new(
+                &mut simulation.local_rng,
+                field,
+                entity,
+                time,
+                source,
+                value,
+            );
             hp_particles.push(particle);
             spawned = true;
         };

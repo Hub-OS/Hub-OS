@@ -39,6 +39,8 @@ pub enum CanonicalizedEvent {
 pub struct BattleSimulation {
     pub statistics: BattleStatistics,
     pub rng: SimulationRng,
+    /// Separate RNG for local only effects to avoid influencing the primary RNG
+    pub local_rng: SimulationRng,
     pub inputs: Vec<PlayerInput>,
     pub memories: HashMap<usize, EntityMemories>,
     pub time: FrameTime,
@@ -90,6 +92,7 @@ impl BattleSimulation {
         Self {
             statistics: BattleStatistics::new(),
             rng: SimulationRng::seed_from_u64(meta.seed),
+            local_rng: SimulationRng::seed_from_u64(meta.seed),
             time: 0,
             battle_time: 0,
             inputs: vec![PlayerInput::new(); meta.player_count],
@@ -175,6 +178,7 @@ impl BattleSimulation {
             inputs: self.inputs.clone(),
             memories: self.memories.clone(),
             rng: self.rng.clone(),
+            local_rng: self.local_rng.clone(),
             time: self.time,
             battle_time: self.battle_time,
             camera: self.camera.clone(game_io),
