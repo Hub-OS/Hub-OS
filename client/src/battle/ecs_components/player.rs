@@ -379,22 +379,29 @@ impl Player {
     pub fn hand_size(&self) -> usize {
         const MAX_HAND_SIZE: usize = CARD_SELECT_ROWS * CARD_SELECT_CARD_COLS;
         const BASE_HAND_SIZE: i32 = 5;
+        const BASE_MAX_HAND_SIZE: i32 = MAX_HAND_SIZE as i32 - 2;
 
         let boosted_hand_size = BASE_HAND_SIZE.saturating_add(self.hand_size_boost as _);
 
         let augment_iter = self.augments.values();
-        let augmented_hand_size = augment_iter.fold(boosted_hand_size, |acc, m| {
-            acc.saturating_add(m.hand_size_boost as i32 * m.level as i32)
-        });
+        let (augmented_hand_size, augmented_max_hand_size) = augment_iter.fold(
+            (boosted_hand_size, BASE_MAX_HAND_SIZE),
+            |(hand_size, max_hand_size), m| {
+                (
+                    hand_size.saturating_add(m.hand_size_boost as i32 * m.level as i32),
+                    max_hand_size.saturating_add(m.max_hand_size_boost as i32 * m.level as i32),
+                )
+            },
+        );
 
         // subtract space taken up by card buttons
         let button_space = PlayerOverridables::card_button_slots_for(self)
             .map(CardSelectButton::space_used_by_card_buttons)
             .unwrap_or_default();
 
-        let max = MAX_HAND_SIZE.saturating_sub(button_space);
+        let max_room = MAX_HAND_SIZE.saturating_sub(button_space);
 
-        (augmented_hand_size.max(1) as usize).min(max)
+        (augmented_hand_size.min(augmented_max_hand_size).max(2) as usize).min(max_room)
     }
 
     pub fn attack_level(&self) -> u8 {

@@ -25,6 +25,7 @@ struct AugmentMeta {
     dark_boost: i8,
     deck_boost: i8,
     hand_size_boost: i8,
+    max_hand_size_boost: i8,
     visible_to_tagged: Vec<String>,
     tags: Vec<String>,
 
@@ -58,6 +59,7 @@ pub struct AugmentPackage {
     pub dark_boost: i8,
     pub deck_boost: i8,
     pub hand_size_boost: i8,
+    pub max_hand_size_boost: i8,
     pub priority: bool,
 
     // switch drive specific
@@ -158,6 +160,7 @@ impl Package for AugmentPackage {
         package.dark_boost = meta.dark_boost;
         package.deck_boost = meta.deck_boost;
         package.hand_size_boost = meta.hand_size_boost;
+        package.max_hand_size_boost = meta.max_hand_size_boost;
         package.priority = meta.priority.unwrap_or_default();
 
         // switch drive specific
