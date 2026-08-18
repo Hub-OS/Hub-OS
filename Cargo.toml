@@ -7,12 +7,12 @@ version = "0.109.1"
 
 [profile.dev]
 opt-level = 1
-debug = 1
+debug = "line-tables-only"
 
 [profile.dev-fast]
 inherits = "dev"
 opt-level = 0
-debug = 1
+debug = "line-tables-only"
 
 [profile.release]
 lto = true
