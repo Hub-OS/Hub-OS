@@ -33,6 +33,8 @@ fn system_base(game_io: &GameIO, area: &mut OverworldArea) {
         .query_one_mut::<&mut MovementAnimator>(player_data.entity)
         .unwrap();
 
+    let globals = Globals::from_resources(game_io);
+
     if input_direction == Direction::None {
         // clear direction queue on stop, allows for better diagonal stops on keyboard
         if movement_animator.state() != MovementState::Idle {
@@ -40,7 +42,7 @@ fn system_base(game_io: &GameIO, area: &mut OverworldArea) {
         }
 
         movement_animator.set_state(MovementState::Idle);
-    } else if input_util.is_down(Input::Sprint) {
+    } else if input_util.is_down(Input::Sprint) ^ globals.config.auto_sprint {
         movement_animator.set_state(MovementState::Running);
     } else {
         movement_animator.set_state(MovementState::Walking);

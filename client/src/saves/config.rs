@@ -92,6 +92,7 @@ pub struct Config {
     pub virtual_input_positions: HashMap<Button, Vec2>,
     pub virtual_controller_scale: f32,
     pub input_delay: u8,
+    pub auto_sprint: bool,
     // online
     pub force_relay: bool,
     pub package_repo: String,
@@ -139,6 +140,7 @@ impl Config {
             virtual_input_positions: Self::default_virtual_input_positions(),
             virtual_controller_scale: 1.0,
             input_delay: DEFAULT_INPUT_DELAY,
+            auto_sprint: false,
             // online
             force_relay: false,
             package_repo: String::from(DEFAULT_PACKAGE_REPO),
@@ -559,6 +561,7 @@ impl From<&str> for Config {
         if let Some(properties) = ini.section(Some("Online")) {
             config.input_delay = parse_or(properties.get("InputDelay"), DEFAULT_INPUT_DELAY);
             config.force_relay = parse_or(properties.get("ForceRelay"), false);
+            config.auto_sprint = parse_or_default(properties.get("AutoSprint"));
 
             config.package_repo = properties
                 .get("PackageRepo")
@@ -694,6 +697,7 @@ impl std::fmt::Display for Config {
         writeln!(f, "[Online]")?;
         writeln!(f, "InputDelay = {}", self.input_delay)?;
         writeln!(f, "ForceRelay = {}", self.force_relay)?;
+        writeln!(f, "AutoSprint = {}", self.auto_sprint)?;
 
         if self.package_repo != DEFAULT_PACKAGE_REPO {
             writeln!(f, "PackageRepo = {}", self.package_repo)?;

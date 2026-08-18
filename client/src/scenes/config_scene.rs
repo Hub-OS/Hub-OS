@@ -306,6 +306,16 @@ impl ConfigScene {
             )),
             Box::new(UiConfigToggle::new(
                 game_io,
+                "config-auto-sprint",
+                config.borrow().auto_sprint,
+                config.clone(),
+                |_, mut config| {
+                    config.auto_sprint = !config.auto_sprint;
+                    config.auto_sprint
+                },
+            )),
+            Box::new(UiConfigToggle::new(
+                game_io,
                 "config-package-update-check-on-launch",
                 config.borrow().package_update_check_on_launch,
                 config.clone(),
