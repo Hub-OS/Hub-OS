@@ -15,4 +15,4 @@ navigation-yes = Yes
 navigation-no = No
 
 navigation-quit-without-saving-title = Quit without saving?
-navigation-quit-without-saving-question = Currently saving data, quit anyway?
+navigation-quit-while-saving-question = Currently saving data, quit anyway?

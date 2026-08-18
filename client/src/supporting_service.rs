@@ -66,7 +66,7 @@ impl SupportingService {
                 .set_owner(&Box::new(game_io.window()))
                 .set_level(MessageLevel::Warning)
                 .set_title(globals.translate("navigation-quit-without-saving-title"))
-                .set_text(globals.translate("navigation-quit-without-saving-question"))
+                .set_text(globals.translate("navigation-quit-while-saving-question"))
                 .confirm();
 
             game_io
