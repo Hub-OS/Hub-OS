@@ -36,9 +36,14 @@ impl<T: PartialEq> VecSet<T> {
         }
     }
 
+    /// Inserts regardless of whether the value exists in the set already.
+    /// Can break the assumption that the set will store only unique elements.
+    pub fn insert_regardless(&mut self, value: T) {
+        self.values.push(value);
+    }
+
     pub fn remove(&mut self, value: T) -> Option<T> {
         let index = self.values.iter().position(|v| *v == value)?;
-
         Some(self.values.swap_remove(index))
     }
 }
