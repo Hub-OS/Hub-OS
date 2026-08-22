@@ -3,8 +3,8 @@ use crate::battle::{Living, Movement};
 use crate::bindable::{Drag, EntityId, HitFlag, HitFlags};
 use crate::render::FrameTime;
 use crate::resources::DRAG_LOCKOUT;
-use crate::structures::VecMap;
 use packets::structures::Direction;
+use structures::collections::VecMap;
 
 #[derive(Clone)]
 struct AppliedStatus {

@@ -1,5 +1,6 @@
 use crate::bindable::{Drag, EntityId, HitFlag, HitFlags};
-use crate::{render::FrameTime, structures::VecMap};
+use crate::render::FrameTime;
+use structures::collections::VecMap;
 
 #[derive(Clone)]
 pub struct AttackContext {
@@ -43,14 +44,19 @@ impl<'lua> rollback_mlua::FromLua<'lua> for AttackContext {
                     from: lua_value.type_name(),
                     to: "AttackContext",
                     message: None,
-                })
+                });
             }
         };
 
         Ok(AttackContext {
             aggressor: table.get("aggressor").unwrap_or_default(),
             flags: table.get("flags").unwrap_or_default(),
-            durations: VecMap::from_lua_table(table.get("status_durations")?),
+            durations: VecMap::from_iter_no_dedup(
+                table
+                    .get::<_, rollback_mlua::Table>("status_durations")?
+                    .pairs()
+                    .flatten(),
+            ),
             drag: table.get("drag").unwrap_or_default(),
         })
     }
@@ -64,7 +70,10 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for &AttackContext {
         let table = lua.create_table()?;
         table.set("aggressor", self.aggressor)?;
         table.set("flags", self.flags)?;
-        table.set("status_durations", self.durations.to_lua_table(lua)?)?;
+        table.raw_set(
+            "status_durations",
+            lua.create_table_from(self.durations.iter().cloned())?,
+        )?;
 
         if self.drag != Drag::default() {
             table.set("drag", self.drag)?;

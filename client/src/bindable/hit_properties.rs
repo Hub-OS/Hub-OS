@@ -1,7 +1,7 @@
 use crate::battle::AttackContext;
 use crate::bindable::*;
 use crate::render::FrameTime;
-use crate::structures::VecMap;
+use structures::collections::VecMap;
 
 #[derive(Clone)]
 pub struct HitProperties {
@@ -64,14 +64,19 @@ impl<'lua> rollback_mlua::FromLua<'lua> for HitProperties {
                     from: lua_value.type_name(),
                     to: "HitProperties",
                     message: None,
-                })
+                });
             }
         };
 
         Ok(HitProperties {
             damage: table.raw_get("damage").unwrap_or_default(),
             flags: table.get("flags").unwrap_or_default(),
-            durations: VecMap::from_lua_table(table.get("status_durations")?),
+            durations: VecMap::from_iter_no_dedup(
+                table
+                    .get::<_, rollback_mlua::Table>("status_durations")?
+                    .pairs()
+                    .flatten(),
+            ),
             element: table.raw_get("element").unwrap_or_default(),
             secondary_element: table.raw_get("secondary_element").unwrap_or_default(),
             drag: table.raw_get("drag").unwrap_or_default(),
@@ -97,7 +102,10 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for &HitProperties {
         let table = lua.create_table()?;
         table.raw_set("damage", self.damage)?;
         table.raw_set("flags", self.flags)?;
-        table.raw_set("status_durations", self.durations.to_lua_table(lua)?)?;
+        table.raw_set(
+            "status_durations",
+            lua.create_table_from(self.durations.iter().cloned())?,
+        )?;
         table.raw_set("element", self.element)?;
         table.raw_set("secondary_element", self.secondary_element)?;
         table.raw_set("drag", self.drag)?;

@@ -4,11 +4,11 @@ use crate::lua_api::{BattleVmManager, HIT_FLAG_TABLE, create_status_table};
 use crate::packages::{Package, PackageInfo, PackageNamespace};
 use crate::render::FrameTime;
 use crate::resources::Globals;
-use crate::structures::VecSet;
 use framework::prelude::GameIO;
 use packets::structures::{PackageCategory, PackageId};
 use std::collections::HashMap;
 use std::sync::Arc;
+use structures::collections::VecSet;
 
 const STATUS_LIMIT: HitFlags = 60;
 

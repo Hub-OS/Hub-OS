@@ -10,7 +10,7 @@ use crate::render::*;
 use crate::resources::*;
 use crate::saves::{BattleZoomConfig, RecordedPreview};
 use crate::scenes::BattleEvent;
-use crate::structures::{DenseSlotMap, SlotMap, VecMap};
+use crate::structures::{DenseSlotMap, SlotMap};
 use framework::prelude::*;
 use packets::NetplaySignal;
 use packets::structures::BattleStatistics;
@@ -18,6 +18,7 @@ use rand::SeedableRng;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use structures::collections::VecMap;
 
 pub use rand_xoshiro::Xoshiro256PlusPlus as SimulationRng;
 

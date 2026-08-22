@@ -6,10 +6,11 @@ use crate::packages::{CardPackage, CardPackageStatusDuration, PackageId, Package
 use crate::render::ui::{ElementSprite, FontName, TextStyle};
 use crate::render::{FrameTime, SpriteColorQueue, SpriteNode};
 use crate::resources::BATTLE_INFO_SHADOW_COLOR;
-use crate::structures::{Tree, VecMap};
+use crate::structures::Tree;
 use framework::prelude::{Color, GameIO, Vec2};
 use std::borrow::Cow;
 use std::sync::Arc;
+use structures::collections::VecMap;
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct CardProperties<L = HitFlags, D = VecMap<HitFlags, FrameTime>> {
@@ -284,10 +285,12 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CardProperties {
             card_class: table.get("card_class").unwrap_or_default(),
             limit: table.get("limit").unwrap_or_default(),
             hit_flags: table.get("hit_flags").unwrap_or_default(),
-            status_durations: table
-                .get("status_durations")
-                .map(VecMap::from_lua_table)
-                .unwrap_or_default(),
+            status_durations: VecMap::from_iter_no_dedup(
+                table
+                    .get::<_, rollback_mlua::Table>("status_durations")?
+                    .pairs()
+                    .flatten(),
+            ),
             can_boost: table.get("can_boost").unwrap_or_default(),
             can_charge: table.get("can_charge").unwrap_or_default(),
             time_freeze: table.get("time_freeze").unwrap_or_default(),
@@ -334,7 +337,10 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for &CardProperties {
         table.set("card_class", self.card_class)?;
         table.set("limit", self.limit)?;
         table.set("hit_flags", self.hit_flags)?;
-        table.set("status_durations", self.status_durations.to_lua_table(lua)?)?;
+        table.raw_set(
+            "status_durations",
+            lua.create_table_from(self.status_durations.iter().cloned())?,
+        )?;
 
         if self.can_boost {
             table.set("can_boost", true)?;

@@ -4,12 +4,12 @@ use crate::bindable::{CardClass, CardProperties};
 use crate::render::ui::{PackageListing, PackagePreviewData};
 use crate::render::{FrameTime, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, ResourcePaths};
-use crate::structures::VecMap;
 use framework::prelude::{GameIO, Sprite, Texture, UVec2, Vec2};
 use packets::structures::FileHash;
 use serde::Deserialize;
 use std::borrow::Cow;
 use std::sync::Arc;
+use structures::collections::VecMap;
 
 pub enum CardPackageStatusDuration {
     Level(usize),

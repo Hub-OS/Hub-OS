@@ -1,9 +1,9 @@
 use crate::overworld::components::{MovementAnimator, MovementState};
 use crate::render::{Animator, AnimatorLoopMode, FrameTime};
 use crate::resources::{AssetManager, AudioBehavior, Globals, OVERWORLD_RUN_THRESHOLD};
-use crate::structures::VecMap;
 use framework::prelude::{GameIO, Sprite, Vec3, Vec3Swizzles};
 use packets::structures::{ActorKeyFrame, ActorProperty, ActorPropertyId, Direction, Ease};
+use structures::collections::VecMap;
 
 struct PropertyKeyFrame {
     ease: Ease,

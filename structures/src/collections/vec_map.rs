@@ -95,30 +95,12 @@ where
     pub fn from_unique_vec(v: Vec<(K, V)>) -> Self {
         Self { list: v }
     }
-}
 
-impl<'lua, K, V> VecMap<K, V>
-where
-    K: rollback_mlua::FromLua<'lua> + rollback_mlua::IntoLua<'lua> + Copy,
-    V: rollback_mlua::FromLua<'lua> + rollback_mlua::IntoLua<'lua> + Copy,
-{
-    pub fn from_lua_table(table: rollback_mlua::Table<'lua>) -> Self {
-        let durations = table.pairs::<K, V>().flatten().collect();
-
-        Self { list: durations }
-    }
-
-    pub fn to_lua_table(
-        &self,
-        lua: &'lua rollback_mlua::Lua,
-    ) -> rollback_mlua::Result<rollback_mlua::Table<'lua>> {
-        let table = lua.create_table()?;
-
-        for (key, value) in &self.list {
-            table.raw_set(*key, *value)?;
+    /// Does not attempt to deduplicate keys entering the VecMap. Useful for converting from an existing map.
+    pub fn from_iter_no_dedup<T: IntoIterator<Item = (K, V)>>(iter: T) -> Self {
+        Self {
+            list: iter.into_iter().collect(),
         }
-
-        Ok(table)
     }
 }
 
@@ -193,5 +175,51 @@ impl<'a, K, V> VecMapVacantEntry<'a, K, V> {
 
     pub fn insert(self, value: V) {
         self.map.list.push((self.key, value));
+    }
+}
+
+impl<K, V> FromIterator<(K, V)> for VecMap<K, V>
+where
+    K: PartialEq,
+{
+    fn from_iter<T: IntoIterator<Item = (K, V)>>(iter: T) -> Self {
+        let iter = iter.into_iter();
+
+        let mut map = Self {
+            list: Vec::with_capacity(iter.size_hint().0),
+        };
+
+        for (key, value) in iter {
+            map.insert(key, value);
+        }
+
+        map
+    }
+}
+
+impl<K, V> IntoIterator for VecMap<K, V> {
+    type Item = (K, V);
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.list.into_iter()
+    }
+}
+
+impl<'a, K, V> IntoIterator for &'a VecMap<K, V> {
+    type Item = &'a (K, V);
+    type IntoIter = std::slice::Iter<'a, (K, V)>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.list.iter()
+    }
+}
+
+impl<'a, K, V> IntoIterator for &'a mut VecMap<K, V> {
+    type Item = &'a mut (K, V);
+    type IntoIter = std::slice::IterMut<'a, (K, V)>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.list.iter_mut()
     }
 }

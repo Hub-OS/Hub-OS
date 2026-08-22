@@ -10,7 +10,6 @@ use crate::resources::{
     SyncDataPacketReceiver, SyncDataPacketSender, TEXT_DARK_SHADOW_COLOR,
 };
 use crate::saves::GlobalSave;
-use crate::structures::VecMap;
 use framework::math::Vec2;
 use framework::prelude::{GameIO, NextScene, Rect, RenderPass, Scene};
 use packets::address_parsing::{uri_decode, uri_encode};
@@ -18,6 +17,7 @@ use packets::structures::{FileHash, PackageCategory, PackageId, Uuid};
 use packets::{MulticastPacket, Reliability, SyncDataPacket, deserialize, serialize};
 use std::net::SocketAddr;
 use std::time::{Duration, Instant};
+use structures::collections::VecMap;
 
 const BROADCAST_RATE: Duration = Duration::from_secs(1);
 
