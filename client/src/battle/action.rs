@@ -410,7 +410,7 @@ impl Action {
         let mut indices = std::mem::take(&mut action_queue.pending);
 
         if let Some(index) = action_queue.active {
-            indices.push_back(index);
+            indices.push_front(index);
         }
 
         Action::delete_multi(game_io, resources, simulation, true, indices);
