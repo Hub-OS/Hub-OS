@@ -18,7 +18,7 @@ mlua = { version = "0.9", features = ["vendored", "lua54"] }
 clap = { workspace = true }
 roxmltree = "0.19"
 itertools = "0.12"
-rand = "0.8"
+rand = { workspace = true }
 getrandom = "0.2"
 zip = { version = "0.6", features = ["deflate"], default-features = false }
 flate2 = "1.0"

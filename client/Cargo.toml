@@ -24,8 +24,8 @@ log = "0.4"
 rollback_mlua = { workspace = true }
 num-derive = "0.4"
 num-traits = "0.2"
-rand = { version = "0.9", features = ["os_rng"] }
-rand_xoshiro = "0.7"
+rand = { workspace = true, features = ["sys_rng"] }
+rand_xoshiro = "0.8"
 rmp-serde = "1.1"
 rodio = { version = "0.21", default-features = false, features = [
   "playback",

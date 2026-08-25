@@ -10,7 +10,7 @@ use crate::bindable::DefensePriority;
 use crate::lua_api::{VM_INDEX_REGISTRY_KEY, create_action_table};
 use crate::render::FrameTime;
 use packets::structures::Emotion;
-use rand::Rng;
+use rand::RngExt;
 use std::ops::{Range, RangeInclusive};
 
 #[derive(Clone, Debug)]

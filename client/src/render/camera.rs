@@ -204,7 +204,7 @@ impl Camera {
 
         #[cfg(not(feature = "record_every_frame"))]
         if self.shake_elapsed <= self.shake_duration {
-            use rand::Rng;
+            use rand::RngExt;
 
             let progress = self.shake_elapsed as f32 / self.shake_duration as f32;
 

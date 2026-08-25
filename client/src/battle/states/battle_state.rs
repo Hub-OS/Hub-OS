@@ -1351,7 +1351,7 @@ impl BattleState {
             if remaining_shake > 0 {
                 status_director.set_remaining_shake(remaining_shake - 1);
 
-                use rand::Rng;
+                use rand::RngExt;
                 entity.movement_offset += Vec2::new(
                     simulation.rng.random_range(-1..=1) as _,
                     simulation.rng.random_range(-1..=1) as _,

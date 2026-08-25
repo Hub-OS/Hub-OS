@@ -172,7 +172,7 @@ impl Background {
         let background_index = if cfg!(feature = "record_every_frame") || path_list.is_empty() {
             0
         } else {
-            use rand::Rng;
+            use rand::RngExt;
             rand::rng().random_range(0..path_list.len())
         };
 

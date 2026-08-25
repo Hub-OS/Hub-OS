@@ -2,7 +2,11 @@ use network_channels::{
     ChannelSender, Config, ConnectionBuilder, Instant, PacketReceiver, PacketSender, Reliability,
     deserialize,
 };
-use rand::{Rng, SeedableRng, rngs, seq::SliceRandom};
+use rand::{
+    RngExt, SeedableRng,
+    rngs::{SmallRng, SysRng},
+    seq::SliceRandom,
+};
 
 fn create_config() -> Config {
     Config {
@@ -40,7 +44,7 @@ fn start_test_environment(
     // B is listening and sending acks on the other side
     let (_, mut sender_b, mut receiver_b) = create_connection(&config);
 
-    let mut rng = rngs::SmallRng::from_os_rng();
+    let mut rng = SmallRng::try_from_rng(&mut SysRng).unwrap();
     let mut sent_messages = vec![vec![]; MESSAGES_PER_RUN];
 
     for _ in 0..RUNS {

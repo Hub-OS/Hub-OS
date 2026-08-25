@@ -1,6 +1,6 @@
-use crate::resources::{ResourcePaths, IDENTITY_LEN};
+use crate::resources::{IDENTITY_LEN, ResourcePaths};
 use packets::address_parsing::uri_encode;
-use rand::{rngs::OsRng, TryRngCore};
+use rand::{TryRng, rngs::SysRng};
 use std::io::Write;
 
 pub struct Identity {
@@ -24,7 +24,7 @@ impl Identity {
             let _ = (&mut data[0..HEADER.len()]).write(HEADER);
 
             // fill the rest with random bytes
-            if let Err(e) = OsRng.try_fill_bytes(&mut data[HEADER.len()..]) {
+            if let Err(e) = SysRng.try_fill_bytes(&mut data[HEADER.len()..]) {
                 log::error!("{e}");
             }
 

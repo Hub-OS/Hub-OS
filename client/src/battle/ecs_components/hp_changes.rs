@@ -4,7 +4,7 @@ use crate::render::ui::{FontName, TextStyle};
 use crate::render::{FrameTime, SpriteColorQueue};
 use crate::resources::{CONTEXT_TEXT_SHADOW_COLOR, Globals};
 use framework::prelude::*;
-use rand::Rng;
+use rand::RngExt;
 
 const HIT_COLOR: Color = Color::from_rgb_u32(0xF89F1F);
 const HEAL_COLOR: Color = Color::from_rgb_u32(0x71FF4A);

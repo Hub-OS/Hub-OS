@@ -8,7 +8,6 @@ use crate::threads::ThreadMessage;
 use flume::Sender;
 use indexmap::IndexSet;
 use packets::{MAX_IDLE_DURATION, ReferOptions, Reliability, ServerPacket};
-use rand::{RngCore, thread_rng};
 use slotmap::{DenseSlotMap, SlotMap};
 use std::borrow::Cow;
 use std::cell::RefCell;
@@ -1293,7 +1292,7 @@ impl Net {
         }
 
         let mut orchestrator = self.packet_orchestrator.borrow_mut();
-        let seed = thread_rng().next_u64();
+        let seed = rand::random::<u64>();
 
         let battle_id = self.active_battles.insert_with_key(|battle_id| {
             let creation_time = Instant::now();

@@ -1,7 +1,7 @@
 use super::BattleLuaApi;
 use crate::lua_api::battle_api::errors::get_source_name;
 use nom::AsBytes;
-use rand::Rng;
+use rand::RngExt;
 use rollback_mlua::prelude::{LuaError, LuaNil};
 
 pub fn inject_desync_patch_api(lua_api: &mut BattleLuaApi) {
