@@ -1,16 +1,14 @@
 use super::{BattleScriptContext, BattleSimulation, SharedBattleResources};
+use crate::battle::BattleComms;
 use crate::lua_api::encounter_init;
 use crate::packages::*;
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::BattleRecording;
-use crate::saves::BlockGrid;
-use crate::saves::Deck;
-use crate::saves::PlayerInputBuffer;
+use crate::saves::{BattleRecording, BlockGrid, Deck, PlayerInputBuffer};
 use framework::prelude::*;
 use itertools::Itertools;
 use packets::structures::{
-    BattleId, BattleStatistics, Emotion, InstalledBlock, InstalledSwitchDrive, MemoryCell,
+    BattleStatistics, Emotion, InstalledBlock, InstalledSwitchDrive, MemoryCell,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -374,14 +372,6 @@ impl BattleMeta {
             globals.load_package(category, namespace, &path);
         }
     }
-}
-
-#[derive(Default)]
-pub struct BattleComms {
-    pub senders: Vec<(Option<usize>, NetplayPacketSender)>,
-    pub receivers: Vec<(Option<usize>, NetplayPacketReceiver)>,
-    pub remote_id: BattleId,
-    pub server: Option<(ClientPacketSender, flume::Receiver<(BattleId, String)>)>,
 }
 
 pub struct BattleProps {

@@ -28,10 +28,8 @@ pub enum BattleEvent {
 
 struct PlayerController {
     nickname: String,
-    connected: bool,
     input_connected: bool,
     ping_sent: Option<Instant>,
-    rtt: f32,
     buffer: PlayerInputBuffer,
     lead_tolerance: usize,
     average_frame_time: f32,
@@ -75,7 +73,6 @@ pub struct BattleScene {
     state: Box<dyn State>,
     backups: VecDeque<Backup>,
     player_controllers: Vec<PlayerController>,
-    connected_count: usize,
     local_index: Option<usize>,
     slow_cooldown: FrameTime,
     resimulating: bool,
@@ -141,7 +138,7 @@ impl BattleScene {
         resources.external_events.load(initial_external_events);
 
         let mut meta = props.meta;
-        let comms = props.comms;
+        let mut comms = props.comms;
 
         // sort player setups for consistent execution order on every client
         meta.player_setups.sort_by_key(|setup| setup.index);
@@ -154,8 +151,15 @@ impl BattleScene {
             None
         };
 
-        // load the players in the correct order
+        // load comms
         let player_setups = &meta.player_setups;
+        comms.load_setups(player_setups);
+
+        if playback.is_some() {
+            comms.clear_connection();
+        }
+
+        // load the players in the correct order
         let mut player_controllers = Vec::with_capacity(player_setups.len());
         let local_index = if playback.is_some() {
             None
@@ -173,12 +177,11 @@ impl BattleScene {
             simulation.inputs[setup.index].set_input_delay(setup.buffer.delay());
 
             let connected = playback.is_none() && setup.connected;
+
             player_controllers.push(PlayerController {
                 nickname: setup.nickname.clone(),
-                connected,
                 input_connected: connected,
                 ping_sent: None,
-                rtt: 0.0,
                 buffer: setup.buffer.clone(),
                 lead_tolerance: DEFAULT_LEAD_TOLERANCE,
                 average_frame_time: target_frame_time,
@@ -199,12 +202,6 @@ impl BattleScene {
                 }
             }
         }
-
-        let connected_count = player_controllers
-            .iter()
-            .enumerate()
-            .filter(|(i, controller)| controller.connected && Some(*i) != local_index)
-            .count();
 
         std::mem::drop(config);
 
@@ -230,7 +227,6 @@ impl BattleScene {
             state: Box::new(IntroState::new()),
             backups: VecDeque::new(),
             player_controllers,
-            connected_count,
             local_index,
             slow_cooldown: 0,
             resimulating: false,
@@ -403,85 +399,19 @@ impl BattleScene {
     }
 
     fn handle_packets(&mut self, game_io: &mut GameIO) {
-        let mut packets = Vec::new();
-        let mut pending_removal = Vec::new();
-
-        'main_loop: for (i, (index, receiver)) in self.comms.receivers.iter().enumerate() {
-            while let Ok(packet) = receiver.try_recv() {
-                if index.is_some() && Some(packet.index) != *index {
-                    // ignore obvious impersonation cheat
-                    continue;
-                }
-
-                let controller = self.player_controllers.get(packet.index);
-
-                if controller.is_none_or(|c| !c.connected) {
-                    // ignore packets from players that have already disconnected
-                    continue;
-                }
-
-                let is_disconnect = matches!(
-                    &packet.data,
-                    NetplayPacketData::Buffer { data, .. } if data.signals.contains(&NetplaySignal::Disconnect)
-                );
-
-                packets.push(packet);
-
-                if is_disconnect {
-                    self.connected_count -= 1;
-
-                    if self.connected_count == 0 {
-                        // break to prevent receiving extra packets from the fallback receiver
-                        // these extra packets are likely for future scenes
-                        break 'main_loop;
-                    }
-                }
-            }
-
-            if receiver.is_disconnected() {
-                pending_removal.push(i);
-            }
-        }
-
-        // remove disconnected receivers
-        let mut possible_disconnect_desync = false;
-
-        for i in pending_removal.into_iter().rev() {
-            let (player_index, _) = self.comms.receivers.remove(i);
-
-            // disconnect an individual
-            // unless this is a fallback connection, then disconnect all players
-            let range = player_index
-                .map(|index| index..index + 1)
-                .unwrap_or(0..self.player_controllers.len());
-
-            for index in range {
-                let Some(controller) = self.player_controllers.get_mut(index) else {
-                    break;
-                };
-
-                if controller.connected {
-                    packets.push(NetplayPacket::new_disconnect_signal(index));
-                    possible_disconnect_desync = true;
-                }
-            }
-        }
-
-        if possible_disconnect_desync {
-            // possible desync when there's another player we need to sync a disconnect with
-            log::error!("Possible desync from a player disconnect without a Disconnect signal");
-        }
-
-        if self.connected_count == 0 {
-            // no need to store these, helps prevent reading too many packets from the fallback receiver
-            self.comms.receivers.clear();
-        }
-
         let frame_start_instant = game_io.frame_start_instant();
         let target_frame_time = game_io.target_duration().as_secs_f32();
-        for packet in packets {
-            self.handle_packet(frame_start_instant, target_frame_time, packet)
+
+        self.comms.receive_packets();
+
+        let mut packets = std::mem::take(&mut self.comms.pending_packets);
+
+        for packet in packets.drain(..) {
+            self.handle_packet(frame_start_instant, target_frame_time, packet);
         }
+
+        // recycle vecs
+        self.comms.pending_packets = packets;
 
         // after resolving packets we should see if we're too far ahead of other players
         // and decide whether we should slow down
@@ -499,7 +429,7 @@ impl BattleScene {
 
         // check disconnect
         if data.signals.contains(&NetplaySignal::Disconnect) {
-            controller.connected = false;
+            // connection state is handled in comms
             controller.input_connected = false;
         } else if data.signals.contains(&NetplaySignal::DisconnectInput) {
             controller.input_connected = false;
@@ -548,14 +478,15 @@ impl BattleScene {
 
                     // mimicking packet_sender.rs
                     // we cap frame_time at target_frame_time since we care more about dips than headroom
-                    controller.average_frame_time = smooth_average_f32(
+                    controller.average_frame_time = BattleComms::smooth_average_f32(
                         controller.average_frame_time,
                         frame_time.max(target_frame_time),
                     );
                 }
             }
             NetplayPacketData::Ping => {
-                self.send(index, NetplayPacketData::Pong { sender: index });
+                self.comms
+                    .send(index, NetplayPacketData::Pong { sender: index });
             }
             NetplayPacketData::Pong { sender } => {
                 if self.local_index == Some(sender)
@@ -563,14 +494,9 @@ impl BattleScene {
                     && let Some(ping_sent_time) = controller.ping_sent.take()
                 {
                     let new_rtt = (frame_start_instant - ping_sent_time).as_secs_f32();
+                    let average_rtt = self.comms.update_rtt_with_new_value(index, new_rtt);
 
-                    if controller.rtt == 0.0 {
-                        controller.rtt = new_rtt;
-                    } else {
-                        controller.rtt = smooth_average_f32(controller.rtt, new_rtt);
-                    }
-
-                    let frame_rtt = (controller.rtt / target_frame_time).ceil() as usize;
+                    let frame_rtt = (average_rtt / target_frame_time).ceil() as usize;
                     // our lead tolerance is half rtt + 1
                     // as we expect the time to send to us to be close to half the round trip
                     controller.lead_tolerance = frame_rtt.div_ceil(2) + 1;
@@ -588,6 +514,8 @@ impl BattleScene {
             }
             NetplayPacketData::Heartbeat => {}
             data => {
+                // note: some packets are handled in BattleComms directly
+
                 let name: &'static str = (&data).into();
 
                 log::error!(
@@ -618,13 +546,15 @@ impl BattleScene {
             }
 
             if debug_visible {
+                let rtt = self.comms.rtts.get(i).cloned().unwrap_or_default();
+
                 println!(
                     "controller: {i}, buffer: {}, tolerance: {}, b+t: {}, b+t target: {}, rtt: {:.0}ms, fps: {:.1}",
                     controller.buffer.len(),
                     controller.lead_tolerance,
                     controller.buffer.len() + controller.lead_tolerance,
                     target_buffer_len,
-                    controller.rtt * 1000.0,
+                    rtt * 1000.0,
                     1.0 / controller.average_frame_time
                 );
             }
@@ -672,60 +602,6 @@ impl BattleScene {
             );
             self.pending_signals
                 .push(NetplaySignal::RecommendDisconnect(i));
-        }
-    }
-
-    fn send(&self, mut to_index: usize, data: NetplayPacketData) {
-        let Some(index) = self.local_index else {
-            return;
-        };
-
-        if index == to_index {
-            log::warn!("Attempted to send netplay packet to self");
-            return;
-        }
-
-        if to_index > index {
-            to_index -= 1;
-        }
-
-        let senders = &self.comms.senders;
-        let Some((i, send)) = senders.get(to_index).or(senders.last()) else {
-            return;
-        };
-
-        if *i == Some(to_index)
-            && let Some(controller) = self.player_controllers.get(to_index)
-            && !controller.connected
-        {
-            // avoid sending data to disconnected players
-            return;
-        }
-
-        let packet = NetplayPacket { index, data };
-        send(packet);
-    }
-
-    fn broadcast(&self, data: NetplayPacketData) {
-        let Some(index) = self.local_index else {
-            return;
-        };
-
-        for (i, send) in &self.comms.senders {
-            if let Some(i) = i
-                && let Some(controller) = self.player_controllers.get(*i)
-                && !controller.connected
-            {
-                // avoid sending data to disconnected players
-                continue;
-            }
-
-            let packet = NetplayPacket {
-                index,
-                data: data.clone(),
-            };
-
-            send(packet);
         }
     }
 
@@ -802,7 +678,7 @@ impl BattleScene {
         // update local buffer
         local_controller.buffer.push_last(data.clone());
 
-        self.broadcast(NetplayPacketData::Buffer {
+        self.comms.broadcast(NetplayPacketData::Buffer {
             data,
             frame_time: game_io.frame_duration().as_secs_f32(),
         });
@@ -829,7 +705,7 @@ impl BattleScene {
             return;
         }
 
-        self.broadcast(NetplayPacketData::Ping);
+        self.comms.broadcast(NetplayPacketData::Ping);
 
         let now = Instant::now();
         for controller in &mut self.player_controllers {
@@ -846,8 +722,8 @@ impl BattleScene {
             return;
         };
 
-        for controller in &self.player_controllers {
-            let len = if controller.input_connected {
+        for (i, controller) in self.player_controllers.iter().enumerate() {
+            let len = if self.comms.connection_states.get(i) != ConnectionState::Disconnected {
                 controller.buffer.len()
             } else {
                 INPUT_BUFFER_LIMIT
@@ -925,13 +801,8 @@ impl BattleScene {
             }
 
             // progress external events, and time
-            let connected_inputs = self
-                .player_controllers
-                .iter()
-                .filter(|c| c.connected)
-                .count();
-
-            external_events.tick(self.synced_time, connected_inputs);
+            let connected_count = self.comms.connection_states.connected_count();
+            external_events.tick(self.synced_time, connected_count);
             self.synced_time += 1;
         }
     }
@@ -1556,11 +1427,4 @@ impl Scene for BattleScene {
 
         render_pass.consume_queue(sprite_queue);
     }
-}
-
-const SMOOTH_FACTOR: f32 = 0.125;
-const SMOOTH_FACTOR_FLIPPED: f32 = 1.0 - SMOOTH_FACTOR;
-
-fn smooth_average_f32(old: f32, new: f32) -> f32 {
-    old * SMOOTH_FACTOR_FLIPPED + new * SMOOTH_FACTOR
 }
