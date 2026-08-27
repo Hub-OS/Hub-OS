@@ -52,3 +52,5 @@ pub const CONTEXT_TEXT_SHADOW_COLOR: Color = Color::new(0.06, 0.31, 0.41, 1.0);
 
 // sizes
 pub const CARD_PREVIEW_SIZE: Vec2 = Vec2::new(56.0, 48.0);
+
+pub const MAX_LONG_DESCRIPTION: usize = 140;

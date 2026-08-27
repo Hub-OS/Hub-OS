@@ -6,7 +6,7 @@ use crate::battle::{BattleCallback, BattleSimulation, CardSelectButton, CardSele
 use crate::bindable::{CardProperties, EntityId};
 use crate::lua_api::helpers::inherit_metatable;
 use crate::render::ui::{FontName, TextStyle};
-use crate::resources::{Globals, ResourcePaths, TEXT_DARK_SHADOW_COLOR};
+use crate::resources::{Globals, MAX_LONG_DESCRIPTION, ResourcePaths, TEXT_DARK_SHADOW_COLOR};
 use crate::structures::TreeIndex;
 use framework::prelude::{GameIO, Vec2};
 
@@ -229,7 +229,9 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
             button.description = packages
                 .package_or_fallback(namespace, &card_props.package_id)
                 .map(|package| {
-                    if package.long_description.is_empty() {
+                    if package.long_description.is_empty()
+                        || package.long_description.len() > MAX_LONG_DESCRIPTION
+                    {
                         package.description.clone()
                     } else {
                         package.long_description.clone()

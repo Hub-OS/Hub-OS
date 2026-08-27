@@ -270,7 +270,9 @@ impl BattleScene {
                         continue;
                     };
 
-                    let description = if package.long_description.is_empty() {
+                    let description = if package.long_description.is_empty()
+                        || package.long_description.len() > MAX_LONG_DESCRIPTION
+                    {
                         package.description.to_string()
                     } else {
                         package.long_description.to_string()
