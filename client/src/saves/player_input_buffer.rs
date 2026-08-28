@@ -1,11 +1,11 @@
 use crate::resources::MAX_INPUT_DELAY;
 use packets::NetplayBufferItem;
+use packets::structures::RunLengthDeque;
 use serde::{Deserialize, Serialize};
-use std::collections::VecDeque;
 
 #[derive(Default, Clone, Serialize, Deserialize)]
 pub struct PlayerInputBuffer {
-    buffer: VecDeque<(NetplayBufferItem, usize)>,
+    buffer: RunLengthDeque<NetplayBufferItem>,
     len: usize,
     delay: usize,
 }
@@ -21,11 +21,21 @@ impl PlayerInputBuffer {
         delay = delay.min(MAX_INPUT_DELAY as usize);
 
         if delay > 0 {
-            self.buffer.push_back((NetplayBufferItem::default(), delay));
+            self.buffer
+                .push_back_many(NetplayBufferItem::default(), delay);
         }
 
         self.len = delay;
         self.delay = delay;
+    }
+
+    pub fn run_length_deque(&self) -> &RunLengthDeque<NetplayBufferItem> {
+        &self.buffer
+    }
+
+    pub fn append_run_length_deque(&mut self, queue: &RunLengthDeque<NetplayBufferItem>) {
+        self.len += queue.len();
+        self.buffer.append_clone(queue);
     }
 
     pub fn delay(&self) -> usize {
@@ -42,65 +52,33 @@ impl PlayerInputBuffer {
 
     pub fn push_last(&mut self, input: NetplayBufferItem) {
         self.len += 1;
-
-        if let Some((item, count)) = self.buffer.back_mut()
-            && *item == input
-        {
-            *count += 1;
-            return;
-        }
-
-        self.buffer.push_back((input, 1));
+        self.buffer.push_back(input);
     }
 
     pub fn delete_last(&mut self) {
-        let Some((_, count)) = self.buffer.back_mut() else {
-            return;
-        };
-
-        self.len -= 1;
-        *count -= 1;
-
-        if *count == 0 {
-            self.buffer.pop_back();
+        if self.buffer.delete_back() {
+            self.len -= 1;
         }
     }
 
     pub fn peek_next(&self) -> Option<&NetplayBufferItem> {
-        self.buffer.front().map(|(item, _)| item)
+        self.buffer.peek_next()
     }
 
     pub fn pop_next(&mut self) -> Option<NetplayBufferItem> {
-        let (item, count) = self.buffer.front_mut()?;
+        let item = self.buffer.pop_front()?;
 
         self.len -= 1;
-        *count -= 1;
 
-        if *count == 0 {
-            self.buffer.pop_front().map(|(item, _)| item)
-        } else {
-            Some(item.clone())
-        }
+        Some(item)
     }
 
-    pub fn get(&self, mut index: usize) -> Option<&NetplayBufferItem> {
-        self.buffer
-            .iter()
-            .find(move |(_, count)| {
-                if *count > index {
-                    return true;
-                }
-
-                index -= *count;
-                false
-            })
-            .map(|(item, _)| item)
+    pub fn get(&self, index: usize) -> Option<&NetplayBufferItem> {
+        self.buffer.get(index)
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &NetplayBufferItem> {
-        self.buffer
-            .iter()
-            .flat_map(move |(item, count)| std::iter::repeat_n(item, *count))
+        self.buffer.iter()
     }
 
     pub fn clear(&mut self) {
