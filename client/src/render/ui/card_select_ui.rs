@@ -248,6 +248,8 @@ impl CardSelectUi {
         self.animator.apply(edge_sprite);
 
         let mut style = TextStyle::new(game_io, FontName::Thick);
+        style.shadow_color = Color::from_rgb_u8s(28, 28, 28);
+
         let mut y = 3.0;
 
         // draw names
