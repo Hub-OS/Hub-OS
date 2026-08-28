@@ -3203,28 +3203,28 @@ animation state="THICK_U+00D7"
 frame x="303" y="181" w="6" h="10"
 
 animation state="THICK_U+E000"
-frame x="201" y="263" w="6" h="11"
+frame x="201" y="263" w="6" h="11" originy="1"
 
 animation state="THICK_U+E001"
-frame x="209" y="263" w="6" h="11"
+frame x="209" y="263" w="6" h="11" originy="1"
 
 animation state="THICK_U+E002"
-frame x="217" y="263" w="6" h="11"
+frame x="217" y="263" w="6" h="11" originy="1"
 
 animation state="THICK_U+E003"
-frame x="225" y="263" w="6" h="11"
+frame x="225" y="263" w="6" h="11" originy="1"
 
 animation state="THICK_U+E004"
-frame x="233" y="263" w="6" h="11"
+frame x="233" y="263" w="6" h="11" originy="1"
 
 animation state="THICK_U+E005"
-frame x="241" y="263" w="6" h="11"
+frame x="241" y="263" w="6" h="11" originy="1"
 
 animation state="THICK_U+E006"
-frame x="249" y="263" w="6" h="11"
+frame x="249" y="263" w="6" h="11" originy="1"
 
 animation state="THICK_U+E007"
-frame x="257" y="263" w="6" h="11"
+frame x="257" y="263" w="6" h="11" originy="1"
 
 animation state="THICK_U+E011"
 frame x="91" y="18" w="6" h="12" originy="1"
@@ -3242,46 +3242,46 @@ animation state="THICK_U+E015"
 frame x="91" y="74" w="6" h="12" originy="1"
 
 animation state="THICK_U+E020"
-frame x="265" y="263" w="6" h="11"
+frame x="265" y="263" w="6" h="11" originy="1"
 
 animation state="THICK_U+E021"
-frame x="1" y="276" w="6" h="11"
+frame x="1" y="276" w="6" h="11" originy="1"
 
 animation state="THICK_U+E022"
-frame x="9" y="276" w="6" h="11"
+frame x="9" y="276" w="6" h="11" originy="1"
 
 animation state="THICK_U+E030"
-frame x="17" y="276" w="6" h="11"
+frame x="17" y="276" w="6" h="11" originy="1"
 
 animation state="THICK_U+E031"
-frame x="25" y="276" w="6" h="11"
+frame x="25" y="276" w="6" h="11" originy="1"
 
 animation state="THICK_U+E032"
-frame x="33" y="276" w="6" h="11"
+frame x="33" y="276" w="6" h="11" originy="1"
 
 animation state="THICK_U+E041"
-frame x="41" y="276" w="6" h="11"
+frame x="41" y="276" w="6" h="11" originy="1"
 
 animation state="THICK_U+E042"
-frame x="49" y="276" w="6" h="11"
+frame x="49" y="276" w="6" h="11" originy="1"
 
 animation state="THICK_U+E043"
-frame x="57" y="276" w="6" h="11"
+frame x="57" y="276" w="6" h="11" originy="1"
 
 animation state="THICK_U+E044"
-frame x="65" y="276" w="6" h="11"
+frame x="65" y="276" w="6" h="11" originy="1"
 
 animation state="THICK_U+E052"
-frame x="73" y="276" w="6" h="11"
+frame x="73" y="276" w="6" h="11" originy="1"
 
 animation state="THICK_U+E058"
-frame x="81" y="276" w="6" h="11"
+frame x="81" y="276" w="6" h="11" originy="1"
 
 animation state="THICK_U+E059"
-frame x="89" y="276" w="6" h="11"
+frame x="89" y="276" w="6" h="11" originy="1"
 
 animation state="THICK_U+E05a"
-frame x="97" y="276" w="6" h="11"
+frame x="97" y="276" w="6" h="11" originy="1"
 
 animation state="THICK_U+03B1"
 frame x="105" y="276" w="6" h="11"
