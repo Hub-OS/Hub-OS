@@ -169,16 +169,11 @@ impl Field {
             for col in 0..self.cols {
                 let tile = &mut self.tiles[row * self.cols + col];
 
-                let team;
-                let direction;
-
-                if col < self.cols / 2 {
-                    team = Team::Red;
-                    direction = Direction::Right;
+                let (team, direction) = if col < self.cols / 2 {
+                    (Team::Red, Direction::Right)
                 } else {
-                    team = Team::Blue;
-                    direction = Direction::Left;
-                }
+                    (Team::Blue, Direction::Left)
+                };
 
                 if tile.team() == Team::Unset {
                     tile.set_team(entities, team, tile.direction());

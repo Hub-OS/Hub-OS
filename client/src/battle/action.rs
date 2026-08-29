@@ -174,12 +174,9 @@ impl Action {
 
         let index = id?;
 
-        if let Some(action) = simulation.actions.get_mut(index) {
-            // set card properties on the card action
-            action.properties = card_props;
-        } else {
-            return None;
-        };
+        let action = simulation.actions.get_mut(index)?;
+        // set card properties on the card action
+        action.properties = card_props;
 
         Some(index)
     }

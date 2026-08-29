@@ -101,14 +101,12 @@ impl GridArrow {
 
         match block.0 {
             0..=SETTLE_END_X => {
-                let progress;
-
-                if block.0 >= BlockGrid::SIDE_LEN {
+                let progress = if block.0 >= BlockGrid::SIDE_LEN {
                     block.0 = BlockGrid::SIDE_LEN - 1;
-                    progress = 1.0;
+                    1.0
                 } else {
-                    progress = block_f.x.fract();
-                }
+                    block_f.x.fract()
+                };
 
                 GridArrowStatus::Block {
                     position: block,

@@ -707,10 +707,7 @@ impl Living {
             let mut intercept_callback = None;
 
             // validate index as it may be coming from lua
-            let Some(action) = simulation.actions.get_mut(index) else {
-                // invalid action
-                return None;
-            };
+            let action = simulation.actions.get_mut(index)?;
 
             let body_params = AuxPropBodyParams {
                 emotion_window,
@@ -770,13 +767,8 @@ impl Living {
                 Action::delete_multi(game_io, resources, simulation, new_index.is_none(), [index]);
             }
 
-            if let Some(new_index) = new_index {
-                // swap action
-                index = new_index;
-            } else {
-                // resolved to no action
-                return None;
-            }
+            // swap action or return None
+            index = new_index?;
         }
     }
 

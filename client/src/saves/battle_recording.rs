@@ -112,7 +112,7 @@ impl BattleRecording {
 
                 self.package_map.entry((category, hash)).or_insert_with(|| {
                     let mut bytes = globals.assets.virtual_zip_bytes(&hash).unwrap_or_else(|| {
-                        let path = format!("{}{}.zip", &mod_cache_folder, hash);
+                        let path = format!("{}{}.zip", mod_cache_folder, hash);
                         globals.assets.binary(&path)
                     });
 
@@ -285,7 +285,7 @@ impl BattleRecording {
             if let Some(package_info) = globals.package_info(category, PackageNamespace::Local, &id)
             {
                 let hash = package_info.hash;
-                let zip_path = format!("{}{}.zip", &mod_cache_folder, hash);
+                let zip_path = format!("{}{}.zip", mod_cache_folder, hash);
 
                 let globals = Globals::from_resources(game_io);
                 let bytes = globals.assets.binary(&zip_path);

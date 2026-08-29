@@ -1074,7 +1074,7 @@ impl BlocksScene {
             .augment_packages
             .package(PackageNamespace::Local, &list_item.id)
         else {
-            log::warn!("Block data exists for missing package: {}", &list_item.id);
+            log::warn!("Block data exists for missing package: {}", list_item.id);
             return;
         };
 

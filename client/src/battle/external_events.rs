@@ -116,7 +116,7 @@ impl<T> EventSyncer<T> {
     }
 
     fn drop_player(&mut self, player_index: usize) {
-        for (_, event) in self.event_limbo.iter_mut() {
+        for event in self.event_limbo.values_mut() {
             event.players_acknowledged.remove(&player_index);
         }
     }
