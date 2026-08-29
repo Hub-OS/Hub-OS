@@ -14,7 +14,7 @@ use std::collections::{HashSet, VecDeque};
 use std::sync::Arc;
 
 const SLOW_COOLDOWN: FrameTime = INPUT_BUFFER_LIMIT as FrameTime;
-const DEFAULT_LEAD_TOLERANCE: usize = 2;
+const DEFAULT_LEAD_TOLERANCE: u8 = 2;
 const PING_RATE: FrameTime = 60;
 
 pub enum BattleEvent {
@@ -31,7 +31,7 @@ struct PlayerController {
     input_connected: bool,
     ping_sent: Option<Instant>,
     buffer: PlayerInputBuffer,
-    lead_tolerance: usize,
+    lead_tolerance: u8,
     average_frame_time: f32,
     recommended_disconnect: HashSet<usize>,
     latest_accounted_time: FrameTime,
@@ -498,7 +498,8 @@ impl BattleScene {
                     let new_rtt = (frame_start_instant - ping_sent_time).as_secs_f32();
                     let average_rtt = self.comms.update_rtt_with_new_value(index, new_rtt);
 
-                    let frame_rtt = (average_rtt / target_frame_time).ceil() as usize;
+                    let frame_rtt =
+                        (average_rtt / target_frame_time).ceil().min(u8::MAX as _) as u8;
                     // our lead tolerance is half rtt + 1
                     // as we expect the time to send to us to be close to half the round trip
                     controller.lead_tolerance = frame_rtt.div_ceil(2) + 1;
@@ -554,7 +555,7 @@ impl BattleScene {
                     "controller: {i}, buffer: {}, tolerance: {}, b+t: {}, b+t target: {}, rtt: {:.0}ms, fps: {:.1}",
                     controller.buffer.len(),
                     controller.lead_tolerance,
-                    controller.buffer.len() + controller.lead_tolerance,
+                    controller.buffer.len() + controller.lead_tolerance as usize,
                     target_buffer_len,
                     rtt * 1000.0,
                     1.0 / controller.average_frame_time
@@ -562,7 +563,7 @@ impl BattleScene {
             }
 
             // try to maintain a buffer len to stay in the past
-            if controller.buffer.len() + controller.lead_tolerance < target_buffer_len {
+            if (controller.buffer.len() + controller.lead_tolerance as usize) < target_buffer_len {
                 should_slow = true;
             }
         }
