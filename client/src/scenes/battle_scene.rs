@@ -829,7 +829,9 @@ impl BattleScene {
         let now = Instant::now();
 
         for (i, controller) in &mut self.player_controllers.iter_mut().enumerate() {
-            if self.local_index == Some(i) {
+            if self.comms.connection_states.get(i) == ConnectionState::Connected
+                && self.local_index == Some(i)
+            {
                 continue;
             }
 
