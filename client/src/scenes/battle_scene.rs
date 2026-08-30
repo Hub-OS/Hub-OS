@@ -15,7 +15,7 @@ use std::sync::Arc;
 
 const SLOW_COOLDOWN: FrameTime = INPUT_BUFFER_LIMIT as FrameTime;
 const DEFAULT_LEAD_TOLERANCE: u8 = 2;
-const PING_RATE: FrameTime = 60;
+const PING_RATE: Duration = Duration::from_secs(1);
 
 pub enum BattleEvent {
     Description(Arc<str>),
@@ -29,7 +29,8 @@ pub enum BattleEvent {
 struct PlayerController {
     nickname: String,
     input_connected: bool,
-    ping_sent: Option<Instant>,
+    ping_start_time: Instant,
+    pong_received: bool,
     buffer: PlayerInputBuffer,
     buffer_history: RunLengthDeque<NetplayBufferItem>,
     history_base_time: usize,
@@ -183,7 +184,8 @@ impl BattleScene {
             player_controllers.push(PlayerController {
                 nickname: setup.nickname.clone(),
                 input_connected: connected,
-                ping_sent: None,
+                ping_start_time: Instant::now(),
+                pong_received: true,
                 buffer: setup.buffer.clone(),
                 buffer_history: Default::default(),
                 history_base_time: 0,
@@ -580,9 +582,11 @@ impl BattleScene {
             NetplayPacketData::Pong { sender } => {
                 if self.local_index == Some(sender)
                     && let Some(controller) = self.player_controllers.get_mut(index)
-                    && let Some(ping_sent_time) = controller.ping_sent.take()
                 {
-                    let new_rtt = (frame_start_instant - ping_sent_time).as_secs_f32();
+                    controller.pong_received = true;
+
+                    let start_time = controller.ping_start_time;
+                    let new_rtt = (frame_start_instant - start_time).as_secs_f32();
                     let average_rtt = self.comms.update_rtt_with_new_value(index, new_rtt);
 
                     let frame_rtt =
@@ -822,29 +826,21 @@ impl BattleScene {
     }
 
     fn try_ping(&mut self) {
-        if self.simulation.time % PING_RATE != 0 {
-            return;
-        }
-
-        let pong_pending = self
-            .player_controllers
-            .iter()
-            .enumerate()
-            .any(|(i, controller)| {
-                self.local_index != Some(i)
-                    && controller.input_connected
-                    && controller.ping_sent.is_some()
-            });
-
-        if pong_pending {
-            return;
-        }
-
-        self.comms.broadcast(NetplayPacketData::Ping);
-
         let now = Instant::now();
-        for controller in &mut self.player_controllers {
-            controller.ping_sent = Some(now);
+
+        for (i, controller) in &mut self.player_controllers.iter_mut().enumerate() {
+            if self.local_index == Some(i) {
+                continue;
+            }
+
+            if controller.pong_received && now - controller.ping_start_time < PING_RATE {
+                continue;
+            }
+
+            controller.ping_start_time = now;
+            controller.pong_received = false;
+
+            self.comms.send(i, NetplayPacketData::Ping);
         }
     }
 
