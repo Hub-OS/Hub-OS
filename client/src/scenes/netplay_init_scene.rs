@@ -587,9 +587,7 @@ impl NetplayInitScene {
 
                 connection.player_setup.buffer.push_last(data);
             }
-            NetplayPacketData::LostPeer { .. }
-            | NetplayPacketData::LostPeerSyncMessage { .. }
-            | NetplayPacketData::LostPeerBuffer { .. } => {
+            NetplayPacketData::LostPeer { .. } | NetplayPacketData::LostPeerSyncMessage { .. } => {
                 let name: &'static str = (&packet.data).into();
 
                 log::error!(

@@ -26,6 +26,12 @@ pub struct NetplayBufferItem {
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct LostPeerBuffer {
+    pub base_time: usize,
+    pub buffer: RunLengthDeque<NetplayBufferItem>,
+}
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct NetplayPacket {
     pub index: usize,
     pub data: NetplayPacketData,
@@ -81,11 +87,7 @@ pub enum NetplayPacketData {
     LostPeerSyncMessage {
         peer_index: usize,
         message: PeerSyncMessage<usize>,
-    },
-    LostPeerBuffer {
-        peer_index: usize,
-        base_time: usize,
-        buffer: RunLengthDeque<NetplayBufferItem>,
+        buffer: Option<LostPeerBuffer>,
     },
 }
 

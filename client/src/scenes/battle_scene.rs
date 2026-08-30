@@ -8,7 +8,8 @@ use crate::saves::{BattleRecording, PlayerInputBuffer, RecordedPreview, Recorded
 use framework::prelude::*;
 use packets::structures::{PackageId, PeerSyncMessage, PeerSyncResponse, RunLengthDeque};
 use packets::{
-    ClientPacket, NetplayBufferItem, NetplayPacket, NetplayPacketData, NetplaySignal, Reliability,
+    ClientPacket, LostPeerBuffer, NetplayBufferItem, NetplayPacket, NetplayPacketData,
+    NetplaySignal, Reliability,
 };
 use std::collections::{HashSet, VecDeque};
 use std::sync::Arc;
@@ -454,7 +455,7 @@ impl BattleScene {
             for response in synchronizer.drain_outbox() {
                 match response {
                     PeerSyncResponse::Send(dest_index, message) => {
-                        if matches!(message, PeerSyncMessage::Sync(_))
+                        let buffer = if matches!(message, PeerSyncMessage::Sync(_))
                             && let Some(peer_controller) = self.player_controllers.get(peer_index)
                         {
                             let base_time = peer_controller.history_base_time;
@@ -462,17 +463,15 @@ impl BattleScene {
                             let mut buffer = peer_controller.buffer_history.clone();
                             buffer.append_clone(peer_controller.buffer.run_length_deque());
 
-                            let packet = NetplayPacketData::LostPeerBuffer {
-                                peer_index,
-                                base_time,
-                                buffer,
-                            };
-                            self.comms.send(dest_index, packet);
-                        }
+                            Some(LostPeerBuffer { base_time, buffer })
+                        } else {
+                            None
+                        };
 
                         let packet = NetplayPacketData::LostPeerSyncMessage {
                             peer_index,
                             message,
+                            buffer,
                         };
                         self.comms.send(dest_index, packet);
                     }
@@ -480,6 +479,7 @@ impl BattleScene {
                         let packet = NetplayPacketData::LostPeerSyncMessage {
                             peer_index,
                             message,
+                            buffer: None,
                         };
                         self.comms.broadcast(packet);
                     }
@@ -607,38 +607,41 @@ impl BattleScene {
             NetplayPacketData::LostPeerSyncMessage {
                 peer_index,
                 message,
+                buffer,
             } => {
                 let synchronizers = &mut self.comms.disconnect_synchronizers;
 
                 if let Some(synchronizer) = synchronizers.get_mut(&peer_index) {
-                    synchronizer.push_message(index, message.clone());
-
                     log::debug!(
                         "Received PeerSyncMessage::{message:?} from {index} for {peer_index}"
                     );
+
+                    synchronizer.push_message(index, message);
+
+                    // merge buffers
+                    if let Some(buffer) = buffer
+                        && let Some(peer_controller) = self.player_controllers.get_mut(peer_index)
+                        && peer_controller.input_connected
+                    {
+                        let LostPeerBuffer {
+                            base_time,
+                            mut buffer,
+                        } = buffer;
+
+                        let local_len = self.synced_time as usize
+                            + peer_controller.buffer_history.len()
+                            + peer_controller.buffer.len();
+                        let remote_len = base_time + buffer.len();
+
+                        let known_count = remote_len.saturating_sub(local_len);
+                        buffer.delete_front_many(known_count);
+
+                        peer_controller.buffer.append_run_length_deque(&buffer);
+                    }
                 } else {
                     log::error!(
                         "PeerSyncMessage::{message:?} received without synchronizer for {peer_index}"
                     );
-                }
-            }
-            NetplayPacketData::LostPeerBuffer {
-                peer_index,
-                base_time,
-                mut buffer,
-            } => {
-                if let Some(peer_controller) = self.player_controllers.get_mut(peer_index)
-                    && peer_controller.input_connected
-                {
-                    let local_len = self.synced_time as usize
-                        + peer_controller.buffer_history.len()
-                        + peer_controller.buffer.len();
-                    let remote_len = base_time + buffer.len();
-
-                    let known_count = remote_len.saturating_sub(local_len);
-                    buffer.delete_front_many(known_count);
-
-                    peer_controller.buffer.append_run_length_deque(&buffer);
                 }
             }
             NetplayPacketData::Status { status } => {
