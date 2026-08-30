@@ -1,11 +1,13 @@
-use crate::battle::PlayerSetup;
+use crate::battle::{DisconnectSynchronizer, PlayerSetup};
 use crate::resources::{ClientPacketSender, NetplayPacketReceiver, NetplayPacketSender};
+use packets::structures::{PeerSyncConnectionStates, PeerSyncMessage};
 use packets::{NetplayPacket, NetplayPacketData, NetplaySignal, structures::BattleId};
-use structures::collections::VecSet;
+use structures::collections::{VecMap, VecSet};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ConnectionState {
     Connected,
+    Disconnecting,
     Disconnected,
 }
 
@@ -72,6 +74,21 @@ impl ConnectionStates {
     }
 }
 
+impl PeerSyncConnectionStates<usize> for ConnectionStates {
+    // counts Disconnecting states as Disconnected
+    fn iter_connected(&self) -> impl Iterator<Item = usize> {
+        self.states
+            .iter()
+            .enumerate()
+            .filter(|&(_, &state)| state == ConnectionState::Connected)
+            .map(|(i, _)| i)
+    }
+
+    fn peer_connected(&self, id: usize) -> bool {
+        self.get(id) == ConnectionState::Connected
+    }
+}
+
 #[derive(Default)]
 pub struct BattleComms {
     pub senders: Vec<(Option<usize>, NetplayPacketSender)>,
@@ -85,6 +102,7 @@ pub struct BattleComms {
     pub local_index: usize,
     // recycled output
     pub pending_packets: Vec<NetplayPacket>,
+    pub disconnect_synchronizers: VecMap<usize, DisconnectSynchronizer>,
 }
 
 impl BattleComms {
@@ -137,12 +155,19 @@ impl BattleComms {
                     self.connection_states
                         .set(index, ConnectionState::Disconnected);
 
+                    if !is_fallback {
+                        // remove the sender + receiver pair if we're not communicating on a fallback
+                        pending_removal.insert(i);
+                    }
+
                     if self.connection_states.connected_count() <= 1 {
                         // break to prevent receiving extra packets from the fallback receiver
                         // these extra packets are likely for future scenes
                         // the 1 represents the ConnectionState::Connected we have with ourself
                         break 'main_loop;
                     }
+
+                    break;
                 }
             }
 
@@ -155,8 +180,6 @@ impl BattleComms {
         self.receivers = receivers;
 
         // remove disconnected receivers
-        let mut possible_disconnect_desync = false;
-
         for i in pending_removal.into_iter().rev() {
             self.senders.remove(i);
             let (player_index, _) = self.receivers.remove(i);
@@ -169,25 +192,20 @@ impl BattleComms {
                 continue;
             };
 
-            if self.connection_states.get(peer_index) == ConnectionState::Disconnected {
-                continue;
+            // update existing synchronizers
+            for (_, synchronizer) in self.disconnect_synchronizers.iter_mut() {
+                synchronizer.push_message(peer_index, PeerSyncMessage::Disconnect);
             }
 
-            possible_disconnect_desync = true;
+            // create new disconnect synchronizer
+            self.disconnect_synchronizers.entry(peer_index).or_default();
 
-            if self.connection_states.connected_count() == 1 {
-                // we're only connected to ourself?
-                self.disconnect_peers();
-                break;
+            if self.connection_states.get(peer_index) != ConnectionState::Disconnected {
+                self.connection_states
+                    .set(peer_index, ConnectionState::Disconnecting);
+
+                self.broadcast(NetplayPacketData::LostPeer { peer_index });
             }
-
-            let disconnect_packet = NetplayPacket::new_disconnect_signal(peer_index);
-            self.pending_packets.push(disconnect_packet);
-        }
-
-        if possible_disconnect_desync {
-            // possible desync when there's another player we need to sync a disconnect with
-            log::error!("Possible desync from a player disconnect without a Disconnect signal");
         }
 
         if self.connection_states.connected_count() <= 1 {
@@ -213,18 +231,47 @@ impl BattleComms {
         self.senders.clear();
         self.receivers.clear();
         self.connection_states.clear();
+        self.disconnect_synchronizers.clear();
     }
 
-    pub fn disconnect_peer_with_no_signal(&mut self, peer_index: usize) {
+    pub fn disconnect_peer(&mut self, peer_index: usize) {
+        if self.connection_states.get(peer_index) == ConnectionState::Disconnected {
+            return;
+        }
+
+        self.connection_states
+            .set(peer_index, ConnectionState::Disconnected);
+
+        self.drop_peer_comms(peer_index);
+
+        let disconnect_packet = NetplayPacket::new_disconnect_signal(peer_index);
+        self.pending_packets.push(disconnect_packet);
+    }
+
+    pub fn begin_disconnect_sync(&mut self, peer_index: usize) {
         if peer_index == self.local_index {
             // avoid marking ourself as disconnected
             return;
         }
 
+        if self.connection_states.get(peer_index) == ConnectionState::Disconnected {
+            return;
+        }
+
+        self.connection_states
+            .set(peer_index, ConnectionState::Disconnecting);
+
         // drop sender + receiver
+        self.drop_peer_comms(peer_index);
+
+        self.disconnect_synchronizers.entry(peer_index).or_default();
+    }
+
+    fn drop_peer_comms(&mut self, peer_index: usize) {
         let mut sender_iter = self.senders.iter();
 
         if let Some(i) = sender_iter.position(|(player_i, _)| *player_i == Some(peer_index)) {
+            self.senders.remove(i);
             let (player_index, _) = self.receivers.remove(i);
 
             debug_assert_eq!(player_index, Some(peer_index));

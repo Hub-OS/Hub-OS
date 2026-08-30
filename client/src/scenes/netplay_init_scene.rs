@@ -587,6 +587,15 @@ impl NetplayInitScene {
 
                 connection.player_setup.buffer.push_last(data);
             }
+            NetplayPacketData::LostPeer { .. }
+            | NetplayPacketData::LostPeerSyncMessage { .. }
+            | NetplayPacketData::LostPeerBuffer { .. } => {
+                let name: &'static str = (&packet.data).into();
+
+                log::error!(
+                    "Unexpected packet received during netplay init, received: {name} from {index}"
+                );
+            }
         }
     }
 

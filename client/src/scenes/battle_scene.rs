@@ -6,7 +6,7 @@ use crate::render::*;
 use crate::resources::*;
 use crate::saves::{BattleRecording, PlayerInputBuffer, RecordedPreview, RecordedSimulationFlow};
 use framework::prelude::*;
-use packets::structures::PackageId;
+use packets::structures::{PackageId, PeerSyncMessage, PeerSyncResponse, RunLengthDeque};
 use packets::{
     ClientPacket, NetplayBufferItem, NetplayPacket, NetplayPacketData, NetplaySignal, Reliability,
 };
@@ -31,6 +31,8 @@ struct PlayerController {
     input_connected: bool,
     ping_sent: Option<Instant>,
     buffer: PlayerInputBuffer,
+    buffer_history: RunLengthDeque<NetplayBufferItem>,
+    history_base_time: usize,
     lead_tolerance: u8,
     average_frame_time: f32,
     recommended_disconnect: HashSet<usize>,
@@ -183,6 +185,8 @@ impl BattleScene {
                 input_connected: connected,
                 ping_sent: None,
                 buffer: setup.buffer.clone(),
+                buffer_history: Default::default(),
+                history_base_time: 0,
                 lead_tolerance: DEFAULT_LEAD_TOLERANCE,
                 average_frame_time: target_frame_time,
                 recommended_disconnect: Default::default(),
@@ -406,14 +410,97 @@ impl BattleScene {
 
         self.comms.receive_packets();
 
+        // handle packets
         let mut packets = std::mem::take(&mut self.comms.pending_packets);
 
         for packet in packets.drain(..) {
             self.handle_packet(frame_start_instant, target_frame_time, packet);
         }
 
-        // recycle vecs
         self.comms.pending_packets = packets;
+
+        // handle syncing disconnects
+        let mut synchronizers = std::mem::take(&mut self.comms.disconnect_synchronizers);
+
+        synchronizers.retain_mut(|&peer_index, synchronizer| {
+            let count_received_inputs = || {
+                let controller = self.player_controllers.get(peer_index);
+
+                controller
+                    .map(|controller| {
+                        controller.history_base_time
+                            + controller.buffer_history.len()
+                            + controller.buffer.len()
+                    })
+                    .unwrap_or_default()
+            };
+
+            let init = || {
+                let received_inputs = count_received_inputs();
+
+                log::debug!(
+                    "Beginning disconnect sync for peer {} with {} inputs received",
+                    peer_index,
+                    received_inputs
+                );
+
+                received_inputs
+            };
+
+            synchronizer.tick_or_init(self.comms.local_index, &self.comms.connection_states, init);
+
+            for response in synchronizer.drain_outbox() {
+                match response {
+                    PeerSyncResponse::Send(dest_index, message) => {
+                        if matches!(message, PeerSyncMessage::Sync(_))
+                            && let Some(peer_controller) = self.player_controllers.get(peer_index)
+                        {
+                            let base_time = peer_controller.history_base_time;
+
+                            let mut buffer = peer_controller.buffer_history.clone();
+                            buffer.append_clone(peer_controller.buffer.run_length_deque());
+
+                            let packet = NetplayPacketData::LostPeerBuffer {
+                                peer_index,
+                                base_time,
+                                buffer,
+                            };
+                            self.comms.send(dest_index, packet);
+                        }
+
+                        let packet = NetplayPacketData::LostPeerSyncMessage {
+                            peer_index,
+                            message,
+                        };
+                        self.comms.send(dest_index, packet);
+                    }
+                    PeerSyncResponse::Broadcast(message) => {
+                        let packet = NetplayPacketData::LostPeerSyncMessage {
+                            peer_index,
+                            message,
+                        };
+                        self.comms.broadcast(packet);
+                    }
+                    PeerSyncResponse::Complete => {
+                        let received_inputs = count_received_inputs();
+
+                        log::debug!(
+                            "Completing disconnect sync for peer {} with {} inputs received",
+                            peer_index,
+                            received_inputs
+                        );
+
+                        self.comms.disconnect_peer(peer_index);
+
+                        return false;
+                    }
+                }
+            }
+
+            true
+        });
+
+        self.comms.disconnect_synchronizers = synchronizers;
 
         // after resolving packets we should see if we're too far ahead of other players
         // and decide whether we should slow down
@@ -503,6 +590,51 @@ impl BattleScene {
                     // our lead tolerance is half rtt + 1
                     // as we expect the time to send to us to be close to half the round trip
                     controller.lead_tolerance = frame_rtt.div_ceil(2) + 1;
+                }
+            }
+            NetplayPacketData::LostPeer { peer_index } => {
+                if peer_index == self.comms.local_index {
+                    // disconnect from everyone if they've lost connection with us
+                    self.comms.disconnect_peers();
+                } else {
+                    self.comms.begin_disconnect_sync(peer_index);
+                }
+            }
+            NetplayPacketData::LostPeerSyncMessage {
+                peer_index,
+                message,
+            } => {
+                let synchronizers = &mut self.comms.disconnect_synchronizers;
+
+                if let Some(synchronizer) = synchronizers.get_mut(&peer_index) {
+                    synchronizer.push_message(index, message.clone());
+
+                    log::debug!(
+                        "Received PeerSyncMessage::{message:?} from {index} for {peer_index}"
+                    );
+                } else {
+                    log::error!(
+                        "PeerSyncMessage::{message:?} received without synchronizer for {peer_index}"
+                    );
+                }
+            }
+            NetplayPacketData::LostPeerBuffer {
+                peer_index,
+                base_time,
+                mut buffer,
+            } => {
+                if let Some(peer_controller) = self.player_controllers.get_mut(peer_index)
+                    && peer_controller.input_connected
+                {
+                    let local_len = self.synced_time as usize
+                        + peer_controller.buffer_history.len()
+                        + peer_controller.buffer.len();
+                    let remote_len = base_time + buffer.len();
+
+                    let known_count = remote_len.saturating_sub(local_len);
+                    buffer.delete_front_many(known_count);
+
+                    peer_controller.buffer.append_run_length_deque(&buffer);
                 }
             }
             NetplayPacketData::Status { status } => {
@@ -766,6 +898,11 @@ impl BattleScene {
         if !self.resimulating && self.input_synced() {
             // prevent buffers from infinitely growing
             for (i, controller) in self.player_controllers.iter_mut().enumerate() {
+                if self.synced_time as usize > INPUT_BUFFER_LIMIT && controller.input_connected {
+                    controller.buffer_history.pop_front();
+                    controller.history_base_time += 1;
+                }
+
                 let Some(buffer_item) = controller.buffer.pop_next() else {
                     continue;
                 };
@@ -784,6 +921,10 @@ impl BattleScene {
                         }
                         _ => {}
                     }
+                }
+
+                if self.local_index != Some(i) {
+                    controller.buffer_history.push_back(buffer_item.clone());
                 }
 
                 // record input

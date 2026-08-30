@@ -2,7 +2,7 @@
 
 use crate::structures::{
     BattleId, FileHash, Input, InstalledBlock, InstalledSwitchDrive, MemoryCell, PackageCategory,
-    PackageId,
+    PackageId, PeerSyncMessage, RunLengthDeque,
 };
 use network_channels::Reliability;
 use serde::{Deserialize, Serialize};
@@ -25,7 +25,7 @@ pub struct NetplayBufferItem {
     pub signals: Vec<NetplaySignal>,
 }
 
-#[derive(Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct NetplayPacket {
     pub index: usize,
     pub data: NetplayPacketData,
@@ -74,6 +74,18 @@ pub enum NetplayPacketData {
     Buffer {
         data: NetplayBufferItem,
         frame_time: f32,
+    },
+    LostPeer {
+        peer_index: usize,
+    },
+    LostPeerSyncMessage {
+        peer_index: usize,
+        message: PeerSyncMessage<usize>,
+    },
+    LostPeerBuffer {
+        peer_index: usize,
+        base_time: usize,
+        buffer: RunLengthDeque<NetplayBufferItem>,
     },
 }
 
