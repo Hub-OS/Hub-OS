@@ -12,6 +12,7 @@ crate-type = ["cdylib", "rlib"]
 hub_os = { path = "../client" }
 packets = { path = "../packets", default-features = false }
 jni = "0.22"
+clap = { workspace = true }
 
 [package.metadata.android]
 package = "dev.hubos.client"

@@ -5,6 +5,11 @@ static DATA_PATH: OnceLock<String> = OnceLock::new();
 
 pub struct ResourcePaths;
 
+pub struct ResourcePathsOptions {
+    pub game_path: String,
+    pub data_path: String,
+}
+
 impl ResourcePaths {
     pub const VIRTUAL_PREFIX: &'static str = "/virtual/";
     pub const SEPARATOR: &'static str = "/";
@@ -297,57 +302,9 @@ impl ResourcePaths {
     pub const CREDITS_BG: &'static str = "resources/scenes/credits/bg.png";
     pub const CREDITS_BG_ANIMATION: &'static str = "resources/scenes/credits/bg.animation";
 
-    #[allow(unused_variables)]
-    pub fn init_game_folders(app: &crate::PlatformApp, _data_folder_arg: Option<String>) {
-        #[cfg(not(target_os = "android"))]
-        {
-            let game_path = std::env::current_dir().unwrap_or_default();
-            let game_path = ResourcePaths::clean_folder(&game_path.to_string_lossy());
-            let _ = GAME_PATH.set(game_path);
-
-            let data_path;
-
-            if let Some(path) = _data_folder_arg {
-                // use folder from arg
-
-                let path = match std::path::absolute(path) {
-                    Ok(path) => path,
-                    Err(err) => {
-                        panic!("Invalid data folder: {err:?}");
-                    }
-                };
-
-                data_path = ResourcePaths::clean_folder(&path.to_string_lossy());
-            } else {
-                // use shared folder
-                let shared_path = if cfg!(target_os = "windows") {
-                    dirs_next::document_dir().map(|d| d.join("My Games"))
-                } else {
-                    dirs_next::data_dir()
-                };
-
-                if let Some(path) = shared_path {
-                    // canonicalize to capture the existing capitalization
-                    let path = std::fs::canonicalize(&path).unwrap_or(path);
-                    let path = path.join("Hub OS");
-                    data_path = ResourcePaths::clean_folder(&path.to_string_lossy());
-                    let _ = std::fs::create_dir_all(&data_path);
-                } else {
-                    // use game folder
-                    data_path = ResourcePaths::game_folder().to_string();
-                }
-            }
-
-            let _ = DATA_PATH.set(data_path);
-        }
-
-        #[cfg(target_os = "android")]
-        {
-            let path = app.internal_data_path().unwrap();
-            let path = ResourcePaths::clean_folder(&path.to_string_lossy());
-            let _ = GAME_PATH.set(path.clone());
-            let _ = DATA_PATH.set(path);
-        }
+    pub fn init_game_folders(options: ResourcePathsOptions) {
+        let _ = GAME_PATH.set(options.game_path);
+        let _ = DATA_PATH.set(options.data_path);
     }
 
     pub fn game_folder() -> &'static str {

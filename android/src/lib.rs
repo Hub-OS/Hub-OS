@@ -1,7 +1,8 @@
 #![cfg(target_os = "android")]
 
-use hub_os::ResourcePaths;
+use clap::Parser;
 use hub_os::framework::prelude::WinitPlatformApp;
+use hub_os::{Args, ResourcePaths, ResourcePathsOptions};
 use packets::structures::FileHash;
 use packets::zip;
 
@@ -24,14 +25,22 @@ pub fn android_main(app: WinitPlatformApp) {
         network_locks::acquire_low_latency_lock(&app),
     );
 
-    // init_game_folders for set_current_dir
-    ResourcePaths::init_game_folders(&app, None);
+    // resolve game folders
+    let game_path = app.internal_data_path().unwrap();
+    let game_path = ResourcePaths::clean_folder(&game_path.to_string_lossy());
 
-    std::env::set_current_dir(ResourcePaths::game_folder()).unwrap();
-
+    // update resources
+    std::env::set_current_dir(&game_path).unwrap();
     update_resources(&app);
 
-    hub_os::main(app).unwrap();
+    // prepare to call main
+    let args = Args::parse();
+    let resource_paths = ResourcePathsOptions {
+        game_path: game_path.clone(),
+        data_path: game_path,
+    };
+
+    hub_os::main(app, args, resource_paths).unwrap();
 
     std::mem::drop(locks);
 }

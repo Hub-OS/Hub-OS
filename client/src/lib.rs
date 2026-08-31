@@ -23,10 +23,8 @@ mod transitions;
 
 pub mod crash_reports;
 
-use crate::args::Args;
 use crate::resources::*;
 use crate::scenes::BootStage1;
-use clap::Parser;
 use framework::logging::*;
 use framework::prelude::*;
 use framework::runtime::GameWindowLoop;
@@ -34,8 +32,9 @@ use rand::seq::IndexedRandom;
 use supporting_service::*;
 
 // exported for the android crate
+pub use crate::args::Args;
 pub use framework;
-pub use resources::ResourcePaths;
+pub use resources::{ResourcePaths, ResourcePathsOptions};
 
 const TITLE_LIST: [&str; 3] = [
     "Hub OS: Combat Network",
@@ -50,11 +49,12 @@ pub type GameLoop = framework::prelude::WinitGameLoop;
 
 pub type PlatformApp = <GameLoop as GameWindowLoop>::PlatformApp;
 
-pub fn main(app: PlatformApp) -> anyhow::Result<()> {
-    let args = Args::parse();
-
-    // init_game_folders in case we haven't already
-    ResourcePaths::init_game_folders(&app, args.data_folder.clone());
+pub fn main(
+    app: PlatformApp,
+    args: Args,
+    resource_options: ResourcePathsOptions,
+) -> anyhow::Result<()> {
+    ResourcePaths::init_game_folders(resource_options);
 
     let (log_sender, log_receiver) = flume::unbounded();
 
