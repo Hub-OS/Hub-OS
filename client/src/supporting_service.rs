@@ -1,7 +1,6 @@
 use crate::packages::PackageNamespace;
 use crate::resources::{Globals, RESOLUTION};
 use crate::saves::InternalResolution;
-use framework::cfg_macros::cfg_desktop;
 use framework::input::Key;
 use framework::prelude::{GameIO, GameService};
 use packets::structures::PackageCategory;
@@ -45,43 +44,42 @@ impl SupportingService {
         }
     }
 
+    #[cfg(not(target_os = "android"))]
     fn handle_quit(&mut self, game_io: &mut GameIO) {
-        cfg_desktop!({
-            if self.pending_save_count == 0 || !game_io.quitting() {
-                return;
-            }
+        if self.pending_save_count == 0 || !game_io.quitting() {
+            return;
+        }
 
-            game_io.cancel_quit();
+        game_io.cancel_quit();
 
-            let Some(comm) = game_io.resource::<SupportingServiceComm>() else {
-                return;
-            };
+        let Some(comm) = game_io.resource::<SupportingServiceComm>() else {
+            return;
+        };
 
-            let comm = comm.clone();
-            let globals = Globals::from_resources(game_io);
+        let comm = comm.clone();
+        let globals = Globals::from_resources(game_io);
 
-            use native_dialog::{DialogBuilder, MessageLevel};
+        use native_dialog::{DialogBuilder, MessageLevel};
 
-            let dialog = DialogBuilder::message()
-                .set_owner(&Box::new(game_io.window()))
-                .set_level(MessageLevel::Warning)
-                .set_title(globals.translate("navigation-quit-without-saving-title"))
-                .set_text(globals.translate("navigation-quit-while-saving-question"))
-                .confirm();
+        let dialog = DialogBuilder::message()
+            .set_owner(&Box::new(game_io.window()))
+            .set_level(MessageLevel::Warning)
+            .set_title(globals.translate("navigation-quit-without-saving-title"))
+            .set_text(globals.translate("navigation-quit-while-saving-question"))
+            .confirm();
 
-            game_io
-                .spawn_local_task(async move {
-                    let result = dialog.spawn().await;
+        game_io
+            .spawn_local_task(async move {
+                let result = dialog.spawn().await;
 
-                    let cancelled = result.is_ok_and(|accepted| !accepted);
+                let cancelled = result.is_ok_and(|accepted| !accepted);
 
-                    if !cancelled {
-                        // quit as long as the user didn't explictly cancel
-                        comm.send(SupportingServiceEvent::Quit);
-                    }
-                })
-                .detach();
-        });
+                if !cancelled {
+                    // quit as long as the user didn't explictly cancel
+                    comm.send(SupportingServiceEvent::Quit);
+                }
+            })
+            .detach();
     }
 }
 
@@ -134,6 +132,7 @@ impl GameService for SupportingService {
     }
 
     fn post_update(&mut self, game_io: &mut GameIO) {
+        #[cfg(not(target_os = "android"))]
         self.handle_quit(game_io);
 
         let suspended = game_io.suspended();
