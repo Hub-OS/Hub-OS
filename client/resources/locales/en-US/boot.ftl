@@ -13,7 +13,9 @@ boot-checking-for-updates = Checking For Updates
 boot-press-any-button = Press Any Button
 
 initial-setup-message =
-    Missing Navi mod.
+    Welcome to Hub OS!
     
     
-    Install from Manage Mods in Config.
+    To get started,
+    install a Navi from
+    Manage Mods in Config.
