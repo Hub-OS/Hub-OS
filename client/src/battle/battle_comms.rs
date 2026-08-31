@@ -7,6 +7,7 @@ use structures::collections::{VecMap, VecSet};
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ConnectionState {
     Connected,
+    Limbo,
     Disconnecting,
     Disconnected,
 }
@@ -75,8 +76,7 @@ impl ConnectionStates {
 }
 
 impl PeerSyncConnectionStates<usize> for ConnectionStates {
-    // counts Disconnecting states as Disconnected
-    fn iter_connected(&self) -> impl Iterator<Item = usize> {
+    fn iter_fully_connected(&self) -> impl Iterator<Item = usize> {
         self.states
             .iter()
             .enumerate()
@@ -84,7 +84,7 @@ impl PeerSyncConnectionStates<usize> for ConnectionStates {
             .map(|(i, _)| i)
     }
 
-    fn peer_connected(&self, id: usize) -> bool {
+    fn peer_fully_connected(&self, id: usize) -> bool {
         self.get(id) == ConnectionState::Connected
     }
 }
@@ -98,6 +98,7 @@ pub struct BattleComms {
     pub rtts: Vec<f32>,
     // resolved late in BattleScene
     pub connection_states: ConnectionStates,
+    pub can_disconnect_peers: bool,
     // this will be 0 in replays, avoid using it for anything outside of packets
     pub local_index: usize,
     // recycled output
@@ -113,10 +114,12 @@ impl BattleComms {
             .unwrap_or_default();
 
         self.connection_states.load_setups(setups);
+        self.can_disconnect_peers = true;
     }
 
     pub fn clear_connection(&mut self) {
         self.connection_states.clear();
+        self.disconnect_synchronizers.clear();
         self.senders.clear();
         self.receivers.clear();
         self.server = None;
@@ -158,9 +161,7 @@ impl BattleComms {
                     if !is_fallback {
                         // remove the sender + receiver pair if we're not communicating on a fallback
                         pending_removal.insert(i);
-                    }
-
-                    if self.connection_states.connected_count() <= 1 {
+                    } else if self.connection_states.connected_count() <= 1 {
                         // break to prevent receiving extra packets from the fallback receiver
                         // these extra packets are likely for future scenes
                         // the 1 represents the ConnectionState::Connected we have with ourself
@@ -192,7 +193,16 @@ impl BattleComms {
                 continue;
             };
 
-            // update existing synchronizers
+            let connection_state = self.connection_states.get(peer_index);
+
+            if connection_state == ConnectionState::Connected && !self.can_disconnect_peers {
+                // can't start disconnect
+                self.connection_states
+                    .set(peer_index, ConnectionState::Limbo);
+                continue;
+            }
+
+            // unblock existing synchronizers for this peer
             for (_, synchronizer) in self.disconnect_synchronizers.iter_mut() {
                 synchronizer.push_message(peer_index, PeerSyncMessage::Disconnect);
             }
@@ -200,7 +210,7 @@ impl BattleComms {
             // create new disconnect synchronizer
             self.disconnect_synchronizers.entry(peer_index).or_default();
 
-            if self.connection_states.get(peer_index) != ConnectionState::Disconnected {
+            if connection_state != ConnectionState::Disconnected {
                 self.connection_states
                     .set(peer_index, ConnectionState::Disconnecting);
 
@@ -208,10 +218,9 @@ impl BattleComms {
             }
         }
 
-        if self.connection_states.connected_count() <= 1 {
+        if self.connection_states.total_fully_connected() <= 1 {
             // no need to store these, helps prevent reading too many packets from the fallback receiver
-            self.senders.clear();
-            self.receivers.clear();
+            self.disconnect_peers();
         }
     }
 
@@ -225,12 +234,13 @@ impl BattleComms {
             if self.connection_states.get(i) != ConnectionState::Disconnected {
                 let disconnect_packet = NetplayPacket::new_disconnect_signal(i);
                 self.pending_packets.push(disconnect_packet);
+
+                self.connection_states.set(i, ConnectionState::Disconnected);
             }
         }
 
         self.senders.clear();
         self.receivers.clear();
-        self.connection_states.clear();
         self.disconnect_synchronizers.clear();
     }
 
@@ -239,11 +249,19 @@ impl BattleComms {
             return;
         }
 
+        // unblock existing synchronizers for this peer
+        for (_, synchronizer) in self.disconnect_synchronizers.iter_mut() {
+            synchronizer.push_message(peer_index, PeerSyncMessage::Disconnect);
+        }
+
+        // update connection state
         self.connection_states
             .set(peer_index, ConnectionState::Disconnected);
 
+        // make sure the sender + receiver is dropped
         self.drop_peer_comms(peer_index);
 
+        // notify the battle scene
         let disconnect_packet = NetplayPacket::new_disconnect_signal(peer_index);
         self.pending_packets.push(disconnect_packet);
     }
@@ -254,17 +272,31 @@ impl BattleComms {
             return;
         }
 
-        if self.connection_states.get(peer_index) == ConnectionState::Disconnected {
+        if matches!(
+            self.connection_states.get(peer_index),
+            ConnectionState::Disconnecting | ConnectionState::Disconnected
+        ) {
+            // already handled
             return;
         }
 
         self.connection_states
             .set(peer_index, ConnectionState::Disconnecting);
 
+        // notify other clients
+        // every client that hasn't heard this should rebroadcast it to make sure it isn't lost from a new disconnect
+        self.broadcast(NetplayPacketData::LostPeer { peer_index });
+
+        // unblock existing synchronizers for this peer
+        for (_, synchronizer) in self.disconnect_synchronizers.iter_mut() {
+            synchronizer.push_message(peer_index, PeerSyncMessage::Disconnect);
+        }
+
+        // create new disconnect synchronizer
+        self.disconnect_synchronizers.entry(peer_index).or_default();
+
         // drop sender + receiver
         self.drop_peer_comms(peer_index);
-
-        self.disconnect_synchronizers.entry(peer_index).or_default();
     }
 
     fn drop_peer_comms(&mut self, peer_index: usize) {

@@ -6,7 +6,9 @@ use crate::render::*;
 use crate::resources::*;
 use crate::saves::{BattleRecording, PlayerInputBuffer, RecordedPreview, RecordedSimulationFlow};
 use framework::prelude::*;
-use packets::structures::{PackageId, PeerSyncMessage, PeerSyncResponse, RunLengthDeque};
+use packets::structures::{
+    PackageId, PeerSyncConnectionStates, PeerSyncMessage, PeerSyncResponse, RunLengthDeque,
+};
 use packets::{
     ClientPacket, LostPeerBuffer, NetplayBufferItem, NetplayPacket, NetplayPacketData,
     NetplaySignal, Reliability,
@@ -17,6 +19,12 @@ use std::sync::Arc;
 const SLOW_COOLDOWN: FrameTime = INPUT_BUFFER_LIMIT as FrameTime;
 const DEFAULT_LEAD_TOLERANCE: u8 = 2;
 const PING_RATE: Duration = Duration::from_secs(1);
+
+// Clients with disconnected inputs wait for peers to send the LostPeer signal
+// to avoid causing disconnects when the connection issue is with a peer that doesn't influence game state
+//
+// So we have a special connection timeout for the case where we lose a peer that no one else has
+const FAILSAFE_CONNECTION_TIMEOUT: Duration = Duration::from_secs(15);
 
 pub enum BattleEvent {
     Description(Arc<str>),
@@ -155,15 +163,8 @@ impl BattleScene {
             None
         };
 
-        // load comms
+        // prepare to load players
         let player_setups = &meta.player_setups;
-        comms.load_setups(player_setups);
-
-        if playback.is_some() {
-            comms.clear_connection();
-        }
-
-        // load the players in the correct order
         let mut player_controllers = Vec::with_capacity(player_setups.len());
         let local_index = if playback.is_some() {
             None
@@ -174,7 +175,15 @@ impl BattleScene {
                 .map(|setup| setup.index)
         };
 
+        // load comms
         let config = resources.config.borrow();
+        comms.load_setups(player_setups);
+
+        if playback.is_some() {
+            comms.clear_connection();
+        }
+
+        // load the players in the correct order
         let target_frame_time = game_io.target_duration().as_secs_f32();
 
         for setup in player_setups {
@@ -420,7 +429,11 @@ impl BattleScene {
             self.handle_packet(frame_start_instant, target_frame_time, packet);
         }
 
-        self.comms.pending_packets = packets;
+        // reuse old vec
+        std::mem::swap(&mut self.comms.pending_packets, &mut packets);
+
+        // append generated packets for the next tick
+        self.comms.pending_packets.extend(packets);
 
         // handle syncing disconnects
         let mut synchronizers = std::mem::take(&mut self.comms.disconnect_synchronizers);
@@ -524,6 +537,10 @@ impl BattleScene {
             controller.input_connected = false;
         } else if data.signals.contains(&NetplaySignal::DisconnectInput) {
             controller.input_connected = false;
+
+            if self.local_index == Some(player_index) {
+                self.comms.can_disconnect_peers = false;
+            }
         }
 
         // see if this player recommends disconnecting anyone
@@ -576,8 +593,8 @@ impl BattleScene {
                 }
             }
             NetplayPacketData::Ping => {
-                self.comms
-                    .send(index, NetplayPacketData::Pong { sender: index });
+                let pong = NetplayPacketData::Pong { sender: index };
+                self.comms.send(index, pong);
             }
             NetplayPacketData::Pong { sender } => {
                 if self.local_index == Some(sender)
@@ -597,9 +614,20 @@ impl BattleScene {
                 }
             }
             NetplayPacketData::LostPeer { peer_index } => {
+                let connection_state = self.comms.connection_states.get(peer_index);
+
+                if !matches!(
+                    connection_state,
+                    ConnectionState::Disconnecting | ConnectionState::Disconnected
+                ) {
+                    log::debug!("Received {:?} from {index}", packet.data);
+                }
+
                 if peer_index == self.comms.local_index {
                     // disconnect from everyone if they've lost connection with us
                     self.comms.disconnect_peers();
+
+                    log::debug!("A peer lost connection with us, disconnecting from everyone");
                 } else {
                     self.comms.begin_disconnect_sync(peer_index);
                 }
@@ -824,21 +852,30 @@ impl BattleScene {
             data,
             frame_time: game_io.frame_duration().as_secs_f32(),
         });
-
-        self.try_ping();
     }
 
     fn try_ping(&mut self) {
         let now = Instant::now();
 
         for (i, controller) in &mut self.player_controllers.iter_mut().enumerate() {
-            if self.comms.connection_states.get(i) == ConnectionState::Connected
-                && self.local_index == Some(i)
+            if !self.comms.connection_states.peer_fully_connected(i) || self.local_index == Some(i)
             {
                 continue;
             }
 
-            if controller.pong_received && now - controller.ping_start_time < PING_RATE {
+            if !controller.pong_received {
+                if now - controller.ping_start_time > FAILSAFE_CONNECTION_TIMEOUT {
+                    log::debug!(
+                        "Lost connection with {i} without sync, disconnecting from all peers"
+                    );
+                    self.comms.disconnect_peers();
+                    break;
+                }
+
+                continue;
+            }
+
+            if now - controller.ping_start_time < PING_RATE {
                 continue;
             }
 
@@ -1460,6 +1497,7 @@ impl Scene for BattleScene {
             self.update_textbox(game_io);
             self.handle_packets(game_io);
             self.handle_server_messages();
+            self.try_ping();
         }
 
         self.core_update(game_io);

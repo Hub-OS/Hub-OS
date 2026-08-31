@@ -20,13 +20,13 @@ pub enum PeerSyncResponse<PeerId, T> {
 }
 
 pub trait PeerSyncConnectionStates<PeerId> {
-    fn total_connected(&self) -> usize {
-        self.iter_connected().count()
+    fn total_fully_connected(&self) -> usize {
+        self.iter_fully_connected().count()
     }
 
     /// This should include the local id, not just remote ids
-    fn iter_connected(&self) -> impl Iterator<Item = PeerId>;
-    fn peer_connected(&self, id: PeerId) -> bool;
+    fn iter_fully_connected(&self) -> impl Iterator<Item = PeerId>;
+    fn peer_fully_connected(&self, id: PeerId) -> bool;
 }
 
 struct PeerValueState<T> {
@@ -77,7 +77,7 @@ where
         message: PeerSyncMessage<T>,
         mut response: impl FnMut(PeerSyncResponse<PeerId, T>),
     ) {
-        let total_connected = connection_states.total_connected();
+        let total_connected = connection_states.total_fully_connected();
 
         if total_connected == 1 {
             response(PeerSyncResponse::Complete);
@@ -167,7 +167,7 @@ where
         let mut connected_iter = self
             .peer_values
             .iter()
-            .filter(|(id, ..)| connection_states.peer_connected(*id))
+            .filter(|(id, ..)| connection_states.peer_fully_connected(*id))
             .peekable();
 
         let Some((_, a)) = connected_iter.peek() else {
@@ -199,7 +199,7 @@ where
         mut response: impl FnMut(PeerSyncResponse<PeerId, T>),
     ) {
         let synced_values = self.count_peer_values(|(id, stored)| {
-            connection_states.peer_connected(*id) && stored.version >= self.next_sync
+            connection_states.peer_fully_connected(*id) && stored.version >= self.next_sync
         });
 
         // total_connected includes us, and received values contains our value, so we check for an exact match
@@ -244,7 +244,7 @@ where
         let (max_index, max_stored) = self
             .peer_values
             .iter()
-            .filter(|(id, _)| connection_states.peer_connected(*id))
+            .filter(|(id, _)| connection_states.peer_fully_connected(*id))
             .max_by_key(|(_, stored)| stored.value)?;
 
         let local_value = self.peer_values.get(&local_id)?.value;
@@ -266,7 +266,7 @@ mod test {
     }
 
     impl<'a> PeerSyncConnectionStates<usize> for ConnectionStates<'a> {
-        fn iter_connected(&self) -> impl Iterator<Item = usize> {
+        fn iter_fully_connected(&self) -> impl Iterator<Item = usize> {
             self.states
                 .iter()
                 .enumerate()
@@ -274,7 +274,7 @@ mod test {
                 .map(|(i, _)| i)
         }
 
-        fn peer_connected(&self, id: usize) -> bool {
+        fn peer_fully_connected(&self, id: usize) -> bool {
             self.states.get(id).copied().unwrap_or_default()
         }
     }
@@ -349,7 +349,7 @@ mod test {
                     PeerSyncMessage::Ready => {
                         let iter = self.synchronizer.peer_values.iter();
                         let ready_states: Vec<_> = iter
-                            .filter(|(id, _)| connection_states.peer_connected(*id))
+                            .filter(|(id, _)| connection_states.peer_fully_connected(*id))
                             .map(|(id, stored)| (id, stored.ready))
                             .collect();
 
@@ -358,7 +358,7 @@ mod test {
                     PeerSyncMessage::CurrentValue(_) | PeerSyncMessage::Disconnect => {
                         let iter = self.synchronizer.peer_values.iter();
                         let connected_iter =
-                            iter.filter(|(id, _)| connection_states.peer_connected(*id));
+                            iter.filter(|(id, _)| connection_states.peer_fully_connected(*id));
 
                         let peer_values = connected_iter
                             .map(|(id, stored)| (*id, stored.value, stored.version))
