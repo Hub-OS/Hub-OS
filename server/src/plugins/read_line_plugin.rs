@@ -75,17 +75,20 @@ impl CustomCompleter {
 }
 
 impl reedline::Completer for CustomCompleter {
-    fn complete(&mut self, line: &str, pos: usize) -> Vec<reedline::Suggestion> {
+    fn complete(&mut self, line: &str, pos: usize) -> reedline::CompletionResult {
         self.receive_completions();
 
         if pos != line.len() {
-            return vec![];
+            return reedline::CompletionResult::Fresh {
+                suggestions: Arc::new([]),
+                partial: None,
+            };
         }
 
         let reference_str = line.trim_start();
 
-        self.commands
-            .iter()
+        let command_iter = self.commands.iter();
+        let suggestions = command_iter
             .filter(|command_name| command_name.starts_with(reference_str))
             .map(|command_name| reedline::Suggestion {
                 value: command_name.clone(),
@@ -95,7 +98,12 @@ impl reedline::Completer for CustomCompleter {
                 },
                 ..Default::default()
             })
-            .collect()
+            .collect::<Arc<[reedline::Suggestion]>>();
+
+        reedline::CompletionResult::Fresh {
+            suggestions,
+            partial: None,
+        }
     }
 }
 
