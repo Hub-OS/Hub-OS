@@ -8,17 +8,15 @@ use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
 use std::time::Duration;
 
-fn meta_value_as_usize(value: &symphonia::core::meta::Value) -> usize {
-    use symphonia::core::meta::Value;
+fn meta_value_as_usize(value: &symphonia::core::meta::RawValue) -> usize {
+    use symphonia::core::meta::RawValue;
 
     match value {
-        Value::Binary(_) => 0,
-        Value::Boolean(_) => 0,
-        Value::Flag => 0,
-        Value::Float(n) => *n as _,
-        Value::SignedInt(n) => *n as _,
-        Value::String(s) => s.parse().unwrap_or_default(),
-        Value::UnsignedInt(n) => *n as _,
+        RawValue::Float(n) => *n as _,
+        RawValue::SignedInt(n) => *n as _,
+        RawValue::String(s) => s.parse().unwrap_or_default(),
+        RawValue::UnsignedInt(n) => *n as _,
+        _ => 0,
     }
 }
 
@@ -46,7 +44,9 @@ impl SoundBuffer {
 
     pub fn decode_non_midi(raw: Vec<u8>) -> Self {
         // https://docs.rs/symphonia/latest/symphonia/index.html
-        use symphonia::core::audio::SampleBuffer;
+        use symphonia::core::audio::sample::Sample;
+        use symphonia::core::codecs::CodecParameters;
+        use symphonia::core::formats::TrackType;
         use symphonia::core::io::MediaSourceStream;
 
         let cursor = Cursor::new(raw);
@@ -59,24 +59,33 @@ impl SoundBuffer {
         let stream = MediaSourceStream::new(Box::new(cursor), Default::default());
 
         // "5. Using the Probe, call format and pass it the MediaSourceStream."
-        let Ok(probe_result) = probe.format(
+        let Ok(mut format_reader) = probe.probe(
             &Default::default(),
             stream,
-            &Default::default(),
-            &Default::default(),
+            Default::default(),
+            Default::default(),
         ) else {
             return Self::new_empty();
         };
 
         // "7. At this point it is possible to interrogate the FormatReader for general information about the media and metadata.
         //     Examine the Track listing using tracks and select one or more tracks of interest to decode."
-        let mut format = probe_result.format;
-        let Some(track) = format.default_track() else {
+        // let mut format = format_reader.format_info();
+        let Some(track) = format_reader.default_track(TrackType::Audio) else {
             return Self::new_empty();
         };
 
         let track_id = track.id;
-        let channels = track.codec_params.channels.unwrap_or_default().count();
+
+        let Some(CodecParameters::Audio(codec_params)) = &track.codec_params else {
+            return Self::new_empty();
+        };
+
+        let Some(channels) = &codec_params.channels else {
+            return Self::new_empty();
+        };
+
+        let channels = channels.count();
 
         if channels == 0 {
             // avoiding dividing by zero
@@ -84,34 +93,36 @@ impl SoundBuffer {
             return Self::new_empty();
         }
 
-        let sample_rate = track.codec_params.sample_rate.unwrap_or(44100); // 44.1 kHz
+        let sample_rate = codec_params.sample_rate.unwrap_or(44100); // 44.1 kHz
 
         // "8. To instantiate a Decoder for a selected Track, call the CodecRegistry’s make function and pass it the CodecParameters for that track.
         //     This step is repeated once per selected track."
-        let Ok(mut decoder) = codecs.make(&track.codec_params, &Default::default()) else {
+        let Ok(mut decoder) = codecs.make_audio_decoder(codec_params, &Default::default()) else {
             return Self::new_empty();
         };
 
         // "9. To decode a track, obtain a packet from the FormatReader by calling next_packet and then pass the Packet to the Decoder for that track.
         //     The decode function will read a packet and return an AudioBufferRef (an “any-type” AudioBuffer)."
         let mut data = Vec::new();
-        let mut sample_buf = None;
         let mut loop_start = 0;
         let mut loop_end = None;
         let mut loop_length = None;
 
         // process metadata
-        if let Some(metadata_revision) = format.metadata().current() {
-            for tag in metadata_revision.tags() {
-                match tag.key.as_str() {
+        if let Some(metadata_revision) = format_reader.metadata().current() {
+            for tag in &metadata_revision.media.tags {
+                let key = tag.raw.key.as_str();
+                let value = &tag.raw.value;
+
+                match key {
                     "LOOP_START" | "LOOPSTART" => {
-                        loop_start = meta_value_as_usize(&tag.value) * channels
+                        loop_start = meta_value_as_usize(value) * channels
                     }
                     "LOOP_END" | "LOOPEND" => {
-                        loop_end = Some(meta_value_as_usize(&tag.value) * channels)
+                        loop_end = Some(meta_value_as_usize(value) * channels)
                     }
                     "LOOP_LENGTH" | "LOOPLENGTH" | "LOOP_LEN" | "LOOPLEN" => {
-                        loop_length = Some(meta_value_as_usize(&tag.value) * channels)
+                        loop_length = Some(meta_value_as_usize(value) * channels)
                     }
                     _ => {}
                 }
@@ -119,8 +130,8 @@ impl SoundBuffer {
         }
 
         // read data
-        while let Ok(packet) = format.next_packet() {
-            if packet.track_id() != track_id {
+        while let Ok(Some(packet)) = format_reader.next_packet() {
+            if packet.track_id != track_id {
                 // skip data for other tracks
                 continue;
             }
@@ -129,24 +140,10 @@ impl SoundBuffer {
                 continue;
             };
 
-            // https://github.com/pdeljanov/Symphonia/blob/master/symphonia/examples/basic-interleaved.rs
-            if sample_buf.is_none() {
-                // Get the audio buffer specification.
-                let spec = *audio_buf.spec();
+            let prev_len = data.len();
+            data.resize(prev_len + audio_buf.samples_interleaved(), i16::MID);
 
-                // Get the capacity of the decoded buffer. Note: This is capacity, not length!
-                let duration = audio_buf.capacity() as u64;
-
-                // Create the sample buffer.
-                sample_buf = Some(SampleBuffer::<i16>::new(duration, spec));
-            }
-
-            // Copy the decoded audio buffer into the sample buffer in an interleaved format.
-            if let Some(buf) = &mut sample_buf {
-                buf.copy_interleaved_ref(audio_buf);
-
-                data.extend(buf.samples());
-            }
+            audio_buf.copy_to_slice_interleaved(&mut data[prev_len..]);
         }
 
         let data: Arc<[i16]> = data.into();

@@ -33,7 +33,7 @@ rodio = { version = "0.21", default-features = false, features = [
   "playback",
   "cpal-shared-stdcxx"
 ] }
-symphonia = { version = "0.5", features = [
+symphonia = { version = "0.6", features = [
   "ogg",
   "vorbis",
   "wav",
