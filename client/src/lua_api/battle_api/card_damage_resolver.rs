@@ -40,6 +40,9 @@ impl CardDamageResolver {
             };
         }
 
+        // use latest id
+        let package_id = &card_package.package_info.id;
+
         Self {
             vm_index: resources.vm_manager.find_vm(package_id, namespace).ok(),
             default_damage,

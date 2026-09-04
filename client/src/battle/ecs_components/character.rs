@@ -159,8 +159,23 @@ impl Character {
         namespace: PackageNamespace,
         rank: CharacterRank,
     ) -> rollback_mlua::Result<EntityId> {
+        // get latest package id
+        let globals = Globals::from_resources(game_io);
+        let package = globals
+            .character_packages
+            .package_or_fallback(namespace, package_id)
+            .ok_or_else(|| {
+                rollback_mlua::Error::RuntimeError(format!(
+                    "Failed to load character {package_id:?}"
+                ))
+            })?;
+
+        let package_id = &package.package_info.id;
+
+        // create entity
         let id = Self::create(game_io, resources, simulation, rank, namespace)?;
 
+        // init
         let vm_index = resources.vm_manager.find_vm(package_id, namespace)?;
         simulation.call_global(game_io, resources, vm_index, "character_init", move |lua| {
             create_entity_table(lua, id)

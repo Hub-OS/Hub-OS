@@ -117,15 +117,28 @@ impl Action {
         namespace: PackageNamespace,
         mut card_props: CardProperties,
     ) -> Option<GenerationalIndex> {
-        let package_id = &card_props.package_id;
-
-        if package_id.is_blank() {
+        if card_props.package_id.is_blank() {
             return None;
         }
 
         let namespace = card_props.namespace.unwrap_or(namespace);
         card_props.namespace = Some(namespace);
 
+        // get latest package id
+        let globals = Globals::from_resources(game_io);
+        let Some(package) = globals
+            .card_packages
+            .package_or_fallback(namespace, &card_props.package_id)
+        else {
+            log::error!(
+                "Failed to find card {} with namespace: {namespace:?}",
+                card_props.package_id
+            );
+            return None;
+        };
+        let package_id = &package.package_info.id;
+
+        // init action
         let Ok(vm_index) = resources.vm_manager.find_vm(package_id, namespace) else {
             log::error!("Failed to find vm for {package_id} with namespace: {namespace:?}");
             return None;
@@ -145,7 +158,7 @@ impl Action {
             simulation,
         });
 
-        let lua_api = &Globals::from_resources(game_io).battle_api;
+        let lua_api = &globals.battle_api;
         let mut id: Option<GenerationalIndex> = None;
 
         lua_api.inject_dynamic(lua, &api_ctx, |lua| {
