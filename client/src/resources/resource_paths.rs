@@ -8,6 +8,7 @@ pub struct ResourcePaths;
 pub struct ResourcePathsOptions {
     pub game_path: String,
     pub data_path: String,
+    pub log_path: Option<String>,
 }
 
 impl ResourcePaths {

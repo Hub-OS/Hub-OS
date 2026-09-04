@@ -16,6 +16,7 @@ client/save.dat
 client/corrupted_save.dat
 client/config.ini
 crash.txt
+log.txt
 
 # private files
 _*

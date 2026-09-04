@@ -5,6 +5,7 @@ mod args;
 mod battle;
 mod bindable;
 mod ease;
+mod log_service;
 mod lua_api;
 mod memoize;
 mod overlays;
@@ -23,13 +24,14 @@ mod transitions;
 
 pub mod crash_reports;
 
+use crate::log_service::*;
 use crate::resources::*;
 use crate::scenes::BootStage1;
+use crate::supporting_service::*;
 use framework::logging::*;
 use framework::prelude::*;
 use framework::runtime::GameWindowLoop;
 use rand::seq::IndexedRandom;
-use supporting_service::*;
 
 // exported for the android crate
 pub use crate::args::Args;
@@ -52,8 +54,9 @@ pub type PlatformApp = <GameLoop as GameWindowLoop>::PlatformApp;
 pub fn main(
     app: PlatformApp,
     args: Args,
-    resource_options: ResourcePathsOptions,
+    mut resource_options: ResourcePathsOptions,
 ) -> anyhow::Result<()> {
+    let log_path = resource_options.log_path.take();
     ResourcePaths::init_game_folders(resource_options);
 
     let (log_sender, log_receiver) = flume::unbounded();
@@ -79,7 +82,8 @@ pub fn main(
     Game::<GameLoop>::new(random_title, (RESOLUTION * 4).into())
         .with_platform_app(app)
         .with_resizable(true)
-        .run(|game_io| BootStage1::new(game_io, args, log_receiver))?;
+        .with_service(|game_io| LogService::new(game_io, log_path, log_receiver))
+        .run(|game_io| BootStage1::new(game_io, args))?;
 
     Ok(())
 }

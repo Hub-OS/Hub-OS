@@ -5,7 +5,6 @@ use crate::render::{PostProcessAdjust, PostProcessColorBlindness, PostProcessGho
 use crate::resources::*;
 use crate::saves::GlobalSave;
 use crate::supporting_service::SupportingService;
-use framework::logging::LogRecord;
 use framework::prelude::*;
 use walkdir::WalkDir;
 
@@ -24,20 +23,18 @@ enum Event {
 /// We split loading over multiple frames to avoid ANRs on Android
 pub struct BootStage1 {
     event_receiver: flume::Receiver<Event>,
-    log_receiver: flume::Receiver<LogRecord>,
     global_params: Option<(Args, LocalAssetManager)>,
     next_scene: NextScene,
 }
 
 impl BootStage1 {
-    pub fn new(game_io: &mut GameIO, args: Args, log_receiver: flume::Receiver<LogRecord>) -> Self {
+    pub fn new(game_io: &mut GameIO, args: Args) -> Self {
         let (event_sender, event_receiver) = flume::unbounded();
 
         BootStage1Thread::spawn(game_io, event_sender);
 
         Self {
             event_receiver,
-            log_receiver,
             global_params: Some((args, LocalAssetManager::new(game_io))),
             next_scene: NextScene::None,
         }
@@ -99,8 +96,7 @@ impl Scene for BootStage1 {
                 } => {
                     self.build_globals(game_io, *global_save, resource_packages);
 
-                    let scene =
-                        super::boot_stage_2::BootStage2::new(game_io, self.log_receiver.clone());
+                    let scene = super::boot_stage_2::BootStage2::new(game_io);
                     self.next_scene = NextScene::new_push(scene);
                     break;
                 }

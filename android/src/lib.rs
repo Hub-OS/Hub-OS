@@ -36,6 +36,7 @@ pub fn android_main(app: WinitPlatformApp) {
     // prepare to call main
     let args = Args::parse();
     let resource_paths = ResourcePathsOptions {
+        log_path: None,
         game_path: game_path.clone(),
         data_path: game_path,
     };

@@ -1,11 +1,11 @@
 use crate::bindable::SpriteColorMode;
+use crate::log_service::Logs;
 use crate::packages::*;
 use crate::render::ui::{FontName, LogBox, Text};
 use crate::render::*;
 use crate::resources::*;
 use crate::scenes::{MainMenuScene, PackageUpdatesScene};
 use crate::tips::Tip;
-use framework::logging::LogRecord;
 use framework::prelude::*;
 use packets::structures::FileHash;
 use std::collections::HashSet;
@@ -43,7 +43,6 @@ pub struct BootStage2 {
     progress_bar_bounds: Rect,
     status_position: Vec2,
     log_box: LogBox,
-    log_receiver: flume::Receiver<LogRecord>,
     event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
     requires_update: Vec<(PackageCategory, PackageId, FileHash)>,
@@ -52,7 +51,7 @@ pub struct BootStage2 {
 }
 
 impl BootStage2 {
-    pub fn new(game_io: &GameIO, log_receiver: flume::Receiver<LogRecord>) -> BootStage2 {
+    pub fn new(game_io: &GameIO) -> BootStage2 {
         Tip::log_random(game_io);
 
         let globals = Globals::from_resources(game_io);
@@ -103,7 +102,6 @@ impl BootStage2 {
             progress_bar_bounds,
             status_position,
             log_box,
-            log_receiver,
             event_sender: sender,
             event_receiver: receiver,
             requires_update: Default::default(),
@@ -113,7 +111,9 @@ impl BootStage2 {
     }
 
     fn handle_thread_messages(&mut self, game_io: &mut GameIO) {
-        while let Ok(record) = self.log_receiver.try_recv() {
+        let logs = game_io.resource::<Logs>().unwrap();
+
+        for record in logs.iter_new() {
             let high_priority_internal = record.target.starts_with(env!("CARGO_PKG_NAME"))
                 && record.level != log::Level::Trace;
 
@@ -126,7 +126,7 @@ impl BootStage2 {
             };
 
             if high_priority_internal || high_priority_external {
-                self.log_box.push_record(record);
+                self.log_box.push_record(record.clone());
             }
         }
 

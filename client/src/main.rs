@@ -20,6 +20,7 @@ fn main() {
     let data_path = resolve_data_path(&game_path, &args);
 
     let resource_options = ResourcePathsOptions {
+        log_path: Some(game_path.clone() + "log.txt"),
         game_path,
         data_path,
     };
