@@ -1,7 +1,7 @@
 use crate::battle::{BattleSimulation, PlayerSetup};
 use crate::bindable::{EntityId, GenerationalIndex, SpriteColorMode};
 use crate::packages::PlayerPackage;
-use crate::render::{Animator, SpriteNode, Tree};
+use crate::render::{Animator, AnimatorLoopMode, SpriteNode, Tree};
 use crate::{Globals, ResourcePaths};
 use framework::common::GameIO;
 use packets::structures::Emotion;
@@ -45,6 +45,7 @@ impl EmotionWindow {
         }
 
         animator.set_state(emotion.as_str());
+        animator.set_loop_mode(AnimatorLoopMode::Loop);
 
         // load sprite
         let mut root_node = SpriteNode::new(game_io, SpriteColorMode::Add);
@@ -86,6 +87,7 @@ impl EmotionWindow {
         if !self.animator.has_state(self.emotion.as_str()) {
             self.emotion = Emotion::default();
             self.animator.set_state(self.emotion.as_str());
+            self.animator.set_loop_mode(AnimatorLoopMode::Loop);
         }
     }
 
@@ -105,6 +107,7 @@ impl EmotionWindow {
         if self.animator.has_state(emotion.as_str()) {
             // only apply the emotion if it's supported
             self.animator.set_state(emotion.as_str());
+            self.animator.set_loop_mode(AnimatorLoopMode::Loop);
             self.emotion = emotion;
         }
     }
