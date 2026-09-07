@@ -12,7 +12,9 @@ boot-cleaning-cache = Limpando Cachê
 boot-checking-for-updates = Verificando se há Atualizações
 boot-press-any-button = Aperte Qualquer Botão
 initial-setup-message =
-    Mod. de Navi não encontrado!
+    Welcome to Hub OS!
     
     
-    Instale em Gerenciar Mods nas Configurações.
+    To get started,
+    install a Navi from
+    Manage Mods in Config.
