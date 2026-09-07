@@ -11,3 +11,5 @@ navigation-health-label = Vida
 navigation-quit-question = Sair do Hub OS?
 navigation-yes = Sim
 navigation-no = Não
+navigation-quit-without-saving-title = Quit without saving?
+navigation-quit-while-saving-question = Currently saving data, quit anyway?
