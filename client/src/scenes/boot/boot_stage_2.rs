@@ -6,6 +6,7 @@ use crate::render::*;
 use crate::resources::*;
 use crate::scenes::{MainMenuScene, PackageUpdatesScene};
 use crate::tips::Tip;
+use framework::logging::LogRecord;
 use framework::prelude::*;
 use packets::structures::FileHash;
 use std::collections::HashSet;
@@ -93,7 +94,7 @@ impl BootStage2 {
         // work thread
         let (sender, receiver) = BootStage2Thread::spawn(game_io);
 
-        BootStage2 {
+        let mut scene = BootStage2 {
             camera: Camera::new_ui(game_io),
             background: Background::new_main_menu(game_io),
             status_label,
@@ -107,13 +108,16 @@ impl BootStage2 {
             requires_update: Default::default(),
             done: false,
             next_scene: NextScene::None,
-        }
+        };
+
+        let logs = game_io.resource::<Logs>().unwrap();
+        scene.append_logs(logs.iter_old());
+
+        scene
     }
 
-    fn handle_thread_messages(&mut self, game_io: &mut GameIO) {
-        let logs = game_io.resource::<Logs>().unwrap();
-
-        for record in logs.iter_new() {
+    fn append_logs<'a>(&mut self, log_iter: impl Iterator<Item = &'a LogRecord>) {
+        for record in log_iter {
             let high_priority_internal = record.target.starts_with(env!("CARGO_PKG_NAME"))
                 && record.level != log::Level::Trace;
 
@@ -129,6 +133,12 @@ impl BootStage2 {
                 self.log_box.push_record(record.clone());
             }
         }
+    }
+
+    fn handle_thread_messages(&mut self, game_io: &mut GameIO) {
+        let logs = game_io.resource::<Logs>().unwrap();
+
+        self.append_logs(logs.iter_new());
 
         if self.done {
             return;

@@ -12,6 +12,14 @@ pub struct Logs {
 }
 
 impl Logs {
+    pub fn iter_all(&self) -> impl Iterator<Item = &LogRecord> {
+        self.ring.iter()
+    }
+
+    pub fn iter_old(&self) -> impl Iterator<Item = &LogRecord> {
+        self.ring.iter().take(self.historic_count)
+    }
+
     pub fn iter_new(&self) -> impl Iterator<Item = &LogRecord> {
         self.ring.iter().skip(self.historic_count)
     }
