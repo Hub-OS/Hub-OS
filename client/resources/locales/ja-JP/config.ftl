@@ -75,6 +75,7 @@ config-sfx-label = SFX
 config-mute-music-label = Mute Music
 config-mute-sfx-label = Mute SFX
 config-audio-device-label = Device
+config-auto-sprint = Auto Sprint
 config-key-style-label = Style
 config-key-style-mix = Mix
 config-key-style-wasd = WASD
