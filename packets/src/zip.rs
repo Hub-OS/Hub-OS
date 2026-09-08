@@ -98,18 +98,21 @@ where
 
                 (cleaned_path, entry)
             })
+            // skipping anything that isn't a file
+            .filter(|(_, entry)| entry.metadata().is_ok_and(|entry| entry.is_file()))
+            // skipping hidden files, also filter out anything that can't be represented by UTF-8
+            // this should strip out .vscode folders and files in the __MACOSX folder
+            .filter(|(_, entry)| {
+                let Ok(stripped_path) = entry.path().strip_prefix(root_path) else {
+                    return false;
+                };
+
+                let mut path_iter = stripped_path.iter();
+                path_iter.all(|slice| slice.to_str().is_some_and(|s| !is_hidden_file(s)))
+            })
             .sorted_by(|(path_a, _), (path_b, _)| path_a.cmp(path_b));
 
         for (cleaned_path, entry) in entry_iter {
-            let Ok(metadata) = entry.metadata() else {
-                continue;
-            };
-
-            if metadata.is_dir() {
-                // would just waste space
-                continue;
-            }
-
             let Ok(mut file) = File::open(entry.path()) else {
                 continue;
             };
@@ -126,4 +129,8 @@ where
     }
 
     Ok(data)
+}
+
+fn is_hidden_file(file_name: &str) -> bool {
+    file_name.starts_with('.')
 }
