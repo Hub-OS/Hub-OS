@@ -12,9 +12,8 @@ boot-cleaning-cache = Limpando Cachê
 boot-checking-for-updates = Verificando se há Atualizações
 boot-press-any-button = Aperte Qualquer Botão
 initial-setup-message =
-    Welcome to Hub OS!
+    Bem vindo ao Hub OS!
     
-    
-    To get started,
-    install a Navi from
-    Manage Mods in Config.
+    Para começar,
+    instale um Navi em
+    Gerenciar Mods nas Configs.
