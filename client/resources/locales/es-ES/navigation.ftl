@@ -11,3 +11,5 @@ navigation-health-label = Salud
 navigation-quit-question = ¿Cerrar Hub OS?
 navigation-yes = Sí
 navigation-no = No
+navigation-quit-without-saving-title = Quit without saving?
+navigation-quit-while-saving-question = Currently saving data, quit anyway?
