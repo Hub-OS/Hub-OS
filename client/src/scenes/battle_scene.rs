@@ -864,14 +864,30 @@ impl BattleScene {
             }
 
             if !controller.pong_received {
-                if now - controller.ping_start_time > FAILSAFE_CONNECTION_TIMEOUT {
+                // waiting for pong
+
+                if now - controller.ping_start_time < FAILSAFE_CONNECTION_TIMEOUT {
+                    // seems like it's been a normal amount of time so we'll just continue
+                    continue;
+                }
+
+                // we've waited too long for a pong
+
+                if controller.input_connected {
+                    // this player's input is important
                     log::debug!(
-                        "Lost connection with {i} without sync, disconnecting from all peers"
+                        "Lost connection with {i} without sync, disconnecting from all peers!"
                     );
                     self.comms.disconnect_peers();
                     break;
                 }
 
+                // this peer's input was already disconnected, we'll just drop them
+                // todo: does this cause desyncs with external events?
+                log::warn!(
+                    "Lost connection with {i} (Input disconnected) without sync! External events may desync!"
+                );
+                self.comms.disconnect_peer(i);
                 continue;
             }
 

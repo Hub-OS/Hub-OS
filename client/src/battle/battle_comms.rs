@@ -196,11 +196,15 @@ impl BattleComms {
             let connection_state = self.connection_states.get(peer_index);
 
             if connection_state == ConnectionState::Connected && !self.can_disconnect_peers {
+                log::debug!("Lost connection with {i}, waiting for peers to signal sync...");
+
                 // can't start disconnect
                 self.connection_states
                     .set(peer_index, ConnectionState::Limbo);
                 continue;
             }
+
+            log::debug!("Lost connection with {i}, syncing final inputs...");
 
             // unblock existing synchronizers for this peer
             for (_, synchronizer) in self.disconnect_synchronizers.iter_mut() {
@@ -336,7 +340,7 @@ impl BattleComms {
         let Some((_, send)) = senders
             .iter()
             .find(|(i, _)| *i == Some(to_index))
-            .or(senders.last())
+            .or(senders.last().filter(|(i, _)| i.is_none()))
         else {
             return;
         };
