@@ -199,4 +199,48 @@ function Direction.join(direction_a, direction_b)
   return y .. " " .. x
 end
 
+local clockwise_directions = {
+  Direction.UP_RIGHT,
+  Direction.RIGHT,
+  Direction.DOWN_RIGHT,
+  Direction.DOWN,
+  Direction.DOWN_LEFT,
+  Direction.LEFT,
+  Direction.UP_LEFT,
+  Direction.UP,
+}
+
+local clock_indices = {}
+
+for i, key in ipairs(clockwise_directions) do
+  clock_indices[key] = i
+end
+
+---@param direction string
+---@param n number
+function Direction.rotate_c(direction, n)
+  local i = clock_indices[direction] + (n or 1)
+  local zero_i
+
+  if i <= 0 then
+    i = i % #clockwise_directions
+    zero_i = #clockwise_directions
+  else
+    i = i % #clockwise_directions
+    zero_i = 1
+  end
+
+  if i == 0 then
+    i = zero_i
+  end
+
+  return clockwise_directions[i]
+end
+
+---@param direction string
+---@param n number
+function Direction.rotate_cc(direction, n)
+  return Direction.rotate_c(direction, -(n or 1))
+end
+
 return Direction
