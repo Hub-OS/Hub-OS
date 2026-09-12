@@ -332,7 +332,8 @@ impl BattleComms {
 
     pub fn send(&self, to_index: usize, data: NetplayPacketData) {
         if to_index == self.local_index {
-            log::warn!("Attempted to send netplay packet to self");
+            let name: &'static str = (&data).into();
+            log::warn!("Attempted to send netplay packet {name:?} to self");
             return;
         }
 
