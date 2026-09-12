@@ -155,7 +155,8 @@ pub struct DeckEditorScene {
     code_filter: String,
     ns_filter: usize,
     filtered: bool,
-    last_sort: Option<Sorting>,
+    last_sort: Sorting,
+    reversed_sort: bool,
     mode: EditorMode,
     deck_dock: Dock,
     pack_dock: Dock,
@@ -281,7 +282,8 @@ impl DeckEditorScene {
             code_filter: Default::default(),
             ns_filter: Default::default(),
             filtered: false,
-            last_sort: None,
+            last_sort: Sorting::Id,
+            reversed_sort: false,
             mode: EditorMode::Default,
             deck_dock,
             pack_dock,
@@ -403,6 +405,16 @@ impl Scene for DeckEditorScene {
         self.filtered = true;
         apply_filters(self, game_io);
 
+        // reapply sort
+        let globals = Globals::from_resources(game_io);
+
+        self.last_sort
+            .sort_items(globals, &mut self.pack_dock.card_slots);
+
+        if self.reversed_sort {
+            self.pack_dock.card_slots.reverse();
+        }
+
         // try to restore selection
         let new_pack_index = previous_pack_selection.and_then(|card| {
             (self.pack_dock.card_slots.iter())
@@ -417,13 +429,6 @@ impl Scene for DeckEditorScene {
 
         // forget remembered index in case it was shifted or deleted
         self.pack_dock.scroll_tracker.forget_index();
-
-        // reapply sort
-        let globals = Globals::from_resources(game_io);
-
-        if let Some(sort) = self.last_sort {
-            sort.sort_items(globals, &mut self.pack_dock.card_slots);
-        }
 
         // update package ids
         let packages = &globals.card_packages;
@@ -768,14 +773,8 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
     // selecting dock
     let input_util = InputUtil::new(game_io);
 
-    let previous_page = scene.page_tracker.active_page();
-
     if scene.mode == EditorMode::Default {
         scene.page_tracker.handle_input(game_io);
-    }
-
-    if previous_page != scene.page_tracker.active_page() {
-        scene.last_sort = None;
     }
 
     // see if we should do something other than default handling based on mode
@@ -1095,7 +1094,7 @@ fn handle_sort_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
     let card_slots = &mut dock.card_slots;
 
     // silly order preservation fix for the later reverse call
-    if scene.last_sort == Some(selected_option) {
+    if scene.last_sort == selected_option {
         card_slots.reverse();
     }
 
@@ -1109,10 +1108,14 @@ fn handle_sort_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
     let globals = Globals::from_resources(game_io);
     selected_option.sort_items(globals, card_slots);
 
-    if scene.last_sort.take() == Some(selected_option) {
-        card_slots.reverse();
+    if scene.last_sort == selected_option {
+        scene.reversed_sort = !scene.reversed_sort;
     } else {
-        scene.last_sort = Some(selected_option);
+        scene.last_sort = selected_option;
+    }
+
+    if scene.reversed_sort {
+        card_slots.reverse();
     }
 
     // restore selections
