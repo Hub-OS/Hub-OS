@@ -232,11 +232,7 @@ CommandProcessing.register_commands({
       end
 
       for _, actor_id in ipairs(actor_list) do
-        if Net.get_actor_area(actor_id) == area_id then
-          --   Net.warp_actor(actor_id, x, y, z)
-          -- else
-          Net.transfer_actor(actor_id, area_id, true, x, y, z)
-        end
+        Net.transfer_actor(actor_id, area_id, true, x, y, z)
       end
 
       Net.print_to(event.player_id, "Teleported " .. #actor_list .. " actors")
