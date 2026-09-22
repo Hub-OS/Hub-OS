@@ -392,10 +392,8 @@ impl BootStage2Thread {
             let direct_file_path = path.to_string() + ".ogg";
 
             if std::fs::exists(&direct_file_path).is_ok_and(|v| v) {
-                files.push((
-                    extract_name(&direct_file_path),
-                    self.assets.non_midi_audio(&direct_file_path),
-                ));
+                // loading the audio will allow it to be detected in the later loop
+                self.assets.non_midi_audio(&direct_file_path);
             }
 
             // load all audio in the matching directory without overwriting cached audio from resource packs
@@ -408,7 +406,7 @@ impl BootStage2Thread {
 
             // resolve from loaded audio matching the path
             self.assets.for_each_loaded_audio(|key, sound_buffer| {
-                if key.starts_with(&dir_path) {
+                if key.starts_with(path) {
                     files.push((extract_name(key), sound_buffer.clone()));
                 }
             });
