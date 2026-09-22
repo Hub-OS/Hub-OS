@@ -13,7 +13,7 @@ packets = { path = "../packets", default-features = false, features = ["mlua"] }
 structures = { path = "../structures" }
 smol = { workspace = true }
 futures = { workspace = true }
-minreq = { version = "2", features = ["https-native"] }
+minreq = { version = "3", features = ["https-native-tls"] }
 mlua = { version = "0.9", features = ["vendored", "lua54"] }
 clap = { workspace = true }
 roxmltree = "0.19"
