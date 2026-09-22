@@ -73,6 +73,7 @@ config-sfx-label = Sonidos
 config-mute-music-label = Sin Música
 config-mute-sfx-label = No SFX
 config-audio-device-label = Dispositivo
+config-auto-sprint = Auto Sprint
 config-key-style-label = Estilo
 config-key-style-mix = Mixto
 config-key-style-wasd = WASD
