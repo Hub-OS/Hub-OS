@@ -110,17 +110,7 @@ fn system_tile_effect(game_io: &GameIO, area: &mut OverworldArea, assets: &impl 
             }
 
             let walk_vector: Vec3 = Vec2::from(direction.unit_vector()).extend(0.0);
-            end_tile_position += walk_vector;
-
-            // slide to the middle of the next tile if it's a conveyor
-            let end_tile = layer.tile_at_f32(end_tile_position.xy());
-            let end_tile_meta = map.tile_meta_for_tile(end_tile.gid);
-            let end_tile_is_conveyor =
-                matches!(end_tile_meta, Some(meta) if meta.tile_class == TileClass::Conveyor);
-
-            if end_tile_is_conveyor {
-                end_tile_position += walk_vector;
-            }
+            end_tile_position += walk_vector * 1.2;
 
             // fix overshooting
             let mut end_position = map.tile_3d_to_world(end_tile_position);
@@ -173,29 +163,18 @@ fn system_tile_effect(game_io: &GameIO, area: &mut OverworldArea, assets: &impl 
                 duration: 0.0,
             });
 
-            // bring us to the final position + stop the sfx
+            // bring us to the final position
             property_animator.add_key_frame(ActorKeyFrame {
-                property_steps: vec![
-                    (
-                        if x_axis {
-                            ActorProperty::X(end_position.x)
-                        } else {
-                            ActorProperty::Y(end_position.y)
-                        },
-                        Ease::Linear,
-                    ),
-                    (ActorProperty::SoundEffectLoop(String::new()), Ease::Floor),
-                ],
+                property_steps: vec![(
+                    if x_axis {
+                        ActorProperty::X(end_position.x)
+                    } else {
+                        ActorProperty::Y(end_position.y)
+                    },
+                    Ease::Linear,
+                )],
                 duration,
             });
-
-            if !end_tile_is_conveyor {
-                // small wait duration at a rest position
-                property_animator.add_key_frame(ActorKeyFrame {
-                    property_steps: Vec::new(),
-                    duration: 0.25,
-                });
-            }
 
             let _ = entities.insert_one(player_data.entity, property_animator);
             ActorPropertyAnimator::start(game_io, assets, entities, player_data.entity);
