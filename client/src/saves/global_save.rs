@@ -221,6 +221,33 @@ impl GlobalSave {
             }
         }
 
+        // todo: we may need to switch away from a slotmap for storing deck tags
+        // as we can't sync keys
+        let deck_tags_by_name = HashMap::<String, DeckTagKey>::from_iter(
+            self.deck_tags.iter().map(|(k, v)| (v.clone(), k)),
+        );
+
+        for (old_key, tag_name) in other.deck_tags {
+            let new_key = match deck_tags_by_name.get(&tag_name) {
+                Some(key) => {
+                    if old_key == *key {
+                        // identical keys, no need to do anything
+                        continue;
+                    }
+
+                    *key
+                }
+                None => self.deck_tags.insert(tag_name),
+            };
+
+            // make sure relevant decks are using the new key
+            for tag in self.decks.iter_mut().flat_map(|deck| &mut deck.tags) {
+                if *tag == old_key {
+                    *tag = new_key;
+                }
+            }
+        }
+
         // sync selected deck
         if should_merge_selected_deck {
             let other_selected_index = other_selected_deck_uuid
@@ -239,21 +266,28 @@ impl GlobalSave {
             self.selected_character_time = other.selected_character_time;
         }
 
-        // sync augments
+        // sync augments + memories
         for (id, other_time) in other.character_update_times {
             let time = self.character_update_times.get(&id);
 
-            if time.is_none_or(|t| other_time > *t) {
-                if let Some(blocks) = other.installed_blocks.remove(&id) {
-                    self.installed_blocks.insert(id.clone(), blocks);
-                }
-
-                if let Some(parts) = other.installed_drive_parts.remove(&id) {
-                    self.installed_drive_parts.insert(id.clone(), parts);
-                }
-
-                self.character_update_times.insert(id, other_time);
+            if time.is_some_and(|t| other_time <= *t) {
+                continue;
             }
+
+            if let Some(blocks) = other.installed_blocks.remove(&id) {
+                self.installed_blocks.insert(id.clone(), blocks);
+            }
+
+            if let Some(parts) = other.installed_drive_parts.remove(&id) {
+                self.installed_drive_parts.insert(id.clone(), parts);
+            }
+
+            match other.memories.remove(&id) {
+                Some(memories) => self.memories.insert(id.clone(), memories),
+                None => self.memories.remove(&id),
+            };
+
+            self.character_update_times.insert(id, other_time);
         }
 
         // sync resource order
@@ -360,11 +394,15 @@ impl GlobalSave {
                 std::collections::hash_map::Entry::Occupied(mut occupied_entry) => {
                     if *occupied_entry.get() != memories {
                         occupied_entry.insert(memories);
+                        self.character_update_times
+                            .insert(package_id.clone(), Self::current_time());
                         self.save();
                     }
                 }
                 std::collections::hash_map::Entry::Vacant(vacant_entry) => {
                     vacant_entry.insert(memories);
+                    self.character_update_times
+                        .insert(package_id.clone(), Self::current_time());
                     self.save();
                 }
             }
@@ -372,6 +410,8 @@ impl GlobalSave {
             let removed_memory = self.memories.remove(package_id).is_some();
 
             if removed_memory {
+                self.character_update_times
+                    .insert(package_id.clone(), Self::current_time());
                 self.save();
             }
         }
