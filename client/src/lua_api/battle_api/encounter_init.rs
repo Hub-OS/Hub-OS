@@ -113,6 +113,25 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
 
     lua_api.add_dynamic_function(
         ENCOUNTER_TABLE,
+        "marked_spectator",
+        |api_ctx, lua, params| {
+            let (_, player_index): (rollback_mlua::Table, usize) = lua.unpack_multi(params)?;
+
+            let api_ctx = api_ctx.borrow();
+
+            if api_ctx.simulation.time > 0 {
+                return Err(encounter_method_called_after_start());
+            }
+
+            let config = &mut *api_ctx.resources.config.borrow_mut();
+            let is_spectator = config.spectators.contains(&player_index);
+
+            lua.pack_multi(is_spectator)
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        ENCOUNTER_TABLE,
         "set_spectate_on_delete",
         |api_ctx, lua, params| {
             let (_, spectate): (rollback_mlua::Table, Option<bool>) = lua.unpack_multi(params)?;
