@@ -424,8 +424,10 @@ impl NetplayInitScene {
             | NetplayPacketData::Pong { .. } => {
                 // response unnecessary
             }
-            NetplayPacketData::Ping => {
-                self.send(index, NetplayPacketData::Pong { sender: index });
+            NetplayPacketData::Ping { recipient } => {
+                if self.local_index == recipient {
+                    self.send(index, NetplayPacketData::Pong { sender: index });
+                }
             }
             NetplayPacketData::Status { status } => {
                 let label = if connection.spectating {

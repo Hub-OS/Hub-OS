@@ -45,7 +45,9 @@ pub enum NetplayPacketData {
     },
     HelloAck,
     HolesPunched,
-    Ping,
+    Ping {
+        recipient: usize,
+    },
     Pong {
         sender: usize,
     },
@@ -95,7 +97,9 @@ impl NetplayPacket {
     pub fn default_reliability(&self) -> Reliability {
         if matches!(
             self.data,
-            NetplayPacketData::Heartbeat | NetplayPacketData::Ping | NetplayPacketData::Pong { .. }
+            NetplayPacketData::Heartbeat
+                | NetplayPacketData::Ping { .. }
+                | NetplayPacketData::Pong { .. }
         ) {
             Reliability::Reliable
         } else {
@@ -107,7 +111,7 @@ impl NetplayPacket {
         matches!(
             self.data,
             NetplayPacketData::Buffer { .. }
-                | NetplayPacketData::Ping
+                | NetplayPacketData::Ping { .. }
                 | NetplayPacketData::Pong { .. }
         )
     }

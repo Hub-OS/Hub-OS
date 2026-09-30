@@ -592,9 +592,11 @@ impl BattleScene {
                     );
                 }
             }
-            NetplayPacketData::Ping => {
-                let pong = NetplayPacketData::Pong { sender: index };
-                self.comms.send(index, pong);
+            NetplayPacketData::Ping { recipient } => {
+                if self.comms.local_index == recipient {
+                    let pong = NetplayPacketData::Pong { sender: index };
+                    self.comms.send(index, pong);
+                }
             }
             NetplayPacketData::Pong { sender } => {
                 if self.local_index == Some(sender)
@@ -898,7 +900,7 @@ impl BattleScene {
             controller.ping_start_time = now;
             controller.pong_received = false;
 
-            self.comms.send(i, NetplayPacketData::Ping);
+            self.comms.send(i, NetplayPacketData::Ping { recipient: i });
         }
     }
 
