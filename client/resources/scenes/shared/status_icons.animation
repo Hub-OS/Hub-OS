@@ -1,0 +1,42 @@
+animation state="DEFAULT"
+frame
+point label="STEP" x="12" y="12"
+
+animation state="DRAIN"
+frame w="12" h="12"
+
+animation state="FLINCH"
+frame x="12" w="12" h="12"
+
+animation state="DRAG"
+frame x="24" w="12" h="12"
+
+animation state="FLASH"
+frame x="36" w="12" h="12"
+
+animation state="PIERCEINVIS"
+frame y="12" w="12" h="12"
+
+animation state="PIERCEGUARD"
+frame x="12" y="12" w="12" h="12"
+
+animation state="PIERCEGROUND"
+frame x="24" y="12" w="12" h="12"
+
+animation state="BLIND"
+frame x="36" y="12" w="12" h="12"
+
+animation state="CONFUSE"
+frame y="24" w="12" h="12"
+
+animation state="FREEZE"
+frame x="12" y="24" w="12" h="12"
+
+animation state="PARALYZE"
+frame x="24" y="24" w="12" h="12"
+
+animation state="STUN"
+frame x="24" y="24" w="12" h="12"
+
+animation state="ROOT"
+frame x="36" y="24" w="12" h="12"

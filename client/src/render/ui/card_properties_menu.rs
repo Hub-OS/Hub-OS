@@ -93,10 +93,10 @@ impl CardPropertiesMenu {
         ];
 
         let mut builtin_status_animator =
-            Animator::load_new(assets, ResourcePaths::FULL_CARD_STATUSES_ANIMATION);
+            Animator::load_new(assets, ResourcePaths::STATUS_ICONS_ANIMATION);
 
         for (flag_name, translation_key) in CONSISTENT {
-            let mut icon = assets.new_sprite(game_io, ResourcePaths::FULL_CARD);
+            let mut icon = assets.new_sprite(game_io, ResourcePaths::STATUS_ICONS);
             builtin_status_animator.set_state(flag_name);
             builtin_status_animator.apply(&mut icon);
 
@@ -122,7 +122,7 @@ impl CardPropertiesMenu {
 
                 let icon = if builtin_status_animator.has_state(&package.flag_name) {
                     // use built in sprite, prioritized for resource packs
-                    let mut icon = assets.new_sprite(game_io, ResourcePaths::FULL_CARD);
+                    let mut icon = assets.new_sprite(game_io, ResourcePaths::STATUS_ICONS);
                     builtin_status_animator.set_state(&package.flag_name);
                     builtin_status_animator.apply(&mut icon);
                     icon
@@ -172,10 +172,10 @@ impl CardPropertiesMenu {
                         TextStyle::new(game_io, FontName::Context).line_height() + 2.0,
                     ),
             ),
-            static_property_sprite: assets.new_sprite(game_io, ResourcePaths::FULL_CARD),
+            static_property_sprite: assets.new_sprite(game_io, ResourcePaths::CARD_PROPERTIES),
             static_property_animator: Animator::load_new(
                 assets,
-                ResourcePaths::FULL_CARD_ANIMATION,
+                ResourcePaths::CARD_PROPERTIES_ANIMATION,
             ),
             selection_frame_sprite,
             cursor_sprite,

@@ -8,7 +8,8 @@ use uncased::{Uncased, UncasedStr};
 
 /// The back of a card
 pub struct CardPropertyPreview {
-    card_animator: Animator,
+    properties_sprite: Sprite,
+    properties_animator: Animator,
     status_sprite_map: HashMap<Uncased<'static>, Sprite>,
     status_animator: Animator,
     status_sprite: Sprite,
@@ -33,22 +34,27 @@ impl CardPropertyPreview {
             })
             .collect::<HashMap<Uncased<'static>, Sprite>>();
 
-        let mut status_animator =
-            Animator::load_new(assets, ResourcePaths::FULL_CARD_STATUSES_ANIMATION);
+        let mut status_animator = Animator::load_new(assets, ResourcePaths::STATUS_ICONS_ANIMATION);
         status_animator.set_state("DEFAULT");
 
-        let mut card_animator = Animator::load_new(assets, ResourcePaths::FULL_CARD_ANIMATION);
-        card_animator.set_state("STANDARD");
+        // temporarily read FULL_CARD_ANIMATION to grab offsets
+        let mut properties_animator =
+            Animator::load_new(assets, ResourcePaths::FULL_CARD_ANIMATION);
+        properties_animator.set_state("STANDARD");
 
         let status_step = status_animator.point_or_zero("STEP");
         let status_bounds = Rect::from_corners(
-            card_animator.point_or_zero("STATUS_START"),
-            card_animator.point_or_zero("STATUS_END"),
+            properties_animator.point_or_zero("STATUS_START"),
+            properties_animator.point_or_zero("STATUS_END"),
         );
 
+        // switch to CARD_PROPERTIES_ANIMATION
+        properties_animator.load(assets, ResourcePaths::CARD_PROPERTIES_ANIMATION);
+
         Self {
-            card_animator,
-            status_sprite: assets.new_sprite(game_io, ResourcePaths::FULL_CARD),
+            properties_sprite: assets.new_sprite(game_io, ResourcePaths::CARD_PROPERTIES),
+            properties_animator,
+            status_sprite: assets.new_sprite(game_io, ResourcePaths::STATUS_ICONS),
             status_sprite_map,
             status_animator,
             status_step,
@@ -168,9 +174,9 @@ impl CardPropertyPreview {
 
         for (applies, state) in static_properties {
             if applies {
-                self.card_animator.set_state(state);
-                self.card_animator.apply(&mut self.status_sprite);
-                self.displayed_sprites.push(self.status_sprite.clone());
+                self.properties_animator.set_state(state);
+                self.properties_animator.apply(&mut self.properties_sprite);
+                self.displayed_sprites.push(self.properties_sprite.clone());
             }
         }
     }

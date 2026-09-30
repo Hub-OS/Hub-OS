@@ -92,8 +92,10 @@ impl ResourcePaths {
     pub const REGULAR_CARD_ANIMATION: &str = "resources/scenes/shared/regular_card.animation";
     pub const FULL_CARD: &str = "resources/scenes/shared/full_card.png";
     pub const FULL_CARD_ANIMATION: &str = "resources/scenes/shared/full_card.animation";
-    pub const FULL_CARD_STATUSES_ANIMATION: &str =
-        "resources/scenes/shared/full_card_statuses.animation";
+    pub const CARD_PROPERTIES: &str = "resources/scenes/shared/card_properties.png";
+    pub const CARD_PROPERTIES_ANIMATION: &str = "resources/scenes/shared/card_properties.animation";
+    pub const STATUS_ICONS: &str = "resources/scenes/shared/status_icons.png";
+    pub const STATUS_ICONS_ANIMATION: &str = "resources/scenes/shared/status_icons.animation";
     pub const HEALTH_FRAME: &str = "resources/scenes/shared/health_frame.png";
     pub const HEALTH_FRAME_ANIMATION: &str = "resources/scenes/shared/health_frame.animation";
     pub const UNREAD: &str = "resources/scenes/shared/unread.png";
