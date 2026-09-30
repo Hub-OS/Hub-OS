@@ -542,6 +542,12 @@ impl Server {
                             .handle_tile_interaction(net, player_id, x, y, z, button);
                     }
                 }
+                ClientPacket::FreeCamTileInteraction { x, y, z, button } => {
+                    if !net.is_player_busy(player_id) {
+                        self.plugin_wrapper
+                            .handle_free_cam_tile_interaction(net, player_id, x, y, z, button);
+                    }
+                }
                 ClientPacket::TextBoxResponse { response } => {
                     self.plugin_wrapper
                         .handle_textbox_response(net, player_id, response);

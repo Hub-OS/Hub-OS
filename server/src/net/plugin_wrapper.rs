@@ -184,6 +184,20 @@ impl PluginInterface for PluginWrapper {
         });
     }
 
+    fn handle_free_cam_tile_interaction(
+        &mut self,
+        net: &mut Net,
+        player_id: ActorId,
+        x: f32,
+        y: f32,
+        z: f32,
+        button: u8,
+    ) {
+        self.wrap_calls(net, |plugin_interface, net| {
+            plugin_interface.handle_free_cam_tile_interaction(net, player_id, x, y, z, button)
+        });
+    }
+
     fn handle_textbox_response(&mut self, net: &mut Net, player_id: ActorId, response: u8) {
         if let Some(client) = net.get_client_mut(player_id)
             && let Some(i) = client.widget_tracker.pop_textbox()

@@ -7,7 +7,7 @@ use crate::jobs::JobPromise;
 use crate::threads::ThreadMessage;
 use flume::Sender;
 use indexmap::IndexSet;
-use packets::{MAX_IDLE_DURATION, ReferOptions, Reliability, ServerPacket};
+use packets::{FreeCamOptions, MAX_IDLE_DURATION, ReferOptions, Reliability, ServerPacket};
 use slotmap::{DenseSlotMap, SlotMap};
 use std::borrow::Cow;
 use std::cell::RefCell;
@@ -680,11 +680,19 @@ impl Net {
         );
     }
 
-    pub fn enable_camera_controls(&mut self, id: ActorId, dist_x: f32, dist_y: f32) {
+    pub fn enable_free_cam(&mut self, id: ActorId, options: FreeCamOptions) {
         self.packet_orchestrator.borrow_mut().send_by_id(
             id,
             Reliability::ReliableOrdered,
-            ServerPacket::EnableCameraControls { dist_x, dist_y },
+            ServerPacket::EnableFreeCam { options },
+        )
+    }
+
+    pub fn disable_free_cam(&mut self, id: ActorId) {
+        self.packet_orchestrator.borrow_mut().send_by_id(
+            id,
+            Reliability::ReliableOrdered,
+            ServerPacket::DisableFreeCam,
         )
     }
 

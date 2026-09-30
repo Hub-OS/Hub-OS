@@ -728,8 +728,12 @@ impl OverworldOnlineScene {
                         .queue_camera_action(CameraAction::TrackEntity { entity });
                 }
             }
-            ServerPacket::EnableCameraControls { dist_x, dist_y } => {
-                log::warn!("EnableCameraControls hasn't been implemented")
+            ServerPacket::EnableFreeCam { options } => {
+                self.area
+                    .queue_camera_action(CameraAction::EnableFreeCam { options });
+            }
+            ServerPacket::DisableFreeCam => {
+                self.area.queue_camera_action(CameraAction::DisableFreeCam);
             }
             ServerPacket::UnlockCamera => {
                 self.area.queue_camera_action(CameraAction::Unlock);
@@ -1877,6 +1881,22 @@ impl OverworldOnlineScene {
     fn handle_interaction(&mut self, button: u8) {
         let player_data = &self.area.player_data;
         let send_packet = &self.send_packet;
+
+        if self.area.movement_controls_camera() {
+            let screen_point = self.area.world_camera.position();
+            let tile_point = self.area.map.tile_at_screen_point(screen_point);
+
+            send_packet(
+                Reliability::Reliable,
+                ClientPacket::FreeCamTileInteraction {
+                    x: tile_point.x,
+                    y: tile_point.y,
+                    z: tile_point.z,
+                    button,
+                },
+            );
+            return;
+        }
 
         // objects have highest priority
         if let Some(tile_object_id) = player_data.object_interaction {

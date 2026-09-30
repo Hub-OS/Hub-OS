@@ -56,6 +56,16 @@ pub trait PluginInterface {
         button: u8,
     ) {
     }
+    fn handle_free_cam_tile_interaction(
+        &mut self,
+        net: &mut Net,
+        player_id: ActorId,
+        x: f32,
+        y: f32,
+        z: f32,
+        button: u8,
+    ) {
+    }
     fn handle_textbox_response(&mut self, net: &mut Net, player_id: ActorId, response: u8) {}
     fn handle_prompt_response(&mut self, net: &mut Net, player_id: ActorId, response: String) {}
     fn handle_board_open(&mut self, net: &mut Net, player_id: ActorId) {}

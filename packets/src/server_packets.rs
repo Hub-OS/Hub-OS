@@ -10,6 +10,12 @@ pub struct ReferOptions {
     pub unless_installed: bool,
 }
 
+#[derive(Clone, PartialEq, Default, Debug, Serialize, Deserialize)]
+pub struct FreeCamOptions {
+    pub speed: Option<f32>,
+    pub fast_speed: Option<f32>,
+}
+
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, IntoStaticStr)]
 pub enum ServerPacket {
     VersionInfo {
@@ -145,10 +151,10 @@ pub enum ServerPacket {
     TrackWithCamera {
         actor_id: ActorId,
     },
-    EnableCameraControls {
-        dist_x: f32,
-        dist_y: f32,
+    EnableFreeCam {
+        options: FreeCamOptions,
     },
+    DisableFreeCam,
     UnlockCamera,
     LockInput,
     UnlockInput,

@@ -296,6 +296,36 @@ impl Map {
         world
     }
 
+    pub fn tile_at_screen_point(&self, point: Vec2) -> Vec3 {
+        let world_point = self.screen_to_world(point).extend(0.0);
+        let mut tile_point = self.world_3d_to_tile_space(world_point);
+
+        let step = self.screen_to_world(Vec2::new(0.0, -0.5)).extend(-1.0);
+
+        tile_point += self.tile_layers.len() as f32 * -step;
+
+        for layer in self.tile_layers.iter().rev() {
+            tile_point += step;
+
+            let tile_ivec = tile_point.xy().as_ivec2();
+            let tile = layer.tile_at(tile_ivec);
+
+            let Some(_tile_meta) = self.tile_meta_for_tile(tile.gid) else {
+                continue;
+            };
+
+            if self.ignore_tile_above(tile_ivec, tile_point.z as i32 - 1) {
+                // has no collision
+                continue;
+            }
+
+            // todo: handle stairs !
+            break;
+        }
+
+        tile_point
+    }
+
     pub fn can_move_to(&self, tile_point: Vec3) -> bool {
         let layer_index = tile_point.z as i32;
 

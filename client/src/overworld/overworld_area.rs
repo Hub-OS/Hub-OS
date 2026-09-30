@@ -170,7 +170,13 @@ impl OverworldArea {
     }
 
     pub fn is_movement_locked(&self, game_io: &GameIO) -> bool {
-        self.is_input_locked(game_io) || self.movement_locks > 0
+        self.is_input_locked(game_io)
+            || self.movement_locks > 0
+            || self.camera_controller.movement_controls_camera()
+    }
+
+    pub fn movement_controls_camera(&self) -> bool {
+        self.camera_controller.movement_controls_camera()
     }
 
     fn animating_position(&self) -> bool {

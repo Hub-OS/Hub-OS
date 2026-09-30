@@ -86,6 +86,12 @@ pub enum ClientPacket {
         z: f32,
         button: u8,
     },
+    FreeCamTileInteraction {
+        x: f32,
+        y: f32,
+        z: f32,
+        button: u8,
+    },
     TextBoxResponse {
         response: u8,
     },

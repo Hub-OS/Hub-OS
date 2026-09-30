@@ -2,6 +2,7 @@ use super::LuaApi;
 use super::lua_errors::{create_area_error, create_player_error};
 use super::lua_helpers::*;
 use crate::plugins::lua::api::colors::*;
+use packets::FreeCamOptions;
 use packets::structures::{ActorId, BattleId};
 
 pub fn inject_dynamic(lua_api: &mut LuaApi) {
@@ -210,15 +211,31 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 
     lua_api.add_dynamic_function("Net", "enable_camera_controls", |api_ctx, lua, params| {
-        let (player_id, dist_x, dist_y): (ActorId, Option<f32>, Option<f32>) =
-            lua.unpack_multi(params)?;
+        let (player_id, table): (ActorId, Option<mlua::Table>) = lua.unpack_multi(params)?;
+
+        // read options
+        let mut options = FreeCamOptions {
+            speed: None,
+            fast_speed: None,
+        };
+
+        if let Some(table) = table {
+            options.speed = table.get("speed")?;
+            options.fast_speed = table.get("fast_speed")?;
+        }
+
+        // enable free cam
+        let mut net = api_ctx.net_ref.borrow_mut();
+        net.enable_free_cam(player_id, options);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function("Net", "disable_camera_controls", |api_ctx, lua, params| {
+        let player_id: ActorId = lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
-        net.enable_camera_controls(
-            player_id,
-            dist_x.unwrap_or(f32::MAX),
-            dist_y.unwrap_or(f32::MAX),
-        );
+        net.disable_free_cam(player_id);
 
         lua.pack_multi(())
     });

@@ -513,6 +513,35 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
+    fn handle_free_cam_tile_interaction(
+        &mut self,
+        net: &mut Net,
+        player_id: ActorId,
+        x: f32,
+        y: f32,
+        z: f32,
+        button: u8,
+    ) {
+        handle_event(
+            &mut self.scripts,
+            &self.all_scripts,
+            &mut self.trackers,
+            &mut self.promise_manager,
+            &mut self.lua_api,
+            net,
+            |lua, callback| {
+                let event = lua.create_table()?;
+                event.set("player_id", player_id)?;
+                event.set("x", x)?;
+                event.set("y", y)?;
+                event.set("z", z)?;
+                event.set("button", button)?;
+
+                callback.call(("free_cam_tile_interaction", event))
+            },
+        );
+    }
+
     fn handle_textbox_response(&mut self, net: &mut Net, player_id: ActorId, response: u8) {
         let tracker = self.trackers.widget.get_mut(&player_id).unwrap();
 
