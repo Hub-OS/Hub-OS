@@ -1,6 +1,6 @@
 config-scene-title = Configurações
 config-mods-tab = Mods
-config-online-tab = Online
+config-preferences-tab = Prefs.
 config-video-tab = Vídeo
 config-audio-tab = Áudio
 config-keyboard-tab = Teclado
@@ -76,6 +76,7 @@ config-mute-music-label = Desligar Música
 config-mute-sfx-label = Desligar SFX
 config-audio-device-label = Saída Áudio
 config-auto-sprint = Auto Correr
+config-characters-remember-last-deck = Navis Save Fldr
 config-key-style-label = Estilo
 config-key-style-mix = Pers.
 config-key-style-wasd = WASD
