@@ -93,6 +93,8 @@ pub struct Config {
     pub virtual_controller_scale: f32,
     pub input_delay: u8,
     pub auto_sprint: bool,
+    // preferences
+    pub characters_remember_last_deck: bool,
     // online
     pub force_relay: bool,
     pub package_repo: String,
@@ -141,6 +143,8 @@ impl Config {
             virtual_controller_scale: 1.0,
             input_delay: DEFAULT_INPUT_DELAY,
             auto_sprint: false,
+            // preferences
+            characters_remember_last_deck: true,
             // online
             force_relay: false,
             package_repo: String::from(DEFAULT_PACKAGE_REPO),
@@ -558,6 +562,15 @@ impl From<&str> for Config {
             }
         }
 
+        if let Some(properties) = ini.section(Some("Preferences")) {
+            config.characters_remember_last_deck =
+                parse_or(properties.get("CharactersRememberLastDeck"), true);
+        } else {
+            // grandfathered config, everyone wants the default to be true, yet many don't want to be forced to switch
+            // https://discord.com/channels/1014500771355689010/1525612688464674856/1553059118217039960
+            config.characters_remember_last_deck = false;
+        }
+
         if let Some(properties) = ini.section(Some("Online")) {
             config.input_delay = parse_or(properties.get("InputDelay"), DEFAULT_INPUT_DELAY);
             config.force_relay = parse_or(properties.get("ForceRelay"), false);
@@ -693,6 +706,13 @@ impl std::fmt::Display for Config {
             let button_str: &'static str = button.into();
             writeln!(f, "{button_str} = {},{}", position.x, position.y)?;
         }
+
+        writeln!(f, "[Preferences]")?;
+        writeln!(
+            f,
+            "CharactersRememberLastDeck = {}",
+            self.characters_remember_last_deck
+        )?;
 
         writeln!(f, "[Online]")?;
         writeln!(f, "InputDelay = {}", self.input_delay)?;

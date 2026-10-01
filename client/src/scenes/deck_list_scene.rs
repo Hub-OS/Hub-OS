@@ -730,10 +730,11 @@ fn handle_deck_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameI
                 .with_transition(crate::transitions::new_sub_scene(game_io));
         }
         DeckOption::Equip => {
-            let global_save = &mut globals.global_save;
-            global_save.selected_deck = scene.deck_list.selected_deck_index().unwrap();
-            global_save.selected_deck_time = GlobalSave::current_time();
-            global_save.save();
+            let deck_index = scene.deck_list.selected_deck_index().unwrap_or(0);
+
+            let save = &mut globals.global_save;
+            save.update_selected_deck(deck_index);
+            save.save();
         }
         DeckOption::ChangeName => {
             let event_sender = scene.event_sender.clone();

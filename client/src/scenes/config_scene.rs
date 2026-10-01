@@ -50,7 +50,7 @@ enum Event {
 #[derive(EnumIter, Clone, Copy)]
 enum ConfigCategory {
     Mods,
-    Online,
+    Preferences,
     Video,
     Audio,
     Keyboard,
@@ -62,7 +62,7 @@ impl ConfigCategory {
     fn translation_key(self) -> &'static str {
         match self {
             ConfigCategory::Mods => "config-mods-tab",
-            ConfigCategory::Online => "config-online-tab",
+            ConfigCategory::Preferences => "config-preferences-tab",
             ConfigCategory::Video => "config-video-tab",
             ConfigCategory::Audio => "config-audio-tab",
             ConfigCategory::Keyboard => "config-keyboard-tab",
@@ -224,7 +224,9 @@ impl ConfigScene {
     ) -> Vec<Box<dyn UiNode>> {
         match category {
             ConfigCategory::Mods => Self::generate_mods_menu(game_io, event_sender),
-            ConfigCategory::Online => Self::generate_online_menu(game_io, config, event_sender),
+            ConfigCategory::Preferences => {
+                Self::generate_preferences_menu(game_io, config, event_sender)
+            }
             ConfigCategory::Video => Self::generate_video_menu(game_io, config),
             ConfigCategory::Audio => Self::generate_audio_menu(game_io, config),
             ConfigCategory::Keyboard => Self::generate_keyboard_menu(game_io, config, event_sender),
@@ -262,7 +264,7 @@ impl ConfigScene {
         ]
     }
 
-    fn generate_online_menu(
+    fn generate_preferences_menu(
         game_io: &GameIO,
         config: &Rc<RefCell<Config>>,
         event_sender: &flume::Sender<Event>,
@@ -280,7 +282,16 @@ impl ConfigScene {
         vec![
             create_button("config-change-nickname-label", Event::RequestNicknameChange),
             create_button("config-sync-data-label", Event::SyncData),
-            create_button("config-clear-cache-label", Event::ClearCache),
+            Box::new(UiConfigCycle::new(
+                game_io,
+                "config-relay-label",
+                config.borrow().force_relay,
+                config.clone(),
+                &[("config-relay-auto", false), ("config-relay-always", true)],
+                |_, mut config, value, _| {
+                    config.force_relay = value;
+                },
+            )),
             Box::new(
                 UiConfigNumber::new(
                     game_io,
@@ -294,16 +305,6 @@ impl ConfigScene {
                 .with_upper_bound(MAX_INPUT_DELAY)
                 .with_value_step(5),
             ),
-            Box::new(UiConfigCycle::new(
-                game_io,
-                "config-relay-label",
-                config.borrow().force_relay,
-                config.clone(),
-                &[("config-relay-auto", false), ("config-relay-always", true)],
-                |_, mut config, value, _| {
-                    config.force_relay = value;
-                },
-            )),
             Box::new(UiConfigToggle::new(
                 game_io,
                 "config-auto-sprint",
@@ -316,6 +317,16 @@ impl ConfigScene {
             )),
             Box::new(UiConfigToggle::new(
                 game_io,
+                "config-characters-remember-last-deck",
+                config.borrow().characters_remember_last_deck,
+                config.clone(),
+                |_, mut config| {
+                    config.characters_remember_last_deck = !config.characters_remember_last_deck;
+                    config.characters_remember_last_deck
+                },
+            )),
+            Box::new(UiConfigToggle::new(
+                game_io,
                 "config-package-update-check-on-launch",
                 config.borrow().package_update_check_on_launch,
                 config.clone(),
@@ -324,6 +335,7 @@ impl ConfigScene {
                     config.package_update_check_on_launch
                 },
             )),
+            create_button("config-clear-cache-label", Event::ClearCache),
         ]
     }
 

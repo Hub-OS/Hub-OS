@@ -29,6 +29,7 @@ pub struct GlobalSave {
     #[serde(default = "GlobalSave::current_time")]
     pub selected_character_time: u64,
     pub character_update_times: HashMap<PackageId, u64>,
+    pub character_decks: HashMap<PackageId, Uuid>,
     pub installed_blocks: HashMap<PackageId, Vec<InstalledBlock>>,
     pub installed_drive_parts: HashMap<PackageId, Vec<InstalledSwitchDrive>>,
     pub memories: HashMap<PackageId, HashMap<String, MemoryCell>>,
@@ -287,6 +288,10 @@ impl GlobalSave {
                 None => self.memories.remove(&id),
             };
 
+            if let Some(uuid) = other.character_decks.remove(&id) {
+                self.character_decks.insert(id.clone(), uuid);
+            }
+
             self.character_update_times.insert(id, other_time);
         }
 
@@ -417,6 +422,20 @@ impl GlobalSave {
         }
     }
 
+    pub fn update_selected_deck(&mut self, deck_index: usize) {
+        let time = Self::current_time();
+
+        self.selected_deck = deck_index;
+        self.selected_deck_time = time;
+
+        // allow the selected character to remember the folder
+        if let Some(deck) = self.decks.get(deck_index) {
+            let char_id = &self.selected_character;
+            self.character_decks.insert(char_id.clone(), deck.uuid);
+            self.character_update_times.insert(char_id.clone(), time);
+        }
+    }
+
     pub fn update_package_id(
         &mut self,
         category: PackageCategory,
@@ -473,6 +492,10 @@ impl GlobalSave {
                     self.character_update_times.insert(new_id.clone(), time);
                 }
 
+                if let Some(uuid) = self.character_decks.remove(old_id) {
+                    self.character_decks.insert(new_id.clone(), uuid);
+                }
+
                 // update memories
                 if let Some(memory) = self.memories.remove(old_id) {
                     self.memories.insert(new_id.clone(), memory);
@@ -502,6 +525,7 @@ impl GlobalSave {
 
     pub fn remove_package_id(&mut self, id: &PackageId) {
         self.character_update_times.remove(id);
+        self.character_decks.remove(id);
         self.memories.remove(id);
         self.installed_blocks.remove(id);
         self.installed_drive_parts.remove(id);
@@ -527,6 +551,7 @@ impl Default for GlobalSave {
             selected_character: PackageId::new_blank(),
             selected_character_time: 0,
             character_update_times: HashMap::new(),
+            character_decks: Default::default(),
             installed_blocks: HashMap::new(),
             installed_drive_parts: HashMap::new(),
             memories: HashMap::new(),

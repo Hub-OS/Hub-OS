@@ -349,10 +349,9 @@ impl DeckEditorScene {
     }
 
     fn equip_deck(&self, game_io: &mut GameIO) {
-        let global_save = &mut Globals::from_resources_mut(game_io).global_save;
-        global_save.selected_deck = self.deck_index;
-        global_save.selected_deck_time = GlobalSave::current_time();
-        global_save.save();
+        let save = &mut Globals::from_resources_mut(game_io).global_save;
+        save.update_selected_deck(self.deck_index);
+        save.save();
     }
 
     fn leave(&mut self, game_io: &mut GameIO) {

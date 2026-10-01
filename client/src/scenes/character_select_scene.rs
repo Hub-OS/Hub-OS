@@ -537,6 +537,26 @@ impl Scene for CharacterSelectScene {
         self.update_selected_character(game_io);
     }
 
+    fn exit(&mut self, game_io: &mut GameIO) {
+        let globals = Globals::from_resources_mut(game_io);
+        let save = &mut globals.global_save;
+
+        // load previous deck
+        if globals.config.characters_remember_last_deck
+            && let Some(&uuid) = save.character_decks.get(&save.selected_character)
+        {
+            let selected_deck = save.decks.get(save.selected_deck);
+
+            if selected_deck.is_none_or(|deck| deck.uuid != uuid) {
+                let mut deck_iter = save.decks.iter();
+                save.selected_deck = deck_iter
+                    .position(|deck| deck.uuid == uuid)
+                    .unwrap_or(save.selected_deck);
+                save.save();
+            }
+        }
+    }
+
     fn update(&mut self, game_io: &mut GameIO) {
         self.background.update();
 
