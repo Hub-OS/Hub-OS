@@ -202,8 +202,8 @@ impl CameraController {
                 }
                 CameraAction::EnableFreeCam { options } => {
                     self.free_cam = Some(FreeCamConfig {
-                        speed: options.speed.unwrap_or(3.0),
-                        fast_speed: options.fast_speed.unwrap_or(6.0),
+                        speed: options.speed.unwrap_or(4.0),
+                        fast_speed: options.fast_speed.unwrap_or(8.0),
                         rounding_error: Default::default(),
                     });
                 }
