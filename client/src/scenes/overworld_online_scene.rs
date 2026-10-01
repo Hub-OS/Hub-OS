@@ -636,8 +636,12 @@ impl OverworldOnlineScene {
             }
             ServerPacket::PlaySound { path } => {
                 if self.area.visible {
-                    let sound = self.assets.audio(game_io, &path);
                     let globals = Globals::from_resources(game_io);
+                    let sound = if path.starts_with("/server/") {
+                        self.assets.audio(game_io, &path)
+                    } else {
+                        globals.assets.audio(game_io, &path)
+                    };
                     globals.audio.play_sound(&sound);
                 }
             }
