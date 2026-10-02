@@ -132,6 +132,10 @@ impl CameraController {
                 new_position = new_position.floor();
                 free_cam_config.rounding_error -= new_position;
 
+                // clamp
+                let bounds = map.camera_bounds();
+                new_position.x = new_position.x.clamp(bounds.left(), bounds.right());
+                new_position.y = new_position.y.clamp(bounds.top(), bounds.bottom());
                 camera.snap(new_position);
             } else {
                 // follow an entity

@@ -296,6 +296,10 @@ impl Map {
         world
     }
 
+    pub fn tile_3d_to_screen(&self, tile: Vec3) -> Vec2 {
+        self.world_3d_to_screen(self.tile_3d_to_world(tile))
+    }
+
     pub fn tile_at_screen_point(&self, point: Vec2) -> Vec3 {
         let world_point = self.screen_to_world(point).extend(0.0);
         let mut tile_point = self.world_3d_to_tile_space(world_point);
@@ -821,5 +825,25 @@ impl Map {
         }
 
         sprite_layers
+    }
+
+    pub fn camera_bounds(&self) -> Rect {
+        let mut bounds = Rect::default();
+
+        let top = self.tile_layers.len() as f32 * -self.tile_size.y as f32 * 0.5;
+        let bottom_corner_tile = Vec3::new(self.cols as _, self.rows as _, 0.0);
+        let bottom = self.tile_3d_to_screen(bottom_corner_tile).y;
+
+        let left_corner_tile = Vec3::new(0.0, self.rows as _, 0.0);
+        let left = self.tile_3d_to_screen(left_corner_tile).x;
+        let right_corner_tile = Vec3::new(self.cols as _, 0.0, 0.0);
+        let right = self.tile_3d_to_screen(right_corner_tile).x;
+
+        bounds.x = left;
+        bounds.y = top;
+        bounds.width = right - left;
+        bounds.height = bottom - top;
+
+        bounds
     }
 }
