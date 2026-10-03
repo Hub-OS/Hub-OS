@@ -18,5 +18,6 @@ accepted = [
     "OpenSSL-standalone",
     "SSLeay-standalone",
     "NOASSERTION",
+    "CDLA-Permissive-2.0",
 ]
 workarounds = ["ring"]
