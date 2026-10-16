@@ -178,7 +178,9 @@ impl SharedBattleResources {
     pub fn draw_fade_sprite(&self, sprite_queue: &mut SpriteColorQueue, color: Color) {
         if color != Color::TRANSPARENT {
             let fade_sprite = &mut *self.fade_sprite.borrow_mut();
+            fade_sprite.set_bounds(sprite_queue.camera().bounds());
             fade_sprite.set_color(color);
+
             sprite_queue.draw_sprite(fade_sprite);
         }
     }

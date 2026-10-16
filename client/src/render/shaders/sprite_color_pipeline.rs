@@ -296,6 +296,10 @@ impl<'a> SpriteColorQueue<'a> {
         }
     }
 
+    pub fn camera(&self) -> &Camera {
+        self.camera
+    }
+
     pub fn color_mode(&self) -> SpriteColorMode {
         self.color_mode
     }
