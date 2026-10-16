@@ -432,7 +432,7 @@ impl From<&str> for Config {
                 "mdy" => DateFormat::Mdy,
                 _ => DateFormat::Auto,
             };
-            config.time_format = match properties.get("DateFormat").unwrap_or_default() {
+            config.time_format = match properties.get("TimeFormat").unwrap_or_default() {
                 "24" => TimeFormat::TwentyFour,
                 _ => TimeFormat::Twelve,
             };
@@ -601,20 +601,20 @@ impl std::fmt::Display for Config {
 
         if let Some(language) = &self.language {
             writeln!(f, "Language = {language}")?;
-
-            let date_format = match self.date_format {
-                DateFormat::Auto => "auto",
-                DateFormat::Dmy => "dmy",
-                DateFormat::Mdy => "mdy",
-            };
-            writeln!(f, "DateFormat = {date_format}")?;
-
-            let time_format = match self.time_format {
-                TimeFormat::Twelve => "12",
-                TimeFormat::TwentyFour => "24",
-            };
-            writeln!(f, "TimeFormat = {time_format}")?;
         }
+
+        let date_format = match self.date_format {
+            DateFormat::Auto => "auto",
+            DateFormat::Dmy => "dmy",
+            DateFormat::Mdy => "mdy",
+        };
+        writeln!(f, "DateFormat = {date_format}")?;
+
+        let time_format = match self.time_format {
+            TimeFormat::Twelve => "12",
+            TimeFormat::TwentyFour => "24",
+        };
+        writeln!(f, "TimeFormat = {time_format}")?;
 
         writeln!(f, "Fullscreen = {}", self.fullscreen)?;
         writeln!(f, "VSync = {}", self.vsync)?;

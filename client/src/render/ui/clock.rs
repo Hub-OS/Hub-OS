@@ -13,8 +13,6 @@ const TEXT_SHADOW_OFFSET: f32 = 1.0;
 const MARGIN: f32 = 2.0;
 
 pub fn draw_clock(game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
-    const MARGIN: f32 = 2.0;
-
     let globals = Globals::from_resources(game_io);
     let config = &globals.config;
 
@@ -42,10 +40,12 @@ pub fn draw_clock(game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
     // AM/PM
     let is_afternoon = time.hour() >= 12;
 
-    if is_afternoon {
-        full_text.push_str(" PM");
-    } else {
-        full_text.push_str(" AM");
+    if config.time_format == TimeFormat::Twelve {
+        if is_afternoon {
+            full_text.push_str(" PM");
+        } else {
+            full_text.push_str(" AM");
+        }
     }
 
     // calculate the position
