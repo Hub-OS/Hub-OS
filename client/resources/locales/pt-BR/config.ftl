@@ -1,6 +1,6 @@
 config-scene-title = Configurações
 config-mods-tab = Mods
-config-preferences-tab = Prefs.
+config-preferences-tab = Prefs
 config-video-tab = Vídeo
 config-audio-tab = Áudio
 config-keyboard-tab = Teclado
