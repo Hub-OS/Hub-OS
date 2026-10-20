@@ -1,10 +1,10 @@
 use instant::Duration;
-use network_channels::{deserialize, Config, ConnectionBuilder, Instant, Reliability};
+use network_channels::{Config, ConnectionBuilder, Instant, Reliability, deserialize};
 use std::net::UdpSocket;
 
 fn main() {
-    let socket_a = UdpSocket::bind("0.0.0.0:0").unwrap();
-    let socket_b = UdpSocket::bind("0.0.0.0:0").unwrap();
+    let socket_a = UdpSocket::bind("[::]:0").unwrap();
+    let socket_b = UdpSocket::bind("[::]:0").unwrap();
     let addr_b = socket_b.local_addr().unwrap();
 
     let config = Config::default();

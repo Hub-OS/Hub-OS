@@ -103,7 +103,7 @@ impl Network {
         });
 
         // regular socket
-        let socket = UdpSocket::bind(format!("0.0.0.0:{}", args.port)).unwrap();
+        let socket = UdpSocket::bind(format!("[::]:{}", args.port)).unwrap();
         let socket = Arc::new(socket);
 
         std::thread::spawn({
@@ -274,7 +274,7 @@ fn socket_listener(socket: Arc<UdpSocket>, packet_sender: flume::Sender<Event>) 
 }
 
 fn multicast_listener(packet_sender: flume::Sender<Event>, network_details: Arc<NetworkDetails>) {
-    let socket = match UdpSocket::bind(format!("0.0.0.0:{MULTICAST_PORT}")) {
+    let socket = match UdpSocket::bind(format!("[::]:{MULTICAST_PORT}")) {
         Ok(socket) => socket,
         Err(err) => {
             log::warn!("Failed to join multicast group for data sync: {err:?}");

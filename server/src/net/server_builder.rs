@@ -23,7 +23,7 @@ impl ServerBuilder {
     }
 
     pub async fn start(self) -> Result<(), Box<dyn std::error::Error>> {
-        let addr = format!("0.0.0.0:{}", self.config.args.port);
+        let addr = format!("[::]:{}", self.config.args.port);
         let socket = UdpSocket::bind(addr)?;
 
         socket.take_error()?;

@@ -1,5 +1,5 @@
 use std::fmt::Write;
-use std::net::{Ipv4Addr, SocketAddr};
+use std::net::{IpAddr, Ipv6Addr, SocketAddr};
 
 pub const DEFAULT_PORT: u16 = 7370;
 const DATA_SEPARATORS: [char; 3] = ['/', '?', '#'];
@@ -16,7 +16,7 @@ pub async fn resolve_socket_addr(mut address: &str) -> Option<SocketAddr> {
     };
 
     let socket_addr = if host == "localhost" {
-        SocketAddr::new(Ipv4Addr::LOCALHOST.into(), port)
+        SocketAddr::new(Ipv6Addr::LOCALHOST.into(), port)
     } else {
         let socket_addrs = smol::net::resolve((host, port)).await.ok()?;
 
@@ -25,6 +25,11 @@ pub async fn resolve_socket_addr(mut address: &str) -> Option<SocketAddr> {
         if port_index.is_none() {
             socket_addr.set_port(DEFAULT_PORT);
         }
+
+        socket_addr.set_ip(match socket_addr.ip() {
+            IpAddr::V4(ipv4_addr) => IpAddr::V6(ipv4_addr.to_ipv6_mapped()),
+            ipv6 => ipv6,
+        });
 
         socket_addr
     };
