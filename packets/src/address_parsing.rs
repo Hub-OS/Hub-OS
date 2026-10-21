@@ -1,5 +1,5 @@
 use std::fmt::Write;
-use std::net::{IpAddr, Ipv6Addr, SocketAddr};
+use std::net::{IpAddr, Ipv6Addr, SocketAddr, SocketAddrV6};
 
 pub const DEFAULT_PORT: u16 = 7370;
 const DATA_SEPARATORS: [char; 3] = ['/', '?', '#'];
@@ -7,8 +7,19 @@ const DATA_SEPARATORS: [char; 3] = ['/', '?', '#'];
 pub async fn resolve_socket_addr(mut address: &str) -> Option<SocketAddr> {
     address = strip_data(address);
 
-    let port_index = address.find(':');
-    let host = &address[..port_index.unwrap_or(address.len())];
+    let (host, port_index) = if address.starts_with('[')
+        && let Some(i) = address.find(']')
+    {
+        let host = &address[..i + 1];
+        let port_index = address[i..].find(':').map(|j| j + i);
+
+        (host, port_index)
+    } else {
+        let port_index = address.find(':');
+        let host = &address[..port_index.unwrap_or(address.len())];
+
+        (host, port_index)
+    };
 
     let port: u16 = match port_index {
         Some(index) => address[index + 1..].parse().ok()?,
@@ -17,6 +28,12 @@ pub async fn resolve_socket_addr(mut address: &str) -> Option<SocketAddr> {
 
     let socket_addr = if host == "localhost" {
         SocketAddr::new(Ipv6Addr::LOCALHOST.into(), port)
+    } else if host.starts_with('[') && host.ends_with(']') {
+        // strip brackets
+        let inner = &host[1..host.len() - 1];
+        let ip: Ipv6Addr = inner.parse().ok()?;
+
+        SocketAddr::V6(SocketAddrV6::new(ip, port, 0, 0))
     } else {
         let socket_addrs = smol::net::resolve((host, port)).await.ok()?;
 
@@ -26,10 +43,10 @@ pub async fn resolve_socket_addr(mut address: &str) -> Option<SocketAddr> {
             socket_addr.set_port(DEFAULT_PORT);
         }
 
-        socket_addr.set_ip(match socket_addr.ip() {
-            IpAddr::V4(ipv4_addr) => IpAddr::V6(ipv4_addr.to_ipv6_mapped()),
-            ipv6 => ipv6,
-        });
+        if let IpAddr::V4(ipv4_addr) = socket_addr.ip() {
+            let ip = IpAddr::V6(ipv4_addr.to_ipv6_mapped());
+            socket_addr.set_ip(ip);
+        }
 
         socket_addr
     };
