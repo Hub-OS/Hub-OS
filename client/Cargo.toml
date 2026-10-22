@@ -75,6 +75,7 @@ serde_with = { version = "3.21.0", default-features = false, features = [
   "alloc",
   "macros"
 ] }
+socket2 = { workspace = true }
 
 [target.'cfg(not(target_os = "android"))'.dependencies]
 minreq = { version = "3", features = ["https-native-tls"] }

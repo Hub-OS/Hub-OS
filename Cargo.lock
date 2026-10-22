@@ -1992,7 +1992,7 @@ dependencies = [
 
 [[package]]
 name = "hub_os"
-version = "0.111.3"
+version = "0.111.4"
 dependencies = [
  "anyhow",
  "base64",
@@ -2039,6 +2039,7 @@ dependencies = [
  "slotmap",
  "smallvec",
  "smol",
+ "socket2",
  "structures",
  "strum 0.26.3",
  "symphonia",
@@ -2054,7 +2055,7 @@ dependencies = [
 
 [[package]]
 name = "hub_os_android"
-version = "0.111.3"
+version = "0.111.4"
 dependencies = [
  "clap",
  "hub_os",
@@ -2064,7 +2065,7 @@ dependencies = [
 
 [[package]]
 name = "hub_os_server"
-version = "0.111.3"
+version = "0.111.4"
 dependencies = [
  "clap",
  "flate2",
@@ -4389,6 +4390,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "socket2"
+version = "0.6.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c3d1e2c7f27f8d4cb10542a02c49005dbd6e93095799d6f3be745fae9f8fedd4"
+dependencies = [
+ "libc",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
 name = "spin"
 version = "0.9.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4441,7 +4452,7 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 
 [[package]]
 name = "structures"
-version = "0.111.3"
+version = "0.111.4"
 
 [[package]]
 name = "strum"
@@ -4685,7 +4696,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.3.4",
+ "getrandom 0.4.2",
  "once_cell",
  "rustix 1.1.4",
  "windows-sys 0.61.2",

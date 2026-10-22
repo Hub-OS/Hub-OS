@@ -3,7 +3,7 @@ members = ["android", "client", "packets", "scripts", "server", "structures"]
 resolver = "2"
 
 [workspace.package]
-version = "0.111.3"
+version = "0.111.4"
 
 [profile.dev]
 opt-level = 1
@@ -46,3 +46,4 @@ unicode-segmentation = "1.10"
 image = { version = "0.24", default-features = false, features = ["png"] }
 clap = { version = "4.3", features = ["derive"] }
 rand = "0.10"
+socket2 = { version = "0.6", default-features = false }
