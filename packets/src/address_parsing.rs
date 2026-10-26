@@ -37,7 +37,11 @@ pub async fn resolve_socket_addr(mut address: &str) -> Option<SocketAddr> {
     } else {
         let socket_addrs = smol::net::resolve((host, port)).await.ok()?;
 
-        let mut socket_addr = *socket_addrs.first()?;
+        // prefer ipv4 for compatability
+        let mut socket_addr = *socket_addrs
+            .iter()
+            .find(|addr| addr.is_ipv4())
+            .or(socket_addrs.first())?;
 
         if port_index.is_none() {
             socket_addr.set_port(DEFAULT_PORT);

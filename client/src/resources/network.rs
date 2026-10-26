@@ -112,8 +112,6 @@ impl Network {
         )
         .unwrap();
 
-        let addr = SocketAddrV6::new(Ipv6Addr::UNSPECIFIED, args.port, 0, 0);
-
         // disable ipv6 only to allow connection to IPv4 servers
         if let Err(err) = socket.set_only_v6(false) {
             log::warn!(
@@ -121,6 +119,7 @@ impl Network {
             );
         }
 
+        let addr = SocketAddrV6::new(Ipv6Addr::UNSPECIFIED, args.port, 0, 0);
         socket.bind(&Sock2Addr::from(addr)).unwrap();
 
         let socket = Arc::new(socket);
