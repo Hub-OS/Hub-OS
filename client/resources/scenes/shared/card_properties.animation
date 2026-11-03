@@ -1,3 +1,6 @@
+animation state="STANDARD_MINI"
+frame w="12" h="12"
+
 animation state="MEGA_MINI"
 frame x="12" w="12" h="12"
 
