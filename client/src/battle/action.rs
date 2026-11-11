@@ -53,6 +53,7 @@ pub struct Action {
     pub can_move_to_callback: Option<BattleCallback<(i32, i32), bool>>,
     pub update_callback: Option<BattleCallback>,
     pub execute_callback: Option<BattleCallback>,
+    pub execute_callbacks: Vec<BattleCallback>,
     pub animation_end_callback: Option<BattleCallback>,
     pub end_callback: Option<BattleCallback>,
     pub end_callbacks: Vec<BattleCallback>,
@@ -81,6 +82,7 @@ impl Action {
             can_move_to_callback: None,
             update_callback: None,
             execute_callback: None,
+            execute_callbacks: Vec::new(),
             animation_end_callback: None,
             end_callback: None,
             end_callbacks: Vec::new(),
@@ -246,7 +248,10 @@ impl Action {
         }
 
         // execute callback
-        if let Some(callback) = action.execute_callback.take() {
+        let mut execute_callbacks = std::mem::take(&mut action.execute_callbacks);
+        execute_callbacks.extend(action.execute_callback.take());
+
+        for callback in execute_callbacks {
             callback.call(game_io, resources, simulation, ());
         }
 
