@@ -115,7 +115,12 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
                 .get_mut(sprite_tree_index)
                 .ok_or_else(sprite_not_found)?;
 
-            *sprite_tree = card_props.create_preview_tree(game_io);
+            let namespace = card_props.namespace.unwrap_or_else(|| {
+                let vms = api_ctx.resources.vm_manager.vms();
+                vms[api_ctx.vm_index].preferred_namespace()
+            });
+
+            *sprite_tree = card_props.create_preview_tree(game_io, namespace);
 
             // fix placement
             let root_node = sprite_tree.root_mut();
@@ -225,7 +230,11 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
             let globals = Globals::from_resources(game_io);
             let packages = &globals.card_packages;
 
-            let namespace = card_props.namespace.unwrap_or_default();
+            let namespace = card_props.namespace.unwrap_or_else(|| {
+                let vms = api_ctx.resources.vm_manager.vms();
+                vms[api_ctx.vm_index].preferred_namespace()
+            });
+
             button.description = packages
                 .package_or_fallback(namespace, &card_props.package_id)
                 .map(|package| {

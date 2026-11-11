@@ -141,7 +141,11 @@ impl<L, F> CardProperties<L, F> {
         text_style
     }
 
-    pub fn create_preview_tree(&self, game_io: &GameIO) -> Tree<SpriteNode> {
+    pub fn create_preview_tree(
+        &self,
+        game_io: &GameIO,
+        namespace: PackageNamespace,
+    ) -> Tree<SpriteNode> {
         const PREVIEW_OFFSET: Vec2 = Vec2::new(0.0, 24.0);
         const ELEMENT_OFFSET: Vec2 = Vec2::new(-23.0, 49.0);
         const ELEMENT2_OFFSET: Vec2 = Vec2::new(-8.0, 49.0);
@@ -149,7 +153,8 @@ impl<L, F> CardProperties<L, F> {
         const DAMAGE_OFFSET: Vec2 = Vec2::new(31.0, 51.0);
 
         // preview
-        let (preview_texture, _) = CardPackage::preview_texture(game_io, &self.package_id);
+        let (preview_texture, _) =
+            CardPackage::preview_texture(game_io, namespace, &self.package_id);
 
         let mut root_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);
         root_node.set_origin(-PREVIEW_OFFSET + preview_texture.size().as_vec2() * 0.5);

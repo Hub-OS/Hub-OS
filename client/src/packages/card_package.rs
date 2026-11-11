@@ -270,14 +270,14 @@ impl CardPackage {
 
     pub fn preview_texture<'a>(
         game_io: &'a GameIO,
+        namespace: PackageNamespace,
         package_id: &PackageId,
     ) -> (Arc<Texture>, &'a str) {
         let globals = Globals::from_resources(game_io);
         let assets = &globals.assets;
         let package_manager = &globals.card_packages;
-        let ns = PackageNamespace::Local;
 
-        if let Some(package) = package_manager.package_or_fallback(ns, package_id) {
+        if let Some(package) = package_manager.package_or_fallback(namespace, package_id) {
             let path = package.preview_texture_path.as_str();
             let texture = assets.texture(game_io, path);
 

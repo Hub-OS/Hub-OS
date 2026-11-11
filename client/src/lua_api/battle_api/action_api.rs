@@ -119,6 +119,26 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
+    lua_api.add_dynamic_function(
+        CARD_PROPERTIES_TABLE,
+        "preview_texture",
+        |api_ctx, lua, params| {
+            let card_props: CardProperties = lua.unpack_multi(params)?;
+
+            let api_ctx = api_ctx.borrow();
+
+            let namespace = card_props.namespace.unwrap_or_else(|| {
+                let vms = api_ctx.resources.vm_manager.vms();
+                vms[api_ctx.vm_index].preferred_namespace()
+            });
+
+            let (_, path) =
+                CardPackage::preview_texture(api_ctx.game_io, namespace, &card_props.package_id);
+
+            lua.pack_multi(path)
+        },
+    );
+
     lua_api.add_dynamic_function(ACTION_TABLE, "from_card", move |api_ctx, lua, params| {
         let (entity_table, card_props): (rollback_mlua::Table, CardProperties) =
             lua.unpack_multi(params)?;
