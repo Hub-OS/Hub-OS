@@ -1052,7 +1052,7 @@ impl BattleState {
         let entities = &mut simulation.entities;
         for (id, (character, namespace)) in entities.query_mut::<(&Character, &PackageNamespace)>()
         {
-            let Some(card) = character.cards.first() else {
+            let Some(card) = character.cards.last() else {
                 continue;
             };
 
@@ -1074,7 +1074,7 @@ impl BattleState {
                 continue;
             };
 
-            let Some(card) = character.cards.first_mut() else {
+            let Some(card) = character.cards.last_mut() else {
                 continue;
             };
 
