@@ -80,6 +80,7 @@ config-key-style-mix = Mixto
 config-key-style-wasd = WASD
 config-key-style-emulator = Emulador
 config-active-gamepad-label = Mando activo
+config-active-gamepad-auto = Auto
 config-edit-virtual-controller-layout-label = Editar Diseño
 config-edit-virtual-controller-layout-complete = Toca la pantalla cinco veces si necesitas abrir el editor de nuevo.
 config-reset-binds-label = Restablecer
