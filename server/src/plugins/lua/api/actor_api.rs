@@ -1,7 +1,6 @@
 use super::LuaApi;
 use super::lua_errors::create_actor_error;
 use crate::plugins::lua::api::colors::*;
-use crate::plugins::lua::api::lua_helpers::optional_lua_string_to_str;
 use packets::structures::{ActorId, Direction};
 
 pub fn inject_dynamic(lua_api: &mut LuaApi) {
@@ -38,11 +37,11 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 
     lua_api.add_dynamic_function("Net", "set_actor_name", |api_ctx, lua, params| {
-        let (actor_id, name): (ActorId, mlua::String) = lua.unpack_multi(params)?;
+        let (actor_id, name): (ActorId, mlua::LuaString) = lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        net.set_actor_name(actor_id, name.to_str()?);
+        net.set_actor_name(actor_id, &name.to_str()?);
 
         lua.pack_multi(())
     });
@@ -101,9 +100,9 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 
     lua_api.add_dynamic_function("Net", "animate_actor", |api_ctx, lua, params| {
-        let (actor_id, name, loop_option): (ActorId, mlua::String, Option<bool>) =
+        let (actor_id, name, loop_option): (ActorId, mlua::LuaString, Option<bool>) =
             lua.unpack_multi(params)?;
-        let name_str = name.to_str()?;
+        let name_str = &*name.to_str()?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
@@ -144,12 +143,12 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 
     lua_api.add_dynamic_function("Net", "set_actor_avatar", |api_ctx, lua, params| {
-        let (actor_id, texture_path, animation_path): (ActorId, mlua::String, mlua::String) =
+        let (actor_id, texture_path, animation_path): (ActorId, mlua::LuaString, mlua::LuaString) =
             lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        net.set_actor_avatar(actor_id, texture_path.to_str()?, animation_path.to_str()?);
+        net.set_actor_avatar(actor_id, &texture_path.to_str()?, &animation_path.to_str()?);
 
         lua.pack_multi(())
     });
@@ -199,9 +198,14 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 
     lua_api.add_dynamic_function("Net", "move_actor", |api_ctx, lua, params| {
-        let (actor_id, x, y, z, direction_option): (ActorId, f32, f32, f32, Option<mlua::String>) =
-            lua.unpack_multi(params)?;
-        let direction = Direction::from(optional_lua_string_to_str(&direction_option)?);
+        let (actor_id, x, y, z, direction_option): (
+            ActorId,
+            f32,
+            f32,
+            f32,
+            Option<mlua::BorrowedStr>,
+        ) = lua.unpack_multi(params)?;
+        let direction = Direction::from(direction_option.as_deref().unwrap_or_default());
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
@@ -211,9 +215,14 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 
     lua_api.add_dynamic_function("Net", "warp_actor", |api_ctx, lua, params| {
-        let (actor_id, x, y, z, direction_option): (ActorId, f32, f32, f32, Option<mlua::String>) =
-            lua.unpack_multi(params)?;
-        let direction = Direction::from(optional_lua_string_to_str(&direction_option)?);
+        let (actor_id, x, y, z, direction_option): (
+            ActorId,
+            f32,
+            f32,
+            f32,
+            Option<mlua::BorrowedStr>,
+        ) = lua.unpack_multi(params)?;
+        let direction = Direction::from(direction_option.as_deref().unwrap_or_default());
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
@@ -231,7 +240,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             Option<f32>,
             Option<f32>,
             Option<f32>,
-            Option<mlua::String>,
+            Option<mlua::BorrowedStr>,
         ) = lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
@@ -248,7 +257,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             return Err(create_actor_error(actor_id));
         }
 
-        let direction = Direction::from(optional_lua_string_to_str(&direction_option)?);
+        let direction = Direction::from(direction_option.as_deref().unwrap_or_default());
 
         net.transfer_actor(actor_id, &area_id, warp_in, x, y, z, direction);
 

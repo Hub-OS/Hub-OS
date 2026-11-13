@@ -98,7 +98,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             body = options
                 .get("body")
                 .ok()
-                .map(|lua_string: mlua::String| lua_string.as_bytes().to_vec());
+                .map(|lua_string: mlua::LuaString| lua_string.as_bytes().to_vec());
 
             headers = options
                 .get("headers")
@@ -144,7 +144,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             body = options
                 .get("body")
                 .ok()
-                .map(|lua_string: mlua::String| lua_string.as_bytes().to_vec());
+                .map(|lua_string: mlua::LuaString| lua_string.as_bytes().to_vec());
 
             headers = options
                 .get("headers")
@@ -185,11 +185,11 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 
     lua_api.add_dynamic_function("Async", "write_file", |api_ctx, lua, params| {
-        let (path, content): (String, mlua::String) = lua.unpack_multi(params)?;
+        let (path, content): (String, mlua::LuaString) = lua.unpack_multi(params)?;
 
         use crate::jobs::files::write_file;
 
-        let promise = write_file(path, content.as_bytes());
+        let promise = write_file(path, &content.as_bytes());
 
         let lua_promise = create_lua_promise(lua, api_ctx.promise_manager_ref, promise);
 
@@ -221,7 +221,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 
     lua_api.add_dynamic_function("Async", "message_server", |api_ctx, lua, params| {
-        let (address, data): (String, mlua::String) = lua.unpack_multi(params)?;
+        let (address, data): (String, mlua::LuaString) = lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
@@ -231,11 +231,11 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 }
 
-fn create_lua_promise<'a>(
-    lua: &'a mlua::Lua,
+fn create_lua_promise(
+    lua: &mlua::Lua,
     promise_manager_ref: &RefCell<&mut JobPromiseManager>,
     promise: JobPromise,
-) -> mlua::Result<mlua::Table<'a>> {
+) -> mlua::Result<mlua::Table> {
     let mut promise_manager = promise_manager_ref.borrow_mut();
     let id = promise_manager.add_promise(promise);
 

@@ -108,7 +108,7 @@ impl LuaPluginInterface {
 
             // using require to load the script for better error messages (logs the path of the file)
             let require: mlua::Function = globals.get("require")?;
-            require.call::<&str, ()>(final_path)?;
+            require.call::<()>(final_path)?;
 
             Ok(())
         })?;
@@ -942,7 +942,7 @@ fn handle_event<F>(
     net: &mut Net,
     fn_caller: F,
 ) where
-    F: for<'lua> FnMut(&'lua mlua::Lua, mlua::Function<'lua>) -> mlua::Result<()>,
+    F: for<'lua> FnMut(&'lua mlua::Lua, mlua::Function) -> mlua::Result<()>,
 {
     let mut fn_caller = fn_caller;
 
@@ -966,7 +966,7 @@ fn handle_event<F>(
                 let globals = lua.globals();
                 let net_table: mlua::Table = globals.get("Net")?;
 
-                if let Ok(func) = net_table.get::<_, mlua::Function>("emit") {
+                if let Ok(func) = net_table.get::<mlua::Function>("emit") {
                     let binded_func = func.bind(net_table)?;
 
                     if let Err(err) = fn_caller(lua, binded_func) {

@@ -10,9 +10,9 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         let client_id_restriction = table.get("player_id")?;
         let parent: mlua::Value = table.get("parent_id")?;
-        let parent = match parent.as_str() {
-            Some("widget") => SpriteParent::Widget,
-            Some("hud") => SpriteParent::Hud,
+        let parent = match parent.as_string().map(|s| s.as_bytes()).as_deref() {
+            Some(b"widget") => SpriteParent::Widget,
+            Some(b"hud") => SpriteParent::Hud,
             _ => SpriteParent::Actor(table.get("parent_id")?),
         };
 
@@ -42,9 +42,9 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         let client_id_restriction = table.get("player_id")?;
         let parent: mlua::Value = table.get("parent_id")?;
-        let parent = match parent.as_str() {
-            Some("widget") => SpriteParent::Widget,
-            Some("hud") => SpriteParent::Hud,
+        let parent = match parent.as_string().map(|s| s.as_bytes()).as_deref() {
+            Some(b"widget") => SpriteParent::Widget,
+            Some(b"hud") => SpriteParent::Hud,
             _ => SpriteParent::Actor(table.get("parent_id")?),
         };
 
@@ -56,14 +56,10 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             layer: table.get("layer").unwrap_or_default(),
         };
 
-        let mut h_align_string = table
-            .get::<_, Option<String>>("h_align")?
-            .unwrap_or_default();
+        let mut h_align_string = table.get::<Option<String>>("h_align")?.unwrap_or_default();
         h_align_string.make_ascii_lowercase();
 
-        let mut v_align_string = table
-            .get::<_, Option<String>>("v_align")?
-            .unwrap_or_default();
+        let mut v_align_string = table.get::<Option<String>>("v_align")?.unwrap_or_default();
         v_align_string.make_ascii_lowercase();
 
         let definition = SpriteDefinition::Text {

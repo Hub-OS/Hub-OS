@@ -14,8 +14,8 @@ pub fn parse_animation(keyframe_tables: Vec<mlua::Table>) -> mlua::Result<Vec<Ac
         let property_tables: Vec<mlua::Table> = keyframe_table.get("properties")?;
 
         for property_table in property_tables {
-            let property_name: mlua::String = property_table.get("property")?;
-            let property_name_str = property_name.to_str()?;
+            let property_name: mlua::LuaString = property_table.get("property")?;
+            let property_name_str = &*property_name.to_str()?;
 
             let property = match property_name_str {
                 "Animation" => ActorProperty::Animation(property_table.get("value")?),
@@ -28,9 +28,9 @@ pub fn parse_animation(keyframe_tables: Vec<mlua::Table>) -> mlua::Result<Vec<Ac
                 "ScaleY" => ActorProperty::ScaleY(property_table.get("value")?),
                 "Rotation" => ActorProperty::Rotation(property_table.get("value")?),
                 "Direction" => {
-                    let value: mlua::String = property_table.get("value")?;
+                    let value: mlua::LuaString = property_table.get("value")?;
 
-                    ActorProperty::Direction(Direction::from(value.to_str()?))
+                    ActorProperty::Direction(Direction::from(&*value.to_str()?))
                 }
                 "Sound Effect" => ActorProperty::SoundEffect(property_table.get("value")?),
                 "Sound Effect Loop" => ActorProperty::SoundEffectLoop(property_table.get("value")?),
@@ -40,11 +40,12 @@ pub fn parse_animation(keyframe_tables: Vec<mlua::Table>) -> mlua::Result<Vec<Ac
                 }
             };
 
-            let ease_name_option: Option<mlua::String> = property_table.get("ease")?;
+            let ease_name_option: Option<mlua::LuaString> = property_table.get("ease")?;
 
             let ease = match ease_name_option {
                 Some(ease_name) => {
-                    let ease_name_str = ease_name.to_str()?;
+                    let ease_name_str = &*ease_name.to_str()?;
+
                     match ease_name_str {
                         "Linear" => Ease::Linear,
                         "In" => Ease::In,

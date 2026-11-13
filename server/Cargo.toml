@@ -14,7 +14,7 @@ structures = { path = "../structures" }
 smol = { workspace = true }
 futures = { workspace = true }
 minreq = { version = "3", features = ["https-native-tls"] }
-mlua = { version = "0.9", features = ["vendored", "lua54"] }
+mlua = { version = "0.12", features = ["vendored", "lua54"] }
 clap = { workspace = true }
 roxmltree = "0.19"
 itertools = "0.12"

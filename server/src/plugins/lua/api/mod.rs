@@ -35,8 +35,8 @@ type StaticLuaInjector = dyn Fn(&mlua::Lua) -> mlua::Result<()>;
 type RustLuaFunction = dyn for<'lua> FnMut(
     &ApiContext,
     &'lua mlua::Lua,
-    mlua::MultiValue<'lua>,
-) -> mlua::Result<mlua::MultiValue<'lua>>;
+    mlua::MultiValue,
+) -> mlua::Result<mlua::MultiValue>;
 
 pub struct LuaApi {
     static_function_injectors: Vec<Box<StaticLuaInjector>>,
@@ -99,8 +99,8 @@ impl LuaApi {
             + for<'lua> Fn(
                 &ApiContext,
                 &'lua mlua::Lua,
-                mlua::MultiValue<'lua>,
-            ) -> mlua::Result<mlua::MultiValue<'lua>>,
+                mlua::MultiValue,
+            ) -> mlua::Result<mlua::MultiValue>,
     {
         let table_name = String::from(table_name);
         let function_name = String::from(function_name);

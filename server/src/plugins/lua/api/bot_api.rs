@@ -5,8 +5,8 @@ use packets::structures::ActorId;
 
 pub fn inject_dynamic(lua_api: &mut LuaApi) {
     lua_api.add_dynamic_function("Net", "list_bots", |api_ctx, lua, params| {
-        let area_id: mlua::String = lua.unpack_multi(params)?;
-        let area_id_str = area_id.to_str()?;
+        let area_id: mlua::LuaString = lua.unpack_multi(params)?;
+        let area_id_str = &*area_id.to_str()?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 

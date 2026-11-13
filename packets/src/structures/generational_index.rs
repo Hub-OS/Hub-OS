@@ -4,6 +4,66 @@ use rollback_mlua as mlua;
 #[cfg(feature = "mlua")]
 use mlua;
 
+#[cfg(not(any(feature = "mlua", feature = "rollback_mlua")))]
+#[macro_export]
+macro_rules! impl_generational_index_lua_conversion {
+    ($name: ident) => {};
+}
+
+#[cfg(all(feature = "rollback_mlua", not(feature = "mlua")))]
+#[macro_export]
+macro_rules! impl_generational_index_lua_conversion {
+    ($name: ident) => {
+        impl<'lua> mlua::FromLua<'lua> for $name {
+            fn from_lua(lua_value: mlua::Value<'lua>, _lua: &'lua mlua::Lua) -> mlua::Result<Self> {
+                let mlua::Value::Integer(number) = lua_value else {
+                    return Err(mlua::Error::FromLuaConversionError {
+                        from: lua_value.type_name(),
+                        to: "$name",
+                        message: None,
+                    });
+                };
+
+                Ok(number.into())
+            }
+        }
+
+        impl<'lua> mlua::IntoLua<'lua> for $name {
+            fn into_lua(self, _lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+                let n = self.into();
+                Ok(mlua::Value::Integer(n))
+            }
+        }
+    };
+}
+
+#[cfg(feature = "mlua")]
+#[macro_export]
+macro_rules! impl_generational_index_lua_conversion {
+    ($name: ident) => {
+        impl mlua::FromLua for $name {
+            fn from_lua(lua_value: mlua::Value, _lua: &mlua::Lua) -> mlua::Result<Self> {
+                let mlua::Value::Integer(number) = lua_value else {
+                    return Err(mlua::Error::FromLuaConversionError {
+                        from: lua_value.type_name(),
+                        to: String::from("$name"),
+                        message: None,
+                    });
+                };
+
+                Ok(number.into())
+            }
+        }
+
+        impl mlua::IntoLua for $name {
+            fn into_lua(self, _lua: &mlua::Lua) -> mlua::Result<mlua::Value> {
+                let n = self.into();
+                Ok(mlua::Value::Integer(n))
+            }
+        }
+    };
+}
+
 #[macro_export]
 macro_rules! create_generational_index {
     ($name: ident) => {
@@ -65,26 +125,7 @@ macro_rules! create_generational_index {
             }
         }
 
-        impl<'lua> mlua::FromLua<'lua> for $name {
-            fn from_lua(lua_value: mlua::Value<'lua>, _lua: &'lua mlua::Lua) -> mlua::Result<Self> {
-                let mlua::Value::Integer(number) = lua_value else {
-                    return Err(mlua::Error::FromLuaConversionError {
-                        from: lua_value.type_name(),
-                        to: "$name",
-                        message: None,
-                    });
-                };
-
-                Ok(number.into())
-            }
-        }
-
-        impl<'lua> mlua::IntoLua<'lua> for $name {
-            fn into_lua(self, _lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
-                let n = self.into();
-                Ok(mlua::Value::Integer(n))
-            }
-        }
+        $crate::impl_generational_index_lua_conversion! { $name }
     };
 }
 

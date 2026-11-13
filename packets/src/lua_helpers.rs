@@ -4,21 +4,6 @@ macro_rules! impl_lua_helpers {
         use std::collections::HashSet;
         use std::ffi::c_void;
 
-        pub fn optional_lua_string_to_optional_str<'a>(
-            optional_string: &'a Option<$mlua::String>,
-        ) -> $mlua::Result<Option<&'a str>> {
-            optional_string
-                .as_ref()
-                .map(|lua_string| lua_string.to_str())
-                .transpose()
-        }
-
-        pub fn optional_lua_string_to_str<'a>(
-            optional_string: &'a Option<$mlua::String>,
-        ) -> $mlua::Result<&'a str> {
-            Ok(optional_lua_string_to_optional_str(optional_string)?.unwrap_or_default())
-        }
-
         pub fn lua_value_to_string(
             value: $mlua::Value,
             indentation: &str,
@@ -88,7 +73,7 @@ macro_rules! impl_lua_helpers {
                     // wrap with ""
                     "{:?}",
                     // escape "
-                    String::from_utf8_lossy(lua_string.as_bytes()).replace('"', "\\\"")
+                    String::from_utf8_lossy(&*lua_string.as_bytes()).replace('"', "\\\"")
                 ),
                 $mlua::Value::Number(n) => n.to_string(),
                 $mlua::Value::Integer(i) => i.to_string(),

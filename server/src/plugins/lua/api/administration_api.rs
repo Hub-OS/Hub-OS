@@ -37,13 +37,13 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 
     lua_api.add_dynamic_function("Net", "get_command_description", |api_ctx, lua, params| {
-        let name: mlua::String = lua.unpack_multi(params)?;
+        let name: mlua::LuaString = lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
         let registry = net.command_registry_mut();
         let description = registry
-            .get_command_info(name.to_str()?)
+            .get_command_info(&name.to_str()?)
             .map(|info| info.description.as_str());
 
         lua.pack_multi(description)

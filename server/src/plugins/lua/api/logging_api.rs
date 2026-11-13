@@ -47,7 +47,7 @@ fn format_args(args: mlua::MultiValue) -> String {
 fn tostring(value: mlua::Value) -> String {
     match value {
         mlua::Value::String(lua_string) => {
-            String::from_utf8_lossy(lua_string.as_bytes()).to_string()
+            String::from_utf8_lossy(&lua_string.as_bytes()).to_string()
         }
         mlua::Value::Error(error) => format!("{error}"),
         _ => super::lua_helpers::lua_value_to_string(value, "\t", 0),
