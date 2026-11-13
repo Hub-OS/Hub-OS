@@ -3,3 +3,6 @@ name = "structures"
 edition = "2021"
 license = "GPL-3.0"
 version.workspace = true
+
+[lints]
+workspace = true

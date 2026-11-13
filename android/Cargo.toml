@@ -4,6 +4,9 @@ version.workspace = true
 edition = "2024"
 license = "GPL-3.0"
 
+[lints]
+workspace = true
+
 # necessary for android + wasm builds
 [lib]
 crate-type = ["cdylib", "rlib"]
