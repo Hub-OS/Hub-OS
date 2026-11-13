@@ -1,6 +1,6 @@
+use hub_os::framework::android_game_loop::AndroidPlatformApp;
+use hub_os::framework::android_game_loop::android;
 use hub_os::framework::logging::log;
-use hub_os::framework::winit_game_loop::WinitPlatformApp;
-use hub_os::framework::winit_game_loop::android;
 
 use android::content::AndroidContext;
 use android::{AndroidJVM, jni};
@@ -12,7 +12,7 @@ pub struct AndroidNetworkLock {
 // API level 29
 const WIFI_MODE_FULL_LOW_LATENCY: jni::sys::jint = 4;
 
-pub fn acquire_multicast_lock(app: &WinitPlatformApp) -> Option<AndroidNetworkLock> {
+pub fn acquire_multicast_lock(app: &AndroidPlatformApp) -> Option<AndroidNetworkLock> {
     let vm = AndroidJVM::from(app);
 
     let mut multicast_lock_result = None;
@@ -44,7 +44,7 @@ pub fn acquire_multicast_lock(app: &WinitPlatformApp) -> Option<AndroidNetworkLo
     multicast_lock_result
 }
 
-pub fn acquire_low_latency_lock(app: &WinitPlatformApp) -> Option<AndroidNetworkLock> {
+pub fn acquire_low_latency_lock(app: &AndroidPlatformApp) -> Option<AndroidNetworkLock> {
     let vm = AndroidJVM::from(app);
 
     let mut wifi_lock_result = None;

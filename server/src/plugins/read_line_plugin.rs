@@ -1,6 +1,6 @@
 use crate::net::Net;
 use crate::plugins::PluginInterface;
-use reedline::{ExternalPrinter, MenuBuilder, ReedlineEvent, ReedlineMenu};
+use reedline::{MenuBuilder, ReedlineEvent, ReedlineMenu};
 use std::borrow::Cow;
 use std::sync::atomic::AtomicBool;
 use std::sync::{Arc, Mutex};
@@ -107,6 +107,24 @@ impl reedline::Completer for CustomCompleter {
     }
 }
 
+struct CustomOutput {
+    sender: flume::Sender<String>,
+    receiver: flume::Receiver<String>,
+}
+
+impl CustomOutput {
+    fn new() -> Self {
+        let (sender, receiver) = flume::unbounded();
+        Self { sender, receiver }
+    }
+}
+
+impl reedline::ExternalOutput for CustomOutput {
+    fn drain(&mut self) -> std::io::Result<Vec<String>> {
+        Ok(self.receiver.drain().collect())
+    }
+}
+
 enum Event {
     Command(String),
     Stop,
@@ -118,14 +136,14 @@ pub struct ReadLinePlugin {
     event_receiver: flume::Receiver<Event>,
     break_signal: Arc<AtomicBool>,
     join_handle: Option<std::thread::JoinHandle<()>>,
-    external_printer: ExternalPrinter<String>,
+    printer_receiver: flume::Receiver<String>,
 }
 
 impl ReadLinePlugin {
     pub fn new() -> Self {
         // take over printing to avoid threading issues
-        let external_printer = reedline::ExternalPrinter::new(1000);
-        let printer_sender = external_printer.sender();
+        let external_printer = CustomOutput::new();
+        let printer_sender = external_printer.sender.clone();
 
         crate::logger::set_printer(move |message| {
             let _ = printer_sender.send(message);
@@ -135,7 +153,7 @@ impl ReadLinePlugin {
         let (command_sender, event_receiver) = flume::unbounded();
         let (custom_completer, new_commands) = CustomCompleter::new();
         let break_signal = Arc::new(AtomicBool::new(false));
-        let printer = external_printer.clone();
+        let printer_receiver = external_printer.receiver.clone();
 
         let mut keybindings = reedline::default_emacs_keybindings();
         keybindings.add_binding(
@@ -166,7 +184,7 @@ impl ReadLinePlugin {
                     Ok(reedline::Signal::Success(command)) => {
                         let _ = command_sender.send(Event::Command(command));
                     }
-                    Ok(reedline::Signal::CtrlD) | Ok(reedline::Signal::CtrlC) => {
+                    Ok(reedline::Signal::CtrlD) | Ok(reedline::Signal::CtrlC(_)) => {
                         let _ = command_sender.send(Event::Stop);
                         break;
                     }
@@ -189,7 +207,7 @@ impl ReadLinePlugin {
             event_receiver,
             break_signal,
             join_handle: Some(join_handle),
-            external_printer: printer,
+            printer_receiver,
         }
     }
 }
@@ -207,7 +225,7 @@ impl Drop for ReadLinePlugin {
         crate::logger::set_printer(|s| println!("{s}"));
 
         // flush remaining messages
-        while let Ok(message) = self.external_printer.receiver().try_recv() {
+        while let Ok(message) = self.printer_receiver.try_recv() {
             println!("{message}")
         }
     }

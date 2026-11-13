@@ -1,7 +1,7 @@
 #![cfg(target_os = "android")]
 
 use clap::Parser;
-use hub_os::framework::prelude::WinitPlatformApp;
+use hub_os::framework::prelude::AndroidPlatformApp;
 use hub_os::{Args, ResourcePaths, ResourcePathsOptions};
 use packets::structures::FileHash;
 use packets::zip;
@@ -9,7 +9,7 @@ use packets::zip;
 mod network_locks;
 
 #[unsafe(no_mangle)]
-pub fn android_main(app: WinitPlatformApp) {
+pub fn android_main(app: AndroidPlatformApp) {
     std::panic::set_hook(Box::new(|p| {
         use std::backtrace::Backtrace;
 
@@ -46,7 +46,7 @@ pub fn android_main(app: WinitPlatformApp) {
     std::mem::drop(locks);
 }
 
-fn update_resources(app: &WinitPlatformApp) {
+fn update_resources(app: &AndroidPlatformApp) {
     // instead of extracting a zip and running the exe,
     // users are only receiving an apk for android
     // so we're storing the resources as a zip in the apk and extracting when stored hashes differ

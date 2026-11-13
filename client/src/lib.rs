@@ -47,7 +47,7 @@ const TITLE_LIST: [&str; 3] = [
 #[cfg(target_os = "android")]
 pub type GameLoop = framework::prelude::AndroidGameLoop;
 #[cfg(not(target_os = "android"))]
-pub type GameLoop = framework::prelude::WinitGameLoop;
+pub type GameLoop = framework::prelude::Sdl3GameLoop;
 
 pub type PlatformApp = <GameLoop as GameWindowLoop>::PlatformApp;
 
