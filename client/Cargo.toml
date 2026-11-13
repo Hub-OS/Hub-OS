@@ -13,9 +13,6 @@ packets = { path = "../packets", default-features = false, features = [
   "rollback_mlua"
 ] }
 structures = { path = "../structures" }
-framework = { git = "https://github.com/Hub-OS/framework", default-features = false, features = [
-  "sdl3"
-] }
 anyhow = "1.0"
 bytemuck = "1.12"
 chrono = "0.4"
@@ -80,6 +77,9 @@ serde_with = { version = "3.21.0", default-features = false, features = [
 socket2 = { workspace = true }
 
 [target.'cfg(not(target_os = "android"))'.dependencies]
+framework = { git = "https://github.com/Hub-OS/framework", default-features = false, features = [
+  "sdl3"
+] }
 minreq = { version = "3", features = ["https-native-tls"] }
 opener = "0.8.2"
 native-dialog = { version = "0.9.7", features = [
