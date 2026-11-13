@@ -8,11 +8,9 @@ use packets::{
     MulticastPacketWrapper, NetplayPacket, PacketChannels, Reliability, SERVER_TICK_RATE,
     SERVER_TICK_RATE_F, ServerPacket, SyncDataPacket, deserialize,
 };
-use socket2::{SockAddr as Sock2Addr, Socket};
 use std::collections::HashMap;
 use std::future::Future;
-use std::mem::MaybeUninit;
-use std::net::{Ipv6Addr, SocketAddr, SocketAddrV6};
+use std::net::{Ipv6Addr, SocketAddr, SocketAddrV6, UdpSocket};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, OnceLock};
 use std::time::Duration;
@@ -40,15 +38,15 @@ pub enum ServerStatus {
 }
 
 enum Event {
-    ServerSubscription(Sock2Addr, flume::Sender<ServerPacket>),
-    NetplaySubscription(Sock2Addr, flume::Sender<NetplayPacketReceiver>),
-    SyncDataSubscription(Sock2Addr, flume::Sender<SyncDataPacketReceiver>),
+    ServerSubscription(SocketAddr, flume::Sender<ServerPacket>),
+    NetplaySubscription(SocketAddr, flume::Sender<NetplayPacketReceiver>),
+    SyncDataSubscription(SocketAddr, flume::Sender<SyncDataPacketReceiver>),
     MulticastSubscription(flume::Sender<(SocketAddr, MulticastPacket)>),
-    SendingClientPacket(Sock2Addr, Reliability, ClientPacket),
-    SendingNetplayPacket(Sock2Addr, NetplayPacket),
-    SendingSyncPacket(Sock2Addr, Reliability, SyncDataPacket),
+    SendingClientPacket(SocketAddr, Reliability, ClientPacket),
+    SendingNetplayPacket(SocketAddr, NetplayPacket),
+    SendingSyncPacket(SocketAddr, Reliability, SyncDataPacket),
     SendingMulticastPacket(MulticastPacket),
-    ReceivedPacket(Sock2Addr, Instant, Vec<u8>),
+    ReceivedPacket(SocketAddr, Instant, Vec<u8>),
     ReceivedMulticastPacket(SocketAddr, MulticastPacket, usize),
 }
 
@@ -85,7 +83,7 @@ impl NetworkDetails {
 }
 
 pub struct Network {
-    socket: Arc<Socket>,
+    socket: Arc<UdpSocket>,
     sender: flume::Sender<Event>,
     network_details: Arc<NetworkDetails>,
 }
@@ -105,7 +103,7 @@ impl Network {
         });
 
         // regular socket
-        let socket = Socket::new(
+        let socket = socket2::Socket::new(
             socket2::Domain::IPV6,
             socket2::Type::DGRAM,
             Some(socket2::Protocol::UDP),
@@ -120,9 +118,13 @@ impl Network {
         }
 
         let addr = SocketAddrV6::new(Ipv6Addr::UNSPECIFIED, args.port, 0, 0);
-        socket.bind(&Sock2Addr::from(addr)).unwrap();
+        socket.bind(&addr.into()).unwrap();
 
-        let socket = Arc::new(socket);
+        let socket = Arc::new(UdpSocket::from(socket));
+
+        if let Err(err) = socket.take_error() {
+            log::warn!("UdpSocket error: {err:?}");
+        }
 
         std::thread::spawn({
             let sender = sender.clone();
@@ -159,16 +161,15 @@ impl Network {
 
         async move {
             let addr = packets::address_parsing::resolve_socket_addr(address.as_str()).await?;
-            let addr = Sock2Addr::from(addr);
 
             let (sender, receiver) = flume::bounded(1);
 
             event_sender
-                .send(Event::NetplaySubscription(addr.clone(), sender))
+                .send(Event::NetplaySubscription(addr, sender))
                 .ok()?;
 
             let send_packet: NetplayPacketSender = Arc::new(move |body| {
-                let _ = event_sender.send(Event::SendingNetplayPacket(addr.clone(), body));
+                let _ = event_sender.send(Event::SendingNetplayPacket(addr, body));
             });
 
             let receiver = receiver.recv_async().await.ok()?;
@@ -185,17 +186,15 @@ impl Network {
 
         async move {
             let addr = packets::address_parsing::resolve_socket_addr(address.as_str()).await?;
-            let addr = Sock2Addr::from(addr);
 
             let (sender, receiver) = flume::unbounded();
 
             event_sender
-                .send(Event::ServerSubscription(addr.clone(), sender))
+                .send(Event::ServerSubscription(addr, sender))
                 .ok()?;
 
             let send: ClientPacketSender = Arc::new(move |reliability, body| {
-                let _ =
-                    event_sender.send(Event::SendingClientPacket(addr.clone(), reliability, body));
+                let _ = event_sender.send(Event::SendingClientPacket(addr, reliability, body));
             });
 
             Some((send, receiver))
@@ -210,17 +209,15 @@ impl Network {
 
         async move {
             let addr = packets::address_parsing::resolve_socket_addr(address.as_str()).await?;
-            let addr = Sock2Addr::from(addr);
 
             let (sender, receiver) = flume::unbounded();
 
             event_sender
-                .send(Event::SyncDataSubscription(addr.clone(), sender))
+                .send(Event::SyncDataSubscription(addr, sender))
                 .ok()?;
 
             let send_packet: SyncDataPacketSender = Arc::new(move |reliability, body| {
-                let _ =
-                    event_sender.send(Event::SendingSyncPacket(addr.clone(), reliability, body));
+                let _ = event_sender.send(Event::SendingSyncPacket(addr, reliability, body));
             });
 
             let receiver = receiver.recv_async().await.ok()?;
@@ -283,12 +280,12 @@ impl Network {
     }
 }
 
-fn socket_listener(socket: Arc<Socket>, packet_sender: flume::Sender<Event>) {
-    let mut buffer = vec![MaybeUninit::uninit(); 100000];
+fn socket_listener(socket: Arc<UdpSocket>, packet_sender: flume::Sender<Event>) {
+    let mut buffer = vec![0; 100000];
 
     while !packet_sender.is_disconnected() {
         let (addr, bytes) = match socket.recv_from(&mut buffer) {
-            Ok((len, addr)) => (addr, unsafe { buffer[..len].assume_init_ref() }),
+            Ok((len, addr)) => (addr, &buffer[..len]),
             _ => continue,
         };
 
@@ -334,7 +331,7 @@ fn multicast_listener(packet_sender: flume::Sender<Event>, network_details: Arc<
 }
 
 struct Connection {
-    socket_addr: Sock2Addr,
+    socket_addr: SocketAddr,
     client_channel: packets::ChannelSender<PacketChannels>,
     netplay_channel: packets::ChannelSender<PacketChannels>,
     sync_channel: packets::ChannelSender<PacketChannels>,
@@ -346,7 +343,7 @@ struct Connection {
 }
 
 impl Connection {
-    fn new(socket_addr: Sock2Addr, send_budget: usize) -> Self {
+    fn new(socket_addr: SocketAddr, send_budget: usize) -> Self {
         let default_config = packets::Config::default();
 
         let mut builder = packets::ConnectionBuilder::new(&packets::Config {
@@ -382,8 +379,8 @@ struct NetworkSample {
 }
 
 struct EventListener {
-    socket: Arc<Socket>,
-    connection_map: HashMap<Sock2Addr, GenerationalIndex>,
+    socket: Arc<UdpSocket>,
+    connection_map: HashMap<SocketAddr, GenerationalIndex>,
     connections: DenseSlotMap<Connection>,
     sync_senders_and_receivers: HashMap<
         GenerationalIndex,
@@ -404,7 +401,7 @@ struct EventListener {
 
 impl EventListener {
     fn new(
-        socket: Arc<Socket>,
+        socket: Arc<UdpSocket>,
         receiver: flume::Receiver<Event>,
         send_budget: usize,
         network_details: Arc<NetworkDetails>,
@@ -476,9 +473,7 @@ impl EventListener {
             Event::SendingMulticastPacket(body) => {
                 let bytes = packets::serialize(MulticastPacketWrapper::new(body));
                 self.bytes_up += bytes.len();
-                let _ = self
-                    .socket
-                    .send_to(&bytes, &Sock2Addr::from(MULTICAST_ADDR));
+                let _ = self.socket.send_to(&bytes, MULTICAST_ADDR);
             }
             Event::ReceivedPacket(addr, time, body) => {
                 self.bytes_down += body.len();
@@ -493,18 +488,22 @@ impl EventListener {
         }
     }
 
-    fn get_or_init_connection(&mut self, addr: Sock2Addr) -> GenerationalIndex {
+    fn get_or_init_connection(&mut self, addr: SocketAddr) -> GenerationalIndex {
         if let Some(index) = self.connection_map.get_mut(&addr) {
             *index
         } else {
-            let connection = Connection::new(addr.clone(), self.send_budget);
+            let connection = Connection::new(addr, self.send_budget);
             let index = self.connections.insert(connection);
             self.connection_map.insert(addr, index);
             index
         }
     }
 
-    fn handle_server_subscription(&mut self, addr: Sock2Addr, sender: flume::Sender<ServerPacket>) {
+    fn handle_server_subscription(
+        &mut self,
+        addr: SocketAddr,
+        sender: flume::Sender<ServerPacket>,
+    ) {
         let index = self.get_or_init_connection(addr);
         let connection = &mut self.connections[index];
         connection.server_subscribers.push(sender)
@@ -512,7 +511,7 @@ impl EventListener {
 
     fn handle_netplay_subscription(
         &mut self,
-        addr: Sock2Addr,
+        addr: SocketAddr,
         sender: flume::Sender<NetplayPacketReceiver>,
     ) {
         let index = self.get_or_init_connection(addr);
@@ -522,7 +521,7 @@ impl EventListener {
 
     fn handle_sync_data_subscription(
         &mut self,
-        addr: Sock2Addr,
+        addr: SocketAddr,
         sender: flume::Sender<SyncDataPacketReceiver>,
     ) {
         let index = self.get_or_init_connection(addr);
@@ -536,7 +535,7 @@ impl EventListener {
 
     fn send_client_packet(
         &mut self,
-        addr: Sock2Addr,
+        addr: SocketAddr,
         reliability: Reliability,
         packet: ClientPacket,
     ) {
@@ -552,13 +551,13 @@ impl EventListener {
         // push asap
         connection.packet_sender.tick(Instant::now(), |bytes| {
             self.bytes_up += bytes.len();
-            let _ = self.socket.send_to(bytes, &connection.socket_addr);
+            let _ = self.socket.send_to(bytes, connection.socket_addr);
         })
     }
 
     fn send_netplay_packet(
         &mut self,
-        addr: Sock2Addr,
+        addr: SocketAddr,
         reliability: Reliability,
         packet: NetplayPacket,
     ) {
@@ -580,13 +579,13 @@ impl EventListener {
         // push asap
         connection.packet_sender.tick(Instant::now(), |bytes| {
             self.bytes_up += bytes.len();
-            let _ = self.socket.send_to(bytes, &connection.socket_addr);
+            let _ = self.socket.send_to(bytes, connection.socket_addr);
         })
     }
 
     fn send_sync_packet(
         &mut self,
-        addr: Sock2Addr,
+        addr: SocketAddr,
         reliability: Reliability,
         packet: SyncDataPacket,
     ) {
@@ -600,11 +599,11 @@ impl EventListener {
         // push asap
         connection.packet_sender.tick(Instant::now(), |bytes| {
             self.bytes_up += bytes.len();
-            let _ = self.socket.send_to(bytes, &connection.socket_addr);
+            let _ = self.socket.send_to(bytes, connection.socket_addr);
         })
     }
 
-    fn sort_packet(&mut self, addr: Sock2Addr, time: Instant, bytes: Vec<u8>) {
+    fn sort_packet(&mut self, addr: SocketAddr, time: Instant, bytes: Vec<u8>) {
         let Some(index) = self.connection_map.get_mut(&addr) else {
             return;
         };
@@ -618,7 +617,7 @@ impl EventListener {
             Err(e) => {
                 log::error!(
                     "Failed to deserialize packet from {:?}: {e}",
-                    connection.socket_addr.as_socket()
+                    connection.socket_addr
                 );
                 return;
             }
@@ -645,7 +644,7 @@ impl EventListener {
                         Err(e) => {
                             log::error!(
                                 "Failed to deserialize server packet from {:?}: {e}",
-                                connection.socket_addr.as_socket()
+                                connection.socket_addr
                             );
                             continue;
                         }
@@ -671,7 +670,7 @@ impl EventListener {
                         Err(e) => {
                             log::error!(
                                 "Failed to deserialize netplay packet from {:?}: {e}",
-                                connection.socket_addr.as_socket()
+                                connection.socket_addr
                             );
                             continue;
                         }
@@ -688,7 +687,7 @@ impl EventListener {
                             Err(e) => {
                                 log::error!(
                                     "Failed to deserialize data sync packet from {:?}: {e}",
-                                    connection.socket_addr.as_socket()
+                                    connection.socket_addr
                                 );
                                 continue;
                             }
@@ -744,7 +743,7 @@ impl EventListener {
             .filter(|connection| {
                 now - connection.packet_receiver.last_receive_time() >= DISCONNECT_AFTER
             })
-            .map(|connection| connection.socket_addr.clone())
+            .map(|connection| connection.socket_addr)
             .collect();
 
         for addr in disconnected.into_iter().rev() {
@@ -768,7 +767,7 @@ impl EventListener {
         for (_, connection) in &mut self.connections {
             connection.packet_sender.tick(now, |bytes| {
                 self.bytes_up += bytes.len();
-                let _ = self.socket.send_to(bytes, &connection.socket_addr);
+                let _ = self.socket.send_to(bytes, connection.socket_addr);
             });
         }
     }

@@ -23,9 +23,25 @@ impl ServerBuilder {
     }
 
     pub async fn start(self) -> Result<(), Box<dyn std::error::Error>> {
-        let addr = format!("[::]:{}", self.config.args.port);
-        let socket = UdpSocket::bind(addr)?;
+        use std::net::{Ipv6Addr, SocketAddrV6};
 
+        let socket = socket2::Socket::new(
+            socket2::Domain::IPV6,
+            socket2::Type::DGRAM,
+            Some(socket2::Protocol::UDP),
+        )?;
+
+        // disable ipv6 only to allow connection to IPv4 endpoints
+        if let Err(err) = socket.set_only_v6(false) {
+            log::warn!(
+                "Failed to disable IPV6_V6ONLY, players may be unable to connect using IPv4 addresses: {err:?}"
+            );
+        };
+
+        let addr = SocketAddrV6::new(Ipv6Addr::UNSPECIFIED, self.config.args.port, 0, 0);
+        socket.bind(&addr.into())?;
+
+        let socket: UdpSocket = socket.into();
         socket.take_error()?;
 
         log::info!("Server listening on: {}", self.config.args.port);

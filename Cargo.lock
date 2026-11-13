@@ -1855,6 +1855,7 @@ dependencies = [
  "roxmltree",
  "slotmap",
  "smol",
+ "socket2",
  "structures",
  "termcolor",
  "toml 0.8.23",
