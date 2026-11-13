@@ -19,6 +19,16 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y mingw-w64 mold libasound2-dev libudev-dev libxcb-xfixes0-dev libxcb-shape0-dev
+
+          # https://wiki.libsdl.org/SDL3/README-linux#build-dependencies
+          sudo apt-get install gnome-desktop-testing libasound2-dev libpulse-dev \
+          libaudio-dev libfribidi-dev libjack-dev libsndio-dev libx11-dev libxext-dev \
+          libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev \
+          libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
+          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev libthai-dev libusb-1.0-0-dev
+          # Ubuntu 22.04+ can also add:
+          sudo apt-get install libpipewire-0.3-dev libwayland-dev libdecor-0-dev liburing-dev
+
           mkdir .cargo
           printf "[target.x86_64-unknown-linux-gnu]\nlinker = \"/usr/bin/clang\"\nrustflags = [\"-C\", \"link-arg=--ld-path=/usr/bin/mold\"]" > .cargo/config.toml
 

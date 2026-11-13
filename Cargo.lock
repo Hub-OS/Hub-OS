@@ -69,7 +69,7 @@ dependencies = [
 [[package]]
 name = "android"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#f5d3465ffa4e78017a54f9b20f589adbe4d85193"
+source = "git+https://github.com/Hub-OS/framework#4e12315f99fc4b3b8003d40c2afb402d50fcb8e8"
 dependencies = [
  "android-activity",
  "jni 0.22.4",
@@ -106,7 +106,7 @@ checksum = "fc7eb209b1518d6bb87b283c20095f5228ecda460da70b44f0802523dea6da04"
 [[package]]
 name = "android_game_loop"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#f5d3465ffa4e78017a54f9b20f589adbe4d85193"
+source = "git+https://github.com/Hub-OS/framework#4e12315f99fc4b3b8003d40c2afb402d50fcb8e8"
 dependencies = [
  "android",
  "android-activity",
@@ -593,7 +593,7 @@ checksum = "f079e83a288787bcd14a6aea84cee5c87a67c5a3e660c30f557a3d24761b3527"
 [[package]]
 name = "cfg_macros"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#f5d3465ffa4e78017a54f9b20f589adbe4d85193"
+source = "git+https://github.com/Hub-OS/framework#4e12315f99fc4b3b8003d40c2afb402d50fcb8e8"
 
 [[package]]
 name = "chacha20"
@@ -1123,7 +1123,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -1384,7 +1384,7 @@ checksum = "d8866fac38f53fc87fa3ae1b09ddd723e0482f8fa74323518b4c59df2c55a00a"
 [[package]]
 name = "framework"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#f5d3465ffa4e78017a54f9b20f589adbe4d85193"
+source = "git+https://github.com/Hub-OS/framework#4e12315f99fc4b3b8003d40c2afb402d50fcb8e8"
 dependencies = [
  "android_game_loop",
  "cfg_macros",
@@ -1399,7 +1399,7 @@ dependencies = [
 [[package]]
 name = "framework_core"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#f5d3465ffa4e78017a54f9b20f589adbe4d85193"
+source = "git+https://github.com/Hub-OS/framework#4e12315f99fc4b3b8003d40c2afb402d50fcb8e8"
 dependencies = [
  "anyhow",
  "async-executor",
@@ -1634,7 +1634,7 @@ dependencies = [
  "log",
  "presser",
  "thiserror 2.0.20",
- "windows 0.62.2",
+ "windows 0.54.0",
 ]
 
 [[package]]
@@ -1763,7 +1763,7 @@ dependencies = [
 
 [[package]]
 name = "hub_os"
-version = "0.112.3"
+version = "0.112.4"
 dependencies = [
  "anyhow",
  "base64",
@@ -1826,7 +1826,7 @@ dependencies = [
 
 [[package]]
 name = "hub_os_android"
-version = "0.112.3"
+version = "0.112.4"
 dependencies = [
  "clap",
  "hub_os",
@@ -1836,7 +1836,7 @@ dependencies = [
 
 [[package]]
 name = "hub_os_server"
-version = "0.112.3"
+version = "0.112.4"
 dependencies = [
  "clap",
  "flate2",
@@ -2057,7 +2057,7 @@ dependencies = [
 [[package]]
 name = "input"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#f5d3465ffa4e78017a54f9b20f589adbe4d85193"
+source = "git+https://github.com/Hub-OS/framework#4e12315f99fc4b3b8003d40c2afb402d50fcb8e8"
 dependencies = [
  "math",
  "strum 0.25.0",
@@ -2328,7 +2328,7 @@ checksum = "5e5032e24019045c762d3c0f28f5b6b8bbf38563a65908389bf7978758920897"
 [[package]]
 name = "logging"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#f5d3465ffa4e78017a54f9b20f589adbe4d85193"
+source = "git+https://github.com/Hub-OS/framework#4e12315f99fc4b3b8003d40c2afb402d50fcb8e8"
 dependencies = [
  "backtrace",
  "cfg_macros",
@@ -2370,7 +2370,7 @@ dependencies = [
 [[package]]
 name = "math"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#f5d3465ffa4e78017a54f9b20f589adbe4d85193"
+source = "git+https://github.com/Hub-OS/framework#4e12315f99fc4b3b8003d40c2afb402d50fcb8e8"
 dependencies = [
  "bytemuck",
  "glam",
@@ -2605,7 +2605,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -3481,7 +3481,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -3689,7 +3689,7 @@ dependencies = [
 [[package]]
 name = "sdl3_game_loop"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#f5d3465ffa4e78017a54f9b20f589adbe4d85193"
+source = "git+https://github.com/Hub-OS/framework#4e12315f99fc4b3b8003d40c2afb402d50fcb8e8"
 dependencies = [
  "anyhow",
  "framework_core",
@@ -4026,7 +4026,7 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 
 [[package]]
 name = "structures"
-version = "0.112.3"
+version = "0.112.4"
 
 [[package]]
 name = "strum"
@@ -4273,7 +4273,7 @@ dependencies = [
  "getrandom 0.4.2",
  "once_cell",
  "rustix",
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -4796,7 +4796,7 @@ dependencies = [
 [[package]]
 name = "wasm_forward"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#f5d3465ffa4e78017a54f9b20f589adbe4d85193"
+source = "git+https://github.com/Hub-OS/framework#4e12315f99fc4b3b8003d40c2afb402d50fcb8e8"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
@@ -5214,7 +5214,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
