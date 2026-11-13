@@ -92,6 +92,7 @@ config-key-style-wasd = WASD
 config-key-style-emulator = Emulator
 
 config-active-gamepad-label = Active Gamepad
+config-active-gamepad-auto = Auto
 config-edit-virtual-controller-layout-label = Edit Layout
 config-edit-virtual-controller-layout-complete = Tap the screen five times if you need to open the editor again.
 config-reset-binds-label = Reset Binds

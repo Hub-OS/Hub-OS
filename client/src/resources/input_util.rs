@@ -81,7 +81,7 @@ impl<'a> InputUtil<'a> {
 
         if let Some(buttons) = config.controller_bindings.get(&input) {
             let is_down = buttons.iter().any(|button| {
-                input_manager.is_button_down(config.controller_index, *button)
+                input_manager.is_button_down(self.active_controller(), *button)
                     || self.emulated.is_button_down(*button)
             });
 
@@ -145,7 +145,7 @@ impl<'a> InputUtil<'a> {
 
         if let Some(buttons) = config.controller_bindings.get(&input) {
             let just_pressed = buttons.iter().any(|button| {
-                input_manager.was_button_just_pressed(config.controller_index, *button)
+                input_manager.was_button_just_pressed(self.active_controller(), *button)
                     || self.emulated.was_button_just_pressed(*button)
             });
 
@@ -155,6 +155,17 @@ impl<'a> InputUtil<'a> {
         }
 
         false
+    }
+
+    fn active_controller(&self) -> usize {
+        self.config
+            .controller_index
+            .or(self
+                .input_manager
+                .controllers()
+                .first()
+                .map(|controller| controller.id()))
+            .unwrap_or(0)
     }
 
     fn any(
@@ -171,10 +182,12 @@ impl<'a> InputUtil<'a> {
             return true;
         }
 
+        let active_controller = self.active_controller();
+
         if let Some(buttons) = config.controller_bindings.get(&input)
             && buttons
                 .iter()
-                .any(|button| button_callback(config.controller_index, *button))
+                .any(|button| button_callback(active_controller, *button))
         {
             return true;
         }

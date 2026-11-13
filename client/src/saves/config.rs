@@ -88,7 +88,7 @@ pub struct Config {
     pub key_style: KeyStyle,
     pub key_bindings: HashMap<Input, Vec<Key>>,
     pub controller_bindings: HashMap<Input, Vec<Button>>,
-    pub controller_index: usize,
+    pub controller_index: Option<usize>,
     pub virtual_input_positions: HashMap<Button, Vec2>,
     pub virtual_controller_scale: f32,
     pub input_delay: u8,
@@ -138,7 +138,7 @@ impl Config {
             key_style: Default::default(),
             key_bindings: HashMap::new(),
             controller_bindings: HashMap::new(),
-            controller_index: 0,
+            controller_index: None,
             virtual_input_positions: Self::default_virtual_input_positions(),
             virtual_controller_scale: 1.0,
             input_delay: DEFAULT_INPUT_DELAY,
@@ -522,7 +522,9 @@ impl From<&str> for Config {
         }
 
         if let Some(properties) = ini.section(Some("Controller")) {
-            config.controller_index = parse_or_default(properties.get("ControllerIndex"));
+            config.controller_index = properties
+                .get("ControllerIndex")
+                .and_then(|s| s.parse().ok());
 
             for input in Input::iter() {
                 let input_string = format!("{input:?}");
@@ -682,7 +684,12 @@ impl std::fmt::Display for Config {
         }
 
         writeln!(f, "[Controller]")?;
-        writeln!(f, "ControllerIndex = {}", self.controller_index)?;
+
+        if let Some(i) = self.controller_index {
+            writeln!(f, "ControllerIndex = {i}")?;
+        } else {
+            writeln!(f, "ControllerIndex = Auto")?;
+        }
 
         for input in Input::iter() {
             write!(f, "{input:?} = ")?;

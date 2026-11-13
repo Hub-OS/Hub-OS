@@ -845,15 +845,19 @@ impl ConfigScene {
                 "config-active-gamepad-label",
                 config.borrow().controller_index,
                 config.clone(),
-                |_, value| value.to_string(),
-                |game_io, previous_value, cycle_right| {
-                    let controllers = game_io.input().controllers();
-
-                    UiConfigDynamicCycle::cycle_slice(controllers, cycle_right, |controller| {
-                        controller.id() == *previous_value
+                |game_io, value| {
+                    value.map(|id| id.to_string()).unwrap_or_else(|| {
+                        Globals::from_resources(game_io).translate("config-active-gamepad-auto")
                     })
-                    .map(|controller| controller.id())
-                    .unwrap_or_default()
+                },
+                |game_io, previous_value, cycle_right| {
+                    let mut ids = vec![None];
+
+                    ids.extend(game_io.input().controllers().iter().map(|c| Some(c.id())));
+
+                    UiConfigDynamicCycle::cycle_slice(&ids, cycle_right, |id| id == previous_value)
+                        .cloned()
+                        .unwrap_or_default()
                 },
                 |_, mut config, value| {
                     config.controller_index = *value;
