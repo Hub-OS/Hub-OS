@@ -99,8 +99,7 @@ impl Deck {
         let globals = Globals::from_resources(game_io);
         let mut non_giga_vec = Vec::new();
 
-        for i in 10..self.cards.len() {
-            let card = &self.cards[i];
+        for (i, card) in self.cards.iter().enumerate().skip(10) {
             let Some(package) = globals
                 .card_packages
                 .package_or_fallback(namespace, &card.package_id)

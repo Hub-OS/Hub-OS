@@ -34,6 +34,8 @@ unnecessary_to_owned = "allow"
 nonminimal_bool = "allow"
 # unit structs may eventually gain properties
 default_constructed_unit_structs = "allow"
+# we want to allow functions returning a bool to use guard statements without needing to rewrite the final guard on adjustments
+needless_bool = "allow"
 
 [workspace.dependencies]
 rollback_mlua = { git = "https://github.com/Hub-OS/rollback-mlua" }
