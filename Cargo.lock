@@ -324,17 +324,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b75356056920673b02621b35afd0f7dda9306d03c79a30f5c56c44cf256e3de"
 
 [[package]]
-name = "async-trait"
-version = "0.1.89"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9035ad2d096bed7955a320ee7e2230574d28fd3c3a0f186cbea1ff3c7eed5dbb"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.117",
-]
-
-[[package]]
 name = "atomic-waker"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -619,12 +608,6 @@ dependencies = [
  "wasm-bindgen",
  "windows-link",
 ]
-
-[[package]]
-name = "chunky-vec"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb7bdea464ae038f09197b82430b921c53619fc8d2bcaf7b151013b3ca008017"
 
 [[package]]
 name = "clap"
@@ -1076,15 +1059,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0e9c71c2167ca323c882b99918929403426e2373ea17242ff5653e0d5e1058be"
 
 [[package]]
-name = "elsa"
-version = "1.11.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9abf33c656a7256451ebb7d0082c5a471820c31269e49d807c538c252352186e"
-dependencies = [
- "stable_deref_trait",
-]
-
-[[package]]
 name = "enum-map"
 version = "2.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1237,22 +1211,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "fluent-fallback"
-version = "0.7.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38637647e8853f0bae81ffb20f53b2b3b60fec70ab30ad8a84583682fc02629b"
-dependencies = [
- "async-trait",
- "chunky-vec",
- "fluent-bundle",
- "futures",
- "once_cell",
- "pin-cell",
- "rustc-hash 2.1.2",
- "unic-langid",
-]
-
-[[package]]
 name = "fluent-langneg"
 version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1268,21 +1226,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d5439a5e4ef14dc761bfe1d6ecbc4ba6fd698814ee65e7e623fa85aa9348dcc"
 dependencies = [
  "icu_locid",
-]
-
-[[package]]
-name = "fluent-resmgr"
-version = "0.0.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5579ef08073c77fe7622558d04d56fa548419c81dfd31d549eb5dff9102cc0c3"
-dependencies = [
- "elsa",
- "fluent-bundle",
- "fluent-fallback",
- "futures",
- "rustc-hash 2.1.2",
- "thiserror 2.0.20",
- "unic-langid",
 ]
 
 [[package]]
@@ -1433,7 +1376,6 @@ checksum = "8b147ee9d1f6d097cef9ce628cd2ee62288d963e16fb287bd9286455b241382d"
 dependencies = [
  "futures-channel",
  "futures-core",
- "futures-executor",
  "futures-io",
  "futures-sink",
  "futures-task",
@@ -1455,17 +1397,6 @@ name = "futures-core"
 version = "0.3.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7e3450815272ef58cec6d564423f6e755e25379b217b0bc688e295ba24df6b1d"
-
-[[package]]
-name = "futures-executor"
-version = "0.3.32"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "baf29c38818342a3b26b5b923639e7b1f4a61fc5e76102d4b1981c6dc7a7579d"
-dependencies = [
- "futures-core",
- "futures-task",
- "futures-util",
-]
 
 [[package]]
 name = "futures-io"
@@ -1777,7 +1708,6 @@ dependencies = [
  "field_count",
  "flate2",
  "fluent-langneg 0.14.2",
- "fluent-resmgr",
  "fluent-templates",
  "flume",
  "framework",
@@ -3089,12 +3019,6 @@ name = "percent-encoding"
 version = "2.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b4f627cb1b25917193a259e49bdad08f671f8d9708acfd5fe0a8c1455d87220"
-
-[[package]]
-name = "pin-cell"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e1f4c4ebd3c5f82080164b7d9cc8e505cd9536fda8c750b779daceb4b7180a7b"
 
 [[package]]
 name = "pin-project-lite"
