@@ -522,9 +522,7 @@ impl From<&str> for Config {
         }
 
         if let Some(properties) = ini.section(Some("Controller")) {
-            config.controller_index = properties
-                .get("ControllerIndex")
-                .and_then(|s| s.parse().ok());
+            config.controller_index = properties.get("Index").and_then(|s| s.parse().ok());
 
             for input in Input::iter() {
                 let input_string = format!("{input:?}");
@@ -686,9 +684,9 @@ impl std::fmt::Display for Config {
         writeln!(f, "[Controller]")?;
 
         if let Some(i) = self.controller_index {
-            writeln!(f, "ControllerIndex = {i}")?;
+            writeln!(f, "Index = {i}")?;
         } else {
-            writeln!(f, "ControllerIndex = Auto")?;
+            writeln!(f, "Index = Auto")?;
         }
 
         for input in Input::iter() {
