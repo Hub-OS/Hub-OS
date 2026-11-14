@@ -89,6 +89,7 @@ pub struct ConfigScene {
     textbox: Textbox,
     doorstop_key: Option<TextboxDoorstopKey>,
     config: Rc<RefCell<Config>>,
+    controller_index_backup: Option<usize>,
     key_bindings_backup: HashMap<Input, Vec<Key>>,
     opened_virtual_controller_editor: bool,
     next_scene: NextScene,
@@ -112,6 +113,7 @@ impl ConfigScene {
 
         // config
         let config = globals.config.clone();
+        let controller_index_backup = config.controller_index;
         let key_bindings_backup = config.key_bindings.clone();
         let config = Rc::new(RefCell::new(config));
 
@@ -164,6 +166,7 @@ impl ConfigScene {
             textbox: Textbox::new_navigation(game_io),
             doorstop_key: None,
             config,
+            controller_index_backup,
             key_bindings_backup,
             opened_virtual_controller_editor: false,
             next_scene: NextScene::None,
@@ -859,8 +862,11 @@ impl ConfigScene {
                         .cloned()
                         .unwrap_or_default()
                 },
-                |_, mut config, value| {
+                |game_io, mut config, value| {
                     config.controller_index = *value;
+
+                    let globals = Globals::from_resources_mut(game_io);
+                    globals.config.controller_index = *value;
                 },
             )),
             #[cfg(target_os = "android")]
@@ -1243,6 +1249,7 @@ impl ConfigScene {
                         let mut new_config = self.config.borrow_mut();
 
                         // input
+                        config.controller_index = self.controller_index_backup;
                         config.key_bindings = self.key_bindings_backup.clone();
 
                         // new config actually works as a backup for virtual input,
@@ -1385,7 +1392,10 @@ impl ConfigScene {
         let globals = Globals::from_resources(game_io);
         let config = self.config.borrow();
 
-        if *config == globals.config && self.key_bindings_backup == config.key_bindings {
+        if *config == globals.config
+            && self.key_bindings_backup == config.key_bindings
+            && self.controller_index_backup == config.controller_index
+        {
             // no changes, no need to ask if we should save
             let _ = self.event_sender.send(Event::Leave { save: false });
 
