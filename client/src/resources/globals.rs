@@ -117,6 +117,7 @@ impl Globals {
         game_io.set_post_process_enabled::<PostProcessColorBlindness>(enable_color_blindness);
 
         let translations = Translations::new(&config);
+        let network = Network::new(&args, config.disconnect_grace_time);
 
         Self {
             config,
@@ -170,7 +171,7 @@ impl Globals {
             emulated_input: EmulatedInput::default(),
 
             // networking
-            network: Network::new(&args),
+            network,
             connected_to_server: false,
 
             // debug

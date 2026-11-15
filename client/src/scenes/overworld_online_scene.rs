@@ -213,6 +213,7 @@ impl OverworldOnlineScene {
             Reliability::ReliableOrdered,
             ClientPacket::NetplayPreferences {
                 force_relay: globals.config.force_relay,
+                disconnect_grace_time: globals.config.disconnect_grace_time,
             },
         );
     }

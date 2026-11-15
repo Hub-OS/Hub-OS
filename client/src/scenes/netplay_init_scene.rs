@@ -421,6 +421,7 @@ impl NetplayInitScene {
             NetplayPacketData::HelloAck
             | NetplayPacketData::HolesPunched
             | NetplayPacketData::Heartbeat
+            | NetplayPacketData::Recovery { .. }
             | NetplayPacketData::Pong { .. } => {
                 // response unnecessary
             }

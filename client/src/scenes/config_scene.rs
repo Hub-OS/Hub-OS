@@ -285,6 +285,21 @@ impl ConfigScene {
         vec![
             create_button("config-change-nickname-label", Event::RequestNicknameChange),
             create_button("config-sync-data-label", Event::SyncData),
+            Box::new(
+                UiConfigNumber::new_detailed(
+                    game_io,
+                    "config-disconnect-grace-time-label",
+                    Some("config-disconnect-grace-time-value"),
+                    config.borrow().disconnect_grace_time,
+                    config.clone(),
+                    Box::new(|_, mut config, value| {
+                        config.disconnect_grace_time = value;
+                    }),
+                )
+                .with_lower_bound(packets::MIN_DISCONNECT_GRACE_TIME)
+                .with_upper_bound(packets::MAX_DISCONNECT_GRACE_TIME)
+                .with_value_step(5),
+            ),
             Box::new(UiConfigCycle::new(
                 game_io,
                 "config-relay-label",
@@ -1243,6 +1258,9 @@ impl ConfigScene {
                         globals.config = new_config.clone();
                         globals.config.virtual_input_positions = virtual_input_positions;
                         globals.config.save();
+                        globals
+                            .network
+                            .set_disconnect_grace_time(globals.config.disconnect_grace_time);
                     } else {
                         // reapply previous config
                         let config = &mut globals.config;

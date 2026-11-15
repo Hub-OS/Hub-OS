@@ -30,6 +30,8 @@ config-clear-cache-already-empty = Cache is already empty.
 config-clear-cache-error = Failed to clear cache.
 config-clear-cache-connected-error = You should jack out before clearing cache.
 config-input-delay-label = Input Delay
+config-disconnect-grace-time-label = DC Grace Time
+config-disconnect-grace-time-value = { $value }s
 config-relay-label = Use Relay
 config-package-update-check-on-launch = Update Scan
 

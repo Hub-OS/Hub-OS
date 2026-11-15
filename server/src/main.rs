@@ -25,7 +25,7 @@ fn main() {
     let args = args::Args::parse();
 
     let config = net::ServerConfig {
-        max_silence_duration: 5.0,
+        max_silence_duration: packets::CONNECTION_TIMEOUT.as_secs_f32(),
         heartbeat_rate: 0.5,
         args,
     };

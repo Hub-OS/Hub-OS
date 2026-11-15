@@ -118,6 +118,7 @@ pub enum ClientPacket {
     },
     NetplayPreferences {
         force_relay: bool,
+        disconnect_grace_time: u8,
     },
     BattleMessage {
         message: String,

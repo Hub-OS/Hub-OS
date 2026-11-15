@@ -2,10 +2,18 @@ use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 use std::time::Duration;
 
 pub const VERSION_ID: &str = "Hub OS";
-pub const VERSION_ITERATION: u64 = 103;
+pub const VERSION_ITERATION: u64 = 105;
 pub const SERVER_TICK_RATE_F: f32 = 1.0 / 20.0; // 1 / 20 of a second
 pub const SERVER_TICK_RATE: Duration = Duration::from_millis(50); // 1 / 20 of a second
 pub const MAX_IDLE_DURATION: Duration = Duration::from_secs(1);
+/// Allow temporary packet loss without discarding the reliable connection.
+pub const CONNECTION_TIMEOUT: Duration = Duration::from_secs(20);
+pub const MIN_DISCONNECT_GRACE_TIME: u8 = 5;
+pub const MAX_DISCONNECT_GRACE_TIME: u8 = 120;
+
+pub fn disconnect_grace_duration(seconds: u8) -> Duration {
+    Duration::from_secs(seconds.clamp(MIN_DISCONNECT_GRACE_TIME, MAX_DISCONNECT_GRACE_TIME) as u64)
+}
 
 pub const MULTICAST_V4: Ipv4Addr = Ipv4Addr::new(224, 0, 2, 88);
 pub const MULTICAST_PORT: u16 = 7878;

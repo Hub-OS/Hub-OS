@@ -94,6 +94,7 @@ pub struct Config {
     pub input_delay: u8,
     pub auto_sprint: bool,
     // preferences
+    pub disconnect_grace_time: u8,
     pub characters_remember_last_deck: bool,
     // online
     pub force_relay: bool,
@@ -144,6 +145,7 @@ impl Config {
             input_delay: DEFAULT_INPUT_DELAY,
             auto_sprint: false,
             // preferences
+            disconnect_grace_time: packets::CONNECTION_TIMEOUT.as_secs() as u8,
             characters_remember_last_deck: true,
             // online
             force_relay: false,
@@ -563,6 +565,14 @@ impl From<&str> for Config {
         }
 
         if let Some(properties) = ini.section(Some("Preferences")) {
+            config.disconnect_grace_time = parse_or(
+                properties.get("DisconnectGraceTime"),
+                packets::CONNECTION_TIMEOUT.as_secs() as u8,
+            )
+            .clamp(
+                packets::MIN_DISCONNECT_GRACE_TIME,
+                packets::MAX_DISCONNECT_GRACE_TIME,
+            );
             config.characters_remember_last_deck =
                 parse_or(properties.get("CharactersRememberLastDeck"), true);
         } else {
@@ -713,6 +723,7 @@ impl std::fmt::Display for Config {
         }
 
         writeln!(f, "[Preferences]")?;
+        writeln!(f, "DisconnectGraceTime = {}", self.disconnect_grace_time)?;
         writeln!(
             f,
             "CharactersRememberLastDeck = {}",
@@ -737,5 +748,41 @@ impl std::fmt::Display for Config {
         )?;
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod disconnect_grace_tests {
+    use super::Config;
+
+    #[test]
+    fn disconnect_grace_defaults_for_existing_and_invalid_configs() {
+        for text in [
+            "",
+            "[Preferences]\nCharactersRememberLastDeck = true",
+            "[Preferences]\nDisconnectGraceTime = invalid",
+        ] {
+            assert_eq!(Config::from(text).disconnect_grace_time, 20);
+        }
+    }
+
+    #[test]
+    fn disconnect_grace_clamps_values_to_menu_bounds() {
+        assert_eq!(
+            Config::from("[Preferences]\nDisconnectGraceTime = 0").disconnect_grace_time,
+            5
+        );
+        assert_eq!(
+            Config::from("[Preferences]\nDisconnectGraceTime = 255").disconnect_grace_time,
+            120
+        );
+    }
+
+    #[test]
+    fn disconnect_grace_survives_save_and_reload() {
+        let mut config = Config::default();
+        config.disconnect_grace_time = 45;
+        let saved = config.to_string();
+        assert_eq!(Config::from(saved.as_str()).disconnect_grace_time, 45);
     }
 }

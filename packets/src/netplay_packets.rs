@@ -91,6 +91,19 @@ pub enum NetplayPacketData {
         message: PeerSyncMessage<usize>,
         buffer: Option<LostPeerBuffer>,
     },
+    Recovery {
+        episode: u64,
+        phase: RecoveryPhase,
+        input_count: usize,
+    },
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Serialize, Deserialize)]
+pub enum RecoveryPhase {
+    Waiting,
+    Countdown,
+    Ready,
+    Resumed,
 }
 
 impl NetplayPacket {
@@ -100,6 +113,7 @@ impl NetplayPacket {
             NetplayPacketData::Heartbeat
                 | NetplayPacketData::Ping { .. }
                 | NetplayPacketData::Pong { .. }
+                | NetplayPacketData::Recovery { .. }
         ) {
             Reliability::Reliable
         } else {
@@ -113,6 +127,7 @@ impl NetplayPacket {
             NetplayPacketData::Buffer { .. }
                 | NetplayPacketData::Ping { .. }
                 | NetplayPacketData::Pong { .. }
+                | NetplayPacketData::Recovery { .. }
         )
     }
 

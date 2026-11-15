@@ -11,7 +11,7 @@ use packets::{
 use std::collections::HashMap;
 use std::future::Future;
 use std::net::{Ipv6Addr, SocketAddr, SocketAddrV6, UdpSocket};
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicU8, AtomicUsize, Ordering};
 use std::sync::{Arc, OnceLock};
 use std::time::Duration;
 
@@ -23,7 +23,6 @@ pub type SyncDataPacketSender = Arc<dyn Fn(Reliability, SyncDataPacket) + Send +
 pub type SyncDataPacketReceiver = flume::Receiver<SyncDataPacket>;
 pub type MulticastReceiver = flume::Receiver<(SocketAddr, MulticastPacket)>;
 
-const DISCONNECT_AFTER: Duration = Duration::from_secs(5);
 const TICK_RATE: Duration = SERVER_TICK_RATE;
 const TPS: usize = (1.0 / SERVER_TICK_RATE_F) as _;
 
@@ -52,6 +51,7 @@ enum Event {
 
 #[derive(Default)]
 pub struct NetworkDetails {
+    disconnect_grace_time: AtomicU8,
     local_address: OnceLock<String>,
     per_sec_up: AtomicUsize,
     per_sec_down: AtomicUsize,
@@ -89,10 +89,13 @@ pub struct Network {
 }
 
 impl Network {
-    pub fn new(args: &Args) -> Self {
+    pub fn new(args: &Args, disconnect_grace_time: u8) -> Self {
         let (sender, receiver) = flume::unbounded();
 
         let network_details = Arc::new(NetworkDetails::default());
+        network_details
+            .disconnect_grace_time
+            .store(disconnect_grace_time, Ordering::Relaxed);
 
         // multicast listener
         std::thread::spawn({
@@ -151,6 +154,12 @@ impl Network {
     // Resolved when outgoing multicast packets are read
     pub fn details(&self) -> &NetworkDetails {
         &self.network_details
+    }
+
+    pub fn set_disconnect_grace_time(&self, seconds: u8) {
+        self.network_details
+            .disconnect_grace_time
+            .store(seconds, Ordering::Relaxed);
     }
 
     pub fn subscribe_to_netplay(
@@ -736,12 +745,17 @@ impl EventListener {
     }
 
     fn handle_disconnections(&mut self, now: Instant) {
+        let disconnect_after = packets::disconnect_grace_duration(
+            self.network_details
+                .disconnect_grace_time
+                .load(Ordering::Relaxed),
+        );
         let disconnected: Vec<_> = self
             .connections
             .iter()
             .map(|(_, connection)| connection)
             .filter(|connection| {
-                now - connection.packet_receiver.last_receive_time() >= DISCONNECT_AFTER
+                now - connection.packet_receiver.last_receive_time() >= disconnect_after
             })
             .map(|connection| connection.socket_addr)
             .collect();

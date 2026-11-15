@@ -16,6 +16,7 @@ struct Connection {
     pub socket_address: SocketAddr,
     pub client_id: Option<ActorId>,
     pub netplay_index: usize,
+    pub disconnect_grace_time: Option<std::time::Duration>,
     pub packet_sender: PacketSender<PacketChannels>,
     pub server_comm_channel: ChannelSender<PacketChannels>,
     pub server_channel: ChannelSender<PacketChannels>,
@@ -40,6 +41,7 @@ impl Connection {
             socket_address,
             client_id: None,
             netplay_index: 0,
+            disconnect_grace_time: None,
             packet_sender,
             server_comm_channel,
             server_channel,
@@ -146,6 +148,13 @@ impl PacketOrchestrator {
 
     pub fn take_packet_receivers(&mut self) -> Vec<(SocketAddr, PacketReceiver<PacketChannels>)> {
         std::mem::take(&mut self.pending_receivers)
+    }
+
+    pub fn set_disconnect_grace_time(&mut self, socket_address: SocketAddr, seconds: u8) {
+        if let Some(index) = self.connection_map.get(&socket_address) {
+            self.connections[*index].disconnect_grace_time =
+                Some(packets::disconnect_grace_duration(seconds));
+        }
     }
 
     pub fn register_client(&mut self, socket_address: SocketAddr, id: ActorId) {
@@ -591,7 +600,10 @@ impl PacketOrchestrator {
     }
 
     pub fn tick(&mut self) -> Vec<Boot> {
-        let now = packets::Instant::now();
+        self.tick_at(packets::Instant::now())
+    }
+
+    fn tick_at(&mut self, now: packets::Instant) -> Vec<Boot> {
         let mut kick_list = Vec::new();
 
         for connection in self.connections.values_mut() {
@@ -601,7 +613,12 @@ impl PacketOrchestrator {
 
             let last_message = connection.packet_sender.last_receive_time();
 
-            if (now - last_message).as_secs_f32() > self.server_config.max_silence_duration {
+            let disconnect_after = connection
+                .disconnect_grace_time
+                .map(|duration| duration.as_secs_f32())
+                .unwrap_or(self.server_config.max_silence_duration);
+
+            if (now - last_message).as_secs_f32() > disconnect_after {
                 kick_list.push(Boot {
                     socket_address: connection.socket_address,
                     reason: String::from("packet silence"),
@@ -722,7 +739,7 @@ mod tests {
     use super::*;
 
     fn create_orchestrator() -> PacketOrchestrator {
-        let socket = UdpSocket::bind("127.0.0.1:7370").unwrap();
+        let socket = UdpSocket::bind("127.0.0.1:0").unwrap();
         socket.take_error().unwrap();
 
         let config = ServerConfig {
@@ -743,6 +760,28 @@ mod tests {
         };
 
         PacketOrchestrator::new(Rc::new(socket), Rc::new(config))
+    }
+
+    #[test]
+    fn disconnect_grace_is_applied_per_connection() {
+        let mut orchestrator = create_orchestrator();
+        let short: SocketAddr = "127.0.0.1:3001".parse().unwrap();
+        let long: SocketAddr = "127.0.0.1:3002".parse().unwrap();
+        for addr in [short, long] {
+            orchestrator.create_connection(addr);
+        }
+        orchestrator.set_disconnect_grace_time(short, 5);
+        orchestrator.set_disconnect_grace_time(long, 60);
+
+        let now = packets::Instant::now();
+        let kicked = orchestrator.tick_at(now + std::time::Duration::from_secs(10));
+        assert_eq!(kicked.len(), 1);
+        assert_eq!(kicked[0].socket_address, short);
+        assert!(orchestrator.connection_map.contains_key(&long));
+
+        let kicked = orchestrator.tick_at(now + std::time::Duration::from_secs(61));
+        assert_eq!(kicked.len(), 1);
+        assert_eq!(kicked[0].socket_address, long);
     }
 
     #[test]

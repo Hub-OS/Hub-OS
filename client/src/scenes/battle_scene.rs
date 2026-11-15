@@ -19,12 +19,7 @@ use std::sync::Arc;
 const SLOW_COOLDOWN: FrameTime = INPUT_BUFFER_LIMIT as FrameTime;
 const DEFAULT_LEAD_TOLERANCE: u8 = 2;
 const PING_RATE: Duration = Duration::from_secs(1);
-
-// Clients with disconnected inputs wait for peers to send the LostPeer signal
-// to avoid causing disconnects when the connection issue is with a peer that doesn't influence game state
-//
-// So we have a special connection timeout for the case where we lose a peer that no one else has
-const FAILSAFE_CONNECTION_TIMEOUT: Duration = Duration::from_secs(15);
+const RECOVERY_STALL_DEBOUNCE: Duration = Duration::from_millis(500);
 
 pub enum BattleEvent {
     Description(Arc<str>),
@@ -40,7 +35,9 @@ struct PlayerController {
     input_connected: bool,
     ping_start_time: Instant,
     pong_received: bool,
+    last_packet_received: Instant,
     buffer: PlayerInputBuffer,
+    total_inputs: usize,
     buffer_history: RunLengthDeque<NetplayBufferItem>,
     history_base_time: usize,
     lead_tolerance: u8,
@@ -87,6 +84,10 @@ pub struct BattleScene {
     player_controllers: Vec<PlayerController>,
     local_index: Option<usize>,
     slow_cooldown: FrameTime,
+    connection_wait_deadline: Option<Instant>,
+    disconnect_grace_time: Duration,
+    recovery: BattleRecovery,
+    input_stall_started: Option<Instant>,
     resimulating: bool,
     already_snapped: bool,
     playback: Option<Playback>,
@@ -196,7 +197,9 @@ impl BattleScene {
                 input_connected: connected,
                 ping_start_time: Instant::now(),
                 pong_received: true,
+                last_packet_received: Instant::now(),
                 buffer: setup.buffer.clone(),
+                total_inputs: setup.buffer.len(),
                 buffer_history: Default::default(),
                 history_base_time: 0,
                 lead_tolerance: DEFAULT_LEAD_TOLERANCE,
@@ -245,6 +248,14 @@ impl BattleScene {
             player_controllers,
             local_index,
             slow_cooldown: 0,
+            connection_wait_deadline: None,
+            disconnect_grace_time: packets::disconnect_grace_duration(
+                Globals::from_resources(game_io)
+                    .config
+                    .disconnect_grace_time,
+            ),
+            recovery: BattleRecovery::default(),
+            input_stall_started: None,
             resimulating: false,
             already_snapped: false,
             playback,
@@ -577,11 +588,16 @@ impl BattleScene {
     ) {
         let index = packet.index;
 
+        if let Some(controller) = self.player_controllers.get_mut(index) {
+            controller.last_packet_received = frame_start_instant;
+        }
+
         match packet.data {
             NetplayPacketData::Buffer { data, frame_time } => {
                 self.process_buffer_signals(index, &data);
 
                 if let Some(controller) = self.player_controllers.get_mut(index) {
+                    controller.total_inputs += 1;
                     controller.buffer.push_last(data);
 
                     // mimicking packet_sender.rs
@@ -684,6 +700,18 @@ impl BattleScene {
 
                 log::debug!("Peer {index} ({label}): {status}");
             }
+            NetplayPacketData::Recovery {
+                episode,
+                phase,
+                input_count,
+            } => {
+                if index != self.comms.local_index
+                    && self.comms.connection_states.peer_fully_connected(index)
+                {
+                    self.recovery
+                        .receive(index, episode, phase, input_count, frame_start_instant);
+                }
+            }
             NetplayPacketData::Heartbeat => {}
             data => {
                 // note: some packets are handled in BattleComms directly
@@ -741,39 +769,6 @@ impl BattleScene {
             #[cfg(debug_assertions)]
             println!("- slowing down");
             self.slow_cooldown = SLOW_COOLDOWN;
-        }
-    }
-
-    fn resolve_stallers(&mut self) {
-        let Some(local_index) = self.local_index else {
-            return;
-        };
-
-        let Some(local_controller) = self.player_controllers.get(local_index) else {
-            return;
-        };
-
-        if !local_controller.input_connected {
-            return;
-        }
-
-        for (i, controller) in self.player_controllers.iter_mut().enumerate() {
-            if !controller.buffer.is_empty() {
-                // not stalling us
-                continue;
-            }
-
-            if !controller.recommended_disconnect.insert(local_index) {
-                // already recommended
-                continue;
-            }
-
-            log::debug!(
-                "Stalled by ({i}) {}, internally recommending disconnecting this player to other clients",
-                controller.nickname
-            );
-            self.pending_signals
-                .push(NetplaySignal::RecommendDisconnect(i));
         }
     }
 
@@ -849,6 +844,7 @@ impl BattleScene {
 
         // update local buffer
         local_controller.buffer.push_last(data.clone());
+        local_controller.total_inputs += 1;
 
         self.comms.broadcast(NetplayPacketData::Buffer {
             data,
@@ -868,7 +864,7 @@ impl BattleScene {
             if !controller.pong_received {
                 // waiting for pong
 
-                if now - controller.ping_start_time < FAILSAFE_CONNECTION_TIMEOUT {
+                if now - controller.last_packet_received < self.disconnect_grace_time {
                     // seems like it's been a normal amount of time so we'll just continue
                     continue;
                 }
@@ -1353,24 +1349,90 @@ impl BattleScene {
         self.resimulate(game_io, resimulation_time);
     }
 
+    fn update_recovery(&mut self) -> bool {
+        if !self.recovery.has_started() {
+            return false;
+        }
+        let now = Instant::now();
+        let participants: Vec<_> = (0..self.player_controllers.len())
+            .filter(|&i| {
+                i != self.comms.local_index && self.comms.connection_states.peer_fully_connected(i)
+            })
+            .collect();
+
+        let received_inputs: Vec<_> = self
+            .player_controllers
+            .iter()
+            .map(|controller| controller.total_inputs)
+            .collect();
+        self.recovery.tick(now, &participants, &received_inputs);
+        if let Some((episode, phase)) = self.recovery.outgoing(now, &participants) {
+            let input_count = self
+                .player_controllers
+                .get(self.comms.local_index)
+                .map(|controller| controller.total_inputs)
+                .unwrap_or_default();
+            self.comms.broadcast(NetplayPacketData::Recovery {
+                episode,
+                phase,
+                input_count,
+            });
+        }
+        self.connection_wait_deadline = self
+            .recovery
+            .waiting_since()
+            .map(|started| started + self.disconnect_grace_time);
+        if self
+            .connection_wait_deadline
+            .is_some_and(|deadline| now >= deadline)
+        {
+            for &i in &participants {
+                if self.recovery.waiting_for(i, now, received_inputs[i]) {
+                    self.comms.begin_disconnect_sync(i);
+                }
+            }
+        }
+        self.recovery.active()
+    }
+
     fn core_update(&mut self, game_io: &mut GameIO) {
         let mut input_util = InputUtil::new(game_io);
 
+        // Intentional recovery pauses use their own heartbeat/ready barrier.
+        // Missing gameplay inputs during these pauses are expected, not a new
+        // outage. Keep handling packets and pings in update() throughout.
+        if self.playback.is_none() && self.update_recovery() {
+            self.input_stall_started = None;
+            return;
+        }
+
         let mut can_simulate = if self.playback.is_some() {
-            // simulate as long as we have input
             self.remaining_replay_buffer() > 0
         } else {
-            // simulate as long as we can roll back to the synced time
-            let can_simulate = self.simulation.time
-                < self.synced_time + INPUT_BUFFER_LIMIT as FrameTime
-                || self.input_synced();
-
-            if !can_simulate {
-                self.resolve_stallers();
-            }
-
-            can_simulate
+            self.simulation.time < self.synced_time + INPUT_BUFFER_LIMIT as FrameTime
+                || self.input_synced()
         };
+
+        if self.playback.is_none() && !self.is_offline() && !can_simulate {
+            let now = Instant::now();
+            let started = *self.input_stall_started.get_or_insert(now);
+            // Brief jitter, including the first input packets after the ready
+            // barrier, must not start another three-second pause immediately.
+            let debounce = self
+                .comms
+                .rtts
+                .iter()
+                .copied()
+                .fold(RECOVERY_STALL_DEBOUNCE, |delay, rtt| {
+                    delay.max(Duration::from_secs_f32(rtt.max(0.0) * 2.0))
+                });
+            if now - started >= debounce {
+                self.recovery.begin(now);
+                self.update_recovery();
+            }
+        } else {
+            self.input_stall_started = None;
+        }
 
         if self.debug.frame_by_frame {
             if input_util.was_just_pressed(Input::RewindFrame) && self.playback.is_none() {
@@ -1512,7 +1574,9 @@ impl Scene for BattleScene {
 
     fn update(&mut self, game_io: &mut GameIO) {
         if self.playback.is_none() {
-            self.update_textbox(game_io);
+            if !self.recovery.active() {
+                self.update_textbox(game_io);
+            }
             self.handle_packets(game_io);
             self.handle_server_messages();
             self.try_ping();
@@ -1624,6 +1688,56 @@ impl Scene for BattleScene {
 
         if let Some(input) = self.simulation.inputs.get(local_player_index) {
             self.input_display.draw(game_io, &mut sprite_queue, input);
+        }
+
+        // Draw above battle UI without using a modal textbox: the countdown must
+        // keep updating while simulation and textbox interactions are paused.
+        let connection_message = if let Some(deadline) = self.connection_wait_deadline {
+            let remaining = deadline
+                .saturating_duration_since(Instant::now())
+                .as_secs_f32()
+                .ceil() as u64;
+            Some([
+                String::from("connection dropped, waiting to reconnect..."),
+                format!("completely disconnecting after {remaining} seconds"),
+            ])
+        } else if let Some(remaining) = self.recovery.countdown_remaining(Instant::now()) {
+            let countdown = if remaining == 0 {
+                self.recovery.mark_go_displayed(Instant::now());
+                String::from("go!")
+            } else {
+                remaining.to_string()
+            };
+            Some([
+                String::from("Connection re-established!"),
+                format!("get ready! {countdown}"),
+            ])
+        } else {
+            None
+        };
+
+        if let Some(lines) = connection_message {
+            use crate::render::ui::{FontName, TextStyle};
+
+            self.resources
+                .draw_fade_sprite(&mut sprite_queue, Color::new(0.0, 0.0, 0.0, 0.85));
+
+            let mut style = TextStyle::new(game_io, FontName::Thin);
+            style.shadow_color = TEXT_DARK_SHADOW_COLOR;
+            let width = lines
+                .iter()
+                .map(|line| style.measure(line).size.x)
+                .fold(1.0_f32, f32::max);
+            // Keep the requested wording on exactly two lines at native 240x160.
+            style.scale = Vec2::splat(((RESOLUTION_F.x - 12.0) / width).min(1.0));
+            let line_height = style.line_height();
+
+            for (i, line) in lines.iter().enumerate() {
+                let size = style.measure(line).size;
+                style.bounds.x = (RESOLUTION_F.x - size.x) * 0.5;
+                style.bounds.y = RESOLUTION_F.y * 0.5 + (i as f32 - 1.0) * line_height;
+                style.draw(game_io, &mut sprite_queue, line);
+            }
         }
 
         render_pass.consume_queue(sprite_queue);

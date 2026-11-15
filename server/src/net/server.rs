@@ -632,7 +632,13 @@ impl Server {
                         ServerPacket::SelectionAck,
                     );
                 }
-                ClientPacket::NetplayPreferences { force_relay } => {
+                ClientPacket::NetplayPreferences {
+                    force_relay,
+                    disconnect_grace_time,
+                } => {
+                    self.packet_orchestrator
+                        .borrow_mut()
+                        .set_disconnect_grace_time(socket_address, disconnect_grace_time);
                     if let Some(client) = net.get_client_mut(player_id) {
                         client.force_relay = force_relay;
                     }
