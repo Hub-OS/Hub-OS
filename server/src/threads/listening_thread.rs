@@ -49,16 +49,12 @@ async fn listen_loop(
             }
             wrapped_packet = async_socket.recv_from(&mut buf).fuse() => {
                 if should_drop(config.args.receiving_drop_rate) {
-                    // this must come after the recv_from
                     continue;
                 }
 
-                let (number_of_bytes, socket_address) = match wrapped_packet {
-                    Ok((number_of_bytes, socket_address)) => (number_of_bytes, socket_address),
-                    _ => {
-                        // don't bring down the whole server over one "connection"
-                        continue;
-                    }
+                let Ok((number_of_bytes, socket_address)) = wrapped_packet else {
+                    // don't bring down the whole server over one "connection"
+                    continue;
                 };
 
                 let filled_buf = &buf[..number_of_bytes];
