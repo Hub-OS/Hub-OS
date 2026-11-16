@@ -636,8 +636,6 @@ impl EventListener {
                 );
             }
             PacketChannels::Server => {
-                let mut pending_server_removal = Vec::new();
-
                 for message in messages {
                     let server_packet: ServerPacket = match deserialize(&message) {
                         Ok(server_packet) => server_packet,
@@ -650,17 +648,9 @@ impl EventListener {
                         }
                     };
 
-                    for (i, sender) in connection.server_subscribers.iter().enumerate() {
-                        if sender.send(server_packet.clone()).is_err()
-                            && !pending_server_removal.contains(&i)
-                        {
-                            pending_server_removal.push(i);
-                        }
-                    }
-                }
-
-                for i in pending_server_removal.into_iter().rev() {
-                    connection.server_subscribers.remove(i);
+                    connection
+                        .server_subscribers
+                        .retain(|sender| sender.send(server_packet.clone()).is_ok());
                 }
             }
             PacketChannels::Netplay => {
@@ -736,21 +726,21 @@ impl EventListener {
     }
 
     fn handle_disconnections(&mut self, now: Instant) {
-        let disconnected: Vec<_> = self
-            .connections
-            .iter()
-            .map(|(_, connection)| connection)
-            .filter(|connection| {
-                now - connection.packet_receiver.last_receive_time() >= DISCONNECT_AFTER
-            })
-            .map(|connection| connection.socket_addr)
-            .collect();
+        self.connections.retain(|_, connection| {
+            let retain = now - connection.packet_receiver.last_receive_time() < DISCONNECT_AFTER;
 
-        for addr in disconnected.into_iter().rev() {
-            let index = self.connection_map.remove(&addr).unwrap();
-            self.connections.remove(index);
-            self.sync_senders_and_receivers.remove(&index);
-        }
+            if retain {
+                return true;
+            }
+
+            let addr = connection.socket_addr;
+
+            if let Some(index) = self.connection_map.remove(&addr) {
+                self.sync_senders_and_receivers.remove(&index);
+            }
+
+            false
+        });
 
         // remove dead subscribers
         for (_, connection) in &mut self.connections {
