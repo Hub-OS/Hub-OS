@@ -69,7 +69,7 @@ dependencies = [
 [[package]]
 name = "android"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#a03d875acf28c7574c550cac57d0a08076038b96"
+source = "git+https://github.com/Hub-OS/framework#e2f356914d907bae832c997badf4a65ba8466a7a"
 dependencies = [
  "android-activity",
  "jni 0.22.4",
@@ -106,7 +106,7 @@ checksum = "fc7eb209b1518d6bb87b283c20095f5228ecda460da70b44f0802523dea6da04"
 [[package]]
 name = "android_game_loop"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#a03d875acf28c7574c550cac57d0a08076038b96"
+source = "git+https://github.com/Hub-OS/framework#e2f356914d907bae832c997badf4a65ba8466a7a"
 dependencies = [
  "android",
  "android-activity",
@@ -582,7 +582,7 @@ checksum = "f079e83a288787bcd14a6aea84cee5c87a67c5a3e660c30f557a3d24761b3527"
 [[package]]
 name = "cfg_macros"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#a03d875acf28c7574c550cac57d0a08076038b96"
+source = "git+https://github.com/Hub-OS/framework#e2f356914d907bae832c997badf4a65ba8466a7a"
 
 [[package]]
 name = "chacha20"
@@ -1327,7 +1327,7 @@ checksum = "d8866fac38f53fc87fa3ae1b09ddd723e0482f8fa74323518b4c59df2c55a00a"
 [[package]]
 name = "framework"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#a03d875acf28c7574c550cac57d0a08076038b96"
+source = "git+https://github.com/Hub-OS/framework#e2f356914d907bae832c997badf4a65ba8466a7a"
 dependencies = [
  "android_game_loop",
  "cfg_macros",
@@ -1342,7 +1342,7 @@ dependencies = [
 [[package]]
 name = "framework_core"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#a03d875acf28c7574c550cac57d0a08076038b96"
+source = "git+https://github.com/Hub-OS/framework#e2f356914d907bae832c997badf4a65ba8466a7a"
 dependencies = [
  "anyhow",
  "async-executor",
@@ -1987,7 +1987,7 @@ dependencies = [
 [[package]]
 name = "input"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#a03d875acf28c7574c550cac57d0a08076038b96"
+source = "git+https://github.com/Hub-OS/framework#e2f356914d907bae832c997badf4a65ba8466a7a"
 dependencies = [
  "math",
  "strum 0.25.0",
@@ -2258,7 +2258,7 @@ checksum = "5e5032e24019045c762d3c0f28f5b6b8bbf38563a65908389bf7978758920897"
 [[package]]
 name = "logging"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#a03d875acf28c7574c550cac57d0a08076038b96"
+source = "git+https://github.com/Hub-OS/framework#e2f356914d907bae832c997badf4a65ba8466a7a"
 dependencies = [
  "backtrace",
  "cfg_macros",
@@ -2300,7 +2300,7 @@ dependencies = [
 [[package]]
 name = "math"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#a03d875acf28c7574c550cac57d0a08076038b96"
+source = "git+https://github.com/Hub-OS/framework#e2f356914d907bae832c997badf4a65ba8466a7a"
 dependencies = [
  "bytemuck",
  "glam",
@@ -3594,7 +3594,7 @@ dependencies = [
 [[package]]
 name = "sdl3_game_loop"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#a03d875acf28c7574c550cac57d0a08076038b96"
+source = "git+https://github.com/Hub-OS/framework#e2f356914d907bae832c997badf4a65ba8466a7a"
 dependencies = [
  "anyhow",
  "framework_core",
@@ -4701,7 +4701,7 @@ dependencies = [
 [[package]]
 name = "wasm_forward"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#a03d875acf28c7574c550cac57d0a08076038b96"
+source = "git+https://github.com/Hub-OS/framework#e2f356914d907bae832c997badf4a65ba8466a7a"
 dependencies = [
  "js-sys",
  "wasm-bindgen",

@@ -73,7 +73,7 @@ fn resolve_data_path(game_path: &str, args: &Args) -> String {
     }
 }
 
-//  returns the parent folder, migrates the data folder if it's found in an old location
+// returns the parent folder, migrates the data folder if it's found in an old location
 fn resolve_and_migrate_windows_data_dir() -> Option<std::path::PathBuf> {
     let mut saved_games_path = dirs_next::home_dir()?;
     saved_games_path.push("Saved Games");
