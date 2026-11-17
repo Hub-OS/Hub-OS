@@ -34,6 +34,8 @@ fn resolve_game_path() -> String {
     ResourcePaths::clean_folder(&game_path.to_string_lossy())
 }
 
+const DEFAULT_DATA_DIR_NAME: &str = "Hub OS";
+
 fn resolve_data_path(game_path: &str, args: &Args) -> String {
     if let Some(path) = &args.data_folder {
         // use folder from arg
@@ -49,15 +51,16 @@ fn resolve_data_path(game_path: &str, args: &Args) -> String {
     } else {
         // use shared folder
         let shared_path = if cfg!(target_os = "windows") {
-            dirs_next::document_dir().map(|d| d.join("My Games"))
+            resolve_and_migrate_windows_data_dir()
         } else {
             dirs_next::data_dir()
         };
 
         if let Some(path) = shared_path {
             // canonicalize to capture the existing capitalization
-            let path = std::fs::canonicalize(&path).unwrap_or(path);
-            let path = path.join("Hub OS");
+            let mut path = std::fs::canonicalize(&path).unwrap_or(path);
+            path.push(DEFAULT_DATA_DIR_NAME);
+
             let data_path = ResourcePaths::clean_folder(&path.to_string_lossy());
 
             let _ = std::fs::create_dir_all(&data_path);
@@ -68,4 +71,31 @@ fn resolve_data_path(game_path: &str, args: &Args) -> String {
             game_path.to_string()
         }
     }
+}
+
+//  returns the parent folder, migrates the data folder if it's found in an old location
+fn resolve_and_migrate_windows_data_dir() -> Option<std::path::PathBuf> {
+    let mut saved_games_path = dirs_next::home_dir()?;
+    saved_games_path.push("Saved Games");
+
+    if let Some(mut my_games_path) = dirs_next::document_dir() {
+        my_games_path.push("My Games");
+
+        let full_my_games_path = my_games_path.join(DEFAULT_DATA_DIR_NAME);
+
+        // making a copy with the folder name appended
+        let full_saved_games_path = saved_games_path.join(DEFAULT_DATA_DIR_NAME);
+
+        // migrate old data
+        let migrate_result = std::fs::rename(&full_my_games_path, &full_saved_games_path);
+
+        // see if migration failed, if it did, just use the old path
+        let exists = |p| std::fs::exists(p).is_ok_and(|v| v);
+
+        if migrate_result.is_err() && exists(full_my_games_path) && !exists(full_saved_games_path) {
+            return Some(my_games_path);
+        }
+    }
+
+    Some(saved_games_path)
 }
