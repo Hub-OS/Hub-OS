@@ -234,8 +234,7 @@ impl BattleVmManager {
     }
 
     pub fn print_memory_usage(&self) {
-        const NAMESPACE_WIDTH: usize = 10;
-        const MEMORY_WIDTH: usize = 11;
+        use structures::debug::{PrintTableColumn, print_table};
 
         let mut vms_sorted: Vec<_> = self.vms.iter().collect();
         vms_sorted.sort_by_cached_key(|vm| {
@@ -244,47 +243,28 @@ impl BattleVmManager {
             (used_memory + unused_memory, used_memory)
         });
 
-        let package_id_width = vms_sorted
-            .iter()
-            .map(|vm| vm.package_id.as_str().len())
-            .max()
-            .unwrap_or_default()
-            .max(10);
-
-        // margin + header
-        println!(
-            "\n| Namespace  | Package ID{:1$} | Used Memory | Free Memory |",
-            " ",
-            package_id_width - 10
+        print_table(
+            || vms_sorted.iter(),
+            &[
+                PrintTableColumn::<&&RollbackVM>::new(
+                    "Namespace",
+                    |_| 10,
+                    |s, _, vm| match vm.preferred_namespace() {
+                        PackageNamespace::RecordingServer => write!(s, "RecServer"),
+                        ns => write!(s, "{ns:?}"),
+                    },
+                ),
+                PrintTableColumn::<&&RollbackVM>::new_str("Package ID", |vm| {
+                    vm.package_id.as_str()
+                }),
+                PrintTableColumn::<&&RollbackVM>::new_usize("Used Memory", |vm| {
+                    vm.lua.used_memory()
+                }),
+                PrintTableColumn::<&&RollbackVM>::new_usize("Unused Memory", |vm| {
+                    vm.lua.unused_memory().unwrap_or_default()
+                }),
+            ],
         );
-
-        // border
-        println!(
-            "| {:-<NAMESPACE_WIDTH$} | {:-<package_id_width$} | {:-<MEMORY_WIDTH$} | {:-<MEMORY_WIDTH$} |",
-            "", "", "", ""
-        );
-
-        // list
-        for vm in vms_sorted {
-            // todo: maybe we should list every namespace in a compressed format
-            // ex: [RecordingServer, Server, Local, Netplay(0)] -> R S L 0
-            let ns = vm.preferred_namespace();
-            let ns_string = match ns {
-                PackageNamespace::RecordingServer => String::from("RecServer"),
-                _ => format!("{ns:?}"),
-            };
-
-            println!(
-                "| {:NAMESPACE_WIDTH$} | {:package_id_width$} | {:MEMORY_WIDTH$} | {:MEMORY_WIDTH$} |",
-                ns_string,
-                vm.package_id,
-                vm.lua.used_memory(),
-                vm.lua.unused_memory().unwrap()
-            );
-        }
-
-        // margin
-        println!();
     }
 }
 

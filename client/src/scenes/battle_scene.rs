@@ -1274,6 +1274,26 @@ impl BattleScene {
 
         if game_io.input().was_key_just_pressed(Key::I) {
             self.debug.draw_player_indices = !self.debug.draw_player_indices;
+
+            use structures::debug::{PrintTableColumn, print_table};
+
+            type T<'a> = (usize, &'a PlayerController);
+
+            print_table::<T, _>(
+                || self.player_controllers.iter().enumerate(),
+                &[
+                    PrintTableColumn::<T>::new_usize("#", |(i, _)| *i),
+                    PrintTableColumn::<T>::new_str("Name", |(_, controller)| &controller.nickname),
+                    PrintTableColumn::<T>::new_checkmark("Local", "✓", |(i, _)| {
+                        self.simulation.local_player_index == *i
+                    }),
+                    PrintTableColumn::<T>::new_checkmark(
+                        "Input Connected",
+                        "✓",
+                        |(_, controller)| controller.input_connected,
+                    ),
+                ],
+            );
         }
     }
 
