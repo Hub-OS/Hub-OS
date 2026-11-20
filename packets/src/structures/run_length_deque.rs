@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 
-#[derive(Default, PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, PartialEq, Eq, Clone, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct RunLengthDeque<T> {
     queue: VecDeque<(T, usize)>,
@@ -136,5 +136,11 @@ impl<T: Clone> RunLengthDeque<T> {
         } else {
             Some(item.clone())
         }
+    }
+}
+
+impl<T: std::fmt::Debug> std::fmt::Debug for RunLengthDeque<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Debug::fmt(&self.queue, f)
     }
 }

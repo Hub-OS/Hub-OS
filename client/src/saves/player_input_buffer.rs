@@ -3,7 +3,7 @@ use packets::NetplayBufferItem;
 use packets::structures::RunLengthDeque;
 use serde::{Deserialize, Serialize};
 
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerInputBuffer {
     buffer: RunLengthDeque<NetplayBufferItem>,
     len: usize,
