@@ -1287,11 +1287,17 @@ impl BattleScene {
                     PrintTableColumn::<T>::new_checkmark("Local", "✓", |(i, _)| {
                         self.simulation.local_player_index == *i
                     }),
-                    PrintTableColumn::<T>::new_checkmark(
-                        "Input Connected",
-                        "✓",
-                        |(_, controller)| controller.input_connected,
-                    ),
+                    if self.playback.is_some() {
+                        PrintTableColumn::<T>::new_usize("Buffer Len", |(_, controller)| {
+                            controller.buffer.len()
+                        })
+                    } else {
+                        PrintTableColumn::<T>::new_checkmark(
+                            "Input Connected",
+                            "✓",
+                            |(_, controller)| controller.input_connected,
+                        )
+                    },
                 ],
             );
         }
