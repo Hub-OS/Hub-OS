@@ -683,7 +683,14 @@ impl NetplayInitScene {
     }
 
     fn broadcast_package_list(&mut self, game_io: &GameIO) {
-        let player_setup = PlayerSetup::from_globals(game_io);
+        let Some(props) = &self.battle_props else {
+            return;
+        };
+
+        let Some(player_setup) = props.meta.player_setups.iter().find(|setup| setup.local) else {
+            return;
+        };
+
         let globals = Globals::from_resources(game_io);
 
         let packages = globals
@@ -701,16 +708,16 @@ impl NetplayInitScene {
         self.broadcast(NetplayPacketData::PackageList { packages });
 
         self.broadcast(NetplayPacketData::PlayerSetup {
-            player_package: player_setup.package_id,
+            player_package: player_setup.package_id.clone(),
             script_enabled: player_setup.script_enabled,
-            cards: (player_setup.deck.cards.into_iter())
+            cards: (player_setup.deck.cards.iter().cloned())
                 .map(|card| (card.package_id, card.code))
                 .collect(),
-            recipes: player_setup.recipes,
+            recipes: player_setup.recipes.clone(),
             regular_card: player_setup.deck.regular_index,
-            blocks: player_setup.blocks,
-            drives: player_setup.drives,
-            memories: player_setup.memories,
+            blocks: player_setup.blocks.clone(),
+            drives: player_setup.drives.clone(),
+            memories: player_setup.memories.clone(),
             input_delay: player_setup.buffer.delay(),
         })
     }
