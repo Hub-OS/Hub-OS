@@ -54,6 +54,9 @@ pub enum NetplayPacketData {
     Status {
         status: String,
     },
+    InputDelay {
+        input_delay: usize,
+    },
     PlayerSetup {
         player_package: PackageId,
         script_enabled: bool,

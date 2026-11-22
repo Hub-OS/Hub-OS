@@ -440,6 +440,11 @@ impl NetplayInitScene {
 
                 log::debug!("Peer {index} ({label}): {status}");
             }
+            NetplayPacketData::InputDelay { input_delay } => {
+                let setup = &mut connection.player_setup;
+                setup.buffer.clear();
+                setup.buffer.set_delay(input_delay);
+            }
             NetplayPacketData::PlayerSetup {
                 player_package,
                 script_enabled,
@@ -682,7 +687,8 @@ impl NetplayInitScene {
         self.spectating = config.spectators.contains(&self.local_index);
     }
 
-    fn broadcast_package_list(&mut self, game_io: &GameIO) {
+    // spectators should be identified before calling this to reduce data sent
+    fn broadcast_setup(&mut self, game_io: &GameIO) {
         let Some(props) = &self.battle_props else {
             return;
         };
@@ -690,6 +696,14 @@ impl NetplayInitScene {
         let Some(player_setup) = props.meta.player_setups.iter().find(|setup| setup.local) else {
             return;
         };
+
+        if self.spectating {
+            // spectators only need to share input delay
+            self.broadcast(NetplayPacketData::InputDelay {
+                input_delay: player_setup.buffer.delay(),
+            });
+            return;
+        }
 
         let globals = Globals::from_resources(game_io);
 
@@ -874,10 +888,7 @@ impl NetplayInitScene {
                 if identified_spectators || !game_io.is_in_transition() {
                     self.stage.advance();
                     self.identify_spectators(game_io);
-
-                    if !self.spectating {
-                        self.broadcast_package_list(game_io);
-                    }
+                    self.broadcast_setup(game_io);
                 }
             }
             ConnectionStage::SharingPackageList => {
