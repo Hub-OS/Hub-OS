@@ -709,8 +709,6 @@ CommandProcessing.register_commands({
       -- read server path arg
       local server_path, _, server_path_end = CommandProcessing.read_optionally_quoted(event.command, subcommand_end + 1)
 
-      server_path = server_path and CommandProcessing.trim(server_path)
-
       if not server_path then
         Net.warn_to(event.player_id, 'Missing asset path')
         return
@@ -746,6 +744,60 @@ CommandProcessing.register_commands({
         Net.print_to(event.player_id, Net.get_asset_type(server_path))
       elseif subcommand == "hash" then
         Net.print_to(event.player_id, Net.get_asset_hash(server_path))
+      else
+        Net.warn_to(event.player_id, 'Invalid subcommand "' .. subcommand .. '"')
+      end
+    end
+  },
+  restrictions = {
+    usage = {
+      "apply <player> <server_path>",
+      "clear <player>"
+    },
+    description = "Applies a restriction file to players",
+    callback = function(event)
+      local _, _, command_end = CommandProcessing.read_word(event.command)
+
+      local subcommand, _, subcommand_end = CommandProcessing.read_word(event.command, command_end + 1)
+
+      if not subcommand then
+        Net.warn_to(event.player_id, 'Missing subcommand')
+      end
+
+      local player_list, _, sel_end = CommandProcessing.process_selector(event.command, subcommand_end + 1)
+
+      if not player_list then
+        Net.warn_to(event.player_id, "Missing player selector")
+        return
+      end
+
+      if subcommand == "apply" then
+        local server_path = CommandProcessing.read_optionally_quoted(event.command, sel_end + 1)
+
+        if not server_path then
+          Net.warn_to(event.player_id, 'Missing asset path')
+          return
+        end
+
+        local total_players = 0
+
+        for _, player_id in ipairs(player_list) do
+          if Net.is_player(player_id) then
+            Net.set_player_restrictions(player_id, server_path)
+            total_players = total_players + 1
+          end
+        end
+
+        Net.print_to(event.player_id, "Cleared restrictions for " .. total_players .. " players")
+      elseif subcommand == "clear" then
+        local total_players = 0
+
+        for _, player_id in ipairs(player_list) do
+          Net.set_player_restrictions(player_id)
+          total_players = total_players + 1
+        end
+
+        Net.print_to(event.player_id, "Cleared restrictions for " .. total_players .. " players")
       else
         Net.warn_to(event.player_id, 'Invalid subcommand "' .. subcommand .. '"')
       end
