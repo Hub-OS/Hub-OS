@@ -238,6 +238,42 @@ CommandProcessing.register_commands({
       Net.print_to(event.player_id, "Teleported " .. #actor_list .. " actors")
     end
   },
+  ["emote"] = {
+    usage = { "<from_actor> <to_actor> <emote>" },
+    description = "Causes actors to perform an emote",
+    callback = function(event)
+      local _, _, command_end = CommandProcessing.read_word(event.command)
+
+      local from_list, _, from_end = CommandProcessing.process_selector(event.command, command_end + 1)
+
+      if not from_list or not from_end then
+        Net.warn_to(event.player_id, "Missing from selector")
+        return
+      end
+
+      local to_list, _, to_end = CommandProcessing.process_selector(event.command, from_end + 1)
+
+      if not to_list or not to_end then
+        Net.warn_to(event.player_id, "Missing to selector")
+        return
+      end
+
+      local emote = CommandProcessing.read_optionally_quoted(event.command, to_end + 1)
+
+      if not emote then
+        Net.warn_to(event.player_id, "Missing emote")
+        return
+      end
+
+      Net.synchronize(function()
+        for _, from_id in ipairs(from_list) do
+          for _, to_id in ipairs(to_list) do
+            Net.exclusive_actor_emote_for_player(to_id, from_id, emote)
+          end
+        end
+      end)
+    end
+  },
   ["kick"] = {
     usage = { "<player> [<reason>]" },
     description = "Kicks players from the server",
@@ -619,6 +655,92 @@ CommandProcessing.register_commands({
       end
 
       Net.print_to(event.player_id, "Messaged " .. total_messaged .. " players")
+    end
+  },
+  assets = {
+    usage = {
+      "list [<substring>]",
+      "load <server_path> [<file_path>]",
+      "unload <server_path>",
+      "size <server_path>",
+      "type <server_path>",
+      "hash <server_path>",
+    },
+    description = "Loads and unloads assets",
+    callback = function(event)
+      local _, _, command_end = CommandProcessing.read_word(event.command)
+
+      local subcommand, _, subcommand_end = CommandProcessing.read_word(event.command, command_end + 1)
+
+      if not subcommand then
+        Net.warn_to(event.player_id, 'Missing subcommand')
+      end
+
+      -- special check for the list command, as it doesn't use <server_path>
+      if subcommand == "list" then
+        local list = Net.list_assets()
+        local filter = CommandProcessing.read_optionally_quoted(event.command, subcommand_end + 1)
+        local total_matches = 0
+
+        for _, path in ipairs(list) do
+          if not filter or path:find(filter, nil, true) then
+            Net.print_to(event.player_id, path)
+            total_matches = total_matches + 1
+          end
+        end
+
+        if #list == 0 then
+          Net.print_to(event.player_id, "No assets loaded")
+        elseif filter and total_matches then
+          Net.print_to(event.player_id, total_matches .. " assets matched")
+        end
+
+        return
+      end
+
+      -- read server path arg
+      local server_path, _, server_path_end = CommandProcessing.read_optionally_quoted(event.command, subcommand_end + 1)
+
+      server_path = server_path and CommandProcessing.trim(server_path)
+
+      if not server_path then
+        Net.warn_to(event.player_id, 'Missing asset path')
+        return
+      end
+
+      -- process subcommands
+      if subcommand == "load" then
+        local file_path = CommandProcessing.read_optionally_quoted(event.command, server_path_end + 1)
+
+        if not file_path then
+          local SERVER_PREFIX = "/server/"
+
+          if server_path:sub(1, #SERVER_PREFIX) ~= SERVER_PREFIX then
+            Net.warn_to(event.player_id, 'Invalid file path')
+            return
+          end
+
+          file_path = server_path:sub(#SERVER_PREFIX + 1)
+        end
+
+        Net.print_to(event.player_id, 'Updating "' .. server_path .. '"...')
+
+        Async.read_file(file_path).and_then(function(contents)
+          Net.update_asset(server_path, contents)
+          Net.print_to(event.player_id, 'Updated "' .. server_path .. '"')
+        end)
+      elseif subcommand == "unload" then
+        Net.remove_asset(server_path)
+        Net.print_to(event.player_id, 'Removed "' .. server_path .. '"')
+      elseif subcommand == "size" then
+        Net.print_to(event.player_id, Net.get_asset_size(server_path))
+      elseif subcommand == "type" then
+        Net.print_to(event.player_id, Net.get_asset_type(server_path))
+      elseif subcommand == "hash" then
+        Net.print_to(event.player_id, Net.get_asset_hash(server_path))
+      else
+        Net.warn_to(event.player_id, 'Invalid subcommand "' .. subcommand .. '"')
+      end
     end
   },
   stop = {

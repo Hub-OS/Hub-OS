@@ -123,6 +123,10 @@ impl AssetManager {
         log::warn!("{message}")
     }
 
+    pub fn assets(&self) -> impl Iterator<Item = (&str, &Asset)> {
+        self.assets.iter().map(|(key, asset)| (key.as_str(), asset))
+    }
+
     pub fn get_asset(&self, path: &str) -> Option<&Asset> {
         self.assets.get(path)
     }

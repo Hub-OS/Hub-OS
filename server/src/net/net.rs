@@ -102,6 +102,10 @@ impl Net {
         }
     }
 
+    pub fn assets(&self) -> impl Iterator<Item = (&str, &Asset)> {
+        self.asset_manager.assets()
+    }
+
     pub fn get_asset(&self, path: &str) -> Option<&Asset> {
         self.asset_manager.get_asset(path)
     }

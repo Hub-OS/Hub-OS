@@ -3,6 +3,15 @@ use crate::net::{Asset, AssetData};
 use packets::structures::ActorId;
 
 pub fn inject_dynamic(lua_api: &mut LuaApi) {
+    lua_api.add_dynamic_function("Net", "list_assets", |api_ctx, lua, _| {
+        let net = api_ctx.net_ref.borrow();
+
+        let paths = net.assets().map(|(key, _)| key);
+        let table = lua.create_sequence_from(paths);
+
+        lua.pack_multi(table)
+    });
+
     lua_api.add_dynamic_function("Net", "update_asset", |api_ctx, lua, params| {
         let (path, data): (String, mlua::LuaString) = lua.unpack_multi(params)?;
 
