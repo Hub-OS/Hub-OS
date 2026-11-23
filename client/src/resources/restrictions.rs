@@ -47,7 +47,7 @@ impl Default for Restrictions {
 }
 
 impl Restrictions {
-    pub fn clear(&mut self) {
+    pub fn clear_base(&mut self) {
         self.hash_whitelist.clear();
         self.id_whitelist.clear();
         self.namespace_whitelist.clear();
@@ -57,13 +57,12 @@ impl Restrictions {
         self.base_deck_restrictions = DeckRestrictions::default();
         self.blocks_enabled = true;
         self.drives_enabled = true;
-        self.owned_cards.clear();
-        self.owned_blocks.clear();
-        self.owned_players.clear();
+
+        // ownership is excluded from what we consider the base restrictions
     }
 
     pub fn load_restrictions_toml(&mut self, text: String) {
-        self.clear();
+        self.clear_base();
 
         let mut root_table: toml::Table = text.parse().unwrap_or_else(|err| {
             log::error!("Failed to parse restrictions: {err}");
@@ -101,86 +100,89 @@ impl Restrictions {
             _ => None,
         });
 
-        let file_hash_set_mapper = |mut value: toml::Value| {
-            value.as_array_mut().map(|array| {
-                let values = std::mem::take(array);
+        let append_file_hashes_to_set =
+            |hash_set: &mut HashSet<FileHash>, mut value: toml::Value| {
+                let mut value_array = value.as_array_mut();
+                let iter = value_array.iter_mut().flat_map(|array| {
+                    let values = std::mem::take(*array);
 
-                values
-                    .into_iter()
-                    .flat_map(|value| value.as_str().and_then(FileHash::from_hex))
-                    .collect::<HashSet<FileHash>>()
-            })
-        };
+                    values
+                        .into_iter()
+                        .flat_map(|value| value.as_str().and_then(FileHash::from_hex))
+                });
 
-        let id_hash_set_mapper = |mut value: toml::Value| {
-            value.as_array_mut().map(|array| {
-                let values = std::mem::take(array);
+                hash_set.extend(iter);
+            };
+
+        let append_ids_to_set = |hash_set: &mut HashSet<PackageId>, mut value: toml::Value| {
+            let mut value_array = value.as_array_mut();
+            let iter = value_array.iter_mut().flat_map(|array| {
+                let values = std::mem::take(*array);
 
                 values
                     .into_iter()
                     .flat_map(|value| value.as_str().map(PackageId::from))
-                    .collect::<HashSet<PackageId>>()
-            })
+            });
+
+            hash_set.extend(iter);
         };
 
-        let string_hash_set_mapper = |mut value: toml::Value| {
-            value.as_array_mut().map(|array| {
-                let values = std::mem::take(array);
+        let append_strings_to_set = |hash_set: &mut HashSet<String>, mut value: toml::Value| {
+            let mut value_array = value.as_array_mut();
+            let iter = value_array.iter_mut().flat_map(|array| {
+                let values = std::mem::take(*array);
 
                 values
                     .into_iter()
                     .flat_map(|value| value.as_str().map(String::from))
-                    .collect::<HashSet<String>>()
-            })
+            });
+
+            hash_set.extend(iter);
         };
 
-        let string_vec_mapper = |mut value: toml::Value| {
-            value.as_array_mut().map(|array| {
-                let values = std::mem::take(array);
+        let append_strings_to_vec = |list: &mut Vec<String>, mut value: toml::Value| {
+            let mut value_array = value.as_array_mut();
+            let iter = value_array.iter_mut().flat_map(|array| {
+                let values = std::mem::take(*array);
 
                 values
                     .into_iter()
                     .flat_map(|value| value.as_str().map(String::from))
-                    .collect::<Vec<String>>()
-            })
+            });
+
+            list.extend(iter);
         };
 
         if let Some(mut packages_table) = packages_table {
             // packages.hash_whitelist
-            self.hash_whitelist = packages_table
-                .remove("hash_whitelist")
-                .and_then(file_hash_set_mapper)
-                .unwrap_or_default();
+            if let Some(value) = packages_table.remove("hash_whitelist") {
+                append_file_hashes_to_set(&mut self.hash_whitelist, value);
+            }
 
             // packages.id_whitelist
-            self.id_whitelist = packages_table
-                .remove("id_whitelist")
-                .and_then(id_hash_set_mapper)
-                .unwrap_or_default();
+            if let Some(value) = packages_table.remove("id_whitelist") {
+                append_ids_to_set(&mut self.id_whitelist, value);
+            }
 
             // packages.namespace_whitelist
-            self.namespace_whitelist = packages_table
-                .remove("namespace_whitelist")
-                .and_then(string_vec_mapper)
-                .unwrap_or_default();
+            if let Some(value) = packages_table.remove("namespace_whitelist") {
+                append_strings_to_vec(&mut self.namespace_whitelist, value);
+            }
 
             // packages.tag_whitelist
-            self.tag_blacklist = packages_table
-                .remove("tag_whitelist")
-                .and_then(string_hash_set_mapper)
-                .unwrap_or_default();
+            if let Some(value) = packages_table.remove("tag_whitelist") {
+                append_strings_to_set(&mut self.tag_whitelist, value);
+            }
 
             // packages.id_blacklist
-            self.id_blacklist = packages_table
-                .remove("id_blacklist")
-                .and_then(id_hash_set_mapper)
-                .unwrap_or_default();
+            if let Some(value) = packages_table.remove("id_blacklist") {
+                append_ids_to_set(&mut self.id_blacklist, value);
+            }
 
             // packages.tag_blacklist
-            self.tag_blacklist = packages_table
-                .remove("tag_blacklist")
-                .and_then(string_hash_set_mapper)
-                .unwrap_or_default();
+            if let Some(value) = packages_table.remove("tag_blacklist") {
+                append_strings_to_set(&mut self.tag_blacklist, value);
+            }
         }
     }
 
