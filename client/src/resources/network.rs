@@ -117,7 +117,7 @@ impl Network {
             );
         }
 
-        let addr = SocketAddrV6::new(Ipv6Addr::UNSPECIFIED, args.port, 0, 0);
+        let addr = SocketAddrV6::new(Ipv6Addr::UNSPECIFIED, 0, 0, 0);
         socket.bind(&addr.into()).unwrap();
 
         let socket = Arc::new(UdpSocket::from(socket));
