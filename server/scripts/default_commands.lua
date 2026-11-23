@@ -266,11 +266,19 @@ CommandProcessing.register_commands({
       end
 
       Net.synchronize(function()
-        for _, from_id in ipairs(from_list) do
-          for _, to_id in ipairs(to_list) do
-            Net.exclusive_actor_emote_for_player(to_id, from_id, emote)
+        local total_to = 0
+
+        for _, to_id in ipairs(to_list) do
+          if Net.is_player(to_id) then
+            for _, from_id in ipairs(from_list) do
+              Net.exclusive_actor_emote_for_player(to_id, from_id, emote)
+            end
+
+            total_to = total_to + 1
           end
         end
+
+        Net.print_to(event.player_id, #from_list .. " entities emoted to " .. total_to .. " players")
       end)
     end
   },
