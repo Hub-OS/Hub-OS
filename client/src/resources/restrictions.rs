@@ -47,7 +47,24 @@ impl Default for Restrictions {
 }
 
 impl Restrictions {
+    pub fn clear(&mut self) {
+        self.hash_whitelist.clear();
+        self.id_whitelist.clear();
+        self.namespace_whitelist.clear();
+        self.tag_whitelist.clear();
+        self.id_blacklist.clear();
+        self.tag_blacklist.clear();
+        self.base_deck_restrictions = DeckRestrictions::default();
+        self.blocks_enabled = true;
+        self.drives_enabled = true;
+        self.owned_cards.clear();
+        self.owned_blocks.clear();
+        self.owned_players.clear();
+    }
+
     pub fn load_restrictions_toml(&mut self, text: String) {
+        self.clear();
+
         let mut root_table: toml::Table = text.parse().unwrap_or_else(|err| {
             log::error!("Failed to parse restrictions: {err}");
             toml::Table::default()
