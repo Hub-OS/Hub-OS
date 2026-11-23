@@ -294,6 +294,7 @@ CommandProcessing.register_commands({
         return
       end
 
+      ---@type string?
       local reason = CommandProcessing.trim(event.command:sub(sel_end + 1))
       local display_reason
 
@@ -364,6 +365,7 @@ CommandProcessing.register_commands({
         return
       end
 
+      ---@type string?
       local reason = CommandProcessing.trim(event.command:sub(duration_end + 1))
       local display_reason
       local end_time = os.time() + duration
@@ -422,6 +424,7 @@ CommandProcessing.register_commands({
         return
       end
 
+      ---@type string?
       local reason = CommandProcessing.trim(event.command:sub(sel_end + 1))
       local display_reason
 

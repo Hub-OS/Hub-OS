@@ -1,6 +1,7 @@
 local CommandProcessing = {}
 
 ---@param string string
+---@return string
 function CommandProcessing.trim(string)
   return string:match("^%s*(.-)%s*$") or ""
 end
