@@ -1,0 +1,15 @@
+navigation-option-servers = В сеть
+navigation-option-decks = Папки
+navigation-option-items = Инвентарь
+navigation-option-library = Библиотека
+navigation-option-character-status = Нави
+navigation-option-mail = Почта
+navigation-option-key-items = Предметы
+navigation-option-battle-sim = Симулятор
+navigation-option-config = Настройки
+navigation-health-label = Здоровье
+navigation-quit-question = Выйти из Hub OS?
+navigation-yes = Да
+navigation-no = Нет
+navigation-quit-without-saving-title = Выйти без сохранения?
+navigation-quit-while-saving-question = Сохраняются данные. Все равно выйти?
