@@ -1,0 +1,36 @@
+server-list-scene-title = Список серверов
+server-list-context-menu-label = ПАРАМЕТРЫ
+server-list-context-menu-tip = МЕНЮ
+server-list-option-new = НОВЫЙ
+server-list-option-edit = РЕДАК.
+server-list-option-move = ДВИГ.
+server-list-option-delete = УДАЛИТЬ
+server-list-delete-question = Удалить { $name }?
+server-edit-scene-title = Редактировать сервер
+server-edit-new-scene-title = Новый сервер
+server-edit-save = Сохранить
+server-edit-cancel = Отмена
+server-edit-name-label = ИМЯ
+server-edit-address-label = АДРЕС
+server-offline-message = { $name } не в сети.
+server-behind-message = { $name } на пред. версии. Нужно понизить версию, чтобы подклюючиться.
+server-ahead-message = { $name } на след. версии. Нужно обновиться, чтобы подключиться.
+server-incompatible-message = { $name } несовместим.
+server-generic-behind-message = Сервер на пред. версии. Нужно понизить версию, чтобы подключиться.
+server-generic-ahead-message = Сервер на след. версии. Нужно обновиться, чтобы подключиться.
+server-generic-incompatible-message = Сервер несовместим.
+server-invalid-address-message = Я не смог понять адрес { $name }.
+server-connection-failed = Ошибка подключения.
+server-kicked = Нас кикнули: "{ $reason }"
+server-disconnected =
+    Все зависло.{ "\u0001" }..{ "\u0001" }
+    Кажется, мы отключились.
+server-warp-failed = Следующая локация не в сети...
+server-leave-question = Отключиться?
+emotes-menu-search = ПОИСК
+items-scene-title = Инвентарь
+items-no-items-item = Инвентарь пуст
+items-no-items-description = Ваш инвентарь пуст.
+key-items-scene-title = Предметы
+key-items-no-items-description = У вас нет постоянных предметов.
+shop-leave-question = Заходите еще!
