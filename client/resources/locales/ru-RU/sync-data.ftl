@@ -1,0 +1,16 @@
+sync-data-scene-title = Синхронизация данных
+sync-data-scanning-message = Поиск устройств...
+sync-data-requesting-message = Запрос на синхронизацию...
+sync-data-accept-sync-question = Разрешить синхронизацию с { $name }?
+sync-data-rejected-message = Запрос отменен.
+sync-data-spider-man-pointing-error =
+    Синхронизация отменена.
+    Начните синхронизацию с одного устройства.
+sync-data-disconnect-error = Ошибка соединения.
+sync-data-syncing-message = Синхронизация...
+sync-data-syncing-packages-message = Синхронизация модов...
+sync-data-downloading-package-message = Загрузка модов: { $current }/{ $total }
+sync-data-syncing-save-message = Синхронизация сохранений...
+sync-data-read-remote-save-error = Не удалось скачать облачное сохранение.
+sync-data-cancelled-message = Синхронизация отменена.
+sync-data-complete-message = Синхронизация завершена.
