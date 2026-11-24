@@ -1,0 +1,11 @@
+element-none = Нет
+element-fire = Огонь
+element-aqua = Вода
+element-elec = Элек
+element-wood = Земля
+element-sword = Лезвие
+element-wind = Ветер
+element-cursor = Курсор
+element-summon = Объект
+element-plus = Плюс
+element-break = Металл
