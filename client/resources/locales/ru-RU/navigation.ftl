@@ -1,12 +1,12 @@
 navigation-option-servers = В сеть
 navigation-option-decks = Папки
-navigation-option-items = Инвентарь
-navigation-option-library = Библиотека
+navigation-option-items = Инвентр
+navigation-option-library = Каталог
 navigation-option-character-status = Нави
 navigation-option-mail = Почта
-navigation-option-key-items = Предметы
-navigation-option-battle-sim = Симулятор
-navigation-option-config = Настройки
+navigation-option-key-items = Личное
+navigation-option-battle-sim = Битвы
+navigation-option-config = Конфиг
 navigation-health-label = Здоровье
 navigation-quit-question = Выйти из Hub OS?
 navigation-yes = Да
