@@ -1,15 +1,15 @@
-config-scene-title = Настройки
+config-scene-title = Конфигурация
 config-mods-tab = Моды
 config-preferences-tab = Параметры
 config-video-tab = Графика
 config-audio-tab = Аудио
-config-keyboard-tab = Клавиатура
+config-keyboard-tab = Клвиатура
 config-gamepad-tab = Геймпад
 config-about-tab = О проекте
 config-manage-mods-label = Управление модами
 config-update-mods-label = Обновление модов
 config-resource-mods-label = Моды ресурсов
-config-open-mods-folder-label = Открыть папку с модами
+config-open-mods-folder-label = Откр. папку модов
 config-save-last-battle-label = Сохр. прошлую битву
 config-save-last-battle-question =
     Это сохранит вашу последнюю битву в виде мода.
@@ -17,7 +17,7 @@ config-save-last-battle-question =
 config-save-last-battle-missing = Вам нужно сразиться минимум раз.
 config-save-last-battle-save =
     Начался фоновый процесс по сохранению записи.
-    По завершении она появится с красной обводкой в Симуляторе.
+    По завершении она появится с красной обводкой в Битвах.
 config-no-last-battle = Сохранить прошлую битву?
 config-change-nickname-label = Изменить имя
 config-sync-data-label = Синхр. данные
@@ -104,6 +104,6 @@ config-resource-order-disabled-label = Выкл.
 config-resource-order-context-menu-label = ПАРАМЕТРЫ
 config-resource-order-context-menu-tip = МЕНЮ
 config-resource-order-option-view = ИНФО
-config-resource-order-option-move = ДВИГ.
+config-resource-order-option-move = ДВИГАТЬ
 config-resource-order-save-changes-question = Сохранить изменения?
 config-resource-order-save-complete = Настройки будут применены при следующем запуске.
