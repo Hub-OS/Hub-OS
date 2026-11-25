@@ -1,5 +1,5 @@
 battle-select-scene-title = Выбор битвы
-battle-select-scene-title-selection = Выберите битву: { $name }
+battle-select-scene-title-selection = Выбор битвы: { $name }
 battle-run-question = Сбежать из боя?
 battle-run-disabled-message = Сейчас не время отступать!
 battle-run-success =
