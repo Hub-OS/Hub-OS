@@ -7,7 +7,7 @@ use crate::bindable::{CardClass, EntityId, SpriteColorMode};
 use crate::render::SpriteNode;
 use crate::structures::{GenerationalIndex, SlotMap, Tree, TreeIndex};
 use crate::{CARD_SELECT_CARD_COLS, CARD_SELECT_ROWS};
-use framework::prelude::{GameIO, Vec2};
+use framework::prelude::GameIO;
 use std::sync::Arc;
 
 #[derive(Clone, Copy)]
@@ -185,7 +185,6 @@ impl CardSelectButton {
         sprite_trees: &mut SlotMap<Tree<SpriteNode>>,
         animators: &mut SlotMap<BattleAnimator>,
         pending_callbacks: &mut Vec<BattleCallback>,
-        position: Vec2,
     ) {
         if let Some(sprite_tree) = sprite_trees.get_mut(self.sprite_tree_index) {
             let sprite_node = sprite_tree.root_mut();
@@ -194,8 +193,6 @@ impl CardSelectButton {
             let callbacks = preview_animator.update();
             preview_animator.apply(sprite_node);
             pending_callbacks.extend(callbacks);
-
-            sprite_node.set_offset(position);
         }
     }
 
@@ -204,7 +201,6 @@ impl CardSelectButton {
         sprite_trees: &mut SlotMap<Tree<SpriteNode>>,
         animators: &mut SlotMap<BattleAnimator>,
         pending_callbacks: &mut Vec<BattleCallback>,
-        position: Vec2,
     ) {
         if let Some(sprite_tree) = sprite_trees.get_mut(self.preview_sprite_tree_index) {
             let sprite_node = sprite_tree.root_mut();
@@ -213,8 +209,6 @@ impl CardSelectButton {
             let callbacks = preview_animator.update();
             preview_animator.apply(sprite_node);
             pending_callbacks.extend(callbacks);
-
-            sprite_node.set_offset(position);
         }
     }
 

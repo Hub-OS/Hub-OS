@@ -304,7 +304,8 @@ impl State for CardSelectState {
         let entity_id = simulation.local_player_id;
         let entities = &mut simulation.entities;
 
-        let Ok((player, hand)) = entities.query_one_mut::<(&Player, &PlayerHand)>(entity_id.into())
+        let Ok((player, hand)) =
+            entities.query_one_mut::<(&mut Player, &PlayerHand)>(entity_id.into())
         else {
             return;
         };
@@ -333,10 +334,23 @@ impl State for CardSelectState {
         self.ui.draw_staged_icons(game_io, sprite_queue, hand);
 
         // draw buttons
+        let sprite_trees = &mut simulation.sprite_trees;
+
         if let Some(buttons) = card_buttons {
+            // update positions
+            let card_start_point = self.ui.card_start_point();
+
+            for (col, row, _, button) in CardSelectButton::iter_card_button_slots(buttons) {
+                if let Some(sprite_tree) = sprite_trees.get_mut(button.sprite_tree_index) {
+                    let offset = CardSelectUi::calculate_icon_position(card_start_point, col, row);
+
+                    sprite_tree.root_mut().set_offset(offset);
+                }
+            }
+
+            // draw buttons
             for button in buttons.iter().flatten() {
-                if let Some(sprite_tree) = simulation.sprite_trees.get_mut(button.sprite_tree_index)
-                {
+                if let Some(sprite_tree) = sprite_trees.get_mut(button.sprite_tree_index) {
                     sprite_tree.draw(sprite_queue);
                 }
             }
@@ -345,8 +359,10 @@ impl State for CardSelectState {
         let special_button = PlayerOverridables::special_button_for(player);
 
         if let Some(button) = special_button
-            && let Some(sprite_tree) = simulation.sprite_trees.get_mut(button.sprite_tree_index)
+            && let Some(sprite_tree) = sprite_trees.get_mut(button.sprite_tree_index)
         {
+            let offset = self.ui.special_button_point();
+            sprite_tree.root_mut().set_offset(offset);
             sprite_tree.draw(sprite_queue);
         }
 
@@ -432,7 +448,11 @@ impl State for CardSelectState {
                     if let Some(button) = button {
                         let index = button.preview_sprite_tree_index;
 
-                        if let Some(sprite_tree) = simulation.sprite_trees.get_mut(index) {
+                        if let Some(sprite_tree) = sprite_trees.get_mut(index) {
+                            let mut preview_position = self.ui.preview_point();
+                            preview_position.x -= CARD_PREVIEW_SIZE.x * 0.5;
+
+                            sprite_tree.root_mut().set_offset(preview_position);
                             sprite_tree.draw(sprite_queue);
                         }
                     }
@@ -1168,21 +1188,11 @@ impl CardSelectState {
         let animators = &mut simulation.animators;
         let pending_callbacks = &mut simulation.pending_callbacks;
 
-        let card_start_point = self.ui.card_start_point();
-
-        let mut preview_position = self.ui.preview_point();
-        preview_position.x -= CARD_PREVIEW_SIZE.x * 0.5;
-
-        let mut update_button = move |selected_item, i, position, button: &mut CardSelectButton| {
-            button.animate_sprite(sprite_trees, animators, pending_callbacks, position);
+        let mut update_button = move |selected_item, i, button: &mut CardSelectButton| {
+            button.animate_sprite(sprite_trees, animators, pending_callbacks);
 
             if selected_item == SelectedItem::Button(i) {
-                button.animate_preview_sprite(
-                    sprite_trees,
-                    animators,
-                    pending_callbacks,
-                    preview_position,
-                );
+                button.animate_preview_sprite(sprite_trees, animators, pending_callbacks);
             }
         };
 
@@ -1192,23 +1202,13 @@ impl CardSelectState {
             let selected_item = resolve_selected_item(player, hand, selection);
 
             if let Some(buttons) = PlayerOverridables::card_button_slots_mut_for(player) {
-                for (col, row, i, button) in CardSelectButton::iter_card_button_slots_mut(buttons) {
-                    update_button(
-                        selected_item,
-                        i,
-                        CardSelectUi::calculate_icon_position(card_start_point, col, row),
-                        button,
-                    );
+                for (_, _, i, button) in CardSelectButton::iter_card_button_slots_mut(buttons) {
+                    update_button(selected_item, i + 1, button);
                 }
             }
 
             if let Some(button) = PlayerOverridables::special_button_mut_for(player) {
-                update_button(
-                    selected_item,
-                    CardSelectButton::SPECIAL_SLOT,
-                    self.ui.special_button_point(),
-                    button,
-                );
+                update_button(selected_item, CardSelectButton::SPECIAL_SLOT, button);
 
                 selection.has_special_button = true;
             }
