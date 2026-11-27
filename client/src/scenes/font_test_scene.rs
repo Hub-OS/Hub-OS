@@ -42,6 +42,11 @@ A タチツテト ラリルレロ
 A ダヂヅデド ワヲヴー
 A ナニヌネノ
 A ン",
+    "\
+АБВГДЕЁЖЗИЙКЛМНОП
+РСТУФХЦЧШЩЪЫЬЭЮЯ
+абвгдеёжзийклмноп
+рстуфхцчшщъыьэюя",
 ];
 
 pub struct FontTestScene {
@@ -88,6 +93,8 @@ impl Scene for FontTestScene {
     }
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
+        const START: Vec2 = Vec2::new(0.0, 2.0);
+
         let mut sprite_queue = SpriteColorQueue::new(game_io, &self.camera, Default::default());
 
         // handle input here to keep it simple
@@ -130,7 +137,8 @@ impl Scene for FontTestScene {
             // start with baseline
             line_sprite.set_color(Color::BLUE);
 
-            let mut position = Vec2::new(0.0, (i + 1) as f32 * line_height - 2.0);
+            let mut position = START;
+            position.y += (i + 1) as f32 * line_height - 2.0;
             line_sprite.set_position(position);
 
             let width = text_style.measure(line).size.x;
@@ -140,14 +148,14 @@ impl Scene for FontTestScene {
 
             // render the top line
             line_sprite.set_color(Color::WHITE.multiply_color(0.3));
-            position.y += -line_height + text_style.line_spacing + 1.0;
+            position.y += -line_height + text_style.line_spacing;
             line_sprite.set_position(position);
 
             sprite_queue.draw_sprite(&line_sprite);
         }
 
         // render text
-        text_style.bounds.set_position(Vec2::new(0.0, 1.0));
+        text_style.bounds.set_position(START);
         text_style.draw(game_io, &mut sprite_queue, text);
 
         // render font name
