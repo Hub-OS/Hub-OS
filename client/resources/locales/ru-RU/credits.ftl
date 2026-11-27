@@ -1,0 +1,16 @@
+credits-heading = Создатели Hub OS
+credits-music = Музыка
+credits-sound-design = Звук
+credits-programmers = Программирование
+credits-graphics = Графика
+credits-user-experience = Пользовательский опыт
+credits-technical-design = Технический дизайн
+credits-localization = Локализация
+credits-testers = Тестировщики
+credits-core-team = Главные разработчики
+credits-special-thanks = Особые благодарности
+credits-roots = Наши корни
+credits-inpsiration = Вдохновлено
+credits-mega-man-battle-network = Mega Man Battle Network
+credits-reach-out-1 = Если вас пропустили,
+credits-reach-out-2 = свяжитесь с нами!
