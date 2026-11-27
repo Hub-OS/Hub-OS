@@ -92,10 +92,23 @@ impl OverworldArea {
         mut animator: Animator,
         position: Vec3,
     ) -> hecs::Entity {
-        animator.set_state("IDLE_D");
+        // default clip in case there's something wrong with the .animation file
+        // intentionally letting it render as garbage to let the player know the image file is loaded
+        // but keeping the size small
+        let mut sprite = Sprite::new(game_io, texture);
+        sprite.set_frame(Rect::new(0.0, 0.0, 48.0, 48.0));
+
+        // default animation state
+        if animator.has_state("IDLE_D") {
+            animator.set_state("IDLE_D");
+        } else {
+            animator.set_state("IDLE_DR");
+        }
+
+        animator.apply(&mut sprite);
 
         entities.spawn((
-            Sprite::new(game_io, texture),
+            sprite,
             animator,
             PlayerMapMarker::new_player(),
             MovementAnimator::new(),
